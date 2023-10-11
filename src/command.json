@@ -1,0 +1,57 @@
+{
+  "version": "v0",
+  "acquisition": 2,
+  "type": "SNR",
+  "id": 0,
+  "name": "AC",
+  "options": {
+    "reconstructor": {
+      "type": "recon",
+      "name": "Sense",
+      "id": 3,
+      "options": {
+        "noise": {
+          "type": "file",
+          "options": {
+            "type": "local",
+            "filename": null,
+            "options": {},
+            "multiraid": true,
+            "vendor": "Siemens"
+          }
+        },
+        "signal": {
+          "type": "file",
+          "options": {
+            "type": "local",
+            "filename": "pmr",
+            "options": {},
+            "multiraid": false,
+            "vendor": "Siemens"
+          }
+        },
+        "sensitivityMap": {
+          "type": "sensitivityMap",
+          "id": 1,
+          "name": "inner",
+          "options": {
+            "sensitivityMapSource": {
+              "type": "file",
+              "options": {
+                "type": "local",
+                "filename": "/youtpath/to/the/file.dat",
+                "options": {}
+              }
+            },
+            "sensitivityMapMethod": "innner"
+          }
+        },
+        "decimate": true,
+        "accelerations": [
+          1,
+          1
+        ]
+      }
+    }
+  }
+}

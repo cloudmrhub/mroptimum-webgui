@@ -1,0 +1,24 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-mroptimum-dev-63243-authRole",
+      "UnauthRoleArn": "arn:aws:iam::469266894233:role/amplify-mroptimum-dev-63243-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::469266894233:role/amplify-mroptimum-dev-63243-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-mroptimum-dev-63243-deployment",
+      "UnauthRoleName": "amplify-mroptimum-dev-63243-unauthRole",
+      "StackName": "amplify-mroptimum-dev-63243",
+      "StackId": "arn:aws:cloudformation:us-east-2:469266894233:stack/amplify-mroptimum-dev-63243/6e519ee0-6561-11ee-bbe0-02411d49236f",
+      "AmplifyAppId": "d3gcplug40jwu1"
+    },
+    "categories": {
+      "hosting": {
+        "S3AndCloudFront": {},
+        "amplifyhosting": {
+          "appId": "d3gcplug40jwu1",
+          "type": "manual"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+:root {
+  --bs-dark-rgb: 0, 0, 0; /* change these values to your preferred RGB color */
+}
+
+.small-margin{
+  margin-left: 25pt;
+  margin-right: 25pt;
+}
+
+.navbar-nav > .active > a {
+  color: white;
+  font-weight: 500;
+}

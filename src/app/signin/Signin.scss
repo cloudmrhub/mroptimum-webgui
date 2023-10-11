@@ -1,0 +1,87 @@
+html,
+body {
+  color: #636b6f;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 200;
+  height: 100vh;
+  margin: 0;
+}
+
+.full-height {
+  height: 100vh;
+}
+
+.flex-center {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.position-ref {
+  position: relative;
+}
+
+.top-right {
+  position: absolute;
+  right: 10px;
+  top: 18px;
+}
+
+.bottom-right {
+  position: absolute;
+  right: 10px;
+  bottom: 18px;
+}
+
+.bottom {
+  position: absolute;
+  bottom: 13px;
+}
+
+.links>a {
+  color: #636b6f;
+  padding: 0 25px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .1rem;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+#welcome{
+  display: grid;
+  width: 420pt;
+  grid-template-columns: 25% 50% 25%;
+  grid-template-rows: fit-content(30%) 0pt 1fr;
+  row-gap: 5px;
+}
+
+#welcome-logo{
+  grid-row: 1;
+  grid-column: 2;
+  width: 90%;
+  display: flex;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  color: #555;
+}
+
+#welcome-login{
+  grid-row: 3;
+  grid-column: 2 / span 1;
+  display: flex;
+  justify-content: center;
+}
+
+#welcome-icon{
+  position:absolute;
+  top:-50pt; /*it pushes away div element from top 30pt down Remember with
+  browser window*/
+  left:0;
+  right:0;
+  /*last three property excatly similar to top property it just pushes away
+  from specified direction*/
+  display: flex;
+}
+

@@ -1,0 +1,22 @@
+$theme-colors: (
+        "info": #4181e1 /* Change to your preferred color */
+);
+@import "~bootstrap/scss/bootstrap";
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.root {
+  height: 100%;
+  overflow: hidden;
+}
+.cmr-root{
+  min-height: 100vh;
+  background-color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+}
+.page-root {
+  background-color: #f8fafc;
+}

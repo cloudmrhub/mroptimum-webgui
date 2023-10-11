@@ -1,0 +1,36 @@
+.select-box {
+  position: relative;
+  outline: none;
+}
+
+.select-box .ant-select {
+  color: #888080;
+  width: 205px;
+  background: #ffffff;
+  box-sizing: border-box;
+  border-radius: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-outline: none;
+  outline: none;
+}
+
+.select-box > .ant-select > .ant-select-selector {
+  border: 1px solid #e5e5e5;
+}
+
+.select-box
+> .ant-select
+> .ant-select-selector
+> .ant-select-selection-placeholder,
+.ant-select-selection-item {
+  font-size: 12px;
+  line-height: 30px;
+  color: #999999;
+  font-weight: normal;
+  letter-spacing: 0.1px;
+}
+
+.select-box > .ant-select > .ant-select-arrow {
+  top: 65%;
+}

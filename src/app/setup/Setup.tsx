@@ -1,0 +1,713 @@
+import React, {Fragment, useEffect, useState} from 'react';
+import './Setup.scss';
+import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
+import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
+import {getUploadedData} from '../../features/data/dataActionCreation';
+import {DATAAPI} from "../../Variables";
+import {useAppDispatch, useAppSelector} from '../../features/hooks';
+import {setupGetters, setupSetters} from '../../features/setup/setupSlice';
+import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
+import CmrLabel from "../../common/components/Cmr-components/label/Label";
+import {Col, Row} from "antd";
+import AddIcon from '@mui/icons-material/Add';
+import {anonymizeTWIX} from '../../common/utilities/file-transformation/anonymize';
+import moment from 'moment';
+
+import {
+    Divider,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
+    Grid,
+    RadioGroup,
+    Radio,
+    InputLabel,
+    Select, MenuItem
+} from "@mui/material";
+import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
+import {
+    DataGrid,
+    GridCellEditStopParams,
+    GridCellEditStopReasons,
+    GridColDef, GridRowId,
+    GridRowSelectionModel,
+    GridRowsProp,
+    MuiEvent
+} from "@mui/x-data-grid";
+import CmrButton from "../../common/components/Cmr-components/button/Button";
+import CmrTable from "../../common/components/CmrTable/CmrTable";
+import CmrInputNumber from "../../common/components/Cmr-components/input-number/InputNumber";
+import {AxiosRequestConfig, AxiosResponse} from "axios";
+import {UploadedFile} from "../../features/data/dataSlice";
+import {formatBytes, getFileExtension} from "../../common/utilities";
+import {boolean} from "mathjs";
+import {Job, jobActions} from "../../features/jobs/jobsSlice";
+import IconButton from "@mui/material/IconButton";
+import EditIcon from "@mui/icons-material/Edit";
+import GetAppIcon from "@mui/icons-material/GetApp";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {useStore} from "react-redux";
+import {SNRPreview} from "./SetupPreviewer";
+import {store} from "../../features/store";
+import {submitJobs} from "../../features/setup/setupActionCreation";
+import {snrDescriptions} from "./SetupDescriptions";
+import Confirmation from '../../common/components/Cmr-components/dialogue/Confirmation';
+import {nv} from "../../common/components/src/Niivue";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
+import downloadStringAsFile from "../../common/utilities/DownloadFromText";
+import { SNREditor } from './SetupEditor';
+
+const Setup = () => {
+    useEffect(() => {
+        //@ts-ignore
+        MathJax.typeset();
+    }, []);
+
+    const dispatch = useAppDispatch();
+    const {accessToken} = useAppSelector((state) => state.authenticate);
+    const editActive = useAppSelector(state=>state.setup.editInProgress);
+    const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
+    const newJobId = useAppSelector((state) => state.setup.idGenerator);
+    const signal = useAppSelector(setupGetters.getSignal);
+    const noise = useAppSelector(setupGetters.getNoise);
+    const multiraid = useAppSelector(setupGetters.getMultiRaid);
+    console.log(multiraid);
+    const uploadedData = useAppSelector((state) => state.data.files);
+    const setSignal = setupSetters.setSignal;
+    const setNoise = setupSetters.setNoise;
+    const [breakpoint, setBreakpoint] = useState('');
+    const analysisMethod = useAppSelector(setupGetters.getAnalysisMethod);
+    console.log(analysisMethod);
+    const [analysisMethodChanged, setAnalysisMethodChanged] = useState(false);
+    const analysisMethodName = useAppSelector(setupGetters.getAnalysisMethodName);
+    const reconstructionMethod = useAppSelector(setupGetters.getReconstructionMethod);
+    const [reconstructionMethodChanged, setReconstructionMethodChanged] = useState(false);
+    const pseudoReplicaCount = useAppSelector(setupGetters.getPseudoReplicaCount);
+    const flipAngleCorrection = useAppSelector(setupGetters.getFlipAngleCorrection);
+    const faMap = useAppSelector(setupGetters.getFlipAngleCorrectionFile);
+    const loadSensitivity = useAppSelector(setupGetters.getLoadSensitivity);
+    const sensitivityMapMethod = useAppSelector(setupGetters.getSensitivityMapMethod);
+    const sensitivityMapSource = useAppSelector(setupGetters.getSensitivityMapSource);
+    const decimateData = useAppSelector(setupGetters.getDecimate);
+    const decimateAccelerations = useAppSelector(setupGetters.getDecimateAccelerations);
+    let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
+    if (analysisMethodChanged) {
+        setTimeout(() => {
+            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+            //@ts-ignore
+            MathJax.typesetPromise();
+        }, 10);
+        setAnalysisMethodChanged(false);
+    }
+
+    if (reconstructionMethodChanged) {
+        setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 10);
+        setReconstructionMethodChanged(false);
+    }
+
+    // Option availability maps
+    const topToSecondaryMaps = [[0, 1, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]];
+    const secondaryToCoilMethodMaps = [[], ['inner'], ['inner', 'innerACL'], []];
+    const idToSecondaryOptions = ['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa'];
+    const coilOptionAlias: { [options: string]: string } = {
+        'inner': 'Internal Reference',
+        'innerACL': 'Internal Reference with AutoCalibration Lines'
+    };
+    const decimateMapping = [false, false, true, true];
+
+    const uploadResHandlerFactory = (reducer:
+                                         (payload: UploadedFile) => {
+                                             payload: UploadedFile,
+                                             type: string
+                                         }, additionalCallbacks?: () => void) => {
+        return (res: AxiosResponse, maskFile: File) => {
+            const submittedDatTime = moment().format('YYYY-MM-DD HH:mm:ss');
+            const uploadedFile: UploadedFile = {
+                id: res.data.id,
+                fileName: res.data.alias,
+                createdAt: submittedDatTime,
+                updatedAt: submittedDatTime,
+                size: formatBytes(maskFile.size),
+                link: res.data.onlineLink,
+                status: res.data.status,
+                md5: res.data.md5,
+                database: res.data.database
+            };
+            dispatch(reducer(uploadedFile));
+            // @ts-ignore
+            dispatch(getUploadedData(accessToken));
+            (additionalCallbacks) &&
+            additionalCallbacks();
+        };
+    };
+
+    const UploadHeaders: AxiosRequestConfig = {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    };
+    const createPayload = async (file: File, fileAlias: string) => {
+        if (file) {
+            const formData = new FormData();
+            formData.append('application', 'MROPTIMUM');
+            formData.append('alias', fileAlias);
+
+            const fileExtension = getFileExtension(file.name);
+
+            if (fileExtension == 'dat') {
+                const transformedFile = await anonymizeTWIX(file);
+                formData.append('file', transformedFile);
+            } else {
+                formData.append('file', file);
+            }
+            return {destination: DATAAPI, formData: formData, config: UploadHeaders};
+        }
+    };
+    useEffect(() => {
+        //@ts-ignore
+        dispatch(getUploadedData(accessToken));
+
+        const updateBreakpoint = () => {
+            if (window.innerWidth < 992) setBreakpoint('md');
+            else if (window.innerWidth < 1200) setBreakpoint('lg');
+            else if (window.innerWidth < 1400) setBreakpoint('xl');
+            else setBreakpoint('xxl');
+        };
+
+        window.addEventListener('resize', updateBreakpoint);
+        updateBreakpoint();
+    }, []);
+
+    const columns: GridColDef[] = [
+        {field: 'type', headerName: 'type', width: 180, editable: false},
+        {
+            field: 'value',
+            headerName: 'value',
+            type: 'number',
+            editable: true,
+            align: 'left',
+            headerAlign: 'left',
+            width: 180
+        }];
+    const rows: GridRowsProp = [
+        {
+            id: 1,
+            type: 'Acceleration factor 1',
+            value: (decimateAccelerations) ? decimateAccelerations[0] : undefined
+        },
+        {
+            id: 2,
+            type: 'Acceleration factor 2',
+            value: (decimateAccelerations) ? decimateAccelerations[1] : undefined
+        },
+        {
+            id: 3,
+            type: 'Autocalibration Lines',
+            value: (decimateAccelerations) ? decimateAccelerations[2] : undefined
+        }];
+    const queuedJobsColumns = [
+        {
+            headerName: 'Job ID',
+            dataIndex: 'id',
+            field: 'id',
+            flex: 1,
+        },
+        {
+            headerName: 'Alias',
+            dataIndex: 'alias',
+            field: 'alias',
+            flex: 3,
+        },
+        {
+            headerName: 'Date Submitted',
+            dataIndex: 'createdAt',
+            field: 'createdAt',
+            flex: 2,
+        },
+        {
+            headerName: 'Status',
+            dataIndex: 'status',
+            field: 'status',
+            flex: 1,
+        },
+        {
+            field: 'options',
+            headerName: 'Options',
+            sortable: false,
+            width: 160,
+            disableClickEventBubbling: true,
+            disableColumnMenu: true,
+            renderHeader: () => {
+                return (
+                    <React.Fragment>
+                        <IconButton onClick={() => {
+                            setSchemaSelector(true);
+                        }}>
+                            <AddIcon fontSize={'medium'} sx={{}}/>
+                        </IconButton>
+                        <div style={{cursor: 'pointer'}} onClick={() => {
+                            setSchemaSelector(true);
+                        }}> Add schema
+                        </div>
+                    </React.Fragment>
+                );
+            },
+            renderCell: (params: any) => {
+                return (
+                    <div>
+                        <IconButton onClick={(e) => {/* Edit logic here */
+                            e.stopPropagation();
+                            let snrPreview = params.row.setup;
+                            setRowId(params.row.id);
+                            setEditContent(JSON.stringify(snrPreview, null, '\t'));
+                            setEditedJSON(snrPreview);
+                            setEditAlias(params.row.alias);
+                        }}>
+                            <EditIcon/>
+                        </IconButton>
+                        <IconButton onClick={(e) => {/* Download logic here */
+                            e.stopPropagation();
+                            let row = params.row;
+                            let setup = row.setup;
+                            let alias = row.alias;
+                            if(alias.split('.').pop()!='json') {
+                                alias = `${alias}.json`;
+                            }
+                            downloadStringAsFile(JSON.stringify(row,undefined,'\t'),alias);
+                        }}>
+                            <GetAppIcon/>
+                        </IconButton>
+                        <IconButton onClick={(e) => {/* Delete logic here */
+                            e.stopPropagation();
+                            setSNRDeleteWarning(`You are about to delete ${params.row.alias}.`);
+                            setSNRDeleteOpen(true);
+                            setSNRDeleteWarningCallback(()=>{
+                                return ()=>dispatch(setupSetters.deleteQueuedJob(params.id));
+                               });
+                        }}>
+                            <DeleteIcon/>
+                        </IconButton>
+                    </div>
+                );
+            },
+        },
+    ];
+
+    const [openPanel, setOpenPanel] = useState((noise != undefined && signal != undefined) ? [2] : [1]);
+    let snr: any = undefined;
+    let [previewContent, setPreview] = useState<string | undefined>(undefined);
+    const [schemaSelector, setSchemaSelector] = useState(false);
+    const [sdWarning, setSDWarning] = useState<string|undefined>();
+    const [sdWarningHeader, setSDWarningHeader] = useState<string>("No Job Selected for Deletion");
+    const [sdOpen, setSDOpen] = useState(false);
+
+    const [snrEditWarning, setSNREditWarning] = useState<string|undefined>();
+    const [snrEditWarningCallback, setSnrEditWarningCallback] = useState<()=>void>(()=>{});
+    const [snrEditOpen, setSNREditOpen] = useState(false);
+
+    const [snrDeleteWarning, setSNRDeleteWarning] = useState<string|undefined>();
+    const [snrDeleteWarningCallback, setSNRDeleteWarningCallback] = useState<()=>void>(()=>{});
+    const [snrDeleteOpen, setSNRDeleteOpen] = useState(false);
+    
+    const [jobSelectionModel, setJobSelectionModel] = useState<GridRowId[]>([]);
+    
+    const [editedJSON, setEditedJSON] = useState<any>();
+    const [editContent, setEditContent] = useState<string | undefined>(undefined);
+    const [editAlias, setEditAlias] = useState<string>('');
+    const [rowId,setRowId] = useState<number>(-1);
+    const [editing, setEditing] = useState<number>(-1);
+    // @ts-ignore
+    return (
+        <Fragment>
+            <CmrCollapse accordion={false} expandIconPosition="right"
+                         activeKey={openPanel} onChange={(key: any) => {
+                console.log(key);
+                setOpenPanel(key)
+            }}>
+                <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
+                    <UploadWindow open={schemaSelector} setOpen={setSchemaSelector} fileExtension={'.json'}
+                                  upload={async (file, fileAlias) => {
+                                      let snr = JSON.parse(await file.text());
+                                      let name = fileAlias;
+                                      setJobSelectionModel([newJobId, ...jobSelectionModel]);
+                                      dispatch(setupSetters.queueSNRJob({snr, name}));
+                                      return 200;
+                                  }} template={{showFileSize:true, showDatabase:false,showFileName:true}}/>
+                    <CmrTable dataSource={queuedJobs} columns={queuedJobsColumns}
+                              rowSelectionModel={jobSelectionModel}
+                              onRowSelectionModelChange={(newSelection: GridRowSelectionModel) => {
+                                  setJobSelectionModel(newSelection);
+                              }}/>
+                    <SNREditor snrContent={editContent}
+                               snrAlias ={editAlias}
+                               setSNRAlias={setEditAlias}
+                                edit={()=>{
+                                    if(editing==rowId)
+                                        return;
+                                    if(editActive&&analysisMethod!=undefined){
+                                        setSNREditWarning('Consider queuing the currently ' +
+                                            'edited SNR first to avoid losing progress.');
+                                        setSNREditOpen(true);
+                                        setSnrEditWarningCallback(()=>{
+                                            // dispatch(setupSetters.loadSNRSettings(editedJSON));
+                                            setOpenPanel([0,1,2]);
+                                            setAnalysisMethodChanged(true);
+                                        });
+                                    }else{
+                                        dispatch(setupSetters.loadSNRSettings(editedJSON));
+                                        setAnalysisMethodChanged(true);
+                                        setEditing(rowId);
+                                        setOpenPanel([0,1,2]);
+                                    }
+                                }}  confirm={() => {
+                                        if(editing==rowId)// when confirming both the snr edit and the name change
+                                            dispatch(setupSetters.completeSNREditing({id:editing, alias:editAlias}));
+                                        else {// when confirming the name change alone
+                                            dispatch(setupSetters.rename({id:rowId, alias:editAlias}));
+                                        }
+                                        setEditing(-1);
+                                        setTimeout(() => setOpenPanel([0]), 500);
+                                    }}
+                                handleClose={() => {
+                                    setEditContent(undefined);
+                                }}/>
+
+                    <Confirmation setOpen={setSNRDeleteOpen}
+                                  open={snrDeleteOpen}
+                                  message={snrDeleteWarning}
+                                  color={'error'} name={"Confirm Delete"}
+                                  cancellable={true}
+                                  confirmCallback={snrDeleteWarningCallback}/>
+                    <Confirmation setOpen={setSNREditOpen}
+                                  open={snrEditOpen}
+                                  message={snrEditWarning}
+                                  name={"Unfinished SNR Edit"}
+                                  cancellable={true}
+                                  confirmCallback={snrEditWarningCallback}/>
+                    <CmrButton sx={{width: '50%',mt:1}} variant={"contained"}
+                               color={'success'} onClick={() => {
+                        if (jobSelectionModel.length == 0) {
+                            setSDWarning("Please select the jobs that you would like to submit.");
+                            setSDWarningHeader("No Job Selected for Submission");
+                            setSDOpen(true);
+                        } else {
+                            let selectedJobs = jobSelectionModel.map((value, index) => {
+                                return queuedJobs[index];
+                            })
+                            // @ts-ignore
+                            dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
+                        }
+                    }}>Submit Jobs</CmrButton>
+
+                    <CmrButton sx={{width: '49%', marginLeft: '1%',mt:1}} variant={"contained"}
+                               color={'error'} onClick={() => {
+                        if (jobSelectionModel.length == 0) {
+                            setSDWarning("Please select the jobs that you would like to delete.");
+                            setSDWarningHeader("No Job Selected for Deletion");
+                            setSDOpen(true);
+                        } else {
+                            setSNRDeleteWarning(`You are about to delete Job ${jobSelectionModel}.`);
+                            setSNRDeleteOpen(true);
+                            setSNRDeleteWarningCallback(()=>{
+                                // @ts-ignore
+                                return ()=>dispatch(setupSetters.bulkDeleteQueuedJobs(jobSelectionModel));
+                            });
+                        }
+                    }}>Delete Jobs</CmrButton>
+                    <Confirmation open={sdOpen} setOpen={setSDOpen}
+                                  message={sdWarning}
+                                  name={sdWarningHeader}/>
+                </CmrPanel>
+                <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
+                    <Row>
+                        <Col span={24}>
+                            <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
+                                <CmrLabel>Signal File:</CmrLabel>
+                                <SelectUpload fileSelection={uploadedData} onSelected={(signal) => {
+                                    dispatch(setSignal(signal));
+                                    if (noise != undefined && signal != undefined)
+                                        setTimeout(() => setOpenPanel([2]), 500);
+                                }} maxCount={1}
+                                              createPayload={createPayload}
+                                              onUploaded={uploadResHandlerFactory(setSignal, () => {
+                                                  if (noise != undefined && signal != undefined)
+                                                      setTimeout(() => setOpenPanel([2]), 500);
+                                              })} style={{
+                                    height: 'fit-content',
+                                    marginTop: 'auto',
+                                    marginBottom: 'auto'
+                                }}
+                                              chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}/>
+                                <CmrCheckbox onChange={(event) => {
+                                    dispatch(setupSetters.setMultiRaid(event.target.checked))
+                                    if (signal != undefined && event.target.checked)
+                                        setTimeout(() => setOpenPanel([2]), 500);
+                                }} checked={multiraid!=undefined && multiraid}>
+                                    Multi-Raid
+                                </CmrCheckbox>
+                            </Row>
+                        </Col>
+                    </Row>
+                    {(!multiraid) &&
+                        <Fragment>
+                            <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                            <Row>
+                                <Col>
+                                    <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
+                                        <CmrLabel>Noise File:</CmrLabel>
+                                        <SelectUpload fileSelection={uploadedData}
+                                                      onSelected={(noise) => {
+                                                          dispatch(setNoise(noise));
+                                                          if (noise != undefined && signal != undefined)
+                                                              setTimeout(() => setOpenPanel([2]), 500);
+                                                      }} maxCount={1}
+                                                      createPayload={createPayload}
+                                                      onUploaded={uploadResHandlerFactory(setupSetters.setNoise, () => {
+                                                          if (noise != undefined && signal != undefined)
+                                                              setTimeout(() => setOpenPanel([2]), 500);
+                                                      })}
+                                                      style={{height: 'fit-content', marginLeft: '2pt'}}
+                                                      chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
+                                        />
+                                    </Row>
+                                </Col>
+                            </Row>
+                        </Fragment>}
+                </CmrPanel>
+                <CmrPanel key="2" header={editing==-1?"SNR Setup":`Editing Job ${editing}`} className='mb-2'>
+                    <FormControl style={{width: '100%'}} className={'mb-3'} onChange={(event) => {
+                        //@ts-ignore
+                        if (event.target.value != analysisMethod)
+                            setAnalysisMethodChanged(true);
+                        //@ts-ignore
+                        dispatch(setupSetters.setAnalysisMethod(event.target.value));
+                    }}>
+                        <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="demo-row-radio-buttons-group-label"
+                            name="row-radio-buttons-group"
+                            value={analysisMethod}
+                            style={{display: 'flex', justifyContent: 'space-between'}}
+                        >
+                            <FormControlLabel value={0} control={<Radio/>} label="Array Combining"/>
+                            <FormControlLabel value={1} control={<Radio/>} label="Multiple Replica"/>
+                            <FormControlLabel value={2} control={<Radio/>} label="Pseudo Multiple Replica"/>
+                            <FormControlLabel value={3} control={<Radio/>} label="Pseudo Multiple Replica Wein"/>
+                        </RadioGroup>
+                    </FormControl>
+
+                    {snrDescription!=''&&<CmrPanel className='mb-3' header={undefined} cardProps={{className: 'mb-2 ms-2 me-2 mt-2'}}
+                               expanded={true}>
+                        {snrDescription}
+                    </CmrPanel>}
+                    {(analysisMethod == 2 || analysisMethod == 3) &&
+                        <Fragment>
+                            <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                            <Row className='mb-3' style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
+                                <CmrLabel style={{height: '100%'}}># of Pseudo Replica</CmrLabel>
+                                <CmrInputNumber value={pseudoReplicaCount}
+                                                min={0}
+                                                onChange={(val) => {
+                                                    dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
+                                                }}></CmrInputNumber>
+                            </Row>
+                        </Fragment>}
+                    {(analysisMethod != undefined) &&
+                        <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
+                            <CmrPanel header={'Reconstructor Options'} cardProps={{className: 'ms-3 me-3 mt-4 mb-3'}}
+                                      className={''}>
+                                <FormControl style={{width: '100%'}} className={'mb-3'}
+                                             onChange={(event) => {
+                                                 //@ts-ignore
+                                                 if (event.target.value != reconstructionMethod)
+                                                     setReconstructionMethodChanged(true);
+                                                 //@ts-ignore
+                                                 dispatch(setupSetters.setReconstructionMethod(event.target.value));
+                                             }}>
+                                    <FormLabel id={'reconstruction-label'}>Image Reconstruction Methods</FormLabel>
+                                    <RadioGroup
+                                        row
+                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                        name="row-radio-buttons-group"
+                                        value={(reconstructionMethod) ? reconstructionMethod : ''}
+                                        style={{display: 'flex', justifyContent: 'space-between'}}
+                                    >
+                                        {['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa', 'ESPIRIT'].map((option, index) => {
+                                            return (analysisMethod && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
+                                                <FormControlLabel value={index}
+                                                                  disabled={option == 'ESPIRIT'} control={<Radio/>}
+                                                                  label={option}/>
+                                                : undefined;
+                                        })}
+                                    </RadioGroup>
+                                </FormControl>
+                                {(reconstructionMethod) &&
+                                    <CmrPanel header={`${idToSecondaryOptions[reconstructionMethod]} settings`}
+                                              expanded={true}
+                                              className={' border-0'} cardProps={{className: 'ms-0 me-0 mt-0 mb-0'}}>
+
+                                        <CmrCheckbox className='me-2 ms-1' checked={!flipAngleCorrection}
+                                                     defaultChecked={!flipAngleCorrection}
+                                                     onChange={(event) => {
+                                                         dispatch(setupSetters.setFlipAngleCorrection(!event.target.checked))
+                                                     }}>
+                                            No Flip Angle Correction
+                                        </CmrCheckbox>
+                                        {(flipAngleCorrection) &&
+                                            <SelectUpload fileSelection={uploadedData} onSelected={(file) => {
+                                                dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                            }} maxCount={1}
+                                                          createPayload={createPayload}
+                                                          onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
+                                                          style={{
+                                                              height: 'fit-content',
+                                                              marginTop: 'auto',
+                                                              marginBottom: 'auto'
+                                                          }}
+                                                          buttonText='choose FA map'
+                                                          chosenFile={faMap?.options.filename}
+                                            />
+                                        }
+                                        <Divider variant="middle"
+                                                 sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                                        {(secondaryToCoilMethodMaps[reconstructionMethod]&&secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
+                                            <Fragment>
+                                                <FormControl
+                                                    onChange={(event) => {
+                                                        //@ts-ignore
+                                                        dispatch(setupSetters.setLoadSensitivity(event.target.value == 'true'));
+                                                    }}>
+                                                    <RadioGroup
+                                                        row
+                                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                                        name="row-radio-buttons-group"
+                                                        value={loadSensitivity}
+                                                    >
+                                                        <FormControlLabel value={true} control={<Radio/>}
+                                                                          label="Load Coil Sensitivities"/>
+                                                        <FormControlLabel value={false} control={<Radio/>}
+                                                                          label="Calculate Coil Sensitivities"/>
+                                                        {(loadSensitivity) ?
+                                                            <SelectUpload fileSelection={uploadedData}
+                                                                          onSelected={(file) => {
+                                                                              dispatch(setupSetters.setSensitivityMapSource(file));
+                                                                          }} maxCount={1}
+                                                                          createPayload={createPayload}
+                                                                          onUploaded={uploadResHandlerFactory(setupSetters.setSensitivityMapSource)}
+                                                                          style={{
+                                                                              height: 'fit-content',
+                                                                              marginTop: 'auto',
+                                                                              marginBottom: 'auto'
+                                                                          }}
+                                                                          buttonText='choose sensitivity map source'
+                                                                          chosenFile={sensitivityMapSource?.options.filename}
+                                                            /> : <FormControl className='m-3'
+                                                                              onChange={(event) => {
+                                                                                  //@ts-ignore
+                                                                                  dispatch(setupSetters.setSensitivityMapMethod(event.target.value))
+                                                                              }}>
+                                                                <InputLabel id="css-label">Coil sensitivities
+                                                                    calculation method</InputLabel>
+                                                                <Select
+                                                                    labelId="css-label"
+                                                                    value={sensitivityMapMethod}
+                                                                    label="Coil sensitivities calculation method"
+                                                                    id="demo-simple-select"
+                                                                    sx={{width: '300pt'}}
+                                                                    onChange={(event) => {
+                                                                        dispatch(setupSetters.setSensitivityMapMethod(event.target.value));
+                                                                    }}
+                                                                >
+                                                                    {['inner', 'innerACL'].map((value, index) => {
+                                                                        return (secondaryToCoilMethodMaps[reconstructionMethod].indexOf(value) >= 0) ?
+                                                                            <MenuItem
+                                                                                value={value}>{coilOptionAlias[value]}</MenuItem>
+                                                                            : undefined;
+                                                                    })}
+                                                                </Select>
+                                                            </FormControl>}
+                                                        {/*<InputLabel id="css-label">Age</InputLabel>*/}
+                                                    </RadioGroup>
+                                                </FormControl>
+                                                <Divider variant="middle"
+                                                         sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                                            </Fragment>}
+                                        {(decimateMapping[reconstructionMethod]) &&
+                                            <CmrCheckbox className='m-1' defaultChecked={decimateData}
+                                                         checked={decimateData} onChange={
+                                                (event) =>
+                                                    dispatch(setupSetters.setDecimate(event.target.checked))}>
+                                                Decimate Data
+                                            </CmrCheckbox>}
+                                        {(decimateMapping[reconstructionMethod] && decimateData) &&
+                                            <div className='ms-3' style={{
+                                                height: 'fit-content',
+                                                marginRight: 'auto',
+                                                marginTop: '5pt',
+                                                width: '362px'
+                                            }}>
+                                                <DataGrid
+                                                    rows={rows}
+                                                    slots={{
+                                                        columnHeaders: () => null,
+                                                    }}
+                                                    autoHeight
+                                                    hideFooterPagination
+                                                    hideFooterSelectedRowCount
+                                                    hideFooter={true}
+                                                    columns={columns}
+                                                    sx={{
+                                                        '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {display: 'none'}
+                                                    }}
+                                                    onCellEditStop={(params: GridCellEditStopParams, event) => {
+                                                        let newValue = (decimateAccelerations) ? [...decimateAccelerations] : [0, 0, 0];
+                                                        if (params.id == '1' || params.id == '2') {
+                                                            //@ts-ignore
+                                                            if (event.target != undefined)//@ts-ignore
+                                                                newValue[0] = newValue[1] = Number(event.target.value);
+                                                        } else if (params.id == '3') {
+                                                            //@ts-ignore
+                                                            if (event.target != undefined)//@ts-ignore
+                                                                newValue[2] = Number(event.target.value);
+                                                        }
+                                                        dispatch(setupSetters.setDecimateAccelerations(newValue));
+                                                    }}
+                                                />
+                                            </div>
+                                        }
+                                        <Divider variant="middle"
+                                                 sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                                        <CmrButton sx={{width: '100%'}} variant={"outlined"} color={'success'}
+                                                   onClick={() => {
+                                                       let state = store.getState();
+                                                       snr = state.setup.activeSetup;
+                                                       if(editing!=-1) {
+                                                           setEditedJSON(snr);
+                                                           setEditContent(JSON.stringify(snr, undefined, '\t'));
+                                                       }
+                                                       else
+                                                           setPreview(JSON.stringify(snr, null, '\t'));
+                                                   }}>{editing!=-1?'Complete Editing':'Queue Job'}</CmrButton>
+                                        {(previewContent) && <SNRPreview previewContent={previewContent}
+                                                                         edit={()=>{}} queue={() => {
+                                                   dispatch(setupSetters.compileSNRSettings());
+                                                   setJobSelectionModel([...jobSelectionModel,newJobId]);
+                                            setTimeout(() => setOpenPanel([0]), 500);
+                                        }}
+                                                                         handleClose={() => {
+                                                                             setPreview(undefined);
+                                                                         }}/>}
+                                    </CmrPanel>}
+                            </CmrPanel>
+                        </CmrCollapse>}
+                </CmrPanel>
+            </CmrCollapse>
+            <div style={{height: '69px'}}></div>
+        </Fragment>
+    );
+};
+
+export default Setup;

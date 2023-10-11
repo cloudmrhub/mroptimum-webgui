@@ -1,0 +1,16 @@
+.css-1lymaxv-MuiDataGrid-root .MuiDataGrid-columnHeader:focus-within,
+.css-1lymaxv-MuiDataGrid-root .MuiDataGrid-cell:focus-within {
+  outline: none !important;
+}
+p{
+  margin-bottom: 0;
+}
+
+.MuiDataGrid-columnHeaders{
+  background: #333;
+  color: white;
+}
+
+.MuiDataGrid-columnHeaders .MuiSvgIcon-root {
+  color: white;
+}
