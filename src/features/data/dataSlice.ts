@@ -21,6 +21,7 @@ export interface UploadedFile {
     updatedAt: string;
     //One of local or s3
     database: string;
+    location: string;
 }
 
 interface DataState {
@@ -68,7 +69,8 @@ export const dataSlice = createSlice({
                         status: element.status,
                         createdAt: element.created_at,
                         updatedAt: element.updated_at,
-                        database: element.database
+                        database: element.database,
+                        location: element.location
                     });
                 });
             }

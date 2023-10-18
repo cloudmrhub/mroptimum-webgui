@@ -13,7 +13,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NameDialog from "../../common/components/Cmr-components/rename/edit";
-import {renameUpstreamJob} from "../../features/jobs/jobActionCreation";
+import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 
@@ -34,9 +34,9 @@ const Home = () => {
             flex: 1,
         },
         {
-            headerName: 'Size',
-            dataIndex: 'size',
-            field: 'size',
+            headerName: 'Status',
+            dataIndex: 'status',
+            field: 'status',
             flex: 1,
         },
         {
@@ -133,7 +133,28 @@ const Home = () => {
                         }}>
                             <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => {/* Download logic here */}}>
+                        <IconButton onClick={() => {/* Download logic here */
+                            params.row.files.forEach((file:UploadedFile) => {
+                                let url = file.link;
+                                if(url=="unknown")
+                                    return;
+                                // Create an anchor element
+                                const a = document.createElement('a');
+                                a.href = url;
+
+                                // Extract the file name from the URL, if possible
+                                a.download = `${file.fileName}.${url.split('.').pop()}`;
+
+                                // Append the anchor to the body (this is necessary to programmatically trigger the click event)
+                                document.body.appendChild(a);
+
+                                // Trigger a click event to start the download
+                                a.click();
+
+                                // Remove the anchor from the body
+                                document.body.removeChild(a);
+                            });
+                        }}>
                             <GetAppIcon />
                         </IconButton>
                         <IconButton onClick={() => {
@@ -171,15 +192,16 @@ const Home = () => {
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
+        //@ts-ignore
+        dispatch(getUpstreamJobs(accessToken));
         console.log("dispatched");
     }, []);
 
     return (
        <Fragment>
-           <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
+           <CmrCollapse accordion={false} defaultActiveKey={[0,1]} expandIconPosition="right">
                <CmrPanel key="0" header="Data" className='mb-2'>
-                   <CmrTable dataSource={files} columns={uploadedFilesColumns} />
-                   <CmrProgress percent={30} status="active" />
+                   <CmrTable dataSource={[...files].reverse()} columns={uploadedFilesColumns} />
                </CmrPanel>
                <NameDialog  open={nameDialogOpen} setOpen = {setNameDialogOpen} originalName={originalName}
                             renamingCallback={renamingCallback}/>

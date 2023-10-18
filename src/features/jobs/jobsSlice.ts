@@ -3,6 +3,16 @@ import { getUpstreamJobs } from './jobActionCreation';
 import {defaultSNR, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "../data/dataSlice";
 
+export interface SetupInterface{
+    version:string,
+    alias: string,
+    output:{
+        coilsensitivity: boolean,
+        gfactor: boolean,
+        matlab: boolean
+    }
+    task: SNR
+}
 export interface Job {
     id: number;
     alias: string;
@@ -10,7 +20,7 @@ export interface Job {
     status: string;
     createdAt: string;
     updatedAt: string;
-    setup: SNR;
+    setup: SetupInterface;
     files: UploadedFile[];
 }
 
@@ -25,7 +35,16 @@ const initialState: JobsState = {
         status: 'completed',
         createdAt: '08-21-2023',
         updatedAt: '08-21-2023',
-        setup: defaultSNR,
+        setup: {
+            version: 'v0',
+            alias: 'sample0',
+            output:{
+                coilsensitivity: false,
+                gfactor: false,
+                matlab: true
+            },
+            task: defaultSNR
+        },
         files: [
             {
                 id: 0,
@@ -37,6 +56,7 @@ const initialState: JobsState = {
                 updatedAt: '',
                 //One of local or s3
                 database: 's3',
+                location: ''
             },{
                 id: 1,
                 fileName: 'Hippocampus',
@@ -47,6 +67,7 @@ const initialState: JobsState = {
                 updatedAt: '',
                 //One of local or s3
                 database: 's3',
+                location: ''
             }]
     }],
     loading: true,
@@ -56,11 +77,11 @@ export const jobsSlice = createSlice({
     name: 'job',
     initialState,
     reducers: {
-        submitJob(state: JobsState, action: PayloadAction<SNR>){
-            state.jobs.push({
-                setup:action.payload, alias: "", createdAt: "", files: [], id: 0, status: "", updatedAt: ""
-            });
-        },
+        // submitJob(state: JobsState, action: PayloadAction<SNR>){
+        //     state.jobs.push({
+        //         setup:action.payload, alias: "", createdAt: "", files: [], id: 0, status: "", updatedAt: ""
+        //     });
+        // },
         /**
          * Delete job referenced by its index
          * @param state
@@ -83,15 +104,7 @@ export const jobsSlice = createSlice({
 
                 if (payloadData.length > 0) {
                     payloadData.forEach((element) => {
-                        data.push({
-                            id: element.id,
-                            alias: element.alias,
-                            status: element.status,
-                            createdAt: element.created_at,
-                            updatedAt: element.updated_at,
-                            setup: JSON.parse(element.setup),
-                            files: JSON.parse(element.files)
-                        });
+                        data.push(element);
                     });
                 }
 

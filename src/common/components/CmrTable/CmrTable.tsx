@@ -27,7 +27,7 @@ const CmrTable = (props:CmrTableProps) => {
                     },
                 }}
                 {...rest}
-                hideFooter
+                // hideFooter
             />
         </div>
     );

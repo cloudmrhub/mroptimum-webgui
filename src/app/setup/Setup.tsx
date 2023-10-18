@@ -3,7 +3,7 @@ import './Setup.scss';
 import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import {getUploadedData} from '../../features/data/dataActionCreation';
-import {DATAAPI} from "../../Variables";
+import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import {useAppDispatch, useAppSelector} from '../../features/hooks';
 import {setupGetters, setupSetters} from '../../features/setup/setupSlice';
 import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
@@ -41,7 +41,7 @@ import {AxiosRequestConfig, AxiosResponse} from "axios";
 import {UploadedFile} from "../../features/data/dataSlice";
 import {formatBytes, getFileExtension} from "../../common/utilities";
 import {boolean} from "mathjs";
-import {Job, jobActions} from "../../features/jobs/jobsSlice";
+import {Job, jobActions, SetupInterface} from "../../features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -57,6 +57,9 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
 import { SNREditor } from './SetupEditor';
+import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
+import {createTheme} from "@mui/material/styles";
+
 
 const Setup = () => {
     useEffect(() => {
@@ -124,15 +127,16 @@ const Setup = () => {
         return (res: AxiosResponse, maskFile: File) => {
             const submittedDatTime = moment().format('YYYY-MM-DD HH:mm:ss');
             const uploadedFile: UploadedFile = {
-                id: res.data.id,
-                fileName: res.data.alias,
+                id: res.data.response.id,
+                fileName: res.data.response.alias,
                 createdAt: submittedDatTime,
                 updatedAt: submittedDatTime,
                 size: formatBytes(maskFile.size),
-                link: res.data.onlineLink,
-                status: res.data.status,
-                md5: res.data.md5,
-                database: res.data.database
+                link: res.data.response.onlineLink,
+                status: res.data.response.status,
+                md5: res.data.response.md5,
+                database: res.data.response.database,
+                location: res.data.response.location
             };
             dispatch(reducer(uploadedFile));
             // @ts-ignore
@@ -144,25 +148,29 @@ const Setup = () => {
 
     const UploadHeaders: AxiosRequestConfig = {
         headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
         },
     };
     const createPayload = async (file: File, fileAlias: string) => {
+        let formData = new FormData();
         if (file) {
-            const formData = new FormData();
-            formData.append('application', 'MROPTIMUM');
-            formData.append('alias', fileAlias);
-
+            const lambdaFile: LambdaFile ={
+                "filename": fileAlias,
+                "filetype": file.type,
+                "filesize": `${file.size}`,
+                "filemd5": '',
+                "file":file
+            }
+            formData.append("lambdaFile",JSON.stringify(lambdaFile));
+            formData.append("file",file);
             const fileExtension = getFileExtension(file.name);
 
             if (fileExtension == 'dat') {
                 const transformedFile = await anonymizeTWIX(file);
-                formData.append('file', transformedFile);
-            } else {
-                formData.append('file', file);
+                file = transformedFile;
             }
-            return {destination: DATAAPI, formData: formData, config: UploadHeaders};
+            return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
         }
     };
     useEffect(() => {
@@ -259,10 +267,10 @@ const Setup = () => {
                     <div>
                         <IconButton onClick={(e) => {/* Edit logic here */
                             e.stopPropagation();
-                            let snrPreview = params.row.setup;
+                            let snrPreview: SetupInterface = params.row.setup;
                             setRowId(params.row.id);
                             setEditContent(JSON.stringify(snrPreview, null, '\t'));
-                            setEditedJSON(snrPreview);
+                            setEditedJSON(snrPreview.task);
                             setEditAlias(params.row.alias);
                         }}>
                             <EditIcon/>
@@ -394,7 +402,11 @@ const Setup = () => {
                             setSDOpen(true);
                         } else {
                             let selectedJobs = jobSelectionModel.map((value, index) => {
-                                return queuedJobs[index];
+                                for(let job of queuedJobs){
+                                    if(job.id == value){
+                                        return job;
+                                    }
+                                }
                             })
                             // @ts-ignore
                             dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
@@ -426,6 +438,7 @@ const Setup = () => {
                             <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
                                 <CmrLabel>Signal File:</CmrLabel>
                                 <SelectUpload fileSelection={uploadedData} onSelected={(signal) => {
+                                    console.log(signal);
                                     dispatch(setSignal(signal));
                                     if (noise != undefined && signal != undefined)
                                         setTimeout(() => setOpenPanel([2]), 500);
@@ -437,7 +450,8 @@ const Setup = () => {
                                               })} style={{
                                     height: 'fit-content',
                                     marginTop: 'auto',
-                                    marginBottom: 'auto'
+                                    marginBottom: 'auto',
+                                    // background:'#580F8B'
                                 }}
                                               chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}/>
                                 <CmrCheckbox onChange={(event) => {
@@ -532,11 +546,11 @@ const Setup = () => {
                                         row
                                         aria-labelledby="demo-row-radio-buttons-group-label"
                                         name="row-radio-buttons-group"
-                                        value={(reconstructionMethod) ? reconstructionMethod : ''}
+                                        value={(reconstructionMethod!=undefined) ? reconstructionMethod : ''}
                                         style={{display: 'flex', justifyContent: 'space-between'}}
                                     >
                                         {['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa', 'ESPIRIT'].map((option, index) => {
-                                            return (analysisMethod && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
+                                            return (analysisMethod!=undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
                                                 <FormControlLabel value={index}
                                                                   disabled={option == 'ESPIRIT'} control={<Radio/>}
                                                                   label={option}/>
@@ -544,7 +558,7 @@ const Setup = () => {
                                         })}
                                     </RadioGroup>
                                 </FormControl>
-                                {(reconstructionMethod) &&
+                                {(reconstructionMethod!=undefined) &&
                                     <CmrPanel header={`${idToSecondaryOptions[reconstructionMethod]} settings`}
                                               expanded={true}
                                               className={' border-0'} cardProps={{className: 'ms-0 me-0 mt-0 mb-0'}}>

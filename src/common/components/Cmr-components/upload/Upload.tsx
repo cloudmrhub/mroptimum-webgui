@@ -6,6 +6,14 @@ import UploadWindow from "./UploadWindow";
 import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import Typography from "@mui/material/Typography";
 
+
+export interface LambdaFile {
+    "filename": string;
+    "filetype": string;
+    "filesize": string;
+    "filemd5": string;
+    "file": File;
+}
 /**
  * Consists of general settings for upload component
  * functionalities and call back methods evoked
@@ -26,7 +34,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      */
     beforeUpload?: (file:File)=>Promise<boolean>;
     createPayload: (file: File,fileAlias:string, fileDatabase: string)=>
-        (Promise<{destination: string, formData:FormData, config: AxiosRequestConfig}|undefined>);
+        (Promise<{destination: string, lambdaFile:LambdaFile, config: AxiosRequestConfig}|undefined>);
     onUploadProgressUpdate?:(loaded: number, total: number)=>void|undefined;
     onUploaded: (res: AxiosResponse, file: File)=>void;
     sx?:  SxProps<Theme>|undefined;
@@ -62,9 +70,19 @@ const CmrUpload = (props: CMRUploadProps) => {
                 let percentage = (progressEvent.loaded * 100) / progressEvent.total;
                 setProgress(+percentage.toFixed(2));
             };
-            const res = await axios.post(payload.destination, payload.formData, payload.config);
+            // console.log(payload.formData)
+            const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
             status = res.status;
             if(status===200){
+                let name = res.data.location
+                // file.name = res.data.response.
+                // await axios.post(res.data.upload_url, file)
+                console.log(res.data);
+                await axios.put(res.data.upload_url, file, {
+                    headers: {
+                        'Content-Type': file.type
+                    }
+                })
                 props.onUploaded(res,file);
                 setUploadedFile(file.name);
             }

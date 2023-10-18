@@ -1,8 +1,9 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {RootState} from '../store';
 import {UploadedFile} from "../data/dataSlice";
-import {Job} from "../jobs/jobsSlice";
+import {Job, SetupInterface} from "../jobs/jobsSlice";
 import moment from "moment/moment";
+import {submitJobs} from "./setupActionCreation";
 
 interface SetupState {
     loading: boolean;
@@ -24,7 +25,7 @@ interface SNR {
 }
 
 interface SNROptions {
-    pseudoReplicaCount?: number;
+    NR?: number;
     reconstructor: Reconstructor;
 }
 
@@ -55,9 +56,11 @@ interface FileReference {
 interface FileOptions {
     type: string;  // "local" or "s3"
     filename: string;
+    bucket:string;
+    key:string;
     options: Record<string, unknown> | undefined; // Empty object, could define more strictly if needed.
     multiraid?: boolean;
-    vendor?: string;
+    vendor: string;
 }
 
 interface SensitivityMap {
@@ -95,6 +98,8 @@ export const defaultSNR: SNR = {
                 signalMultiRaid: false,
                 sensitivityMap: {
                     type: 'sensitivityMap',
+                    name: 'inner',
+                    id: 2,
                     options: {
                         loadSensitivity: false,
                         sensitivityMapSource: undefined,
@@ -121,6 +126,7 @@ const initialState: SetupState = {
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
+    let {Bucket, Key} = JSON.parse(uploadedFile.location);
     return {
         type: 'file',
         id: uploadedFile.id,
@@ -128,19 +134,34 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
             type: uploadedFile.database,
             filename: uploadedFile.fileName,
             options: undefined,
-            multiraid: false
+            multiraid: false,
+            bucket: Bucket,
+            key: Key,
+            vendor: 'Siemens'
         }
     };
 }
 
+function createSetup(snr:SNR, alias:string):SetupInterface{
+     return {version: "v0",
+        alias: alias,
+        output: {
+        coilsensitivity: snr.options.reconstructor.id==1||snr.options.reconstructor.id==2,
+            gfactor: snr.options.reconstructor.id == 2,
+            matlab: true
+    },
+        task:snr};
+}
 
-function createJob(snr: SNR, setupState: SetupState, alias: string | undefined = undefined): Job {
+
+function createJob(snr: SNR, setupState: SetupState, alias = `${snr.name}-${snr.options.reconstructor.options.signal?.options.filename}`): Job {
+
     return {
-        alias: (alias) ? alias : `${snr.name}-${snr.options.reconstructor.options.signal?.options.filename}`,
+        alias: alias,
         createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
         files: [],
         id: setupState.idGenerator++,
-        setup: snr,
+        setup: createSetup(snr,alias),
         status: "temporary",
         updatedAt: ""
     };
@@ -151,12 +172,12 @@ export const setupSlice = createSlice({
     initialState,
     reducers: {
         setAnalysisMethod(state: SetupState, action: PayloadAction<number>) {
-            state.activeSetup.id = action.payload;
+            state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
             state.editInProgress=true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
-            state.activeSetup.options['pseudoReplicaCount'] = action.payload;
+            state.activeSetup.options['NR'] = action.payload;
             state.editInProgress=true;
         },
         setSignal(state: SetupState, action: PayloadAction<UploadedFile>) {
@@ -167,22 +188,25 @@ export const setupSlice = createSlice({
         },
         setNoise(state: SetupState, action: PayloadAction<UploadedFile>) {
             state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
+            state.activeSetup.options.reconstructor.options.signalMultiRaid = false;
+            if (state.activeSetup.options.reconstructor.options.signal) {
+                state.activeSetup.options.reconstructor.options.signal.options.multiraid = false;
+            }
             state.editInProgress=true;
         },
         setMultiRaid(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.signalMultiRaid = action.payload;
             if (state.activeSetup.options.reconstructor.options.signal) {
-                state.activeSetup.options.reconstructor.options.signal.options['multiraid'] = action.payload;
+                state.activeSetup.options.reconstructor.options.signal.options.multiraid = action.payload;
+            }
+            if(action.payload){
+                state.activeSetup.options.reconstructor.options.noise = undefined;
             }
             state.editInProgress=true;
         },
         setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
-            state.activeSetup.options.reconstructor.id = action.payload;
+            state.activeSetup.options.reconstructor.id = Number(action.payload);
             state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
-            if (state.activeSetup.options.reconstructor.id == 2)
-                state.activeSetup.options.reconstructor.options.gfactor = true;
-            else
-                state.activeSetup.options.reconstructor.options.gfactor = false;
             state.editInProgress=true;
         },
         setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
@@ -199,6 +223,8 @@ export const setupSlice = createSlice({
         },
         setSensitivityMapMethod(state: SetupState, action: PayloadAction<string>) {
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapMethod = action.payload;
+            state.activeSetup.options.reconstructor.options.sensitivityMap.id = ['innerACL', 'inner'].indexOf((action.payload));
+            state.activeSetup.options.reconstructor.options.sensitivityMap.name = action.payload;
             state.editInProgress=true;
         },
         setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile>) {
@@ -218,7 +244,7 @@ export const setupSlice = createSlice({
         compileSNRSettings(state: SetupState) {
             let SNRSpec = state.activeSetup;
             // Remove noise reference
-            if (!SNRSpec.options.reconstructor.options.signalMultiRaid)
+            if (SNRSpec.options.reconstructor.options.signalMultiRaid)
                 delete SNRSpec.options.reconstructor.options.noise;
             if (!SNRSpec.options.reconstructor.options.decimate)
                 delete SNRSpec.options.reconstructor.options.accelerations;
@@ -255,7 +281,7 @@ export const setupSlice = createSlice({
                     break;
                 }
             }
-            state.queuedJobs[index].setup=SNRSpec;
+            state.queuedJobs[index].setup=createSetup(SNRSpec,action.payload.alias);
             state.queuedJobs[index].alias = action.payload.alias;
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
@@ -300,6 +326,21 @@ export const setupSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
+        builder.addCase(submitJobs.fulfilled, (state,responses)=>{
+            for(let response of responses.payload){
+                let id = response.id;
+                for(let job of state.queuedJobs){
+                    if(job.id==id){
+                        if(response.status==200){
+                            job.status='submitted';
+                        }else{
+                            job.status = 'failed to submit';
+                        }
+                    }
+                }
+                break;
+            }
+        })
     },
 });
 
@@ -313,7 +354,7 @@ const SetupGetters = {
     },
 
     getPseudoReplicaCount: (state: RootState): number | undefined => {
-        return state.setup.activeSetup?.options['pseudoReplicaCount'];
+        return state.setup.activeSetup?.options['NR'];
     },
 
     getSignal: (state: RootState): FileReference | undefined => {

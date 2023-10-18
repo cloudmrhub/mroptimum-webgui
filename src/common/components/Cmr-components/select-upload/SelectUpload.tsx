@@ -1,5 +1,5 @@
 import React, {Fragment, useState} from "react";
-import CMRUpload, {CMRUploadProps} from '../upload/Upload';
+import CMRUpload, {CMRUploadProps, LambdaFile} from '../upload/Upload';
 import {Alert, AlertTitle, Button, Collapse, MenuItem} from "@mui/material";
 import Select, {SelectChangeEvent} from "@mui/material/Select";
 import Dialog from "@mui/material/Dialog";
@@ -32,6 +32,7 @@ interface UploadedFile {
     createdAt: string;
     updatedAt: string;
     database: string;
+    location: string;
 }
 
 /**
@@ -82,16 +83,14 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                 </Select>
             </DialogContent>
             <DialogActions sx={{pt:2}}>
-                <CMRUpload  {...props}  onUploaded={(res,file)=>{
-                    props.onUploaded(res,file);
-                    setOpen(false);
-                }} fileExtension = {props.fileExtension}
-                ></CMRUpload>
                 <Button fullWidth variant="contained"  color="success" onClick={onSet}>
                     Select
                 </Button>
-            </DialogActions>
-            <DialogActions sx={{pt:0}}>
+                <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
+                    props.onUploaded(res, file);
+                    setOpen(false);
+                }} fileExtension = {props.fileExtension}
+                ></CMRUpload>
                 <Button fullWidth variant="outlined"  color="inherit" sx={{color:'#333'}} onClick={handleClose}> Cancel</Button>
             </DialogActions>
         </DialogContent>

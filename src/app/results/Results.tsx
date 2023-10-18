@@ -24,7 +24,7 @@ const Results = () => {
     const dispatch = useAppDispatch();
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
-        state.jobs.jobs.map((job)=>(job.status=='completed')?job:undefined));
+        state.jobs.jobs);
     const [volumes, setVolumes] = useState<{url:string}[]>( []);
     const completedJobsColumns = [
         {
@@ -60,7 +60,7 @@ const Results = () => {
             renderCell: (params:{row:Job}) => {
                 return (
                     <div>
-                        <IconButton onClick={() => {
+                        <IconButton disabled={params.row.status!='completed'} onClick={() => {
                             let files = params.row.files;
                             let volumes = Array.from(files,(file)=>{return {url:file.link};});
                             setVolumes(volumes);
@@ -68,13 +68,34 @@ const Results = () => {
                             setOpenPanel([1]);
                         }}>
                             <PlayArrowIcon sx={{
-                                color: '#4CAF50', // green color
+                                color: (params.row.status!='completed')?'#a9b7a9':'#4CAF50', // green color
                                 '&:hover': {
                                     color: '#45a049', // darker green when hovering
                                 },
                             }}/>
                         </IconButton>
-                        <IconButton onClick={(e) => {/* Delete logic here */
+                        <IconButton onClick={(e) => {
+                            params.row.files.forEach(file => {
+                                let url = file.link;
+                                if(url=="unknown")
+                                    return;
+                                // Create an anchor element
+                                const a = document.createElement('a');
+                                // Extract the file name from the URL, if possible
+                                a.download = `${file.fileName}.${url.split('.').pop()}`;
+                                a.href = url;
+
+
+                                // Append the anchor to the body (this is necessary to programmatically trigger the click event)
+                                document.body.appendChild(a);
+
+                                // Trigger a click event to start the download
+                                a.click();
+
+                                // Remove the anchor from the body
+                                document.body.removeChild(a);
+                            });
+
                         }}>
                             <GetAppIcon/>
                         </IconButton>

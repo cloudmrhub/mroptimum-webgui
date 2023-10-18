@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import {JOBS_API, JOBS_DELETE_API, JOBS_RENAME_API} from '../../Variables';
+import {JOBS_API, JOBS_DELETE_API, JOBS_RENAME_API, JOBS_RETRIEVE_API} from '../../Variables';
 import {Job} from "./jobsSlice";
 export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: string) => {
     const config = {
@@ -8,7 +8,7 @@ export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: s
             Authorization: `Bearer ${accessToken}`,
         },
     };
-    const response = await axios.get(JOBS_API, config);
+    const response = await axios.get(JOBS_RETRIEVE_API, config);
     return response.data;
 });
 
