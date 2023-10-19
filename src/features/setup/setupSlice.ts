@@ -126,20 +126,37 @@ const initialState: SetupState = {
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
-    let {Bucket, Key} = JSON.parse(uploadedFile.location);
-    return {
-        type: 'file',
-        id: uploadedFile.id,
-        options: {
-            type: uploadedFile.database,
-            filename: uploadedFile.fileName,
-            options: undefined,
-            multiraid: false,
-            bucket: Bucket,
-            key: Key,
-            vendor: 'Siemens'
-        }
-    };
+    try{
+
+        let {Bucket, Key} = JSON.parse(uploadedFile.location);
+        return {
+            type: 'file',
+            id: uploadedFile.id,
+            options: {
+                type: uploadedFile.database,
+                filename: uploadedFile.fileName,
+                options: undefined,
+                multiraid: false,
+                bucket: Bucket,
+                key: Key,
+                vendor: 'Siemens'
+            }
+        };
+    }catch(e){
+        return {
+            type: 'file',
+            id: uploadedFile.id,
+            options: {
+                type: uploadedFile.database,
+                filename: uploadedFile.fileName,
+                options: undefined,
+                multiraid: false,
+                bucket: 'unknown',
+                key: 'unknown',
+                vendor: 'Siemens'
+            }
+        };
+    }
 }
 
 function createSetup(snr:SNR, alias:string):SetupInterface{
@@ -154,7 +171,7 @@ function createSetup(snr:SNR, alias:string):SetupInterface{
 }
 
 
-function createJob(snr: SNR, setupState: SetupState, alias = `${snr.name}-${snr.options.reconstructor.options.signal?.options.filename}`): Job {
+function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`): Job {
 
     return {
         alias: alias,

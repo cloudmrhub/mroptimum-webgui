@@ -10,14 +10,14 @@ import TextField from "@mui/material/TextField";
 import {store} from "../../features/store";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
 
-export const SNRPreview = ({previewContent,queue,edit,handleClose,editText='Keep Editing',queueText='Queue Job'}:
-                               {previewContent: string, queue: ()=>void, edit: ()=>void, handleClose: ()=>void,
+export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job'}:
+                               {previewContent: string, queue: ()=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,
                                     editText?:string, queueText?:string
 })=>{
 
     return  <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle  sx={{ml:2,mt:2,mr:2, p:1}}>Setup Preview</DialogTitle>
-        <DialogContent sx={{m:2, mt:0, mb:0, p:1}} dividers>
+        <DialogContent sx={{m:2, mt:0, mb:1, p:1}} style={{overflowY:'hidden'}}dividers>
             {/*<DialogContentText color={'#1976d2'}>*/}
             {/*    The SNR JSON that will be submitted:*/}
             {/*</DialogContentText>*/}
@@ -36,6 +36,14 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose,editText='Keep
                 InputProps={{
                     disableUnderline: true, // <== added this
                 }}
+            />
+            <TextField
+                fullWidth
+                required
+                label="Set Job Name:"
+                value={alias}
+                variant="standard"
+                onChange={setAlias}
             />
         </DialogContent>
         <DialogActions sx={{pl:3,pr:3}}>

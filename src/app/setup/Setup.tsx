@@ -326,6 +326,8 @@ const Setup = () => {
     const [editAlias, setEditAlias] = useState<string>('');
     const [rowId,setRowId] = useState<number>(-1);
     const [editing, setEditing] = useState<number>(-1);
+
+    const [jobAlias, setJobAlias] = useState<string>('');
     // @ts-ignore
     return (
         <Fragment>
@@ -702,10 +704,14 @@ const Setup = () => {
                                                            setEditedJSON(snr);
                                                            setEditContent(JSON.stringify(snr, undefined, '\t'));
                                                        }
-                                                       else
+                                                       else {
                                                            setPreview(JSON.stringify(snr, null, '\t'));
+                                                           setJobAlias(`${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`)
+                                                       }
                                                    }}>{editing!=-1?'Complete Editing':'Queue Job'}</CmrButton>
-                                        {(previewContent) && <SNRPreview previewContent={previewContent}
+                                        {(previewContent) && <SNRPreview previewContent={previewContent} alias={jobAlias}
+                                                                         //@ts-ignore
+                                                                         setAlias={(event)=>{setJobAlias(event.target.value)}}
                                                                          edit={()=>{}} queue={() => {
                                                    dispatch(setupSetters.compileSNRSettings());
                                                    setJobSelectionModel([...jobSelectionModel,newJobId]);
