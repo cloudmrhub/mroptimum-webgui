@@ -66,7 +66,7 @@ export const dataSlice = createSlice({
                         link: element.location,
                         md5: element.md5,
                         size: element.size,
-                        status: element.status,
+                        status: (element.status=='notavailable')?'not available':element.status,
                         createdAt: element.created_at,
                         updatedAt: element.updated_at,
                         database: element.database,

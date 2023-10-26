@@ -12,6 +12,15 @@ const theme = createTheme({
         info:{
             main:'#580F8B'
         }
+    },
+    components:{
+        MuiButton: {
+            styleOverrides: {
+                root:{
+                    textTransform:'none'
+                }
+            }
+        }
     }
 });
 function MrOptimum(props: any) {

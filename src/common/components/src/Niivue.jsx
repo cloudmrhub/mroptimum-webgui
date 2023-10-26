@@ -1,11 +1,11 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { Button, Typography } from '@mui/material'
 import { Box } from '@mui/material'
 import { Fade} from '@mui/material'
 import { Popper } from '@mui/material'
 import { Paper } from '@mui/material'
 import { Niivue, NVImage} from '@niivue/niivue'
-import Toolbar from './components/Toolbar.jsx'
+import Toolbar from './components/Toolbar.tsx'
 import {SettingsPanel} from './components/SettingsPanel.jsx'
 import {ColorPicker} from './components/ColorPicker.jsx'
 import {NumberPicker} from './components/NumberPicker.jsx'
@@ -79,14 +79,13 @@ export default function NiiVue(props) {
   nv.opts.onImageLoaded = ()=>{
     setLayers([...nv.volumes])
   }
-
   nv.opts.onLocationChange = (data)=>{
     setLocationData(data.values)
   }
   // construct an array of <Layer> components. Each layer is a NVImage or NVMesh 
   const layerList = layers.map((layer) => {
     return (
-      <Layer 
+      <Layer
         key={layer.name} 
         image={layer}
         onColorMapChange={nvUpdateColorMap}
@@ -356,7 +355,12 @@ export default function NiiVue(props) {
 	nv.on('intensityRange', (nvimage) => {
 		//setIntensityRange(nvimage)
 	})
-
+  const [selectedVolume, setSelectedVolume] = useState(-1);
+  const selectVolume = (volumeIndex)=>{
+    nv.removeVolume(props.volumes[selectedVolume]);
+    nv.addVolume(props.volumes[volumeIndex]);
+    setSelectedVolume(volumeIndex);
+  }
   return (
     <Box sx={{
       display: 'flex',
@@ -627,6 +631,9 @@ export default function NiiVue(props) {
         nvUpdateSliceType={nvUpdateSliceType}
         toggleSettings={toggleSettings}
         toggleLayers={toggleLayers}
+        volumes={props.volumes}
+        selectedVolume={selectedVolume}
+        setSelectedVolume={selectVolume}
       >
       </Toolbar>
       <NiivuePanel

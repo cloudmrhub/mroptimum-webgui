@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {CSSProperties} from 'react';
 import './InputNumber.scss';
 import { InputNumber } from 'antd';
 import { SizeType } from 'antd/lib/config-provider/SizeContext';
@@ -13,13 +13,14 @@ interface CmrInputNumberProps {
     value?: number;
     onChange?: (value: number|null) => void;
     children?: React.ReactNode;
+    style?: CSSProperties;
 }
 
 const CmrInputNumber = (props: CmrInputNumberProps) => {
-    const { defaultValue, max, min, value, onChange, children, ...rest } = props;
+    const { defaultValue, style, max, min, value, onChange, children, ...rest } = props;
 
     return (
-        <InputNumber defaultValue={defaultValue} max={max} min={min} value={value} onChange={onChange} {...rest}>
+        <InputNumber defaultValue={defaultValue} max={max} style={style} min={min} value={value} onChange={onChange} {...rest}>
             {children}
         </InputNumber>
     );

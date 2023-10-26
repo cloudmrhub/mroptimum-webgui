@@ -16,6 +16,8 @@ import NameDialog from "../../common/components/Cmr-components/rename/edit";
 import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
+import {Button} from "@mui/material";
+import {GridRowSelectionModel} from "@mui/x-data-grid";
 
 const Home = () => {
     const uploadedFilesColumns = [
@@ -67,7 +69,7 @@ const Home = () => {
                             <GetAppIcon />
                         </IconButton>
                         <IconButton onClick={() => {
-                            setName(`Deleting data ${params.row.id}`);
+                            setName(`Deleting data`);
                             setMessage(`Please confirm that you are deleting data ${params.row.id}.`);
                             setColor('error');
                             setConfirmCallback(()=>()=>{
@@ -158,7 +160,7 @@ const Home = () => {
                             <GetAppIcon />
                         </IconButton>
                         <IconButton onClick={() => {
-                            setName(`Deleting job ${params.row.id}`);
+                            setName(`Deleting job`);
                             setMessage(`Please confirm that you are deleting job ${params.row.id}.`);
                             setColor('error');
                             setConfirmCallback(()=>()=>{
@@ -188,6 +190,7 @@ const Home = () => {
     const [open, setOpen] = useState<boolean>(false);
     const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
 
+    const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
 
     useEffect(() => {
         //@ts-ignore
@@ -201,7 +204,31 @@ const Home = () => {
        <Fragment>
            <CmrCollapse accordion={false} defaultActiveKey={[0,1]} expandIconPosition="right">
                <CmrPanel key="0" header="Data" className='mb-2'>
-                   <CmrTable dataSource={[...files].reverse()} columns={uploadedFilesColumns} />
+                   <CmrTable dataSource={[...files].reverse()} rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
+                       setSelectedData(rowSelectionModel);
+                   }} columns={uploadedFilesColumns} />
+                   <div className="row mt-2">
+                       <div className="col-4">
+                           <Button color={'success'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                           }}>Download</Button>
+                       </div>
+                       <div className="col-4">
+                           <Button color={'error'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                               setName(`Deleting data`);
+                               setMessage(`Please confirm that you are deleting the selected jobs.`);
+                               setColor('error');
+                               setConfirmCallback(()=>()=>{
+                                   for(let id of selectedData) {
+                                       let index = files.findIndex(row => row.id === id);
+                                       dispatch(jobsSlice.actions.deleteJob({index}));
+                                   }
+                               });
+                               setOpen(true);}}>Delete</Button>
+                       </div>
+                       <div className="col-4">
+                           <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{}}>Upload</Button>
+                       </div>
+                    </div>
                </CmrPanel>
                <NameDialog  open={nameDialogOpen} setOpen = {setNameDialogOpen} originalName={originalName}
                             renamingCallback={renamingCallback}/>

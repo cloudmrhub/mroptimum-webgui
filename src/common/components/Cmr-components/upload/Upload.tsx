@@ -6,7 +6,6 @@ import UploadWindow from "./UploadWindow";
 import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import Typography from "@mui/material/Typography";
 
-
 export interface LambdaFile {
     "filename": string;
     "filetype": string;
@@ -40,6 +39,8 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     sx?:  SxProps<Theme>|undefined;
     rest?: any;
     fileExtension?: string;
+    uploadStarted?:()=>void;
+    uploadEnded?:()=>void;
 }
 
 
@@ -52,12 +53,15 @@ const CmrUpload = (props: CMRUploadProps) => {
      */
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
-    let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
-    const upload= async (file: File, fileAlias:string, fileDatabase: string)=>{
+    let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);const upload= async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
+        if(props.uploadStarted)
+            props.uploadStarted();
         let status:any = 0;
         try {
             if(props.beforeUpload!=undefined&&!await props.beforeUpload(file)){
+                if(props.uploadEnded)
+                    props.uploadEnded();
                 setUploading(false);
                 return 200;
             }
@@ -67,14 +71,13 @@ const CmrUpload = (props: CMRUploadProps) => {
             payload.config.onUploadProgress = (progressEvent) => {
                 if(progressEvent.total==undefined)
                     return;
-                let percentage = (progressEvent.loaded * 100) / progressEvent.total;
+                let percentage = (progressEvent.loaded * 99) / progressEvent.total;
                 setProgress(+percentage.toFixed(2));
             };
             // console.log(payload.formData)
             const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
             status = res.status;
             if(status===200){
-                let name = res.data.location
                 // file.name = res.data.response.
                 // await axios.post(res.data.upload_url, file)
                 console.log(res.data);
@@ -83,7 +86,7 @@ const CmrUpload = (props: CMRUploadProps) => {
                         'Content-Type': file.type
                     }
                 })
-                props.onUploaded(res,file);
+                await props.onUploaded(res,file);
                 setUploadedFile(file.name);
             }
         } catch (err) {
@@ -92,24 +95,11 @@ const CmrUpload = (props: CMRUploadProps) => {
             setOpen(true);
             throw(err);
         } finally {
+            if(props.uploadEnded)
+                props.uploadEnded();
             setUploading(false);
         }
         return status;
-    }
-
-    function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
-        return (
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth:'100pt', marginRight:'10pt'}}>
-                <Box sx={{ width: '100%', mr: 1 }}>
-                    <LinearProgress variant="determinate" {...props} />
-                </Box>
-                <Box sx={{ minWidth: 35 }}>
-                    <Typography variant="body2" color="text.secondary">{`${Math.round(
-                        props.value,
-                    )}%`}</Typography>
-                </Box>
-            </Box>
-        );
     }
 
     return (
@@ -125,7 +115,9 @@ const CmrUpload = (props: CMRUploadProps) => {
                     {(uploadedFile==undefined)?"Upload":uploadedFile}
                 </Button>
             :
-                <LinearProgressWithLabel value={progress} />}
+                <Button fullWidth variant={"contained"} sx={{overflowWrap:'inherit'}} color={'primary'} disabled>
+                    Uploading {progress}%
+                </Button>}
             <UploadWindow open={open} setOpen={setOpen} upload={upload} fileExtension={props.fileExtension}/>
         </React.Fragment>
     );

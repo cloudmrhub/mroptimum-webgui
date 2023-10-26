@@ -100,10 +100,9 @@ export const jobsSlice = createSlice({
         }),
             builder.addCase(getUpstreamJobs.fulfilled, (state, action) => {
                 let data: Array<Job> = [];
-                const payloadData: Array<any> = action.payload;
-
-                if (payloadData.length > 0) {
-                    payloadData.forEach((element) => {
+                const payloadData: {jobs:Array<any>} = action.payload;
+                if (payloadData.jobs.length > 0) {
+                    payloadData.jobs.forEach((element) => {
                         data.push(element);
                     });
                 }

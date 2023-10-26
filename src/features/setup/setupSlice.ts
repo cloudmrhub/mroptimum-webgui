@@ -41,6 +41,7 @@ interface ReconstructorOptions {
     signal?: FileReference;
     signalMultiRaid?: boolean;
     accelerations?: number[];
+    acl?: number[];
     sensitivityMap: SensitivityMap;
     correction: CorrectionOptions;
     decimate?: boolean;
@@ -127,7 +128,6 @@ const initialState: SetupState = {
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
     try{
-
         let {Bucket, Key} = JSON.parse(uploadedFile.location);
         return {
             type: 'file',
@@ -179,7 +179,7 @@ function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reco
         files: [],
         id: setupState.idGenerator++,
         setup: createSetup(snr,alias),
-        status: "temporary",
+        status: "not submitted",
         updatedAt: ""
     };
 }
@@ -191,6 +191,8 @@ export const setupSlice = createSlice({
         setAnalysisMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
+            if(state.activeSetup.name!='ac'&&state.activeSetup.name!='mr')
+                state.activeSetup.options.NR = 2;
             state.editInProgress=true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
@@ -205,6 +207,7 @@ export const setupSlice = createSlice({
         },
         setNoise(state: SetupState, action: PayloadAction<UploadedFile>) {
             state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
+            console.log(state.activeSetup.options.reconstructor.options.noise);
             state.activeSetup.options.reconstructor.options.signalMultiRaid = false;
             if (state.activeSetup.options.reconstructor.options.signal) {
                 state.activeSetup.options.reconstructor.options.signal.options.multiraid = false;
@@ -251,11 +254,22 @@ export const setupSlice = createSlice({
         setDecimate(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
             if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
-                state.activeSetup.options.reconstructor.options.accelerations = [1, 1, 24];
+                state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
+                state.activeSetup.options.reconstructor.options.acl = [24,24];
             state.editInProgress=true;
         },
-        setDecimateAccelerations(state: SetupState, action: PayloadAction<number[]>) {
-            state.activeSetup.options.reconstructor.options.accelerations = action.payload;
+        setDecimateAccelerations1(state: SetupState, action: PayloadAction<number>) {
+            if(state.activeSetup.options.reconstructor.options.accelerations)
+                state.activeSetup.options.reconstructor.options.accelerations[0] = action.payload;
+            state.editInProgress=true;
+        },
+        setDecimateAccelerations2(state: SetupState, action: PayloadAction<number>) {
+            if(state.activeSetup.options.reconstructor.options.accelerations)
+                state.activeSetup.options.reconstructor.options.accelerations[1] = action.payload;
+            state.editInProgress=true;
+        },
+        setDecimateACL(state: SetupState, action: PayloadAction<number>) {
+            state.activeSetup.options.reconstructor.options.acl = [action.payload,action.payload];
             state.editInProgress=true;
         },
         compileSNRSettings(state: SetupState) {
@@ -280,7 +294,7 @@ export const setupSlice = createSlice({
         completeSNREditing(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
             let SNRSpec = state.activeSetup;
             // Remove noise reference
-            if (!SNRSpec.options.reconstructor.options.signalMultiRaid)
+            if (SNRSpec.options.reconstructor.options.signalMultiRaid)
                 delete SNRSpec.options.reconstructor.options.noise;
             if (!SNRSpec.options.reconstructor.options.decimate)
                 delete SNRSpec.options.reconstructor.options.accelerations;
@@ -300,6 +314,7 @@ export const setupSlice = createSlice({
             }
             state.queuedJobs[index].setup=createSetup(SNRSpec,action.payload.alias);
             state.queuedJobs[index].alias = action.payload.alias;
+            state.queuedJobs[index].status = 'modified';
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
             state.editInProgress = false;
@@ -414,8 +429,18 @@ const SetupGetters = {
         return state.setup.activeSetup?.options.reconstructor?.options.decimate;
     },
 
-    getDecimateAccelerations: (state: RootState): number[] | undefined => {
-        return state.setup.activeSetup?.options.reconstructor?.options.accelerations;
+    getDecimateAcceleration1: (state: RootState): number | undefined => {
+        let acc = state.setup.activeSetup?.options.reconstructor?.options.accelerations;
+        return (acc)?acc[0]:0;
+    },
+
+    getDecimateAcceleration2: (state: RootState): number | undefined => {
+        let acc = state.setup.activeSetup?.options.reconstructor?.options.accelerations;
+        return (acc)?acc[1]:0;
+    },
+    getDecimateACL: (state: RootState): number | undefined => {
+        let acl = state.setup.activeSetup?.options.reconstructor?.options.acl;
+        return (acl)?acl[0]:0;
     },
     getLoadSensitivity(state: RootState): boolean | undefined {
         return state.setup.activeSetup?.options.reconstructor?.options.sensitivityMap?.options.loadSensitivity;

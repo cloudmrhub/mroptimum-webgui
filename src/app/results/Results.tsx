@@ -1,6 +1,6 @@
 import React, {Fragment, useEffect, useState} from 'react';
 import './Results.scss';
-import { Row, Col } from 'antd';
+import {Row, Col} from 'antd';
 import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import CmrTable from '../../common/components/CmrTable/CmrTable';
@@ -17,6 +17,19 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, {nv} from "../../common/components/src/Niivue";
 import {Job} from "../../features/jobs/jobsSlice";
 import {setupSetters} from "../../features/setup/setupSlice";
+import axios from "axios";
+import {UNZIP} from "../../Variables";
+import {FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
+
+interface NiiFile {
+    filename:string;
+    id:number;
+    dim:number;
+    name:string;
+    type:string;
+    link:string;
+}
 
 const Results = () => {
     const [completedJobsData, setCompletedJobsData] = useState<Array<UploadedFile>>();
@@ -25,7 +38,7 @@ const Results = () => {
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
         state.jobs.jobs);
-    const [volumes, setVolumes] = useState<{url:string}[]>( []);
+    const [volumes, setVolumes] = useState<{url:string, name:string}[]>( []);
     const completedJobsColumns = [
         {
             headerName: 'Job ID',
@@ -61,10 +74,24 @@ const Results = () => {
                 return (
                     <div>
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
-                            let files = params.row.files;
-                            let volumes = Array.from(files,(file)=>{return {url:file.link};});
-                            setVolumes(volumes);
-                            nv.loadVolumes(volumes);
+                            let counter = 0;
+                            params.row.files.forEach(file => {
+                                axios.post(UNZIP, JSON.parse(file.location),{
+                                    headers: {
+                                        Authorization:`Bearer ${accessToken}`
+                                    }
+                                }).then(value => {
+                                    let niis:NiiFile[] = value.data;
+                                    console.log(niis);
+                                    // let volumes = niis.map((value)=>{
+                                    //     return {url:value.link, name: value.filename};
+                                    // });
+                                    let volumes = [{url:niis[1].link,name:niis[1].filename}]
+                                    setVolumes(volumes);
+                                    nv.loadVolumes(volumes);
+                                })
+
+                            });
                             setOpenPanel([1]);
                         }}>
                             <PlayArrowIcon sx={{
@@ -84,8 +111,6 @@ const Results = () => {
                                 // Extract the file name from the URL, if possible
                                 a.download = `${file.fileName}.${url.split('.').pop()}`;
                                 a.href = url;
-
-
                                 // Append the anchor to the body (this is necessary to programmatically trigger the click event)
                                 document.body.appendChild(a);
 
@@ -110,6 +135,8 @@ const Results = () => {
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
+        //@ts-ignore
+        dispatch(getUpstreamJobs(accessToken));
     }, []);
 
     return (
