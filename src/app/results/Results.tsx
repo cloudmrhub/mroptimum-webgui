@@ -1,25 +1,18 @@
 import React, {Fragment, useEffect, useState} from 'react';
 import './Results.scss';
-import {Row, Col} from 'antd';
 import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import CmrTable from '../../common/components/CmrTable/CmrTable';
-import CmrProgress from '../../common/components/Cmr-components/progress/Progress';
 import { getUploadedData } from '../../features/data/dataActionCreation';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { UploadedFile } from '../../features/data/dataSlice';
 import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CmrButton from "../../common/components/Cmr-components/button/Button";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, {nv} from "../../common/components/src/Niivue";
 import {Job} from "../../features/jobs/jobsSlice";
-import {setupSetters} from "../../features/setup/setupSlice";
 import axios from "axios";
 import {UNZIP} from "../../Variables";
-import {FormControl, InputLabel, MenuItem, Select} from "@mui/material";
 import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
 
 interface NiiFile {
@@ -82,14 +75,16 @@ const Results = () => {
                                     }
                                 }).then(value => {
                                     let niis:NiiFile[] = value.data;
-                                    console.log(niis);
-                                    // let volumes = niis.map((value)=>{
-                                    //     return {url:value.link, name: value.filename};
-                                    // });
-                                    let volumes = [{url:niis[1].link,name:niis[1].filename}]
+                                    let volumes = niis.map((value)=>{
+                                        return {url:value.link, name: value.filename};
+                                    });
+                                    // let volumes = [{url:niis[1].link,name:niis[1].filename}]
                                     setVolumes(volumes);
-                                    nv.loadVolumes(volumes);
-                                })
+                                    nv.loadVolumes([volumes[0]]);
+                                }).catch((reason)=>{
+                                    console.log(reason);
+                                    console.log(JSON.parse(file.location));
+                                });
 
                             });
                             setOpenPanel([1]);

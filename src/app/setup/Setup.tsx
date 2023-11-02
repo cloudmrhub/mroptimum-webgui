@@ -22,7 +22,7 @@ import {
     RadioGroup,
     Radio,
     InputLabel,
-    Select, MenuItem, Tooltip
+    Select, MenuItem, Tooltip, Snackbar, Alert, Slide
 } from "@mui/material";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {
@@ -354,6 +354,17 @@ const Setup = () => {
     const [editing, setEditing] = useState<number>(-1);
 
     const [jobAlias, setJobAlias] = useState<string>('');
+
+    const [snackOpen, setSnackOpen] = useState(false)
+    const handleSnackClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setSnackOpen(false);
+        setTimeout(()=>dispatch(jobActions.resetSubmissionState()),500);
+    };
+    const snackAlert = useAppSelector(state=>{return state.jobs.submittingText;});
     // @ts-ignore
     // @ts-ignore
     return (
@@ -410,7 +421,13 @@ const Setup = () => {
                                handleClose={() => {
                                    setEditContent(undefined);
                                }}/>
-
+                    <Snackbar anchorOrigin={ {vertical: 'top', horizontal: 'left'}}
+                              TransitionComponent={(props)=><Slide {...props} direction="right" />}
+                              open={snackOpen} autoHideDuration={7000} onClose={handleSnackClose}>
+                        <Alert onClose={handleSnackClose} severity="success" sx={{ width: '100%' }}>
+                            {snackAlert}
+                        </Alert>
+                    </Snackbar>
                     <Confirmation setOpen={setSNRDeleteOpen}
                                   open={snrDeleteOpen}
                                   message={snrDeleteWarning}
@@ -436,9 +453,10 @@ const Setup = () => {
                                         return job;
                                     }
                                 }
-                            })
+                            });
                             // @ts-ignore
                             dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
+                            setSnackOpen(true);
                         }
                     }}>Submit Jobs</CmrButton>
 

@@ -9,6 +9,9 @@ export const DATAUNZIPAPI = 'https://2g05v1o1jj.execute-api.us-east-1.amazonaws.
 export const DATA_RENAME_API = 'http://localhost:5010/data/rename';
 export const DATA_DELETE_API =  'http://localhost:5010/data/delete';
 
+export const ROI_GET = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/getrois';
+export const ROI_UPLOAD = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/uploads';
+
 export const JOBS_API = 'https://2g05v1o1jj.execute-api.us-east-1.amazonaws.com/Prod/pipeline';
 export const JOBS_RETRIEVE_API = 'https://2g05v1o1jj.execute-api.us-east-1.amazonaws.com/Prod/downloads';
 export const JOBS_RENAME_API = 'http://localhost:5010/jobs/rename';

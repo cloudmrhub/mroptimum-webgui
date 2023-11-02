@@ -27,6 +27,7 @@ export interface Job {
 interface JobsState {
     jobs: Array<Job>;
     loading: boolean;
+    submittingText: string;
 }
 
 const initialState: JobsState = {
@@ -71,6 +72,7 @@ const initialState: JobsState = {
             }]
     }],
     loading: true,
+    submittingText: 'Submitting Jobs...'
 };
 
 export const jobsSlice = createSlice({
@@ -92,6 +94,9 @@ export const jobsSlice = createSlice({
         },
         deleteJob(state: JobsState, action: PayloadAction<{index: number}>){
             state.jobs.splice(action.payload.index,1);
+        },
+        resetSubmissionState(state:JobsState){
+            state.submittingText = 'Submitting jobs...';
         }
     },
     extraReducers: (builder) => (
@@ -109,6 +114,7 @@ export const jobsSlice = createSlice({
 
                 state.jobs = data;
                 state.loading = false;
+                state.submittingText = 'Jobs submitted!'
             })
     ),
 });

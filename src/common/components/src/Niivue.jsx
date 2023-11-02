@@ -17,7 +17,8 @@ import Layer from './components/Layer.jsx'
 import './Niivue.css'
 
 export const nv = new Niivue({
-  loadingText: ''
+  loadingText: '',
+  isColorbar: true
 })
 
 // The NiiVue component wraps all other components in the UI. 
@@ -95,7 +96,7 @@ export default function NiiVue(props) {
         getColorMapValues={(colorMapName)=>{return nv.colormapFromKey(colorMapName)}}
       />
     )
-  })
+  });
 
   async function addLayer(file){
     const nvimage = await NVImage.loadFromFile({
@@ -134,6 +135,12 @@ export default function NiiVue(props) {
   function nvUpdateDrawingEnabled(){
     setDrawingEnabled(!drawingEnabled)
     nv.setDrawingEnabled(!drawingEnabled)
+    nv.drawScene()
+  }
+
+  function nvSetDrawingEnabled(enabled){
+    setDrawingEnabled(enabled)
+    nv.setDrawingEnabled(enabled)
     nv.drawScene()
   }
 
@@ -355,10 +362,12 @@ export default function NiiVue(props) {
 	nv.on('intensityRange', (nvimage) => {
 		//setIntensityRange(nvimage)
 	})
-  const [selectedVolume, setSelectedVolume] = useState(-1);
+  const [selectedVolume, setSelectedVolume] = useState(0);
   const selectVolume = (volumeIndex)=>{
-    nv.removeVolume(props.volumes[selectedVolume]);
-    nv.addVolume(props.volumes[volumeIndex]);
+    if(props.volumes[selectVolume]!==undefined){
+      nv.removeVolume(props.volumes[selectedVolume]);
+    }
+    nv.loadVolumes([props.volumes[volumeIndex]]);
     setSelectedVolume(volumeIndex);
   }
   return (
@@ -367,7 +376,9 @@ export default function NiiVue(props) {
       flexDirection: 'column',
       height: '100%',
       width: '100%',
-      backgroundColor: 'black',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background:'black'
       }}
     >	
       <SettingsPanel 
@@ -634,11 +645,19 @@ export default function NiiVue(props) {
         volumes={props.volumes}
         selectedVolume={selectedVolume}
         setSelectedVolume={selectVolume}
+        updateDrawPen={nvUpdateDrawPen}
+        drawPen={drawPen}
+        drawingEnabled={drawingEnabled}
+        setDrawingEnabled={nvSetDrawingEnabled}
+        showColorBar={colorBar}
+        toggleColorBar={nvUpdateColorBar}
       >
       </Toolbar>
       <NiivuePanel
         nv={nv}
+        key = {selectedVolume}
         volumes={layers}
+        colorBarEnabled={colorBar}
       >
       </NiivuePanel>
       <LocationTable 
