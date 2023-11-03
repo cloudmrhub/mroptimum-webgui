@@ -31,17 +31,17 @@ export default function Confirmation({ name,message,
     return (
         <Dialog open={open} onClose={handleClose}>
             <DialogTitle>{name?name:'Confirmation'}</DialogTitle>
-            <DialogContent className={'mb-1'}>
+            <DialogContent>
                 <DialogContentText alignContent={'center'}>
                     {message}
                 </DialogContentText>
+                <DialogActions>
+                    {cancellable&&
+                        <CmrButton variant={"outlined"} color={'inherit'} sx={{color:'#333'}} onClick={handleCancel}>Cancel</CmrButton>
+                    }
+                    <CmrButton variant={"contained"} color={color} onClick={handleConfirm}>Confirm</CmrButton>
+                </DialogActions>
             </DialogContent>
-            <DialogActions>
-                {cancellable&&
-                    <CmrButton variant={"outlined"} color={'inherit'} sx={{color:'#333'}} onClick={handleCancel}>Cancel</CmrButton>
-                }
-                <CmrButton variant={"contained"} color={color} onClick={handleConfirm}>Confirm</CmrButton>
-            </DialogActions>
         </Dialog>
     );
 }

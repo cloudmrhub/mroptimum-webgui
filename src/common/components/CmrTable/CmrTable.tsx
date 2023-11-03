@@ -8,14 +8,16 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 interface CmrTableProps extends Omit<DataGridProps, 'rows'>{
     dataSource:any[];
     idAlias?:string;
+    name?:string
 }
 const CmrTable = (props:CmrTableProps) => {
     const { dataSource,columns,
-        idAlias, onRowSelectionModelChange, ...rest } = props;
+        idAlias, className, onRowSelectionModelChange, ...rest } = props;
     // const columnsWAction =[...columns];
 
     return (
-        <div style={{ height: '400px', width: '100%' }} className={`${props.className? props.className:''}`}>
+        <div style={{ height: '400px', width: '100%' }} className={`${className? className:''}`}>
+            {props.name}
             <DataGrid
                 rows={(dataSource!=undefined)?dataSource.map((row:any) => ({ id: (idAlias!=undefined)? row[idAlias]:row['id'], ...row })):[]}
                 columns={columns}

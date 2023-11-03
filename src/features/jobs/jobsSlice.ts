@@ -18,6 +18,7 @@ export interface Job {
     alias: string;
     //One of completed, pending, or other
     status: string;
+    pipeline_id: string;
     createdAt: string;
     updatedAt: string;
     setup: SetupInterface;
@@ -36,6 +37,7 @@ const initialState: JobsState = {
         status: 'completed',
         createdAt: '08-21-2023',
         updatedAt: '08-21-2023',
+        pipeline_id:'###',
         setup: {
             version: 'v0',
             alias: 'sample0',

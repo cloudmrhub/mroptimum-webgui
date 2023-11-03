@@ -180,7 +180,8 @@ function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reco
         id: setupState.idGenerator++,
         setup: createSetup(snr,alias),
         status: "not submitted",
-        updatedAt: ""
+        updatedAt: "",
+        pipeline_id:""
     };
 }
 

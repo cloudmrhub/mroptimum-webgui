@@ -15,6 +15,9 @@ import NVSwitch from './components/Switch.jsx'
 import LocationTable from './components/LocationTable.jsx'
 import Layer from './components/Layer.jsx'
 import './Niivue.css'
+import EditConfirmation from "../Cmr-components/dialogue/EditConfirmation";
+import axios from "axios";
+import {ROI_UPLOAD} from "../../../Variables";
 
 export const nv = new Niivue({
   loadingText: '',
@@ -77,12 +80,14 @@ export default function NiiVue(props) {
   //   setLayers([...nv.volumes])
   // }, [])
 
-  nv.opts.onImageLoaded = ()=>{
+  nv.onImageLoaded = ()=>{
     setLayers([...nv.volumes])
   }
-  nv.opts.onLocationChange = (data)=>{
+  nv.onLocationChange = (data)=>{
     setLocationData(data.values)
   }
+  // nv.createEmptyDrawing();
+
   // construct an array of <Layer> components. Each layer is a NVImage or NVMesh 
   const layerList = layers.map((layer) => {
     return (
@@ -92,7 +97,7 @@ export default function NiiVue(props) {
         onColorMapChange={nvUpdateColorMap}
         onRemoveLayer={nvRemoveLayer}
         onOpacityChange={nvUpdateLayerOpacity}
-        colorMapValues={nv.colormapFromKey(layer.colorMap)}
+        colorMapValues={nv.colormapFromKey(layer.colormap)}
         getColorMapValues={(colorMapName)=>{return nv.colormapFromKey(colorMapName)}}
       />
     )
@@ -129,7 +134,7 @@ export default function NiiVue(props) {
   }
 
   function nvSaveImage() {
-    nv.saveImage('roi.nii', true)
+    nv.saveImage('roi.nii', true);
   }
 
   function nvUpdateDrawingEnabled(){
@@ -370,6 +375,75 @@ export default function NiiVue(props) {
     nv.loadVolumes([props.volumes[volumeIndex]]);
     setSelectedVolume(volumeIndex);
   }
+  const [selectedROI, setSelectedROI] = useState(0);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveConfirmCallback, setSaveConfirmCallback] = useState(()=>{});
+  const selectROI = async (roiIndex)=>{
+    console.log(nv.drawBitmap);
+    const load = ()=>{
+      if(roiIndex!==props.rois.length){
+        console.log(props.rois[roiIndex].link);
+        nv.loadDrawingFromUrl(props.rois[roiIndex].link).then((value)=>{
+          console.log(value);
+        });
+      }
+      setSelectedROI(roiIndex);
+    };
+    if(nv.drawBitmap!=null){//If drawing exists
+      saveROI(()=>{
+        nv.closeDrawing();
+        // nv.removeVolumeByUrl(props.rois[selectedROI].link);
+        console.log(nv.volumes);
+        nv.drawScene();
+        load();
+      });
+    }else
+      load();
+  }
+  const saveROI = (afterSaveCallback)=>{
+    setSaveDialogOpen(true);
+    setSaveConfirmCallback(()=>(async (filename)=>{
+      const config = {
+        headers: {
+          Authorization: `Bearer ${props.accessToken}`,
+        },
+      };
+      const response = await axios.post(ROI_UPLOAD,{
+        "filename": filename,
+        "pipeline_id": props.pipelineID,
+        "type": "image",
+        "contentType": "application/octet-stream"
+      },config);
+      console.log(response.data);
+      // Monkey patch object URL creation
+      // Store the original URL.createObjectURL method
+      const originalCreateObjectURL = URL.createObjectURL;
+      // Redefine the method
+      URL.createObjectURL = function (blob) {
+        const file = new File([blob], filename, {
+          type: blob.type,
+          lastModified: Date.now()
+        });
+        // Upload to bucket
+        axios.put(response.data.upload_url, file, {
+          headers: {
+            'Content-Type': file.type
+          }
+        }).then(()=>{
+          // Update available rois with this callback
+          props.saveROICallback();
+        });
+        // Call the original method and return its result
+        return 'javascript:void(0);';
+      };
+
+      // False if nothing has been drawn on canvas
+      let successful = await nv.saveImage(filename,true);
+      // De-patch
+      URL.createObjectURL = originalCreateObjectURL;
+      afterSaveCallback();
+    }));
+  }
   return (
     <Box sx={{
       display: 'flex',
@@ -381,7 +455,7 @@ export default function NiiVue(props) {
       background:'black'
       }}
     >	
-      <SettingsPanel 
+      <SettingsPanel
         open={openSettings}
         width={300}
         toggleMenu={toggleSettings}
@@ -651,8 +725,21 @@ export default function NiiVue(props) {
         setDrawingEnabled={nvSetDrawingEnabled}
         showColorBar={colorBar}
         toggleColorBar={nvUpdateColorBar}
-      >
-      </Toolbar>
+        rois={props.rois}
+        selectedROI={selectedROI}
+        setSelectedROI={selectROI}
+        saveROI = {saveROI}
+      />
+      <EditConfirmation name={'Save drawings'}
+                        message={'Would you like to save the current ROI?'}
+                        open={saveDialogOpen} setOpen={setSaveDialogOpen}
+                        confirmCallback={saveConfirmCallback}
+                        cancellable={true}
+                        cancelCallback={()=>{}}
+                        suffix={'.nii'}
+                        defaultText={(props.rois[selectedROI]!==undefined?
+                            props.rois[selectedROI].filename:undefined)}
+      />
       <NiivuePanel
         nv={nv}
         key = {selectedVolume}

@@ -1910,17 +1910,18 @@
   dependencies:
     eslint-scope "5.1.1"
 
-"@niivue/niivue@^0.30.0":
-  version "0.30.0"
-  resolved "https://registry.yarnpkg.com/@niivue/niivue/-/niivue-0.30.0.tgz#55dd87c40e7149cb22cad828516a9cba59d9d9ba"
-  integrity sha512-eQhbd01f61ekgIsVdcRuceEaOL3pcAXHFpI5A0HNM3CIWVXLRVWMQY6bYwemNqXegTO56BLj77CIIhJNLgQg3g==
+"@niivue/niivue@^0.38.0":
+  version "0.38.0"
+  resolved "https://registry.yarnpkg.com/@niivue/niivue/-/niivue-0.38.0.tgz#29427ff0d1d133c7a99b26599cf13a46b595f673"
+  integrity sha512-V5Fj0VkmV5JLjte7XbQcwiipdzz2TiqeMmQHszfP4T90BFxbcmUta0i5ULiwri0UbzQ1J6w+usV5XOE8pmd6hw==
   dependencies:
-    daikon "^1.2.42"
-    fflate "^0.7.3"
+    "@ungap/structured-clone" "^1.0.2"
+    daikon "^1.2.43"
+    fflate "^0.7.4"
     gl-matrix "^3.4.3"
-    nifti-reader-js "^0.5.4"
-    rxjs "^7.4.0"
-    uuid "^8.3.2"
+    nifti-reader-js "^0.6.6"
+    rxjs "^7.8.0"
+    uuid "^9.0.0"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -2756,6 +2757,11 @@
   dependencies:
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
+
+"@ungap/structured-clone@^1.0.2":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
+  integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
 "@wearemothership/dicom-character-set@^1.0.4-opt.1":
   version "1.0.4-opt.1"
@@ -4150,7 +4156,7 @@ csstype@^3.0.10, csstype@^3.0.2, csstype@^3.1.2:
   resolved "https://registry.npmjs.org/csstype/-/csstype-3.1.2.tgz"
   integrity sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==
 
-daikon@^1.2.42:
+daikon@^1.2.43:
   version "1.2.45"
   resolved "https://registry.yarnpkg.com/daikon/-/daikon-1.2.45.tgz#15ccb61adbd009fca70f388e6656106faf769ab8"
   integrity sha512-AE8A8aLI4T1v17tA0qicecL9S9PIzFIQtGPmI8XK1L+06nJq1C3ZWj6B5gxosBf9h4dEgrvGKasCoibRep/q8g==
@@ -5074,11 +5080,11 @@ fb-watchman@^2.0.0:
     bser "2.1.1"
 
 fflate@*:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.8.0.tgz#f93ad1dcbe695a25ae378cf2386624969a7cda32"
-  integrity sha512-FAdS4qMuFjsJj6XHbBaZeXOgaypXp8iw/Tpyuq/w3XA41jjLHT8NPA+n7czH/DDhdncq0nAyDZmPeWXh2qmdIg==
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.8.1.tgz#1ed92270674d2ad3c73f077cd0acf26486dae6c9"
+  integrity sha512-/exOvEuc+/iaUm105QIiOt4LpBdMTWsXxqR0HDF35vx3fmaKzw7354gTilCh5rkzEt8WYyG//ku3h3nRmd7CHQ==
 
-fflate@^0.7.3:
+fflate@^0.7.4:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.7.4.tgz#61587e5d958fdabb5a9368a302c25363f4f69f50"
   integrity sha512-5u2V/CDW15QM1XbbgS+0DfPxVB+jUKhWEKuuFuHncbk3tEEqzmoXL+2KyOFuKGqOnmdIy0/davWF1CkuwtibCw==
@@ -7143,12 +7149,12 @@ neo-async@^2.6.2:
   resolved "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-nifti-reader-js@^0.5.4:
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/nifti-reader-js/-/nifti-reader-js-0.5.4.tgz#a6835f625aba3fd0b91d2554d99545a00d0f2161"
-  integrity sha512-KnZMEw9Wd39x1eTTZQaF5Zjh7LbUeWcxfEj0v5VS/yTkV2y/YHrAnC6VJyf2FjrmsUOElDVjIoHGLMCkcnpiNg==
+nifti-reader-js@^0.6.6:
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/nifti-reader-js/-/nifti-reader-js-0.6.6.tgz#c1c66f4b89bcd0da2b5d2ed8150ce7391e4d0b27"
+  integrity sha512-MsqoX2MxZ7wkRPgLMNNRY3IrbMijfTtnirfhe7laR/YuqSOJytUV4BbKCmynKylbLz5JNjdLi86NRvrOEp0zuQ==
   dependencies:
-    pako "*"
+    fflate "*"
 
 no-case@^3.0.4:
   version "3.0.4"
@@ -7397,11 +7403,6 @@ p-try@^2.0.0:
   version "2.2.0"
   resolved "https://registry.npmjs.org/p-try/-/p-try-2.2.0.tgz"
   integrity sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==
-
-pako@*:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/pako/-/pako-2.1.0.tgz#266cc37f98c7d883545d11335c00fbd4062c9a86"
-  integrity sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==
 
 pako@^1.0:
   version "1.0.11"
@@ -9054,7 +9055,7 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-rxjs@^7.4.0:
+rxjs@^7.8.0:
   version "7.8.1"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.8.1.tgz#6f6f3d99ea8044291efd92e7c7fcf562c4057543"
   integrity sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==
@@ -10144,6 +10145,11 @@ uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
+  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-to-istanbul@^8.1.0:
   version "8.1.1"
