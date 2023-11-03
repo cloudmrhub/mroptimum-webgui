@@ -32,11 +32,11 @@ function makeColorGradients(colorMapValues) {
 export default function Layer(props) {
   const image = props.image
   const [detailsOpen, setDetailsOpen] = React.useState(false)
-  const [color, setColor] = React.useState(image.colorMap)
+  const [color, setColor] = React.useState(image.colormap)
   const [opacity, setOpacity] = React.useState(1.0)
   let ArrowIcon = detailsOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
   console.log(props.colorMapValues)
-  let allColors = image.colorMaps().map((colorName) => {
+  let allColors = props.nv.colormaps().map((colorName) => {
     return (
       <MenuItem value={colorName} key={colorName}>
 

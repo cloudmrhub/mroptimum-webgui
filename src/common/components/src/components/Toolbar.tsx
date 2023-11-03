@@ -12,10 +12,12 @@ import FiberManualRecordOutlinedIcon from '@mui/icons-material/FiberManualRecord
 import ImagesearchRollerIcon from '@mui/icons-material/ImagesearchRoller';
 import BrushOutlinedIcon from '@mui/icons-material/BrushOutlined';
 import AutoFixNormalOutlinedIcon from '@mui/icons-material/AutoFixNormalOutlined';
-import AddIcon from "@mui/icons-material/Add";
+import ReplyIcon from '@mui/icons-material/Reply';
 import {ROI} from "../../../../features/rois/roiSlice";
+// import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
+    nv: any;
     nvUpdateSliceType: any;
     toggleLayers: React.MouseEventHandler<HTMLButtonElement> | undefined;
     toggleSettings: React.MouseEventHandler<HTMLButtonElement> | undefined;
@@ -32,6 +34,10 @@ interface ToolbarProps {
     selectedROI: number;
     setSelectedROI: (selected:number)=>void;
     saveROI: ()=>void;
+    changesMade: boolean;
+    showSampleDistribution:boolean;
+    toggleSampleDistribution: ()=>void;
+    drawUndo: ()=>void;
 }
 
 /*
@@ -175,9 +181,6 @@ export default function Toolbar(props:ToolbarProps) {
                         {props.rois.map((value,index)=>{
                             return <MenuItem value={index}>{value.filename}</MenuItem>;
                         })}
-                        <MenuItem value={props.rois.length}>
-                            <AddIcon/> New Image
-                        </MenuItem>
                     </Select>
                 </FormControl>
 
@@ -188,6 +191,22 @@ export default function Toolbar(props:ToolbarProps) {
                     }}
                     style={{
                         marginLeft: 'auto'
+                    }}
+                    m={1}
+                >
+                    <Typography
+                    >
+                        Sampling Histogram
+                    </Typography>
+                    <Switch
+                        checked={props.showSampleDistribution}
+                        onChange={props.toggleSampleDistribution}
+                    />
+                </Box>
+                <Box
+                    sx={{
+                        display:'flex',
+                        alignItems: 'center'
                     }}
                     m={1}
                 >
@@ -217,10 +236,14 @@ export default function Toolbar(props:ToolbarProps) {
                     flexDirection: 'row',
                     justifyItems: 'center',
                     alignItems: 'center',
-                    justifyContent:'center',
+                    // justifyContent:'center',
                     backgroundColor: 'white',
                 }}>
-
+                <FormControl>
+                    <Button className={'ms-2'} variant='contained' disabled={!props.changesMade} onClick={props.saveROI}>
+                        Save ROI
+                    </Button>
+                </FormControl>
                 <FormControl>
                     <Stack direction="row" >
                         <IconButton aria-label="draw" onClick={clickPaintBrush}>
@@ -261,9 +284,9 @@ export default function Toolbar(props:ToolbarProps) {
                     </Stack>
                 </FormControl>
                 <FormControl>
-                    <Button className={'ms-2'} variant='contained' onClick={props.saveROI}>
-                        Save ROI
-                    </Button>
+                    <IconButton aria-label="revert" onClick={()=>{props.drawUndo()}}>
+                        <ReplyIcon/>
+                    </IconButton>
                 </FormControl>
             </Box>
         </Box>

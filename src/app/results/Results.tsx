@@ -16,6 +16,8 @@ import {ROI_GET, UNZIP} from "../../Variables";
 import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
 import {ROI} from "../../features/rois/roiSlice";
 import {getPipelineROI} from "../../features/rois/roiActionCreation";
+import {Button} from "@mui/material";
+import {store} from "../../features/store";
 
 interface NiiFile {
     filename:string;
@@ -170,7 +172,16 @@ const Results = () => {
         dispatch(getUploadedData(accessToken));
         //@ts-ignore
         dispatch(getUpstreamJobs(accessToken));
+        setTimeout( ()=>{
+            if(Date.now()-lastUpdated>=60000){//Only auto get job state after 1 minute
+                setLastUpdated(Date.now());
+                //@ts-ignore
+                dispatch(getUpstreamJobs(accessToken));
+            }
+        },60000);
     }, []);
+
+    const [lastUpdated, setLastUpdated] = useState(Date.now());
 
     return (
         <Fragment>
@@ -179,9 +190,13 @@ const Results = () => {
             }}>
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
                     <CmrTable  dataSource={results} columns={completedJobsColumns}/>
+                    <Button className={'mt-3'} fullWidth variant={'contained'} onClick={()=>{
+                        //@ts-ignore
+                        dispatch(getUpstreamJobs(accessToken));
+                    }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header='Inspection' key={'1'}>
-                    <NiiVue volumes={volumes} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
+                    <NiiVue volumes={volumes} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore
                         dispatch(getPipelineROI({pipeline: pipelineID,
                             accessToken:accessToken}));
