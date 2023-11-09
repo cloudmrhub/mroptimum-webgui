@@ -284,9 +284,11 @@ export default function Toolbar(props:ToolbarProps) {
                     </Stack>
                 </FormControl>
                 <FormControl>
-                    <IconButton aria-label="revert" onClick={()=>{props.drawUndo()}}>
-                        <ReplyIcon/>
-                    </IconButton>
+                    <Stack direction="row" >
+                        <IconButton aria-label="revert" onClick={()=>{props.drawUndo()}}>
+                            <ReplyIcon/>
+                        </IconButton>
+                    </Stack>
                 </FormControl>
             </Box>
         </Box>

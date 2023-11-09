@@ -24,11 +24,12 @@ import Plotly from "plotly.js-dist-min";
 export const nv = new Niivue({
     loadingText: '',
     isColorbar: true
-})
+});
 
 // The NiiVue component wraps all other components in the UI. 
 // It is exported so that it can be used in other projects easily
-export default function NiiVue(props) {
+export default function NiiVueport(props) {
+    // const nv = props.nv;
     const [openSettings, setOpenSettings] = React.useState(false)
     const [openLayers, setOpenLayers] = React.useState(false)
     const [crosshairColor, setCrosshairColor] = React.useState(nv.opts.crosshairColor)
@@ -88,6 +89,12 @@ export default function NiiVue(props) {
     }
     nv.onLocationChange = (data) => {
         setLocationData(data.values);
+        if(drawingEnabled){
+            setDrawingChanged(true);
+            resampleImage();
+        }
+    }
+    nv.onMouseUp =  (data) => {
         if(drawingEnabled){
             setDrawingChanged(true);
             resampleImage();
@@ -286,13 +293,13 @@ export default function NiiVue(props) {
     function nvUpdateColorBar() {
         setColorBar(!colorBar)
         nv.opts.isColorbar = !colorBar
-        nv.drawScene()
+        nv.drawScene();
     }
 
     function nvUpdateTextSize(v) {
         setTextSize(v)
         nv.opts.textHeight = v
-        nv.drawScene()
+        nv.drawScene();
     }
 
     function updateDecimalPrecision(v) {
@@ -349,12 +356,12 @@ export default function NiiVue(props) {
 
     function resampleImage() {
         let image = nv.volumes[0];
-        // console.log(nv.volumes);
-        console.log(nv.drawBitmap.length);
-        console.log(nv.volumes[0].img.length);
         // Bitmap depicts the drawn content
         if(nv.drawBitmap==null)//If ROI (drawing) is not inside the stack
             return;
+        // console.log(nv.volumes);
+        console.log(nv.drawBitmap.length);
+        console.log(nv.volumes[0].img.length);
 
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
@@ -434,11 +441,30 @@ export default function NiiVue(props) {
     })
     const [selectedVolume, setSelectedVolume] = useState(0);
     const selectVolume = (volumeIndex) => {
-        if (props.volumes[selectVolume] !== undefined) {
-            nv.removeVolume(props.volumes[selectedVolume]);
+        const openVolume = ()=>{
+            nv.closeDrawing();
+            if(drawingEnabled)
+                nvUpdateDrawingEnabled();
+            if (props.volumes[selectVolume] !== undefined) {
+                nv.removeVolume(props.volumes[selectedVolume]);
+            }
+            nv.loadVolumes([props.volumes[volumeIndex]]);
+            setSelectedVolume(volumeIndex);
+            setSelectedROI(-1);
         }
-        nv.loadVolumes([props.volumes[volumeIndex]]);
-        setSelectedVolume(volumeIndex);
+        // In case that changes has been made
+        if (drawingChanged) {
+            setWarningConfirmationCallback(()=>(()=>{
+                saveROI(() => {
+                    openVolume();
+                });
+            }));
+            setWarningCancelCallback(()=>(()=>{
+                openVolume();
+            }));
+            setConfirmationOpen(true);
+        } else
+            openVolume();
     }
     const [selectedROI, setSelectedROI] = useState('');
     const [saveDialogOpen, setSaveDialogOpen] = useState(false);

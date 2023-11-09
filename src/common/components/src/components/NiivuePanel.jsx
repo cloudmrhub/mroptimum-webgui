@@ -4,7 +4,6 @@ import { Box } from "@mui/material"
 export function NiivuePanel (props) {
 	const canvas = React.useRef(null)
     let height = props.showDistribution?450:600;
-
 	React.useEffect(() => {
         const nv = props.nv
         // let rect = canvas.current.parentNode.getBoundingClientRect()

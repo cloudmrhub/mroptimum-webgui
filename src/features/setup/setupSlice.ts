@@ -41,6 +41,7 @@ interface ReconstructorOptions {
     signal?: FileReference;
     signalMultiRaid?: boolean;
     accelerations?: number[];
+    kernelSize?: [number, number];
     acl?: number[];
     sensitivityMap: SensitivityMap;
     correction: CorrectionOptions;
@@ -135,11 +136,11 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
             options: {
                 type: uploadedFile.database,
                 filename: uploadedFile.fileName,
-                options: undefined,
+                options: {},
                 multiraid: false,
                 bucket: Bucket,
                 key: Key,
-                vendor: 'Siemens'
+                vendor: 'Siemens',
             }
         };
     }catch(e){
@@ -149,11 +150,11 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
             options: {
                 type: uploadedFile.database,
                 filename: uploadedFile.fileName,
-                options: undefined,
+                options: {},
                 multiraid: false,
                 bucket: 'unknown',
                 key: 'unknown',
-                vendor: 'Siemens'
+                vendor: 'Siemens',
             }
         };
     }
@@ -193,7 +194,9 @@ export const setupSlice = createSlice({
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
             if(state.activeSetup.name!='ac'&&state.activeSetup.name!='mr')
-                state.activeSetup.options.NR = 2;
+                state.activeSetup.options.NR = 20;
+            else
+                delete state.activeSetup.options.NR;
             state.editInProgress=true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
@@ -228,6 +231,13 @@ export const setupSlice = createSlice({
         setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options.reconstructor.id = Number(action.payload);
             state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
+            if(action.payload==3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined){
+                state.activeSetup.options.reconstructor.options.kernelSize=[1,1];
+            }
+            if(action.payload == 2 ||action.payload==3){
+                state.activeSetup.options.reconstructor.options.decimate = false;
+            }else
+                delete state.activeSetup.options.reconstructor.options.decimate;
             state.editInProgress=true;
         },
         setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
@@ -269,17 +279,30 @@ export const setupSlice = createSlice({
                 state.activeSetup.options.reconstructor.options.accelerations[1] = action.payload;
             state.editInProgress=true;
         },
+        setKernelSize1(state: SetupState, action: PayloadAction<number>) {
+            console.log(state.activeSetup.options.reconstructor.options.kernelSize);
+            if(state.activeSetup.options.reconstructor.options.kernelSize)
+                state.activeSetup.options.reconstructor.options.kernelSize[0] = action.payload;
+            state.editInProgress=true;
+        },
+        setKernelSize2(state: SetupState, action: PayloadAction<number>) {
+            if(state.activeSetup.options.reconstructor.options.kernelSize)
+                state.activeSetup.options.reconstructor.options.kernelSize[1] = action.payload;
+            state.editInProgress=true;
+        },
         setDecimateACL(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options.reconstructor.options.acl = [action.payload,action.payload];
             state.editInProgress=true;
         },
-        compileSNRSettings(state: SetupState) {
+        compileSNRSettings(state: SetupState, action: PayloadAction<string>) {
             let SNRSpec = state.activeSetup;
             // Remove noise reference
             if (SNRSpec.options.reconstructor.options.signalMultiRaid)
                 delete SNRSpec.options.reconstructor.options.noise;
-            if (!SNRSpec.options.reconstructor.options.decimate)
+            if (!SNRSpec.options.reconstructor.options.decimate){
+                delete SNRSpec.options.reconstructor.options.acl;
                 delete SNRSpec.options.reconstructor.options.accelerations;
+            }
             // Remove multi-raid tag
             delete SNRSpec.options.reconstructor.options.signalMultiRaid;
             // Remove non-existent decimate data for Grappa and Sense
@@ -287,7 +310,10 @@ export const setupSlice = createSlice({
                 delete SNRSpec.options.reconstructor.options.decimate;
                 delete SNRSpec.options.reconstructor.options.accelerations;
             }
-            state.queuedJobs.push(createJob(SNRSpec, state));
+            if(SNRSpec.options.reconstructor.name != 'grappa'){
+                delete SNRSpec.options.reconstructor.options.kernelSize;
+            }
+            state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
             state.editInProgress = false;
@@ -360,6 +386,7 @@ export const setupSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(submitJobs.fulfilled, (state,responses)=>{
+            console.log(responses.payload);
             for(let response of responses.payload){
                 let id = response.id;
                 for(let job of state.queuedJobs){
@@ -442,6 +469,14 @@ const SetupGetters = {
     getDecimateACL: (state: RootState): number | undefined => {
         let acl = state.setup.activeSetup?.options.reconstructor?.options.acl;
         return (acl)?acl[0]:0;
+    },
+    getKernelSize1: (state:RootState):number|undefined=>{
+        let ks = state.setup.activeSetup?.options.reconstructor?.options.kernelSize;
+        return (ks)?ks[0]:0;
+    },
+    getKernelSize2: (state:RootState):number|undefined=>{
+        let ks = state.setup.activeSetup?.options.reconstructor?.options.kernelSize;
+        return (ks)?ks[1]:0;
     },
     getLoadSensitivity(state: RootState): boolean | undefined {
         return state.setup.activeSetup?.options.reconstructor?.options.sensitivityMap?.options.loadSensitivity;

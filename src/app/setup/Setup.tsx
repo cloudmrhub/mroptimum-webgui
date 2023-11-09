@@ -52,7 +52,6 @@ import {store} from "../../features/store";
 import {submitJobs} from "../../features/setup/setupActionCreation";
 import {snrDescriptions} from "./SetupDescriptions";
 import Confirmation from '../../common/components/Cmr-components/dialogue/Confirmation';
-import {nv} from "../../common/components/src/Niivue";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
@@ -97,6 +96,8 @@ const Setup = () => {
     const decimateAcceleration1 = useAppSelector(setupGetters.getDecimateAcceleration1);
     const decimateAcceleration2 = useAppSelector(setupGetters.getDecimateAcceleration2);
     const decimateACL = useAppSelector(setupGetters.getDecimateACL);
+    const kernelSize1 = useAppSelector(setupGetters.getKernelSize1);
+    const kernelSize2 = useAppSelector(setupGetters.getKernelSize2);
     let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
     if (analysisMethodChanged) {
         setTimeout(() => {
@@ -241,6 +242,45 @@ const Setup = () => {
             id: 3,
             type: 'Autocalibration Lines',
         }];
+    const kernelSizeColumns: GridColDef[] = [
+        {field: 'type', headerName: 'type', width: 180, editable: false},
+        {
+            field: 'value',
+            headerName: 'value',
+            type: 'number',
+            editable: false,
+            align: 'left',
+            headerAlign: 'left',
+            width: 180,
+            renderCell: (params)=>{
+                console.log(params);
+                switch(params.id){
+                    case 1:
+                        return <CmrInputNumber value={kernelSize1}
+                                               min={1}
+                                               style={{width:'100%'}}
+                                               onChange={(val) => {
+                                                   dispatch(setupSetters.setKernelSize1((val == null) ? 0 : val))
+                                               }}></CmrInputNumber>;
+                    case 2:
+                        return <CmrInputNumber value={kernelSize2}
+                                               min={1}
+                                               style={{width:'100%'}}
+                                               onChange={(val) => {
+                                                   dispatch(setupSetters.setKernelSize2((val == null) ? 0 : val))
+                                               }}></CmrInputNumber>;
+                }
+            }
+        }];
+    const kernelSizeRows: GridRowsProp = [
+        {
+            id: 1,
+            type: 'Kernel size 1',
+        },
+        {
+            id: 2,
+            type: 'Kernel size 2',
+        }];
     const queuedJobsColumns:GridColDef[] = [
         {
             headerName: 'Job ID',
@@ -362,7 +402,7 @@ const Setup = () => {
         }
 
         setSnackOpen(false);
-        setTimeout(()=>dispatch(jobActions.resetSubmissionState()),500);
+        setTimeout(()=>dispatch(jobActions.resetSubmissionState()),1000);
     };
     const snackAlert = useAppSelector(state=>{return state.jobs.submittingText;});
     // @ts-ignore
@@ -566,22 +606,26 @@ const Setup = () => {
                                   expanded={true}>
                             {snrDescription}
                         </CmrPanel>}
-                    {(analysisMethod == 2 || analysisMethod == 3) &&
-                        <Fragment>
-                            <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
-                            <Row className='mb-3' style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
-                                <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto'}}># of Pseudo Replica</CmrLabel>
-                                <CmrInputNumber value={pseudoReplicaCount}
-                                                min={2}
-                                                onChange={(val) => {
-                                                    dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
-                                                }}></CmrInputNumber>
-                            </Row>
-                        </Fragment>}
+
                     {(analysisMethod != undefined) &&
                         <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
                             <CmrPanel header={'Reconstructor Options'} cardProps={{className: 'ms-3 me-3 mt-4 mb-3'}}
                                       className={''}>
+                                {(analysisMethod == 2 || analysisMethod == 3) &&
+                                    <Fragment>
+                                        <Row className='mb-3' style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
+                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                                            {/*</FormControl>*/}
+                                            <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto',color: '#580F8B'}}>Number of Pseudo Replica:</CmrLabel>
+                                            <CmrInputNumber value={pseudoReplicaCount}
+                                                            min={20}
+                                                            onChange={(val) => {
+                                                                dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
+                                                            }}></CmrInputNumber>
+                                        </Row>
+                                        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+                                    </Fragment>}
                                 <FormControl style={{width: '100%'}} className={'mb-3'}
                                              onChange={(event) => {
                                                  //@ts-ignore
@@ -590,7 +634,7 @@ const Setup = () => {
                                                  //@ts-ignore
                                                  dispatch(setupSetters.setReconstructionMethod(event.target.value));
                                              }}>
-                                    <FormLabel id={'reconstruction-label'}>Image Reconstruction Methods</FormLabel>
+                                    <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel>
                                     <RadioGroup
                                         row
                                         aria-labelledby="demo-row-radio-buttons-group-label"
@@ -649,7 +693,7 @@ const Setup = () => {
                                                         name="row-radio-buttons-group"
                                                         value={loadSensitivity}
                                                     >
-                                                        <FormControlLabel value={true} control={<Radio/>}
+                                                        <FormControlLabel value={true} disabled={true} control={<Radio/>}
                                                                           label="Load Coil Sensitivities"/>
                                                         <FormControlLabel value={false} control={<Radio/>}
                                                                           label="Calculate Coil Sensitivities"/>
@@ -698,13 +742,54 @@ const Setup = () => {
                                                 <Divider variant="middle"
                                                          sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
                                             </Fragment>}
+                                        {(reconstructionMethod==3) &&
+                                            <React.Fragment>
+                                                <CmrLabel style={{marginLeft:'3pt', marginBottom:'15pt'}}>Kernel Size</CmrLabel>
+                                                <div className='ms-3' style={{
+                                                    height: 'fit-content',
+                                                    marginRight: 'auto',
+                                                    marginTop: '5pt',
+                                                    width: '362px'
+                                                }}>
+                                                    <DataGrid
+                                                        rows={kernelSizeRows}
+                                                        slots={{
+                                                            columnHeaders: () => null,
+                                                        }}
+                                                        autoHeight
+                                                        hideFooterPagination
+                                                        hideFooterSelectedRowCount
+                                                        hideFooter={true}
+                                                        columns={kernelSizeColumns}
+                                                        sx={{
+                                                            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {display: 'none'}
+                                                        }}
+                                                        onCellEditStop={(params: GridCellEditStopParams, event) => {
+                                                            // console.log(params)
+                                                            // console.log(event)
+                                                            // return;
+                                                            //@ts-ignore
+                                                            if (event.target == undefined || !isNaN(event.target.value))
+                                                                return;
+                                                        }}
+                                                    />
+                                                </div>
+                                                <Divider variant="middle"
+                                                         sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+                                            </React.Fragment>
+                                        }
                                         {(decimateMapping[reconstructionMethod]) &&
-                                            <CmrCheckbox className='m-1' defaultChecked={decimateData}
-                                                         checked={decimateData} onChange={
-                                                (event) =>
-                                                    dispatch(setupSetters.setDecimate(event.target.checked))}>
-                                                Decimate Data
-                                            </CmrCheckbox>}
+                                            <Fragment>
+                                                <CmrCheckbox className='m-1' defaultChecked={decimateData}
+                                                             checked={decimateData} onChange={
+                                                    (event) =>
+                                                        dispatch(setupSetters.setDecimate(event.target.checked))}>
+                                                    Decimate Data
+                                                </CmrCheckbox>
+
+                                                <Divider variant="middle"
+                                                         sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                                            </Fragment>}
                                         {(decimateMapping[reconstructionMethod] && decimateData) &&
                                             <div className='ms-3' style={{
                                                 height: 'fit-content',
@@ -745,10 +830,26 @@ const Setup = () => {
 
                                                     }}
                                                 />
+                                                <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
                                             </div>
                                         }
-                                        <Divider variant="middle"
-                                                 sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+                                       <Row>
+                                           {
+                                               <CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
+                                                            checked={true}>
+                                                   Save matlab
+                                               </CmrCheckbox>
+                                           }
+                                           {[1,2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
+                                                        checked={true}>
+                                               Save coil sensitivities
+                                           </CmrCheckbox>}
+                                           {[2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
+                                                                                                 checked={true}>
+                                               Save gFactor
+                                           </CmrCheckbox>}
+                                       </Row>
+                                        <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
                                         <CmrButton sx={{width: '100%'}} variant={"outlined"} color={'success'}
                                                    onClick={() => {
                                                        let state = store.getState();
@@ -768,8 +869,8 @@ const Setup = () => {
                                                             setJobAlias(event.target.value)
                                                         }}
                                                         edit={() => {
-                                                        }} queue={() => {
-                                                dispatch(setupSetters.compileSNRSettings());
+                                                        }} queue={(jobAlias:string) => {
+                                                dispatch(setupSetters.compileSNRSettings(jobAlias));
                                                 setJobSelectionModel([...jobSelectionModel, newJobId]);
                                                 setTimeout(() => setOpenPanel([0]), 500);
                                             }}

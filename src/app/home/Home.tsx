@@ -18,6 +18,11 @@ import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 import {Button} from "@mui/material";
 import {GridRowSelectionModel} from "@mui/x-data-grid";
+import CMRUpload, {CMRUploadProps, LambdaFile} from '../../common/components/Cmr-components/upload/Upload';
+import {getFileExtension} from "../../common/utilities";
+import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
+import {DATAUPLODAAPI} from "../../Variables";
+import {AxiosRequestConfig} from "axios";
 
 const Home = () => {
     const uploadedFilesColumns = [
@@ -65,17 +70,38 @@ const Home = () => {
                         }}>
                             <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => {/* Download logic here */}}>
+                        <IconButton onClick={() => {/* Download logic here */
+                            let file = params.row;
+                            let url = file.link;
+                            if(url=="unknown")
+                                return;
+                            // Create an anchor element
+                            const a = document.createElement('a');
+                            a.href = url;
+
+                            // Extract the file name from the URL, if possible
+                            a.download = `${file.fileName}.${url.split('.').pop()}`;
+
+                            // Append the anchor to the body (this is necessary to programmatically trigger the click event)
+                            document.body.appendChild(a);
+
+                            // Trigger a click event to start the download
+                            a.click();
+
+                            // Remove the anchor from the body
+                            document.body.removeChild(a)
+                        }}>
                             <GetAppIcon />
                         </IconButton>
-                        <IconButton onClick={() => {
+                        <IconButton onClick={(e) => {
                             setName(`Deleting data`);
-                            setMessage(`Please confirm that you are deleting data ${params.row.id}.`);
+                            setMessage(`Please confirm that you are deleting: ${params.row.fileName}.`);
                             setColor('error');
                             setConfirmCallback(()=>()=>{
                                 dispatch(dataSlice.actions.deleteData({index}));
                             });
                             setOpen(true);
+                            e.stopPropagation();
                         }}>
                             <DeleteIcon />
                         </IconButton>
@@ -200,6 +226,37 @@ const Home = () => {
         console.log("dispatched");
     }, []);
 
+
+    const [uploadKey, setUploadKey] = useState(0);
+    const UploadHeaders: AxiosRequestConfig = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+        },
+    };
+
+    const createPayload = async (file: File, fileAlias: string) => {
+        let formData = new FormData();
+        if (file) {
+            const lambdaFile: LambdaFile = {
+                "filename": fileAlias,
+                "filetype": file.type,
+                "filesize": `${file.size}`,
+                "filemd5": '',
+                "file": file
+            }
+            formData.append("lambdaFile", JSON.stringify(lambdaFile));
+            formData.append("file", file);
+            const fileExtension = getFileExtension(file.name);
+
+            if (fileExtension == 'dat') {
+                const transformedFile = await anonymizeTWIX(file);
+                file = transformedFile;
+            }
+            return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
+        }
+    };
+
     return (
        <Fragment>
            <CmrCollapse accordion={false} defaultActiveKey={[0,1]} expandIconPosition="right">
@@ -226,7 +283,19 @@ const Home = () => {
                                setOpen(true);}}>Delete</Button>
                        </div>
                        <div className="col-4">
-                           <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{}}>Upload</Button>
+                           <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
+                               // console.log("calling Setup level on uploaded");
+                               // console.log(props.onUploaded);
+                               // selectFileIndex(props.fileSelection.length);
+                               // props.onUploaded(res, file);
+                               // setOpen(false);
+                               //@ts-ignore
+                               dispatch(getUploadedData(accessToken));
+                               setUploadKey(uploadKey+1);
+                           }} 
+                                       // uploadStarted={()=>setUploading(true)}
+                                       // uploadEnded={()=>setUploading(false)}
+                            createPayload={createPayload} maxCount={1}></CMRUpload>
                        </div>
                     </div>
                </CmrPanel>

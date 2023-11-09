@@ -63,7 +63,7 @@ export const dataSlice = createSlice({
                     data.push({
                         id: element.id,
                         fileName: element.filename,
-                        link: element.location,
+                        link: element.link,
                         md5: element.md5,
                         size: element.size,
                         status: (element.status=='notavailable')?'not available':element.status,

@@ -30,7 +30,7 @@ interface NiiFile {
 
 const Results = () => {
     const [completedJobsData, setCompletedJobsData] = useState<Array<UploadedFile>>();
-
+    const [activeJobAlias, setActiveJobAlias] = useState<string|undefined>(undefined);
     const dispatch = useAppDispatch();
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
@@ -103,6 +103,7 @@ const Results = () => {
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
                             let counter = 0;
                             params.row.files.forEach(file => {
+                                console.log(file);
                                 axios.post(UNZIP, JSON.parse(file.location),{
                                     headers: {
                                         Authorization:`Bearer ${accessToken}`
@@ -114,6 +115,7 @@ const Results = () => {
                                     });
                                     // let volumes = [{url:niis[1].link,name:niis[1].filename}]
                                     setVolumes(volumes);
+                                    nv.closeDrawing();
                                     nv.loadVolumes([volumes[0]]);
                                     // nv.createEmptyDrawing();
                                 }).catch((reason)=>{
@@ -123,6 +125,7 @@ const Results = () => {
                             });
                             // Set pipeline ID
                             setPipelineID(params.row.pipeline_id);
+                            setActiveJobAlias(params.row.alias);
                             // Set roi
                             //@ts-ignore
                             dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
@@ -195,7 +198,7 @@ const Results = () => {
                         dispatch(getUpstreamJobs(accessToken));
                     }}>Refresh</Button>
                 </CmrPanel>
-                <CmrPanel header='Inspection' key={'1'}>
+                <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
                     <NiiVue volumes={volumes} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore
                         dispatch(getPipelineROI({pipeline: pipelineID,

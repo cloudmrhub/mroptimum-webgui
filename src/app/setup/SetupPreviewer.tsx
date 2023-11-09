@@ -11,7 +11,7 @@ import {store} from "../../features/store";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
 
 export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job'}:
-                               {previewContent: string, queue: ()=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,
+                               {previewContent: string, queue: (jobAlias:string)=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,
                                     editText?:string, queueText?:string
 })=>{
 
@@ -48,7 +48,7 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
         </DialogContent>
         <DialogActions sx={{pl:3,pr:3}}>
             <CmrButton fullWidth variant={"outlined"} color={'success'} onClick={()=>{
-                queue();
+                queue(alias);
                 handleClose();
             }}>{queueText}</CmrButton>
         </DialogActions>
