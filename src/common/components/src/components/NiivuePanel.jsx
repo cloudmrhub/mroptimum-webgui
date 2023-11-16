@@ -6,12 +6,12 @@ export function NiivuePanel (props) {
     let height = props.showDistribution?450:600;
     // This hook is for initialization, called only once
     React.useEffect(()=>{
-        nv.attachTo('niiCanvas');
-    },[])
-    //
+        props.nv.attachTo('niiCanvas');
+    },[canvas])
+    // This hook is called when show distribution state changed
 	React.useEffect(() => {
-        const nv = props.nv
-      }, [canvas])
+        props.nv.resizeListener();
+      }, [props.showDistribution])
 
 	return (
 		<Box style={{width:'100%',display:'flex',flexDirection:'row'}}>
