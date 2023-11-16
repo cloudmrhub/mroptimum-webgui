@@ -1911,9 +1911,9 @@
     eslint-scope "5.1.1"
 
 "@niivue/niivue@^0.38.0":
-  version "0.38.0"
-  resolved "https://registry.yarnpkg.com/@niivue/niivue/-/niivue-0.38.0.tgz#29427ff0d1d133c7a99b26599cf13a46b595f673"
-  integrity sha512-V5Fj0VkmV5JLjte7XbQcwiipdzz2TiqeMmQHszfP4T90BFxbcmUta0i5ULiwri0UbzQ1J6w+usV5XOE8pmd6hw==
+  version "0.38.1"
+  resolved "https://registry.yarnpkg.com/@niivue/niivue/-/niivue-0.38.1.tgz#73a1cb2bbb618a36e29cf397309e63447aed6d9d"
+  integrity sha512-DeWxwkVbuHIBoetOedtoWBfxnk64cKpezj2JeTOHKbcTm23MzGvW36I4/HyWLrGF//U3kZ3wGo0pFMID7vClmA==
   dependencies:
     "@ungap/structured-clone" "^1.0.2"
     daikon "^1.2.43"
@@ -7150,9 +7150,9 @@ neo-async@^2.6.2:
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
 nifti-reader-js@^0.6.6:
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/nifti-reader-js/-/nifti-reader-js-0.6.6.tgz#c1c66f4b89bcd0da2b5d2ed8150ce7391e4d0b27"
-  integrity sha512-MsqoX2MxZ7wkRPgLMNNRY3IrbMijfTtnirfhe7laR/YuqSOJytUV4BbKCmynKylbLz5JNjdLi86NRvrOEp0zuQ==
+  version "0.6.7"
+  resolved "https://registry.yarnpkg.com/nifti-reader-js/-/nifti-reader-js-0.6.7.tgz#21d60f84301827e32a50fb08a739bafc4a195ef4"
+  integrity sha512-Ps4cnviopcqhw1WIoCs7oLc/EpXKLscAyGQxDUwZgy3yDjZt4DdNR7kAzeKp2XtYwxkXS+/ylfmSUI6t7aAr5Q==
   dependencies:
     fflate "*"
 

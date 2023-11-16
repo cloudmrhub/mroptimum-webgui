@@ -123,7 +123,7 @@ const Results = () => {
                                     setSelectedVolume(0);
                                     nv.loadVolumes([volumes[0]]);
                                     // nv.createEmptyDrawing();
-                                    nv.loadVolumes([{url:'./hippo.nii'}]);
+                                    // nv.loadVolumes([{url:'./hippo.nii'}]);
                                 }).catch((reason)=>{
                                     console.log(reason);
                                     console.log(JSON.parse(file.location));

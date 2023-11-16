@@ -90,11 +90,11 @@ export default function NiiVueport(props) {
         setLayers([...nv.volumes])
     }
     nv.onLocationChange = (data) => {
-        setLocationData(data.values);
-        if(drawingEnabled){
-            setDrawingChanged(true);
-            resampleImage();
-        }
+        // setLocationData(data.values);
+        // if(drawingEnabled){
+        //     setDrawingChanged(true);
+        //     resampleImage();
+        // }
     }
     nv.onMouseUp =  (data) => {
         if(drawingEnabled){
@@ -145,6 +145,7 @@ export default function NiiVueport(props) {
     function toggleSampleDistribution(){
         setShowSampleDistribution(!showSampleDistribution);
         resampleImage();
+        nv.resizeListener();
     }
 
     function nvUpdateOpacity(a) {
@@ -184,7 +185,7 @@ export default function NiiVueport(props) {
 
     function nvUpdateDrawOpacity(a) {
         setDrawOpacity(a)
-        nv.setDrawOpacity(a)
+        nv.setDrawOpacity(a);
     }
 
     function nvUpdateCrosshairColor(rgb01, a = 1) {
@@ -206,7 +207,7 @@ export default function NiiVueport(props) {
     function nvUpdateMultiplanarPadPixels(v) {
         nv.opts.multiplanarPadPixels = v
         setMultiplanarPadPixels(v)
-        nv.drawScene()
+        nv.drawScene();
     }
 
     function nvUpdateRuler() {
@@ -438,9 +439,6 @@ export default function NiiVueport(props) {
         setLayers([...nv.volumes])
     }
 
-    nv.on('intensityRange', (nvimage) => {
-        //setIntensityRange(nvimage)
-    })
     const selectVolume = (volumeIndex) => {
         const openVolume = ()=>{
             nv.closeDrawing();
