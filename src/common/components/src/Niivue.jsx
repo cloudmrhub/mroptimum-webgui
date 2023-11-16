@@ -29,6 +29,8 @@ export const nv = new Niivue({
 // The NiiVue component wraps all other components in the UI. 
 // It is exported so that it can be used in other projects easily
 export default function NiiVueport(props) {
+    const selectedVolume = props.selectedVolume;
+    const setSelectedVolume = props.setSelectedVolume;
     // const nv = props.nv;
     const [openSettings, setOpenSettings] = React.useState(false)
     const [openLayers, setOpenLayers] = React.useState(false)
@@ -439,7 +441,6 @@ export default function NiiVueport(props) {
     nv.on('intensityRange', (nvimage) => {
         //setIntensityRange(nvimage)
     })
-    const [selectedVolume, setSelectedVolume] = useState(0);
     const selectVolume = (volumeIndex) => {
         const openVolume = ()=>{
             nv.closeDrawing();
@@ -450,7 +451,7 @@ export default function NiiVueport(props) {
             }
             nv.loadVolumes([props.volumes[volumeIndex]]);
             setSelectedVolume(volumeIndex);
-            setSelectedROI(-1);
+            setSelectedROI('');
         }
         // In case that changes has been made
         if (drawingChanged) {
@@ -513,6 +514,7 @@ export default function NiiVueport(props) {
                     Authorization: `Bearer ${props.accessToken}`,
                 },
             };
+            console.log(props);
             const response = await axios.post(ROI_UPLOAD, {
                 "filename": filename,
                 "pipeline_id": props.pipelineID,
@@ -861,14 +863,13 @@ export default function NiiVueport(props) {
                               defaultText={(props.rois[selectedROI] !== undefined ?
                                   props.rois[selectedROI].filename : undefined)}
             />
-            <NiivuePanel
+            {props.volumes[selectedVolume]!=undefined && <NiivuePanel
                 nv={nv}
                 key={`${selectedVolume}`}
                 volumes={layers}
                 colorBarEnabled={colorBar}
                 showDistribution={showSampleDistribution}
-            >
-            </NiivuePanel>
+            />}
             <LocationTable
                 tableData={locationData}
                 isVisible={locationTableVisible}

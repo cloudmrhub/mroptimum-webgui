@@ -114,7 +114,7 @@ const Setup = () => {
     }
 
     // Option availability maps
-    const topToSecondaryMaps = [[0, 1, 2, 3], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]];
+    const topToSecondaryMaps = [[0, 1, 2], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]];
     const secondaryToCoilMethodMaps = [[], ['inner'], ['inner', 'innerACL'], []];
     const idToSecondaryOptions = ['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa'];
     const coilOptionAlias: { [options: string]: string } = {
@@ -207,7 +207,8 @@ const Setup = () => {
                 switch(params.id){
                     case 1:
                         return <CmrInputNumber value={decimateAcceleration1}
-                                               min={0}
+                                               min={1}
+                                               max={1}
                                                style={{width:'100%'}}
                                                onChange={(val) => {
                                                    dispatch(setupSetters.setDecimateAccelerations1((val == null) ? 0 : val))
@@ -230,13 +231,13 @@ const Setup = () => {
             }
         }];
     const rows: GridRowsProp = [
-        {
-            id: 1,
-            type: 'Acceleration factor 1',
-        },
+        // {
+        //     id: 1,
+        //     type: 'Acceleration factor 1',
+        // },
         {
             id: 2,
-            type: 'Acceleration factor 2',
+            type: 'Acceleration factor',
         },
         {
             id: 3,
@@ -494,6 +495,7 @@ const Setup = () => {
                                     }
                                 }
                             });
+                            dispatch(jobActions.resetSubmissionState());
                             // @ts-ignore
                             dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
                             setSnackOpen(true);

@@ -18,6 +18,8 @@ import {ROI} from "../../features/rois/roiSlice";
 import {getPipelineROI} from "../../features/rois/roiActionCreation";
 import {Button} from "@mui/material";
 import {store} from "../../features/store";
+import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
+import {Row} from "antd";
 
 interface NiiFile {
     filename:string;
@@ -111,13 +113,17 @@ const Results = () => {
                                 }).then(value => {
                                     let niis:NiiFile[] = value.data;
                                     let volumes = niis.map((value)=>{
-                                        return {url:value.link, name: value.filename};
+                                        return {url:value.link, name: (value.filename.split('/').pop() as string)};
                                     });
                                     // let volumes = [{url:niis[1].link,name:niis[1].filename}]
+                                    //@ts-ignore
+                                    // setVolumes([{url:'./hippo.nii'}])
                                     setVolumes(volumes);
                                     nv.closeDrawing();
+                                    setSelectedVolume(0);
                                     nv.loadVolumes([volumes[0]]);
                                     // nv.createEmptyDrawing();
+                                    nv.loadVolumes([{url:'./hippo.nii'}]);
                                 }).catch((reason)=>{
                                     console.log(reason);
                                     console.log(JSON.parse(file.location));
@@ -170,6 +176,7 @@ const Results = () => {
 
     const [openPanel, setOpenPanel] = useState([0]);
 
+    const [autoRefresh, setAutoRefresh] = useState(true);
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
@@ -178,20 +185,28 @@ const Results = () => {
         setTimeout( ()=>{
             if(Date.now()-lastUpdated>=60000){//Only auto get job state after 1 minute
                 setLastUpdated(Date.now());
-                //@ts-ignore
-                dispatch(getUpstreamJobs(accessToken));
+                if(autoRefresh){
+                    //@ts-ignore
+                    dispatch(getUpstreamJobs(accessToken));
+                }
             }
         },60000);
     }, []);
 
     const [lastUpdated, setLastUpdated] = useState(Date.now());
-
+    const [selectedVolume, setSelectedVolume] = useState(0);
     return (
         <Fragment>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel} onChange={(key: any) => {
                 setOpenPanel(key)
             }}>
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
+                    <Row>
+                        <CmrCheckbox style={{marginLeft:'auto'}} defaultChecked={true} onChange={(e)=>{
+                            //@ts-ignore
+                            setAutoRefresh(e.target.value);
+                        }}>Auto Refreshing</CmrCheckbox>
+                    </Row>
                     <CmrTable  dataSource={results} columns={completedJobsColumns}/>
                     <Button className={'mt-3'} fullWidth variant={'contained'} onClick={()=>{
                         //@ts-ignore
@@ -199,7 +214,7 @@ const Results = () => {
                     }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
-                    <NiiVue volumes={volumes} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
+                    <NiiVue volumes={volumes} setSelectedVolume={setSelectedVolume} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore
                         dispatch(getPipelineROI({pipeline: pipelineID,
                             accessToken:accessToken}));

@@ -70,17 +70,20 @@ const Home = () => {
                         }}>
                             <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => {/* Download logic here */
-                            let file = params.row;
-                            let url = file.link;
+                        <IconButton onClick={(e) => {/* Download logic here */
+                            let url = params.row.link;
+                            e.stopPropagation();
+                            e.preventDefault();
                             if(url=="unknown")
                                 return;
                             // Create an anchor element
                             const a = document.createElement('a');
                             a.href = url;
 
+                            console.log(params.row.fileName);
+
                             // Extract the file name from the URL, if possible
-                            a.download = `${file.fileName}.${url.split('.').pop()}`;
+                            a.download = params.row.fileName;
 
                             // Append the anchor to the body (this is necessary to programmatically trigger the click event)
                             document.body.appendChild(a);
@@ -161,7 +164,10 @@ const Home = () => {
                         }}>
                             <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => {/* Download logic here */
+                        <IconButton onClick={(e) => {/* Download logic here */
+                            e.stopPropagation();
+                            e.preventDefault();
+                            console.log(params.row.files);
                             params.row.files.forEach((file:UploadedFile) => {
                                 let url = file.link;
                                 if(url=="unknown")
@@ -256,7 +262,38 @@ const Home = () => {
             return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
         }
     };
+    function downloadSelectedValues(){
+        let downloadPending:UploadedFile[] = [];
+        selectedData.map((id)=>{
+            for(let file of files){
+                if(file.id == id)
+                    downloadPending.push(file);
+            }
+        });
+        console.log(selectedData);
+        function downloadMultipleFiles(files:UploadedFile[]) {
+            // This function creates an anchor and triggers a download
+            function triggerDownload(url:string, fileName:string) {
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                console.log(url);
+                anchor.download = fileName;
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
+            }
 
+            // Iterate over the files array
+            files.forEach((file, index) => {
+                // Set a timeout to space out the downloads
+                setTimeout(() => {
+                    triggerDownload(file.link, file.fileName);
+                }, index * 1000); // Delay each download by 1 second
+            });
+        }
+        downloadMultipleFiles(downloadPending);
+
+    }
     return (
        <Fragment>
            <CmrCollapse accordion={false} defaultActiveKey={[0,1]} expandIconPosition="right">
@@ -267,6 +304,7 @@ const Home = () => {
                    <div className="row mt-2">
                        <div className="col-4">
                            <Button color={'success'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                                downloadSelectedValues();
                            }}>Download</Button>
                        </div>
                        <div className="col-4">

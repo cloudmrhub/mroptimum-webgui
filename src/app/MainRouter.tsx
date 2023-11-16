@@ -9,6 +9,7 @@ import ContactUs from './contact-us/ContactUs';
 import BugReport from './bug-report/BugReport';
 import {useAppDispatch, useAppSelector} from "../features/hooks";
 import {getAccessToken} from "../features/authenticate/authenticateActionCreation"
+import WebSignin from "./WebSignin";
 
 const debugging = false;
 
@@ -20,6 +21,7 @@ const MainRouter = () => {
             {(debugging||authenticate.accessToken) &&
                 <HeaderBar />}
         <Routes>
+            <Route path="/websignin/:token" element={<WebSignin/>}/>
             <Route path="/login" element={(authenticate.accessToken)?<Navigate to='/main'/>:<Signin
                 //@ts-ignore
                 signInCallback={(credentials)=>dispatch(getAccessToken(credentials))}/>} />

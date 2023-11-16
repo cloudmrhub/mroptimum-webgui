@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {getAccessToken, signOut} from './authenticateActionCreation';
+import {getAccessToken, signOut, webSignin} from './authenticateActionCreation';
 import {RootState} from "../store";
 import {getUploadedData} from "../data/dataActionCreation";
 import {UploadedFile} from "../data/dataSlice";
@@ -61,6 +61,12 @@ export const authenticateSlice = createSlice({
                     state.tokenType = "";
                     state.loading = false;
                 }
+            }),
+            builder.addCase(webSignin.pending,(state, action) => {
+                state.loading = true;
+            }),
+            builder.addCase(webSignin.fulfilled,(state, action) => {
+                state.accessToken = action.payload.access_token;
             }),
             builder.addCase(getUploadedData.pending, (state, action) => {
                 state.loading = true;

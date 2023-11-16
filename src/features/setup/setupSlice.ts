@@ -232,7 +232,7 @@ export const setupSlice = createSlice({
             state.activeSetup.options.reconstructor.id = Number(action.payload);
             state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
             if(action.payload==3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined){
-                state.activeSetup.options.reconstructor.options.kernelSize=[1,1];
+                state.activeSetup.options.reconstructor.options.kernelSize=[3,4];
             }
             if(action.payload == 2 ||action.payload==3){
                 state.activeSetup.options.reconstructor.options.decimate = false;
@@ -296,6 +296,8 @@ export const setupSlice = createSlice({
         },
         compileSNRSettings(state: SetupState, action: PayloadAction<string>) {
             let SNRSpec = state.activeSetup;
+            let signalCache = SNRSpec.options.reconstructor.options.signal;
+            let noiseCache = SNRSpec.options.reconstructor.options.noise;
             // Remove noise reference
             if (SNRSpec.options.reconstructor.options.signalMultiRaid)
                 delete SNRSpec.options.reconstructor.options.noise;
@@ -316,6 +318,8 @@ export const setupSlice = createSlice({
             state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.activeSetup.options.reconstructor.options.signal = signalCache;
+            state.activeSetup.options.reconstructor.options.noise = noiseCache;
             state.editInProgress = false;
         },
         completeSNREditing(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
@@ -345,6 +349,7 @@ export const setupSlice = createSlice({
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
             state.editInProgress = false;
+            console.log(state.queuedJobs[index]);
         },
         rename(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
             let index = -1;
@@ -355,6 +360,7 @@ export const setupSlice = createSlice({
                 }
             }
             state.queuedJobs[index].alias = action.payload.alias;
+            state.queuedJobs[index].setup.alias = action.payload.alias;
         },
         queueSNRJob(state: SetupState, action: PayloadAction<{ snr: SNR, name: string }>) {
             state.queuedJobs.push(createJob(action.payload.snr, state, action.payload.name));
@@ -398,7 +404,6 @@ export const setupSlice = createSlice({
                         }
                     }
                 }
-                break;
             }
         })
     },
