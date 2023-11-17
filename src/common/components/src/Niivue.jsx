@@ -30,7 +30,7 @@ Niivue.prototype.sliceScale = function (forceVox ) {
     let { volScale, vox, longestAxis, dimsMM } = boundOrgSliceScale(forceVox);
     let maxScale = Math.max(...volScale);
     let maxVox = Math.max(...vox);
-    console.log(vox);
+    // console.log(vox);
     return {volScale: [maxScale,maxScale,maxScale],
             vox:[maxVox,maxVox,maxVox],
             longestAxis:longestAxis,
@@ -144,6 +144,14 @@ export default function NiiVueport(props) {
         )
     });
 
+
+    const toggleSampleDistribution = ()=>{
+        setShowSampleDistribution(!showSampleDistribution);
+        // if(!showSampleDistribution)
+        //     resampleImage();
+        nv.resizeListener();
+    }
+
     async function addLayer(file) {
         const nvimage = await NVImage.loadFromFile({
             file: file
@@ -162,12 +170,6 @@ export default function NiiVueport(props) {
 
     function toggleLocationTable() {
         setLocationTableVisible(!locationTableVisible)
-    }
-
-    function toggleSampleDistribution(){
-        setShowSampleDistribution(!showSampleDistribution);
-        resampleImage();
-        nv.resizeListener();
     }
 
     function nvUpdateOpacity(a) {
@@ -368,7 +370,6 @@ export default function NiiVueport(props) {
     }
 
     function nvShowCrosshair(showCrosshair){
-        console.log(showCrosshair);
         nv.setCrosshairWidth((showCrosshair)?1:0);
     }
 
@@ -408,9 +409,6 @@ export default function NiiVueport(props) {
         // Bitmap depicts the drawn content
         if(nv.drawBitmap==null)//If ROI (drawing) is not inside the stack
             return;
-        // console.log(nv.volumes);
-        console.log(nv.drawBitmap.length);
-        console.log(nv.volumes[0].img.length);
 
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
@@ -422,7 +420,6 @@ export default function NiiVueport(props) {
             }
             samples[nv.drawBitmap[i]].push(image.img[i]);
         }
-        console.log(samples);
         // plot a histogram of numbers
         let traces = [{
                 y: samples[1],

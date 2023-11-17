@@ -29,9 +29,9 @@ export function NiivuePanel (props) {
             <Box
                 id={'histoplot'}
                 style={{
-                    width:props.showDistribution?'30%':'0',
+                    width:'30%',
                     height: height,
-                    visibility:props.showDistribution?'visible':'hidden'
+                    display:(props.showDistribution)?undefined:'none'
                 }}
             >
             </Box>
