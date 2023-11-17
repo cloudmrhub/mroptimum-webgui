@@ -21,10 +21,30 @@ import {ROI_UPLOAD} from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
 
+const orgSliceScale = Niivue.prototype.sliceScale;
+/*
+    Proxy NiiVue scaling prototype to produce square quadrants
+ */
+Niivue.prototype.sliceScale = function (forceVox ) {
+    const boundOrgSliceScale = orgSliceScale.bind(this);
+    let { volScale, vox, longestAxis, dimsMM } = boundOrgSliceScale(forceVox);
+    let maxScale = Math.max(...volScale);
+    let maxVox = Math.max(...vox);
+    console.log(vox);
+    return {volScale: [maxScale,maxScale,maxScale],
+            vox:[maxVox,maxVox,maxVox],
+            longestAxis:longestAxis,
+            dimsMM:dimsMM
+    }
+};
+
 export const nv = new Niivue({
     loadingText: '',
-    isColorbar: true
+    isColorbar: true,
+    isRadiologicalConvention: true
 });
+
+window.nv = nv;
 
 // The NiiVue component wraps all other components in the UI. 
 // It is exported so that it can be used in other projects easily
@@ -90,11 +110,11 @@ export default function NiiVueport(props) {
         setLayers([...nv.volumes])
     }
     nv.onLocationChange = (data) => {
-        // setLocationData(data.values);
-        // if(drawingEnabled){
-        //     setDrawingChanged(true);
-        //     resampleImage();
-        // }
+        setLocationData(data.values);
+        if(drawingEnabled){
+            setDrawingChanged(true);
+            resampleImage();
+        }
     }
     nv.onMouseUp =  (data) => {
         if(drawingEnabled){
@@ -102,6 +122,8 @@ export default function NiiVueport(props) {
             resampleImage();
         }
     }
+
+
     // nv.createEmptyDrawing();
 
     // construct an array of <Layer> components. Each layer is a NVImage or NVMesh
@@ -127,7 +149,7 @@ export default function NiiVueport(props) {
             file: file
         })
         nv.addVolume(nvimage)
-        setLayers([...nv.volumes])
+        setLayers([...nv.volumes]);
     }
 
     function toggleSettings() {
@@ -157,6 +179,25 @@ export default function NiiVueport(props) {
         }
         nv.updateGLVolume()
     }
+    
+    function nvSetDragMode(dragMode){
+        switch (dragMode) {
+            case "none":
+                nv.opts.dragMode = nv.dragModes.none;
+                break;
+            case "contrast":
+                nv.opts.dragMode = nv.dragModes.contrast;
+                break;
+            case "measurement":
+                nv.opts.dragMode = nv.dragModes.measurement;
+                break;
+            case "pan":
+                nv.opts.dragMode = nv.dragModes.pan;
+                break;
+        }
+    }
+
+    nvSetDragMode('pan');
 
     function nvSaveImage() {
         nv.saveImage('roi.nii', true);
@@ -324,6 +365,11 @@ export default function NiiVueport(props) {
         nv.opts.show3Dcrosshair = !crosshair3D
         nv.updateGLVolume()
         setCrosshair3D(!crosshair3D)
+    }
+
+    function nvShowCrosshair(showCrosshair){
+        console.log(showCrosshair);
+        nv.setCrosshairWidth((showCrosshair)?1:0);
     }
 
     function nvUpdateRadiological() {
@@ -840,6 +886,7 @@ export default function NiiVueport(props) {
                 changesMade={drawingChanged}
                 showSampleDistribution={showSampleDistribution}
                 toggleSampleDistribution={toggleSampleDistribution}
+                showCrosshair={nvShowCrosshair}
                 drawUndo={()=>{//To be moved and organized
                     nv.drawUndo();
                     resampleImage();

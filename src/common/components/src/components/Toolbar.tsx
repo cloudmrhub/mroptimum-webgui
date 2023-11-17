@@ -14,6 +14,7 @@ import BrushOutlinedIcon from '@mui/icons-material/BrushOutlined';
 import AutoFixNormalOutlinedIcon from '@mui/icons-material/AutoFixNormalOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
 import {ROI} from "../../../../features/rois/roiSlice";
+import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
 // import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
@@ -38,6 +39,7 @@ interface ToolbarProps {
     showSampleDistribution:boolean;
     toggleSampleDistribution: ()=>void;
     drawUndo: ()=>void;
+    showCrosshair: (show:boolean)=>void;
 }
 
 /*
@@ -109,11 +111,11 @@ export default function Toolbar(props:ToolbarProps) {
                     sx={{
                         display: 'flex',
                         width: '100%',
-                        height: '64px',
                         flexDirection: 'row',
                         justifyItems: 'left',
                         alignItems: 'center',
                         backgroundColor: 'white',
+                        flexWrap: 'wrap'
                     }}
                 >
 
@@ -184,13 +186,15 @@ export default function Toolbar(props:ToolbarProps) {
                         </Select>
                     </FormControl>
 
+                    <CmrCheckbox defaultChecked={true} onChange={(e)=>{
+                        props.showCrosshair(e.target.checked)}}>
+                        Show cross air
+                    </CmrCheckbox>
+
                     <Box
                         sx={{
                             display:'flex',
                             alignItems: 'center'
-                        }}
-                        style={{
-                            marginLeft: 'auto'
                         }}
                         m={1}
                     >
