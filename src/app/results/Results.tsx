@@ -20,6 +20,8 @@ import {Button} from "@mui/material";
 import {store} from "../../features/store";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {Row} from "antd";
+import {ROITable} from "./Rois";
+import {createTheme} from "@mui/material/styles";
 
 interface NiiFile {
     filename:string;
@@ -40,34 +42,11 @@ const Results = () => {
     const [volumes, setVolumes] = useState<{url:string, name:string}[]>( []);
     // const [rois, setROIS] = useState<ROI[]>([]);
     const [pipelineID, setPipelineID] = useState<string>("");
+
     const rois:ROI[] = useAppSelector(state=>{
         return (state.roi.rois[pipelineID]==undefined)?[]:state.roi.rois[pipelineID];
     })
-    console.log(rois);
-    const roiColumns=[
-        {
-            headerName:'ROI ID',
-            dataIndex: 'id',
-            field: 'id',
-            flex: 1,
-        },
-        {
-            headerName: 'ROI Name',
-            field: 'filename',
-            flex: 3,
-        },
-        {
-            headerName: 'Date Submitted',
-            field: 'created_at',
-            flex: 2,
-        },
-        {
-            headerName: 'Status',
-            dataIndex: 'status',
-            field: 'status',
-            flex: 1,
-        },
-    ];
+
     const completedJobsColumns = [
         {
             headerName: 'Job ID',
@@ -117,13 +96,13 @@ const Results = () => {
                                     });
                                     // let volumes = [{url:niis[1].link,name:niis[1].filename}]
                                     //@ts-ignore
-                                    // setVolumes([{url:'./hippo.nii'}])
+                                    // setVolumes([{url:'./mni.nii'}])
                                     setVolumes(volumes);
-                                    nv.closeDrawing();
+                                    // nv.closeDrawing();
                                     setSelectedVolume(0);
                                     nv.loadVolumes([volumes[0]]);
-                                    // nv.createEmptyDrawing();
-                                    // nv.loadVolumes([{url:'./hippo.nii'}]);
+                                    nv.createEmptyDrawing();
+                                    // nv.loadVolumes([{url:'./mni.nii'}]);
                                 }).catch((reason)=>{
                                     console.log(reason);
                                     console.log(JSON.parse(file.location));
@@ -220,7 +199,6 @@ const Results = () => {
                             accessToken:accessToken}));
                     }}
                     accessToken={accessToken}/>
-                    <CmrTable name={'ROI Table'}  className={'mt-5'} dataSource={rois} columns={roiColumns}/>
                 </CmrPanel>
             </CmrCollapse>
             <div style={{height:'69px'}}></div>

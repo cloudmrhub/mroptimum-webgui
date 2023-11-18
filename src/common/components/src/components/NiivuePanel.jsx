@@ -1,6 +1,8 @@
 import React from "react"
 import { Box } from "@mui/material"
 import {nv} from "../Niivue";
+import LocationTable from "./LocationTable";
+import {ROITable} from "../../../../app/results/Rois";
 
 export function NiivuePanel (props) {
 	const canvas = React.useRef(null)
@@ -26,14 +28,24 @@ export function NiivuePanel (props) {
             >
                 <canvas id={'niiCanvas'} ref={canvas} height={height} width={'100%'} />
             </Box>
-            <Box
-                id={'histoplot'}
-                style={{
-                    width:'30%',
-                    height: height,
-                    display:(props.showDistribution)?undefined:'none'
-                }}
-            >
+            <Box style={{width:'30%', display:'flex', flexDirection:'column'}}>
+                <Box
+                    id={'histoplot'}
+                    style={{
+                        width:'100%',
+                        height: height*0.5,
+                        display:(props.showDistribution)?undefined:'none'
+                    }}
+                >
+                </Box>
+
+                <ROITable
+                    pipelineID={props.pipelineID}
+                    style={{
+                        width:'100%',
+                        height:height*0.5
+                    }}
+                />
             </Box>
         </Box>
 	)

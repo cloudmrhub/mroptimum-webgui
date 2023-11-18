@@ -7,6 +7,7 @@ import {TabInfo} from "./tab.model";
 
 interface CmrTabsProps {
     tabList: TabInfo[];
+    onTabSelected?: (tabId:number)=>void;
 }
 
 interface TabPanelProps {
@@ -47,6 +48,9 @@ export default function CmrTabs(props: CmrTabsProps) {
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
+        console.log(newValue);
+        if(props.onTabSelected)
+            props.onTabSelected(newValue);
     };
 
     console.log(props.tabList);

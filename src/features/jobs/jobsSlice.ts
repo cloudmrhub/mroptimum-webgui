@@ -52,7 +52,7 @@ const initialState: JobsState = {
             {
                 id: 0,
                 fileName: 'Brain',
-                link: './mni152reallyreallyreallyreallyreallyLongName.nii',
+                link: './mni.nii',
                 size: '',
                 status: '',
                 createdAt: '',

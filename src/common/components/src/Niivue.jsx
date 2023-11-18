@@ -21,22 +21,22 @@ import {ROI_UPLOAD} from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
 
-const orgSliceScale = Niivue.prototype.sliceScale;
-/*
-    Proxy NiiVue scaling prototype to produce square quadrants
- */
-Niivue.prototype.sliceScale = function (forceVox ) {
-    const boundOrgSliceScale = orgSliceScale.bind(this);
-    let { volScale, vox, longestAxis, dimsMM } = boundOrgSliceScale(forceVox);
-    let maxScale = Math.max(...volScale);
-    let maxVox = Math.max(...vox);
-    // console.log(vox);
-    return {volScale: [maxScale,maxScale,maxScale],
-            vox:[maxVox,maxVox,maxVox],
-            longestAxis:longestAxis,
-            dimsMM:dimsMM
-    }
-};
+// const orgSliceScale = Niivue.prototype.sliceScale;
+// /*
+//     Proxy NiiVue scaling prototype to produce square quadrants
+//  */
+// Niivue.prototype.sliceScale = function (forceVox ) {
+    // const boundOrgSliceScale = orgSliceScale.bind(this);
+    // let { volScale, vox, longestAxis, dimsMM } = boundOrgSliceScale(forceVox);
+    // let maxScale = Math.max(...volScale);
+    // let maxVox = Math.max(...vox);
+    // // console.log(vox);
+    // return {volScale: [maxScale,maxScale,maxScale],
+    //         vox:[maxVox,maxVox,maxVox],
+    //         longestAxis:longestAxis,
+    //         dimsMM:dimsMM
+    // }
+// };
 
 export const nv = new Niivue({
     loadingText: '',
@@ -113,7 +113,7 @@ export default function NiiVueport(props) {
         setLocationData(data.values);
         if(drawingEnabled){
             setDrawingChanged(true);
-            resampleImage();
+            // resampleImage();
         }
     }
     nv.onMouseUp =  (data) => {
@@ -422,7 +422,7 @@ export default function NiiVueport(props) {
         }
         // plot a histogram of numbers
         let traces = [{
-                y: samples[1],
+                x: samples[1],
                 type: "histogram",
                 opacity: 0.5,
                 marker: {
@@ -430,7 +430,7 @@ export default function NiiVueport(props) {
                 },
             },
             {
-                y: samples[2],
+                x: samples[2],
                 type: "histogram",
                 opacity: 0.5,
                 marker: {
@@ -438,7 +438,7 @@ export default function NiiVueport(props) {
                 },
             },
             {
-                y: samples[3],
+                x: samples[3],
                 type: "histogram",
                 opacity: 0.5,
                 marker: {
@@ -911,11 +911,14 @@ export default function NiiVueport(props) {
                 volumes={layers}
                 colorBarEnabled={colorBar}
                 showDistribution={showSampleDistribution}
+
+                pipelineID={props.pipelineID}
             />}
             <LocationTable
                 tableData={locationData}
                 isVisible={locationTableVisible}
                 decimalPrecision={decimalPrecision}
+                showDistribution={showSampleDistribution}
             />
         </Box>
     )

@@ -15,6 +15,7 @@ import AutoFixNormalOutlinedIcon from '@mui/icons-material/AutoFixNormalOutlined
 import ReplyIcon from '@mui/icons-material/Reply';
 import {ROI} from "../../../../features/rois/roiSlice";
 import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
+import {createTheme} from "@mui/material/styles";
 // import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
@@ -101,11 +102,17 @@ export default function Toolbar(props:ToolbarProps) {
         <FiberManualRecordIcon sx={{ color: 'green' }}/>,
         <FiberManualRecordIcon sx={{ color: 'blue' }} />];
 
+
+    const theme = createTheme({
+        typography: {
+            fontSize: 12,
+        },
+    });
     let eraseOptions = [
         <FiberManualRecordIcon/>,
         <FiberManualRecordOutlinedIcon/>];
     return (
-        <Box sx={{display:'flex', flexDirection:'column',width:'100%'}}>
+        <Box  sx={{display:'flex', flexDirection:'column',width:'100%'}}>
             {props.volumes[props.selectedVolume]!=undefined&&<Fragment>
                 <Box
                     sx={{
@@ -115,11 +122,12 @@ export default function Toolbar(props:ToolbarProps) {
                         justifyItems: 'left',
                         alignItems: 'center',
                         backgroundColor: 'white',
-                        flexWrap: 'wrap'
+                        flexWrap: 'wrap',
                     }}
                 >
 
                     <IconButton
+                        size={'small'}
                         onClick={props.toggleLayers}
                     >
                         <MenuIcon/>
@@ -236,8 +244,8 @@ export default function Toolbar(props:ToolbarProps) {
                     sx={{
                         display: 'flex',
                         width: '100%',
-                        height: '64px',
                         flexDirection: 'row',
+                        marginBottom: 1,
                         justifyItems: 'center',
                         alignItems: 'center',
                         // justifyContent:'center',
