@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Button, Typography} from '@mui/material'
 import {Box} from '@mui/material'
 import {Fade} from '@mui/material'
@@ -362,8 +362,8 @@ export const nv = new Niivue({
     loadingText: '',
     isColorbar: true,
     isRadiologicalConvention: true,
-    colorBarHeight:0.03,
     textHeight:0.03,
+    dragMode: 'pan'
 });
 
 window.nv = nv;
@@ -411,7 +411,7 @@ export default function NiiVueport(props) {
     const [rulerOpacity, setRulerOpacity] = React.useState(nv.opts.rulerColor[3])
     const [highDPI, setHighDPI] = React.useState(false)
 
-    const [showSampleDistribution, setShowSampleDistribution] = React.useState(true);
+    const [verticalLayout, setVerticalLayout] = React.useState(false);
     // only run this when the component is mounted on the page
     // or else it will be recursive and continuously add all
     // initial images supplied to the NiiVue component
@@ -468,7 +468,7 @@ export default function NiiVueport(props) {
 
 
     const toggleSampleDistribution = ()=>{
-        setShowSampleDistribution(!showSampleDistribution);
+        setVerticalLayout(!verticalLayout);
         // if(!showSampleDistribution)
         //     resampleImage();
         nv.resizeListener();
@@ -503,6 +503,9 @@ export default function NiiVueport(props) {
         }
         nv.updateGLVolume()
     }
+
+
+    const [dragMode, setDragMode] = useState("pan");
     
     function nvSetDragMode(dragMode){
         switch (dragMode) {
@@ -510,6 +513,7 @@ export default function NiiVueport(props) {
                 nv.opts.dragMode = nv.dragModes.none;
                 break;
             case "contrast":
+                console.log('setting drag mode to contrast');
                 nv.opts.dragMode = nv.dragModes.contrast;
                 break;
             case "measurement":
@@ -519,9 +523,9 @@ export default function NiiVueport(props) {
                 nv.opts.dragMode = nv.dragModes.pan;
                 break;
         }
+        // nv.drawScene();
+        setDragMode(dragMode);
     }
-
-    nvSetDragMode('pan');
 
     function nvSaveImage() {
         nv.saveImage('roi.nii', true);
@@ -845,7 +849,6 @@ export default function NiiVueport(props) {
             console.log(props.rois[roiIndex].link);
             console.trace();
             nv.loadDrawingFromUrl(props.rois[roiIndex].link).then((value) => {
-                console.log(value);
                 resampleImage();
             });
             setSelectedROI(roiIndex);
@@ -917,6 +920,26 @@ export default function NiiVueport(props) {
                 afterSaveCallback();
         }));
     }
+
+    const drawToolkitProps ={ nv,
+        volumes:props.volumes,
+        selectedVolume,
+        setSelectedVolume:selectVolume,
+        updateDrawPen:nvUpdateDrawPen,
+        drawPen:drawPen,
+        drawingEnabled:drawingEnabled,
+        setDrawingEnabled:nvSetDrawingEnabled,
+        showColorBar:colorBar,
+        toggleColorBar:nvUpdateColorBar,
+        changesMade:drawingChanged,
+        showSampleDistribution: verticalLayout,
+        toggleSampleDistribution,
+        showCrosshair:nvShowCrosshair,
+        drawUndo:()=>{//To be moved and organized
+            nv.drawUndo();
+            resampleImage();
+        }
+    };
     return (
         <Box sx={{
             display: 'flex',
@@ -1192,24 +1215,16 @@ export default function NiiVueport(props) {
                 volumes={props.volumes}
                 selectedVolume={selectedVolume}
                 setSelectedVolume={selectVolume}
-                updateDrawPen={nvUpdateDrawPen}
-                drawPen={drawPen}
-                drawingEnabled={drawingEnabled}
-                setDrawingEnabled={nvSetDrawingEnabled}
                 showColorBar={colorBar}
                 toggleColorBar={nvUpdateColorBar}
                 rois={props.rois}
                 selectedROI={selectedROI}
                 setSelectedROI={selectROI}
-                saveROI={saveROI}
-                changesMade={drawingChanged}
-                showSampleDistribution={showSampleDistribution}
-                toggleSampleDistribution={toggleSampleDistribution}
+                verticalLayout={verticalLayout}
+                toggleVerticalLayout={toggleSampleDistribution}
                 showCrosshair={nvShowCrosshair}
-                drawUndo={()=>{//To be moved and organized
-                    nv.drawUndo();
-                    resampleImage();
-                }}
+                dragMode={dragMode}
+                setDragMode={nvSetDragMode}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}
@@ -1232,16 +1247,17 @@ export default function NiiVueport(props) {
                 key={`${selectedVolume}`}
                 volumes={layers}
                 colorBarEnabled={colorBar}
-                showDistribution={showSampleDistribution}
+                displayVertical={verticalLayout}
 
-                pipelineID={props.pipelineID}
-            />}
-            <LocationTable
-                tableData={locationData}
-                isVisible={locationTableVisible}
                 decimalPrecision={decimalPrecision}
-                showDistribution={showSampleDistribution}
-            />
+                locationData={locationData}
+                locationTableVisible={locationTableVisible}
+                pipelineID={props.pipelineID}
+
+                resampleImage={resampleImage}
+
+                drawToolkitProps={drawToolkitProps}
+            />}
         </Box>
     )
 }

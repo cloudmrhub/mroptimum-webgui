@@ -39,8 +39,8 @@ const Results = () => {
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
         state.jobs.jobs);
-    const [volumes, setVolumes] = useState<{url:string, name:string}[]>( []);
     // const [rois, setROIS] = useState<ROI[]>([]);
+    const [volumes, setVolumes] = useState<{url:string, name:string}[]>( []);
     const [pipelineID, setPipelineID] = useState<string>("");
 
     const rois:ROI[] = useAppSelector(state=>{
@@ -92,7 +92,11 @@ const Results = () => {
                                 }).then(value => {
                                     let niis:NiiFile[] = value.data;
                                     let volumes = niis.map((value)=>{
-                                        return {url:value.link, name: (value.filename.split('/').pop() as string)};
+                                        console.log(value);
+                                        return {url: value.link,
+                                            name: (value.filename.split('/').pop() as string),
+                                            alias: value.name
+                                        };
                                     });
                                     // let volumes = [{url:niis[1].link,name:niis[1].filename}]
                                     //@ts-ignore

@@ -27,19 +27,19 @@ export default function LocationTable(props) {
       }}
       style={props.style}
     >
-        {data&&
-            <React.Fragment>
-                <HintText>
-                    {`Value: ${data.value.toFixed(props.decimalPrecision)}`}
-                </HintText>
-                <HintText>
-                    {`Coordinates: (${data.mm[0].toFixed(props.decimalPrecision)}, ${data.mm[1].toFixed(props.decimalPrecision)}, ${data.mm[2].toFixed(props.decimalPrecision)})`}
-                </HintText>
-                <HintText>
-                    {`Voxel location: (${data.vox[0]},${data.vox[1]},${data.vox[2]})`}
-                </HintText>
-            </React.Fragment>
-        }
+        <React.Fragment>
+            <HintText>
+                {`Value: ${data?data.value.toFixed(props.decimalPrecision):undefined}`}
+            </HintText>
+            <HintText>
+                {data?`Coordinates: (${data.mm[0].toFixed(props.decimalPrecision)}, ${data.mm[1].toFixed(props.decimalPrecision)}, ${data.mm[2].toFixed(props.decimalPrecision)})`
+                    :`Coordinates: undefined`}
+            </HintText>
+            <HintText>
+                {data?`Voxel location: (${data.vox[0]},${data.vox[1]},${data.vox[2]})`
+                    :'Voxel location: undefined'}
+            </HintText>
+        </React.Fragment>
 
     {/*    Instead of showing things in a table, perhaps more favorable to show them as a row of text? */}
     {/*<TableContainer */}
@@ -84,7 +84,7 @@ export default function LocationTable(props) {
 }
 
 const HintText = (props)=>{
-    return <span style={{color: 'rgba(0,0,0,0.8)', fontStyle: '12pt'}}>
+    return <span style={{color: 'white', fontStyle: '12pt'}}>
         {props.children}
     </span>;
 }
