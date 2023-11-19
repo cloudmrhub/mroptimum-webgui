@@ -10,7 +10,7 @@ import {SettingsPanel} from './components/SettingsPanel.jsx'
 import {ColorPicker} from './components/ColorPicker.jsx'
 import {NumberPicker} from './components/NumberPicker.jsx'
 import {LayersPanel} from './components/LayersPanel.jsx'
-import {NiivuePanel} from './components/NiivuePanel.jsx'
+import {NiivuePanel} from './components/NiivuePanel.tsx'
 import NVSwitch from './components/Switch.jsx'
 import LocationTable from './components/LocationTable.jsx'
 import Layer from './components/Layer.jsx'
@@ -20,28 +20,350 @@ import axios from "axios";
 import {ROI_UPLOAD} from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
-
-// const orgSliceScale = Niivue.prototype.sliceScale;
+const SLICE_TYPE = Object.freeze({
+    AXIAL: 0,
+    CORONAL: 1,
+    SAGITTAL: 2,
+    MULTIPLANAR: 3,
+    RENDER: 4,
+});
+const DRAG_MODE = Object.freeze({
+    none: 0,
+    contrast: 1,
+    measurement: 2,
+    pan: 3,
+    slicer3D: 4,
+    callbackOnly: 5,
+});
+const MULTIPLANAR_TYPE = Object.freeze({
+    AUTO: 0,
+    COLUMN: 1,
+    GRID: 2,
+    ROW: 3,
+});
+//
+// let largestScale = 0;
+//
+// Niivue.prototype.sliceScale = function (forceVox = false) {
+//     let dimsMM = this.screenFieldOfViewMM(SLICE_TYPE.AXIAL);
+//     if (forceVox) dimsMM = this.screenFieldOfViewVox(SLICE_TYPE.AXIAL);
+//     let longestAxis = Math.max(dimsMM[0], Math.max(dimsMM[1], dimsMM[2]));
+//     let volScale = [
+//         dimsMM[0] / longestAxis,
+//         dimsMM[1] / longestAxis,
+//         dimsMM[2] / longestAxis,
+//     ];
+//     let vox = [this.back.dims[1], this.back.dims[2], this.back.dims[3]];
+//     largestScale = Math.max(...volScale)
+//     return { volScale, vox, longestAxis, dimsMM };
+// }; // sliceScale()
+//
+// const orgScaleSlice = Niivue.prototype.scaleSlice;
+//
 // /*
-//     Proxy NiiVue scaling prototype to produce square quadrants
+//     Proxy NiiVue draw2D to produce square quadrants
 //  */
-// Niivue.prototype.sliceScale = function (forceVox ) {
-    // const boundOrgSliceScale = orgSliceScale.bind(this);
-    // let { volScale, vox, longestAxis, dimsMM } = boundOrgSliceScale(forceVox);
-    // let maxScale = Math.max(...volScale);
-    // let maxVox = Math.max(...vox);
-    // // console.log(vox);
-    // return {volScale: [maxScale,maxScale,maxScale],
-    //         vox:[maxVox,maxVox,maxVox],
-    //         longestAxis:longestAxis,
-    //         dimsMM:dimsMM
-    // }
+// Niivue.prototype.scaleSlice = function (
+//     w,
+//     h,
+//     widthPadPixels = 0,
+//     heightPadPixels = 0 ) {
+//     const superScaleSlice = orgScaleSlice.bind(this);
+//     return superScaleSlice(largestScale*2,largestScale*2,widthPadPixels,heightPadPixels);
 // };
+//
+// const orgDraw2D = Niivue.prototype.draw2D;
+// let vtPadding = 300;
+// /*
+//     Proxy NiiVue draw2D to produce square quadrants
+//  */
+// Niivue.prototype.draw2D = function (
+//     leftTopWidthHeight, axCorSag, customMM = NaN ) {
+//     const superDraw2D = orgDraw2D.bind(this);
+//     let largestDim = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);
+//     leftTopWidthHeight[0] +=(largestDim-leftTopWidthHeight[2]);
+//     leftTopWidthHeight[1] +=(largestDim-leftTopWidthHeight[3])
+//     return superDraw2D(leftTopWidthHeight,axCorSag,customMM);
+// };
+
+// not included in public docs
+Niivue.prototype.drawSceneCore = function () {
+    if (!this.initialized) {
+        return; // do not do anything until we are initialized (init will call drawScene).
+    }
+    this.colorbarHeight = 0;
+    this.gl.clearColor(
+        this.opts.backColor[0],
+        this.opts.backColor[1],
+        this.opts.backColor[2],
+        this.opts.backColor[3]
+    );
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    //this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+    if (this.bmpTexture && this.thumbnailVisible) {
+        //draw the thumbnail image and exit
+        this.drawThumbnail();
+        return;
+    }
+    let posString = "";
+    if (
+        this.volumes.length === 0 ||
+        typeof this.volumes[0].dims === "undefined"
+    ) {
+        if (this.meshes.length > 0) {
+            this.screenSlices = []; // empty array
+            this.opts.sliceType = SLICE_TYPE.RENDER; //only meshes loaded: we must use 3D render mode
+            this.draw3D(); //meshes loaded but no volume
+            if (this.opts.isColorbar) this.drawColorbar();
+            return;
+        }
+        this.drawLoadingText(this.loadingText);
+        return;
+    }
+    if (!("dims" in this.back)) return;
+    if (
+        this.uiData.isDragging &&
+        this.scene.clipPlaneDepthAziElev[0] < 1.8 &&
+        this.inRenderTile(this.uiData.dragStart[0], this.uiData.dragStart[1]) >= 0
+    ) {
+        //user dragging over a 3D rendering
+        let x = this.uiData.dragStart[0] - this.uiData.dragEnd[0];
+        let y = this.uiData.dragStart[1] - this.uiData.dragEnd[1];
+        let depthAziElev = this.uiData.dragClipPlaneStartDepthAziElev.slice();
+        depthAziElev[1] -= x;
+        depthAziElev[1] = depthAziElev[1] % 360;
+        depthAziElev[2] += y;
+        if (
+            depthAziElev[1] !== this.scene.clipPlaneDepthAziElev[1] ||
+            depthAziElev[2] !== this.scene.clipPlaneDepthAziElev[2]
+        ) {
+            this.scene.clipPlaneDepthAziElev = depthAziElev;
+            return this.setClipPlane(this.scene.clipPlaneDepthAziElev);
+        }
+    } //dragging over rendering
+    if (
+        this.sliceMosaicString.length < 1 &&
+        this.opts.sliceType === SLICE_TYPE.RENDER
+    ) {
+        if (this.opts.isColorbar) this.reserveColorbarPanel();
+        this.screenSlices = []; // empty array
+        this.draw3D();
+        if (this.opts.isColorbar) this.drawColorbar();
+        return;
+    }
+    if (this.opts.isColorbar) this.reserveColorbarPanel();
+    let maxVols = this.getMaxVols();
+    let isDrawGraph =
+        this.opts.sliceType === SLICE_TYPE.MULTIPLANAR &&
+        maxVols > 1 &&
+        this.graph.autoSizeMultiplanar &&
+        this.graph.opacity > 0;
+
+    if (this.sliceMosaicString.length > 0) {
+        this.drawMosaic(this.sliceMosaicString);
+    } else {
+        // issue56 is use mm else use voxel
+        this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+        this.screenSlices = []; // empty array
+        if (this.opts.sliceType === SLICE_TYPE.AXIAL) {
+            this.draw2D([0, 0, 0, 0], 0);
+        } else if (this.opts.sliceType === SLICE_TYPE.CORONAL) {
+            this.draw2D([0, 0, 0, 0], 1);
+        } else if (this.opts.sliceType === SLICE_TYPE.SAGITTAL) {
+            this.draw2D([0, 0, 0, 0], 2);
+        } else {
+            //sliceTypeMultiplanar
+            let isDrawPenDown =
+                isFinite(this.drawPenLocation[0]) && this.opts.drawingEnabled;
+            let { volScale } = this.sliceScale();
+            // if (typeof this.opts.multiplanarPadPixels !== "number")
+                // log.debug("multiplanarPadPixels must be numeric");
+            let pad = parseFloat(this.opts.multiplanarPadPixels);
+            let vScaleMax = Math.max(volScale[0], volScale[1], volScale[2]);
+            // size for 2 rows, 2 columns
+            let ltwh2x2 = this.scaleSlice(
+                // volScale[0] + volScale[1],
+                // volScale[1] + volScale[2],
+                vScaleMax*2,
+                vScaleMax*2,
+                pad * 1,
+                pad * 1
+            );
+            let mx = Math.max(Math.max(volScale[1], volScale[2]), volScale[0]);
+            // size for 3 columns and 1 row
+            let ltwh3x1 = this.scaleSlice(
+                volScale[0] + volScale[0] + volScale[1],
+                Math.max(volScale[1], volScale[2]),
+                pad * 2
+            );
+            // size for 4 columns and 1 row
+            let ltwh4x1 = this.scaleSlice(
+                volScale[0] + volScale[0] + volScale[1] + mx,
+                Math.max(volScale[1], volScale[2]),
+                pad * 3
+            );
+            // size for 1 column * 3 rows
+            let ltwh1x3 = this.scaleSlice(
+                mx,
+                volScale[1] + volScale[2] + volScale[2],
+                0,
+                pad * 2
+            );
+            // size for 1 column * 4 rows
+            let ltwh1x4 = this.scaleSlice(
+                mx,
+                volScale[1] + volScale[2] + volScale[2] + mx,
+                0,
+                pad * 3
+            );
+            let isDraw3D = !isDrawPenDown && (maxVols < 2 || !isDrawGraph);
+            let isDrawColumn = false;
+            let isDrawGrid = false;
+            let isDrawRow = false;
+            if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.COLUMN)
+                isDrawColumn = true;
+            else if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.GRID)
+                isDrawGrid = true;
+            else if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.ROW)
+                isDrawRow = true;
+            else {
+                //auto select layout based on canvas size
+                if (ltwh1x3[4] > ltwh3x1[4] && ltwh1x3[4] > ltwh2x2[4])
+                    isDrawColumn = true;
+                else if (ltwh3x1[4] > ltwh2x2[4]) isDrawRow = true;
+                else isDrawGrid = true;
+            }
+            if (isDrawColumn) {
+                let ltwh = ltwh1x3;
+                if (this.opts.multiplanarForceRender || ltwh1x4[4] >= ltwh1x3[4])
+                    ltwh = ltwh1x4;
+                else isDraw3D = false;
+                let sX = volScale[0] * ltwh[4];
+                let sY = volScale[1] * ltwh[4];
+                let sZ = volScale[2] * ltwh[4];
+                let sMx = mx * ltwh[4];
+                //draw axial
+                this.draw2D([ltwh[0], ltwh[1], sX, sY], 0);
+                //draw coronal
+                this.draw2D([ltwh[0], ltwh[1] + sY + pad, sX, sZ], 1);
+                //draw sagittal
+                this.draw2D([ltwh[0], ltwh[1] + sY + pad + sZ + pad, sY, sZ], 2);
+                if (isDraw3D)
+                    this.draw3D([ltwh[0], ltwh[1] + sY + sZ + sZ + pad * 3, sMx, sMx]);
+            } else if (isDrawRow) {
+                let ltwh = ltwh3x1;
+                if (this.opts.multiplanarForceRender || ltwh4x1[4] >= ltwh3x1[4])
+                    ltwh = ltwh4x1;
+                else isDraw3D = false;
+                let sX = volScale[0] * ltwh[4];
+                let sY = volScale[1] * ltwh[4];
+                let sZ = volScale[2] * ltwh[4];
+                //draw axial
+                this.draw2D([ltwh[0], ltwh[1], sX, sY], 0);
+                //draw coronal
+                this.draw2D([ltwh[0] + sX + pad, ltwh[1], sX, sZ], 1);
+                //draw sagittal
+                this.draw2D([ltwh[0] + sX + sX + pad * 2, ltwh[1], sY, sZ], 2);
+                if (isDraw3D)
+                    this.draw3D([
+                        ltwh[0] + sX + sX + sY + pad * 3,
+                        ltwh[1],
+                        ltwh[3],
+                        ltwh[3],
+                    ]);
+            } else if (isDrawGrid) {
+                let ltwh = ltwh2x2;
+                let sX = volScale[0] * ltwh[4];
+                let sY = volScale[1] * ltwh[4];
+                let sZ = volScale[2] * ltwh[4];
+                let sS = vScaleMax*ltwh[4];
+                let px = (sS-sX)/2;
+                let py = (sS-sY)/2;
+                let pz = (sS-sZ)/2;
+                //draw axial
+                this.draw2D([ltwh[0]+px, ltwh[1] + sZ + pad+pz*2+py, sX, sY], 0);
+                //draw coronal
+                this.draw2D([ltwh[0]+px, ltwh[1]+pz, sX, sZ], 1);
+                //draw sagittal
+                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1]+pz, sY, sZ], 2);
+                if (isDraw3D)
+                    this.draw3D([ltwh[0] + sX + pad+2*px+py, ltwh[1] + sZ + pad+2*pz+py, sY, sY]);
+            } //if isDrawGrid
+        } //if multiplanar
+    } //if mosaic not 2D
+    if (this.opts.isRuler) this.drawRuler();
+    if (this.opts.isColorbar) this.drawColorbar();
+    if (isDrawGraph) this.drawGraph();
+    if (this.uiData.isDragging) {
+        if (this.uiData.mouseButtonCenterDown) {
+            this.dragForCenterButton([
+                this.uiData.dragStart[0],
+                this.uiData.dragStart[1],
+                this.uiData.dragEnd[0],
+                this.uiData.dragEnd[1],
+            ]);
+            return;
+        }
+        if (this.opts.dragMode === DRAG_MODE.slicer3D) {
+            this.dragForSlicer3D([
+                this.uiData.dragStart[0],
+                this.uiData.dragStart[1],
+                this.uiData.dragEnd[0],
+                this.uiData.dragEnd[1],
+            ]);
+            return;
+        }
+        if (this.opts.dragMode === DRAG_MODE.pan) {
+            this.dragForPanZoom([
+                this.uiData.dragStart[0],
+                this.uiData.dragStart[1],
+                this.uiData.dragEnd[0],
+                this.uiData.dragEnd[1],
+            ]);
+            return;
+        }
+        if (
+            this.inRenderTile(this.uiData.dragStart[0], this.uiData.dragStart[1]) >= 0
+        )
+            return;
+        if (this.opts.dragMode === DRAG_MODE.measurement) {
+            //if (this.opts.isDragShowsMeasurementTool) {
+            this.drawMeasurementTool([
+                this.uiData.dragStart[0],
+                this.uiData.dragStart[1],
+                this.uiData.dragEnd[0],
+                this.uiData.dragEnd[1],
+            ]);
+            return;
+        }
+        let width = Math.abs(this.uiData.dragStart[0] - this.uiData.dragEnd[0]);
+        let height = Math.abs(this.uiData.dragStart[1] - this.uiData.dragEnd[1]);
+        this.drawSelectionBox([
+            Math.min(this.uiData.dragStart[0], this.uiData.dragEnd[0]),
+            Math.min(this.uiData.dragStart[1], this.uiData.dragEnd[1]),
+            width,
+            height,
+        ]);
+    }
+    const pos = this.frac2mm([
+        this.scene.crosshairPos[0],
+        this.scene.crosshairPos[1],
+        this.scene.crosshairPos[2],
+    ]);
+
+    posString =
+        pos[0].toFixed(2) + "×" + pos[1].toFixed(2) + "×" + pos[2].toFixed(2);
+    this.readyForSync = true; // by the time we get here, all volumes should be loaded and ready to be drawn. We let other niivue instances know that we can now reliably sync draw calls (images are loaded)
+    this.sync();
+    return posString;
+}; // drawSceneCore()
 
 export const nv = new Niivue({
     loadingText: '',
     isColorbar: true,
-    isRadiologicalConvention: true
+    isRadiologicalConvention: true,
+    colorBarHeight:0.03,
+    textHeight:0.03,
 });
 
 window.nv = nv;

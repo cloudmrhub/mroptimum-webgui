@@ -98,10 +98,10 @@ const Results = () => {
                                     //@ts-ignore
                                     // setVolumes([{url:'./mni.nii'}])
                                     setVolumes(volumes);
-                                    // nv.closeDrawing();
+                                    nv.closeDrawing();
                                     setSelectedVolume(0);
                                     nv.loadVolumes([volumes[0]]);
-                                    nv.createEmptyDrawing();
+                                    // nv.createEmptyDrawing();
                                     // nv.loadVolumes([{url:'./mni.nii'}]);
                                 }).catch((reason)=>{
                                     console.log(reason);
