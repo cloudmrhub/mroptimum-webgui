@@ -363,7 +363,9 @@ export const nv = new Niivue({
     isColorbar: true,
     isRadiologicalConvention: true,
     textHeight:0.03,
-    dragMode: 'pan'
+    dragMode: 'pan',
+    // crosshairColor: [0.098,0.453,0.824]
+    crosshairColor: [1,1,0]
 });
 
 window.nv = nv;
@@ -428,11 +430,20 @@ export default function NiiVueport(props) {
     //   setLayers([...nv.volumes])
     // }, [])
 
+    let [boundMins,setBoundMins] = useState([0,0,0]);
+    let [boundMaxs, setBoundMaxs] = useState([1,1,1]);
+    let [mms, setMMs] = useState([0.5,0.5,0.5]);
     nv.onImageLoaded = () => {
-        setLayers([...nv.volumes])
+        setLayers([...nv.volumes]);
+        setBoundMins(nv.frac2mm([0,0,0]));
+        setBoundMaxs(nv.frac2mm([1,1,1]));
+        setMMs(nv.frac2mm([0.5,0.5,0.5]));
     }
+
     nv.onLocationChange = (data) => {
         setLocationData(data.values);
+        if(data.values[0])
+            setMMs(data.values[0].mm);
         if(drawingEnabled){
             setDrawingChanged(true);
             // resampleImage();
@@ -1257,6 +1268,12 @@ export default function NiiVueport(props) {
                 resampleImage={resampleImage}
 
                 drawToolkitProps={drawToolkitProps}
+
+                layerList={layerList}
+
+                mins={boundMins}
+                maxs={boundMaxs}
+                mms={mms}
             />}
         </Box>
     )

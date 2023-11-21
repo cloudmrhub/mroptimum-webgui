@@ -31,7 +31,7 @@ function makeColorGradients(colorMapValues) {
 
 export default function Layer(props) {
   const image = props.image
-  const [detailsOpen, setDetailsOpen] = React.useState(false)
+  const [detailsOpen, setDetailsOpen] = React.useState(true)
   const [color, setColor] = React.useState(image.colormap)
   const [opacity, setOpacity] = React.useState(1.0)
   let ArrowIcon = detailsOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
@@ -104,10 +104,13 @@ export default function Layer(props) {
       }}
     >
       <Paper
-        elevation={2}
+        elevation={0}
         sx={{
           marginTop: 0.5,
-          marginBottom: 0.5
+          marginBottom: 0.5,
+            borderStyle:'solid',
+            borderWidth:'1px',
+            borderColor:'gray'
         }}
       >
         <Box
@@ -140,36 +143,36 @@ export default function Layer(props) {
             display: detailsOpen ? 'flex' : 'none',
             flexDirection: 'column'
           }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: '100%'
-            }}
-            m={1}
-          >
-            <IconButton
-            >
-              <KeyboardDoubleArrowUpIcon />
-            </IconButton>
+          {/*<Box*/}
+          {/*  sx={{*/}
+          {/*    display: 'flex',*/}
+          {/*    flexDirection: 'row',*/}
+          {/*    justifyContent: 'space-between',*/}
+          {/*    width: '100%'*/}
+          {/*  }}*/}
+          {/*  m={1}*/}
+          {/*>*/}
+          {/*  <IconButton*/}
+          {/*  >*/}
+          {/*    <KeyboardDoubleArrowUpIcon />*/}
+          {/*  </IconButton>*/}
 
-            <IconButton
-            >
-              <KeyboardArrowUpIcon />
-            </IconButton>
+          {/*  <IconButton*/}
+          {/*  >*/}
+          {/*    <KeyboardArrowUpIcon />*/}
+          {/*  </IconButton>*/}
 
-            <IconButton
-            >
-              <KeyboardArrowDownIcon />
-            </IconButton>
+          {/*  <IconButton*/}
+          {/*  >*/}
+          {/*    <KeyboardArrowDownIcon />*/}
+          {/*  </IconButton>*/}
 
-            <IconButton
-            >
-              <KeyboardDoubleArrowDownIcon />
-            </IconButton>
+          {/*  <IconButton*/}
+          {/*  >*/}
+          {/*    <KeyboardDoubleArrowDownIcon />*/}
+          {/*  </IconButton>*/}
 
-          </Box>
+          {/*</Box>*/}
           <Box
             sx={{
               display: 'flex',
@@ -209,11 +212,11 @@ export default function Layer(props) {
                 {allColors}
               </Select>
             </FormControl>
-            <IconButton
-              onClick={handleDelete}
-            >
-              <DeleteIcon />
-            </IconButton>
+            {/*<IconButton*/}
+            {/*  onClick={handleDelete}*/}
+            {/*>*/}
+            {/*  <DeleteIcon />*/}
+            {/*</IconButton>*/}
           </Box>
         </Box>
       </Paper>

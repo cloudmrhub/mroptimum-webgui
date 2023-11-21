@@ -15,12 +15,56 @@ interface NiivuePanelProps{
     decimalPrecision: number;
     drawToolkitProps: DrawToolkitProps;
     resampleImage:()=>void;
+    layerList: React.ComponentProps<any>[];
+    mins: number[];
+    maxs: number[];
+    mms: number[];
 }
 
+function createGUI(){
+    const element = document.getElementById('controlDock');
+    if (element?.firstChild) {
+        element.innerHTML='';
+    }
+    const gui = new GUI({
+        container: (document.getElementById( 'controlDock' )as HTMLElement) }) ;
+
+    const customStyleTag = document.createElement( 'style' );
+    document.head.appendChild( customStyleTag );
+    customStyleTag.innerHTML=`.lil-gui {
+            --background-color: #ffffff;
+            --text-color: #3d3d3d;
+            --title-background-color: #efefef;
+            --title-text-color: #3d3d3d;
+            --widget-color: #f0f0f0;
+            --hover-color: #f0f0f0;
+            --focus-color: #fafafa;
+            --number-color: #000000;
+            --string-color: #8da300;
+        }
+        
+        .lil-gui .controller > .name{
+            font-size:12pt;
+        }
+        .lil-gui .title {
+            font-size:14pt;
+        }
+        `;
+    const myObject = {
+        xSlice: 0,
+        ySlice: 1,
+        zSlice: 2,
+    };
+    let controllerX=gui.add( myObject, 'xSlice',0,1 );   // Number Field
+    let controllerY=gui.add( myObject, 'ySlice' ,0,1);   // Number Field
+    let controllerZ=gui.add( myObject, 'zSlice' ,0,1);   // Number Field
+    return {gui,controllerX,controllerY,controllerZ};
+}
 export function NiivuePanel (props:NiivuePanelProps) {
     const sliceControl = React.useRef(null);
 	const canvas = React.useRef(null)
     const histogram = React.useRef(null);
+    const {mins,maxs,mms} = props;
     let height = 650;
     // This hook is for initialization, called only once
     React.useEffect(()=>{
@@ -41,38 +85,32 @@ export function NiivuePanel (props:NiivuePanelProps) {
             props.resampleImage();
     }, [histogram]);
 
+    let {gui,controllerX,controllerZ,controllerY} = createGUI();
+
     React.useEffect(()=>{
-        const gui = new GUI({
-            container: (document.getElementById( 'controlDock' )as HTMLElement) }) ;
+        document.getElementById('controlDock')?.appendChild(gui.domElement);
+    },[sliceControl]);
 
-        const myObject = {
-            myBoolean: true,
-            myString: 'Slice labels',
-            xSlice: 1,
-            ySlice: 1,
-            zSlice: 1,
-        };
-
-        gui.add( myObject, 'myBoolean' );  // Checkbox
-        gui.add( myObject, 'xSlice',0,1 );   // Number Field
-        gui.add( myObject, 'ySlice' ,0,1);   // Number Field
-        gui.add( myObject, 'zSlice' ,0,1);   // Number Field
-
-// Add sliders to number fields by passing min and max
-        gui.add( myObject, 'myNumber', 0, 1 );
-    },[sliceControl])
+    React.useEffect(()=>{
+        controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
+        controllerY.min(mins[1]).max(maxs[1]).setValue(mms[1]);
+        controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
+    },[mins,maxs,props.locationData])
 
 	return (
 		<Box style={{width:'100%',display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
-            <Box ref={sliceControl} id={"controlDock"} sx={{width:'1fr'}}>
-
+            <Box sx={{width:'1fr'}} style={{display:'flex',flexDirection:'column'}}>
+                <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
+                <Box style={{height:'70%',paddingRight:10, marginTop:20}}>
+                    {props.layerList}
+                </Box>
             </Box>
             <Box
                 sx={{
                     width:props.displayVertical?'100%':height,
                     height: height+1,
                     display:'flex',
-                    flexDirection:'column'
+                    flexDirection:'column',
                 }}
             >
                 <LocationTable
