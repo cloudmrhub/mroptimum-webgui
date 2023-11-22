@@ -1,6 +1,6 @@
 import React, {Fragment, useState} from "react";
 import CMRUpload, {CMRUploadProps, LambdaFile} from '../upload/Upload';
-import {Alert, AlertTitle, Button, Collapse, MenuItem} from "@mui/material";
+import {Alert, AlertTitle, Button, Collapse, InputLabel, MenuItem} from "@mui/material";
 import Select, {SelectChangeEvent} from "@mui/material/Select";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -42,9 +42,10 @@ interface UploadedFile {
 const CMRSelectUpload = (props: CMRSelectUploadProps) => {
 
     let [open, setOpen] = React.useState(false);
-    let [fileIndex, selectFileIndex] = React.useState(0);
+    let [fileIndex, selectFileIndex] = React.useState(-1);
     let [uploading, setUploading] = React.useState(false);
     const handleClickOpen = () => {
+        selectFileIndex(-1);
         setOpen(true);
     };
 
@@ -56,13 +57,16 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
     const handleChange = (event: SelectChangeEvent<number>) => {
         //@ts-ignore
         selectFileIndex(event.target.value);
+
     };
 
     const onSet = ()=>{
+        if(fileIndex==-1){
+            return;
+        }
         props.onSelected(props.fileSelection[fileIndex]);
         setOpen(false);
     }
-
 
     const selectionDialog =  <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Upload or select</DialogTitle>
@@ -74,10 +78,12 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                 <Select
                     value={fileIndex}
                     onChange={handleChange}
-                    displayEmpty
                     inputProps={{ 'aria-label': 'Without label' }}
                     sx={{width: '100%'}}
                 >
+                    <MenuItem value={-1}>
+                        <em>Select or upload a new file to proceed</em>
+                    </MenuItem>
                     {((props.fileSelection!=undefined? props.fileSelection: [])).map((option,index) => (
                         <MenuItem key={index} value={index}>
                             {option.fileName}
@@ -89,16 +95,17 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     {(!uploading)&&<Button fullWidth variant="contained"  color="success" onClick={onSet}>
                         Select
                     </Button>}
-                    <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
-                        console.log("calling Setup level on uploaded");
-                        console.log(props.onUploaded);
-                        selectFileIndex(props.fileSelection.length);
-                        props.onUploaded(res, file);
-                        setOpen(false);
-                    }} fileExtension = {props.fileExtension}
-                                uploadStarted={()=>setUploading(true)}
-                                uploadEnded={()=>setUploading(false)}
-                    ></CMRUpload>
+                    {fileIndex==-1&&
+                        <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
+                            console.log("calling Setup level on uploaded");
+                            console.log(props.onUploaded);
+                            selectFileIndex(props.fileSelection.length);
+                            props.onUploaded(res, file);
+                            setOpen(false);
+                        }} fileExtension = {props.fileExtension}
+                                    uploadStarted={()=>setUploading(true)}
+                                    uploadEnded={()=>setUploading(false)}
+                        ></CMRUpload>}
                     <Button fullWidth variant="outlined"  color="inherit" sx={{color:'#333'}} onClick={handleClose}> Cancel</Button>
                 </DialogActions>
         </DialogContent>

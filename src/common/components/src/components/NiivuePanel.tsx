@@ -63,7 +63,7 @@ function createGUI(){
 export function NiivuePanel (props:NiivuePanelProps) {
     const sliceControl = React.useRef(null);
 	const canvas = React.useRef(null)
-    const histogram = React.useRef(null);
+    const histogram = React.useRef<HTMLElement>(null);
     const {mins,maxs,mms} = props;
     let height = 650;
     // This hook is for initialization, called only once
@@ -83,19 +83,30 @@ export function NiivuePanel (props:NiivuePanelProps) {
     React.useEffect(() => {
         if(!props.displayVertical)
             props.resampleImage();
+        // histogram.current?.addEventListener('resize',()=>props.resampleImage());
     }, [histogram]);
 
     let {gui,controllerX,controllerZ,controllerY} = createGUI();
 
+    controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
+    controllerY.min(mins[1]).max(maxs[1]).setValue(mms[1]);
+    controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
+    controllerX.onChange((val:number)=>{
+        console.log(val);
+        console.log(props.nv.drawPenLocation);
+        // props.nv.document.scene.crosshairPos[0] = val;
+        props.nv.drawPenLocation = [val,mms[1],mms[2]];
+        props.nv.drawScene();
+    })
     React.useEffect(()=>{
         document.getElementById('controlDock')?.appendChild(gui.domElement);
     },[sliceControl]);
 
-    React.useEffect(()=>{
-        controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
-        controllerY.min(mins[1]).max(maxs[1]).setValue(mms[1]);
-        controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
-    },[mins,maxs,props.locationData])
+    // React.useEffect(()=>{
+    //     controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
+    //     controllerY.min(mins[1]).max(maxs[1]).setValue(mms[1]);
+    //     controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
+    // },[mins,maxs,props.locationData])
 
 	return (
 		<Box style={{width:'100%',display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
@@ -115,7 +126,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
             >
                 <LocationTable
                     tableData={props.locationData}
-                    isVisible={props.locationTableVisible}
+                    isVisible={true}
                     decimalPrecision={props.decimalPrecision}
                     showDistribution={props.displayVertical}
                     style={{width:'100%',height:'20pt', color:'white'}}

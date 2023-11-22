@@ -47,6 +47,8 @@ const Results = () => {
         return (state.roi.rois[pipelineID]==undefined)?[]:state.roi.rois[pipelineID];
     })
 
+    let [loading, setLoading] = useState(-1);
+
     const completedJobsColumns = [
         {
             headerName: 'Job ID',
@@ -82,9 +84,9 @@ const Results = () => {
                 return (
                     <div>
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
-                            let counter = 0;
                             params.row.files.forEach(file => {
                                 console.log(file);
+                                setLoading(params.row.id);
                                 axios.post(UNZIP, JSON.parse(file.location),{
                                     headers: {
                                         Authorization:`Bearer ${accessToken}`
@@ -103,8 +105,12 @@ const Results = () => {
                                     // setVolumes([{url:'./mni.nii'}])
                                     setVolumes(volumes);
                                     nv.closeDrawing();
-                                    setSelectedVolume(0);
-                                    nv.loadVolumes([volumes[0]]);
+                                    setSelectedVolume(1);
+                                    nv.loadVolumes([volumes[1]]);
+                                    // Only open panel after loading is complete
+                                    setOpenPanel([1]);
+                                    setLoading(-1);
+                                    setTimeout(args => nv.resizeListener(),700);
                                     // nv.createEmptyDrawing();
                                     // nv.loadVolumes([{url:'./mni.nii'}]);
                                 }).catch((reason)=>{
@@ -119,14 +125,17 @@ const Results = () => {
                             //@ts-ignore
                             dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
                                 accessToken:accessToken}));
-                            setOpenPanel([1]);
                         }}>
-                            <PlayArrowIcon sx={{
-                                color: (params.row.status!='completed')?'#a9b7a9':'#4CAF50', // green color
-                                '&:hover': {
-                                    color: '#45a049', // darker green when hovering
-                                },
-                            }}/>
+                            {loading==params.row.id?
+                                <div className="spinner-border spinner-border-sm" style={{aspectRatio: '1 / 1'}} role="status"/>
+                                    :
+                                <PlayArrowIcon sx={{
+                                    color: (params.row.status!='completed')?'#a9b7a9':'#4CAF50', // green color
+                                    '&:hover': {
+                                        color: '#45a049', // darker green when hovering
+                                    },
+                                }}/>
+                            }
                         </IconButton>
                         <IconButton onClick={(e) => {
                             params.row.files.forEach(file => {

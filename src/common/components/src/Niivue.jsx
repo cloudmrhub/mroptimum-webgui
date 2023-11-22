@@ -551,7 +551,7 @@ export default function NiiVueport(props) {
     function nvSetDrawingEnabled(enabled) {
         setDrawingEnabled(enabled)
         nv.setDrawingEnabled(enabled)
-        nv.drawScene()
+        nv.drawScene();
     }
 
     function nvUpdateDrawPen(a) {
