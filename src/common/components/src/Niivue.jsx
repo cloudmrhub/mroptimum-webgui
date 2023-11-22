@@ -20,6 +20,9 @@ import axios from "axios";
 import {ROI_UPLOAD} from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
+import {DrawToolkit} from "./components/DrawToolKit";
+import {ROITable} from "../../../app/results/Rois";
+import {calculateMean, calculateStandardDeviation} from "./components/stats";
 const SLICE_TYPE = Object.freeze({
     AXIAL: 0,
     CORONAL: 1,
@@ -414,6 +417,16 @@ export default function NiiVueport(props) {
     const [highDPI, setHighDPI] = React.useState(false)
 
     const [verticalLayout, setVerticalLayout] = React.useState(false);
+    const histoRef = React.useRef(null);
+    const [rois, setROIs] = React.useState([]);
+
+
+    React.useEffect(() => {
+        if(props.displayVertical)
+            resampleImage();
+        // histogram.current?.addEventListener('resize',()=>props.resampleImage());
+    }, [histoRef]);
+
     // only run this when the component is mounted on the page
     // or else it will be recursive and continuously add all
     // initial images supplied to the NiiVue component
@@ -743,9 +756,40 @@ export default function NiiVueport(props) {
 
     function resampleImage() {
         let image = nv.volumes[0];
+        let rois = [];
+        let layout = {
+            barmode: "overlay",
+            title: 'ROI Distributions',  // Set your title here
+            // height: 100,
+            margin: {
+                l: 50,   // left margin
+                r: 50,   // right margin
+                b: 50,   // bottom margin
+                t: 60,   // top margin (set to a smaller value to reduce space)
+                pad: 4   // padding between plot area and axis lines
+            },
+            xaxis: {
+                autoscale: true,
+                title: 'Voxel value',
+                showgrid: true
+                // other x-axis properties
+            },
+            yaxis: {
+                autoscale: true,
+                title: 'Bin size',
+                showgrid: true
+                // other y-axis properties
+            },
+        }; // Set the height of the plot here};
         // Bitmap depicts the drawn content
-        if(nv.drawBitmap==null)//If ROI (drawing) is not inside the stack
+        if(nv.drawBitmap==null){
+            if(verticalLayout){
+                Plotly.newPlot('histoplotv', [], layout);
+            }else
+                Plotly.newPlot('histoplot', [], layout);
+            setROIs([]);
             return;
+        }//If ROI (drawing) is not inside the stack
 
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
@@ -757,6 +801,20 @@ export default function NiiVueport(props) {
             }
             samples[nv.drawBitmap[i]].push(image.img[i]);
         }
+        const colors = ['#bbb','#f00','#0f0','#00f']
+        for(let key in samples){
+            let sample = samples[key];
+            if(sample.length>0&&key!=='0'){
+                console.log(key);
+                rois.push({
+                    id:key,
+                    label:key,
+                    color:colors[key],
+                    mu:calculateMean(sample),
+                    std:calculateStandardDeviation(sample)})
+            }
+        }
+        setROIs(rois);
         // plot a histogram of numbers
         let traces = [{
                 x: samples[1],
@@ -764,7 +822,7 @@ export default function NiiVueport(props) {
                 opacity: 0.5,
                 marker: {
                     color: 'red',
-                },
+                }
             },
             {
                 x: samples[2],
@@ -783,8 +841,10 @@ export default function NiiVueport(props) {
                 },
             }];
 
-        let layout = {barmode: "overlay"};
-        Plotly.newPlot('histoplot', traces, layout);
+        if(verticalLayout){
+            Plotly.newPlot('histoplotv', traces, layout);
+        }else
+            Plotly.newPlot('histoplot', traces, layout);
     }
 
     function nvUpdateSelectionBoxColor(rgb01) {
@@ -1253,6 +1313,11 @@ export default function NiiVueport(props) {
                               defaultText={(props.rois[selectedROI] !== undefined ?
                                   props.rois[selectedROI].filename : undefined)}
             />
+            {verticalLayout &&
+                <Box style={{paddingLeft:'245px', width:'100%', marginBottom:'5pt'}}>
+                    <DrawToolkit {...drawToolkitProps}
+                                 style={{height:'10%'}} />
+                </Box>}
             {props.volumes[selectedVolume]!=undefined && <NiivuePanel
                 nv={nv}
                 key={`${selectedVolume}`}
@@ -1266,6 +1331,7 @@ export default function NiiVueport(props) {
                 pipelineID={props.pipelineID}
 
                 resampleImage={resampleImage}
+                rois = {rois}
 
                 drawToolkitProps={drawToolkitProps}
 
@@ -1275,6 +1341,28 @@ export default function NiiVueport(props) {
                 maxs={boundMaxs}
                 mms={mms}
             />}
+            <Box sx={{width: '100%',
+                display:(!verticalLayout)?'none':'flex',
+                height:'600pt', marginLeft:1, flexDirection:'column'}}>
+                <Box
+                    ref={histoRef}
+                    id={'histoplotv'}
+                    style={{
+                        width:'100%',
+                        height: '50%'
+                    }}
+                >
+                </Box>
+
+                <ROITable
+                    pipelineID={props.pipelineID}
+
+                    style={{
+                        width:'100%',
+                        height:'50%'
+                    }}
+                />
+            </Box>
         </Box>
     )
 }

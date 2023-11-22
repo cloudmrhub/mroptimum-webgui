@@ -19,6 +19,7 @@ interface NiivuePanelProps{
     mins: number[];
     maxs: number[];
     mms: number[];
+    rois: {}[];
 }
 
 
@@ -71,17 +72,13 @@ export function NiivuePanel (props:NiivuePanelProps) {
         // crosshair location imperatively, in the future shall be replaced with Niivue
         // official API if otherwise supported
         props.nv.drawScene();
-        props.nv.createOnLocationChange();
-    })
+    });
     controllerY.onChange((val:number)=>{
-        console.log(val);
-        console.log(props.nv.drawPenLocation);
         let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
             toRatio(val,mins[1],maxs[1]),
             toRatio(mms[2],mins[2],maxs[2])];
         props.nv.scene.crosshairPos = crosshairPos;
         props.nv.drawScene();
-        // props.nv.createOnLocationChange();
     })
     controllerZ.onChange((val:number)=>{
         console.log(val);
@@ -95,6 +92,15 @@ export function NiivuePanel (props:NiivuePanelProps) {
         // official API if otherwise supported
         props.nv.drawScene();
         // props.nv.createOnLocationChange();
+    })
+    controllerX.onFinishChange(()=>{
+        props.nv.createOnLocationChange();
+    })
+    controllerY.onFinishChange(()=>{
+        props.nv.createOnLocationChange();
+    })
+    controllerZ.onFinishChange(()=>{
+        props.nv.createOnLocationChange();
     })
     React.useEffect(()=>{
         document.getElementById('controlDock')?.appendChild(gui.domElement);
@@ -148,6 +154,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
                 <ROITable
                     pipelineID={props.pipelineID}
+                    rois={props.rois}
                     style={{
                         width:'100%',
                         height:'45%'
