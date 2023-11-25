@@ -1,0 +1,22 @@
+.lil-gui {
+  --background-color: #ffffff;
+  --text-color: #3d3d3d;
+  --title-background-color: #333;
+  --title-text-color: #fff;
+  --widget-color: #f0f0f0;
+  --hover-color: #f0f0f0;
+  --focus-color: #fafafa;
+  --number-color: #000000;
+  --string-color: #8da300;
+}
+
+.lil-gui .controller > .name{
+  font-size:12pt;
+}
+.lil-gui .title {
+  font-size:12pt;
+  border-top-right-radius:2pt;
+  border-top-left-radius:2pt;
+  font-weight: normal;
+  height: 20pt;
+}

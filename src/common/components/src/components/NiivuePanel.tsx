@@ -5,6 +5,7 @@ import LocationTable from "./LocationTable";
 import {ROITable} from "../../../../app/results/Rois";
 import {DrawToolkit, DrawToolkitProps} from "./DrawToolKit";
 import GUI from 'lil-gui';
+import "./Toolbar.scss";
 
 interface NiivuePanelProps{
     nv:any;
@@ -114,9 +115,9 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
 	return (
 		<Box style={{width:'100%',display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
-            <Box sx={{width:'1fr'}} style={{display:'flex',flexDirection:'column'}}>
+            <Box sx={{width:'1fr',marginRight:'8px'}} style={{display:'flex',flexDirection:'column'}}>
                 <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
-                <Box style={{height:'70%',paddingRight:10, marginTop:20}}>
+                <Box style={{height:'70%', marginTop:20}}>
                     {props.layerList}
                 </Box>
             </Box>
@@ -174,35 +175,14 @@ function createGUI(){
     const gui = new GUI({
         container: (document.getElementById( 'controlDock' )as HTMLElement) });
 
-    const customStyleTag = document.createElement( 'style' );
-    document.head.appendChild( customStyleTag );
-    customStyleTag.innerHTML=`.lil-gui {
-            --background-color: #ffffff;
-            --text-color: #3d3d3d;
-            --title-background-color: #efefef;
-            --title-text-color: #3d3d3d;
-            --widget-color: #f0f0f0;
-            --hover-color: #f0f0f0;
-            --focus-color: #fafafa;
-            --number-color: #000000;
-            --string-color: #8da300;
-        }
-        
-        .lil-gui .controller > .name{
-            font-size:12pt;
-        }
-        .lil-gui .title {
-            font-size:14pt;
-        }
-        `;
     const myObject = {
         xSlice: 0,
         ySlice: 1,
         zSlice: 2,
     };
-    let controllerX=gui.add( myObject, 'xSlice',0,1 );   // Number Field
-    let controllerY=gui.add( myObject, 'ySlice' ,0,1);   // Number Field
-    let controllerZ=gui.add( myObject, 'zSlice' ,0,1);   // Number Field
+    let controllerX= gui.add( myObject, 'xSlice', 0, 1);   // Number Field
+    let controllerY= gui.add( myObject, 'ySlice', 0, 1);   // Number Field
+    let controllerZ= gui.add( myObject, 'zSlice', 0, 1);   // Number Field
     return {gui,controllerX,controllerY,controllerZ};
 }
 

@@ -19,7 +19,7 @@ const CmrCheckbox = (props: CmrCheckboxProps) => {
 
     return (
         <FormControlLabel disabled={props.disabled} className={props.className} control={<Checkbox checked={props.checked} defaultChecked={defaultChecked} onChange={onChange}/>}
-                          label={<span className='cmr-label'>
+                          label={<span className='cmr-label' style={{paddingRight:0, color:'var(--bs-card-color)'}}>
                                 {props.children}
                           </span>}
                           labelPlacement="start"/>

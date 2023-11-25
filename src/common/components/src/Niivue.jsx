@@ -1,9 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Typography} from '@mui/material'
-import {Box} from '@mui/material'
-import {Fade} from '@mui/material'
-import {Popper} from '@mui/material'
-import {Paper} from '@mui/material'
+import {Box, Button, Typography} from '@mui/material'
 import {Niivue, NVImage} from '@niivue/niivue'
 import Toolbar from './components/Toolbar.tsx'
 import {SettingsPanel} from './components/SettingsPanel.jsx'
@@ -365,10 +361,12 @@ export const nv = new Niivue({
     loadingText: '',
     isColorbar: true,
     isRadiologicalConvention: true,
-    textHeight:0.03,
+    textHeight:0.04,
+    colorbarHeight:0.02,
     dragMode: 'pan',
     // crosshairColor: [0.098,0.453,0.824]
-    crosshairColor: [1,1,0]
+    crosshairColor: [1,1,0],
+    fontColor:[0.00,0.94,0.37, 1]
 });
 
 window.nv = nv;
@@ -387,7 +385,7 @@ export default function NiiVueport(props) {
     const [clipPlaneColor, setClipPlaneColor] = React.useState(nv.opts.clipPlaneColor)
     const [layers, setLayers] = React.useState(nv.volumes)
     const [cornerText, setCornerText] = React.useState(false)
-    const [radiological, setRadiological] = React.useState(false)
+    const [radiological, setRadiological] = React.useState(true)
     const [crosshair3D, setCrosshair3D] = React.useState(false)
     const [textSize, setTextSize] = React.useState(nv.opts.textHeight)
     const [colorBar, setColorBar] = React.useState(nv.opts.isColorbar)
@@ -419,6 +417,8 @@ export default function NiiVueport(props) {
     const [verticalLayout, setVerticalLayout] = React.useState(false);
     const histoRef = React.useRef(null);
     const [rois, setROIs] = React.useState([]);
+
+    const [showCrosshair, setShowCrosshair] = React.useState(true);
 
 
     React.useEffect(() => {
@@ -719,8 +719,9 @@ export default function NiiVueport(props) {
         setCrosshair3D(!crosshair3D)
     }
 
-    function nvShowCrosshair(showCrosshair){
-        nv.setCrosshairWidth((showCrosshair)?1:0);
+    function nvUpdateCrosshair(){
+        nv.setCrosshairWidth(showCrosshair?0:1);
+        setShowCrosshair(!showCrosshair);
     }
 
     function nvUpdateRadiological() {
@@ -819,6 +820,7 @@ export default function NiiVueport(props) {
         let traces = [{
                 x: samples[1],
                 type: "histogram",
+                name: '1',
                 opacity: 0.5,
                 marker: {
                     color: 'red',
@@ -828,6 +830,7 @@ export default function NiiVueport(props) {
                 x: samples[2],
                 type: "histogram",
                 opacity: 0.5,
+                name: '2',
                 marker: {
                     color: 'green',
                 },
@@ -835,6 +838,7 @@ export default function NiiVueport(props) {
             {
                 x: samples[3],
                 type: "histogram",
+                name: '3',
                 opacity: 0.5,
                 marker: {
                     color: 'blue',
@@ -1005,7 +1009,6 @@ export default function NiiVueport(props) {
         changesMade:drawingChanged,
         showSampleDistribution: verticalLayout,
         toggleSampleDistribution,
-        showCrosshair:nvShowCrosshair,
         drawUndo:()=>{//To be moved and organized
             nv.drawUndo();
             resampleImage();
@@ -1293,9 +1296,12 @@ export default function NiiVueport(props) {
                 setSelectedROI={selectROI}
                 verticalLayout={verticalLayout}
                 toggleVerticalLayout={toggleSampleDistribution}
-                showCrosshair={nvShowCrosshair}
+                toggleShowCrosshair={nvUpdateCrosshair}
+                showCrosshair={showCrosshair}
                 dragMode={dragMode}
                 setDragMode={nvSetDragMode}
+                toggleRadiological={nvUpdateRadiological}
+                radiological={radiological}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}
@@ -1356,7 +1362,7 @@ export default function NiiVueport(props) {
 
                 <ROITable
                     pipelineID={props.pipelineID}
-
+                    rois={rois}
                     style={{
                         width:'100%',
                         height:'50%'

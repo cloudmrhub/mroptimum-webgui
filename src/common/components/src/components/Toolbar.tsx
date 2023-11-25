@@ -33,9 +33,12 @@ interface ToolbarProps {
     setSelectedROI: (selected:number)=>void;
     verticalLayout:boolean;
     toggleVerticalLayout: ()=>void;
-    showCrosshair: (show:boolean)=>void;
+    showCrosshair: boolean;
+    toggleShowCrosshair:()=>void;
     dragMode:boolean,
     setDragMode:(dragMode:string|boolean)=>void;
+    radiological:boolean;
+    toggleRadiological:()=>void;
 }
 
 export default function Toolbar(props:ToolbarProps) {
@@ -156,11 +159,46 @@ export default function Toolbar(props:ToolbarProps) {
                             })}
                         </Select>
                     </FormControl>
-
-                    <CmrCheckbox defaultChecked={true} onChange={(e)=>{
-                        props.showCrosshair(e.target.checked)}}>
-                        Show cross air
-                    </CmrCheckbox>
+                    <Box
+                        sx={{
+                            display:'flex',
+                            alignItems: 'center'
+                        }}
+                        m={1}
+                    >
+                        <Typography
+                            style={{
+                                marginRight: 'auto'
+                            }}
+                        >
+                            Radiological
+                        </Typography>
+                        <Switch
+                            defaultChecked={true}
+                            checked={props.radiological}
+                            onChange={props.toggleRadiological}
+                        />
+                    </Box>
+                    <Box
+                        sx={{
+                            display:'flex',
+                            alignItems: 'center'
+                        }}
+                        m={1}
+                    >
+                        <Typography
+                            style={{
+                                marginRight: 'auto'
+                            }}
+                        >
+                            Show Crosshair
+                        </Typography>
+                        <Switch
+                            defaultChecked={true}
+                            checked={props.showCrosshair}
+                            onChange={props.toggleShowCrosshair}
+                        />
+                    </Box>
 
                     <Box
                         sx={{
