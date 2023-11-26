@@ -13,7 +13,7 @@ import ImagesearchRollerIcon from '@mui/icons-material/ImagesearchRoller';
 import BrushOutlinedIcon from '@mui/icons-material/BrushOutlined';
 import AutoFixNormalOutlinedIcon from '@mui/icons-material/AutoFixNormalOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
-import {ROI} from "../../../../features/rois/roiSlice";
+import {ROI} from "../../../../features/rois/resultSlice";
 import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
 import {createTheme} from "@mui/material/styles";
 // import {Niivue} from "@niivue/niivue";

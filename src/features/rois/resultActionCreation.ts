@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {ROI_GET, ROI_UPLOAD} from '../../Variables';
-import {ROI} from "./roiSlice";
+import {ROI} from "./resultSlice";
 export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pipeline}:{accessToken:string, pipeline:string}) => {
     const config = {
         headers: {

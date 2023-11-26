@@ -6,10 +6,10 @@ import {jobsSlice} from "./jobs/jobsSlice";
 import {setupSlice} from "./setup/setupSlice";
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
-import {roiSlice} from "./rois/roiSlice";
+import {resultSlice} from "./rois/resultSlice";
 
 let rootReducer = combineReducers({authenticate: authenticateSlice.reducer, data: dataSlice.reducer,
-jobs:jobsSlice.reducer, setup: setupSlice.reducer, roi: roiSlice.reducer});
+jobs:jobsSlice.reducer, setup: setupSlice.reducer, roi: resultSlice.reducer});
 
 const persistConfig = {
         whitelist: ['authenticate', 'setup', 'home', 'pipeline'],

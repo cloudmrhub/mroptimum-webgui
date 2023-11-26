@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import { getPipelineROI } from './roiActionCreation';
+import { getPipelineROI } from './resultActionCreation';
 import {defaultSNR, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "../data/dataSlice";
 
@@ -21,17 +21,23 @@ export interface ROI {
     };
 }
 
+export interface Volume{
+    name:string;
+    url:string;
+}
 export interface ROIState{
     rois: {[pipeline_id:string]:ROI[]};
     loading: boolean;
+    volumes:{[pipeline_id:string]:Volume[]};
 }
 
 const initialState: ROIState = {
     rois:{},
+    volumes:{},
     loading: true,
 };
 
-export const roiSlice = createSlice({
+export const resultSlice = createSlice({
     name: 'job',
     initialState,
     reducers: {
@@ -55,4 +61,4 @@ export const roiSlice = createSlice({
     ),
 });
 
-export const roiActions = roiSlice.actions;
+export const resultActions = resultSlice.actions;
