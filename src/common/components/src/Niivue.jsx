@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Box, Button, Typography} from '@mui/material'
-import {Niivue, NVImage} from '@niivue/niivue'
+import {NVImage} from '@niivue/niivue';
+import {Niivue} from './NiivuePatcher';
 import Toolbar from './components/Toolbar.tsx'
 import {SettingsPanel} from './components/SettingsPanel.jsx'
 import {ColorPicker} from './components/ColorPicker.jsx'
@@ -19,27 +20,7 @@ import Plotly from "plotly.js-dist-min";
 import {DrawToolkit} from "./components/DrawToolKit";
 import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
-const SLICE_TYPE = Object.freeze({
-    AXIAL: 0,
-    CORONAL: 1,
-    SAGITTAL: 2,
-    MULTIPLANAR: 3,
-    RENDER: 4,
-});
-const DRAG_MODE = Object.freeze({
-    none: 0,
-    contrast: 1,
-    measurement: 2,
-    pan: 3,
-    slicer3D: 4,
-    callbackOnly: 5,
-});
-const MULTIPLANAR_TYPE = Object.freeze({
-    AUTO: 0,
-    COLUMN: 1,
-    GRID: 2,
-    ROW: 3,
-});
+
 //
 // let largestScale = 0;
 //
@@ -84,6 +65,20 @@ const MULTIPLANAR_TYPE = Object.freeze({
 //     leftTopWidthHeight[1] +=(largestDim-leftTopWidthHeight[3])
 //     return superDraw2D(leftTopWidthHeight,axCorSag,customMM);
 // };
+
+export const nv = new Niivue({
+    loadingText: '',
+    isColorbar: true,
+    isRadiologicalConvention: true,
+    textHeight:0.04,
+    colorbarHeight:0.02,
+    dragMode: 'pan',
+    // crosshairColor: [0.098,0.453,0.824]
+    crosshairColor: [1,1,0],
+    fontColor:[0.00,0.94,0.37, 1]
+});
+
+window.nv = nv;
 
 
 // The NiiVue component wraps all other components in the UI. 

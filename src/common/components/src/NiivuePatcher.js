@@ -3,6 +3,28 @@
  */
 import {Niivue} from "@niivue/niivue";
 
+const SLICE_TYPE = Object.freeze({
+    AXIAL: 0,
+    CORONAL: 1,
+    SAGITTAL: 2,
+    MULTIPLANAR: 3,
+    RENDER: 4,
+});
+const DRAG_MODE = Object.freeze({
+    none: 0,
+    contrast: 1,
+    measurement: 2,
+    pan: 3,
+    slicer3D: 4,
+    callbackOnly: 5,
+});
+const MULTIPLANAR_TYPE = Object.freeze({
+    AUTO: 0,
+    COLUMN: 1,
+    GRID: 2,
+    ROW: 3,
+});
+
 Niivue.prototype.drawSceneCore = function () {
     if (!this.initialized) {
         return; // do not do anything until we are initialized (init will call drawScene).
@@ -274,16 +296,6 @@ Niivue.prototype.drawSceneCore = function () {
     return posString;
 }; // drawSceneCore()
 
-export const nv = new Niivue({
-    loadingText: '',
-    isColorbar: true,
-    isRadiologicalConvention: true,
-    textHeight:0.04,
-    colorbarHeight:0.02,
-    dragMode: 'pan',
-    // crosshairColor: [0.098,0.453,0.824]
-    crosshairColor: [1,1,0],
-    fontColor:[0.00,0.94,0.37, 1]
-});
 
-window.nv = nv;
+
+export {Niivue};

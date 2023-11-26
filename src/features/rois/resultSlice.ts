@@ -1,7 +1,8 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import { getPipelineROI } from './resultActionCreation';
+import { getPipelineROI,loadResult } from './resultActionCreation';
 import {defaultSNR, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "../data/dataSlice";
+import {Job} from "../jobs/jobsSlice";
 
 export interface ROI {
     id: number;
@@ -24,23 +25,56 @@ export interface ROI {
 export interface Volume{
     name:string;
     url:string;
+    alias:string;
 }
 export interface ROIState{
     rois: {[pipeline_id:string]:ROI[]};
-    loading: boolean;
+    resultLoading: number;
+    loading:boolean;
     volumes:{[pipeline_id:string]:Volume[]};
+    activeJob: Job;
+    selectedVolume: number;
 }
 
 const initialState: ROIState = {
     rois:{},
     volumes:{},
-    loading: true,
+    resultLoading: -1,
+    loading:false,
+    activeJob:{id:0,
+        alias: 'sample0',
+        status: 'completed',
+        createdAt: '08-21-2023',
+        updatedAt: '08-21-2023',
+        pipeline_id:'###',
+        setup: {
+            version: 'v0',
+            alias: 'sample0',
+            output:{
+                coilsensitivity: false,
+                gfactor: false,
+                matlab: true
+            },
+            task: defaultSNR
+        },
+        files: []
+    },
+    selectedVolume:1,
 };
 
 export const resultSlice = createSlice({
     name: 'job',
     initialState,
     reducers: {
+        setPipelineID(state:ROIState,action:PayloadAction<Job>){
+            state.activeJob = action.payload;
+        },
+        setOpenedVolumes(state:ROIState, action:PayloadAction<{pipelineID:string,volumes:Volume[]}>){
+            state.volumes[action.payload.pipelineID] = action.payload.volumes;
+        },
+        selectVolume(state:ROIState,action:PayloadAction<number>){
+            state.selectedVolume = action.payload;
+        }
     },
     extraReducers: (builder) => (
         builder.addCase(getPipelineROI.pending, (state, action) => {
@@ -57,6 +91,16 @@ export const resultSlice = createSlice({
                     });
                 }
                 state.loading = false;
+            }),
+            builder.addCase(loadResult.pending,(state:ROIState, action) => {
+                // @ts-ignore
+                state.resultLoading = action.meta.jobId;
+            }),
+            builder.addCase(loadResult.fulfilled, (state:ROIState,action)=>{
+                state.activeJob=action.payload.job;
+                state.volumes[state.activeJob.pipeline_id] = action.payload.volumes;
+                state.selectedVolume = 1;
+                state.resultLoading = -1;
             })
     ),
 });

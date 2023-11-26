@@ -14,8 +14,8 @@ import {Job} from "../../features/jobs/jobsSlice";
 import axios from "axios";
 import {ROI_GET, UNZIP} from "../../Variables";
 import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
-import {ROI} from "../../features/rois/resultSlice";
-import {getPipelineROI} from "../../features/rois/resultActionCreation";
+import {resultActions, ROI} from "../../features/rois/resultSlice";
+import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
 import {Button} from "@mui/material";
 import {store} from "../../features/store";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
@@ -23,7 +23,7 @@ import {Row} from "antd";
 import {ROITable} from "./Rois";
 import {createTheme} from "@mui/material/styles";
 
-interface NiiFile {
+export interface NiiFile {
     filename:string;
     id:number;
     dim:number;
@@ -33,21 +33,37 @@ interface NiiFile {
 }
 
 const Results = () => {
-    const [completedJobsData, setCompletedJobsData] = useState<Array<UploadedFile>>();
     const [activeJobAlias, setActiveJobAlias] = useState<string|undefined>(undefined);
     const dispatch = useAppDispatch();
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
         state.jobs.jobs);
     // const [rois, setROIS] = useState<ROI[]>([]);
-    const [volumes, setVolumes] = useState<{url:string, name:string}[]>( []);
-    const [pipelineID, setPipelineID] = useState<string>("");
-
+    const volumes = useAppSelector(state => state.result.volumes);
+    const pipelineID = useAppSelector(state => state.result.activeJob?.pipeline_id);
     const rois:ROI[] = useAppSelector(state=>{
-        return (state.roi.rois[pipelineID]==undefined)?[]:state.roi.rois[pipelineID];
+        return (state.result.rois[pipelineID]==undefined)?[]:state.result.rois[pipelineID];
     })
+    const selectedVolume = useAppSelector(state => state.result.selectedVolume);
+    const resultLoading  = useAppSelector(state => state.result.resultLoading);
 
-    let [loading, setLoading] = useState(-1);
+    const [openPanel, setOpenPanel] = useState([0]);
+    const [autoRefresh, setAutoRefresh] = useState(true);
+
+    useEffect(() => {
+        dispatch(getUploadedData(accessToken));
+        dispatch(getUpstreamJobs(accessToken));
+        setTimeout( ()=>{
+            if(Date.now()-lastUpdated>=60000){//Only auto get job state after 1 minute
+                setLastUpdated(Date.now());
+                if(autoRefresh){
+                    dispatch(getUpstreamJobs(accessToken));
+                }
+            }
+        },60000);
+    }, []);
+
+    const [lastUpdated, setLastUpdated] = useState(Date.now());
 
     const completedJobsColumns = [
         {
@@ -84,49 +100,22 @@ const Results = () => {
                 return (
                     <div>
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
-                            params.row.files.forEach(file => {
-                                console.log(file);
-                                setLoading(params.row.id);
-                                axios.post(UNZIP, JSON.parse(file.location),{
-                                    headers: {
-                                        Authorization:`Bearer ${accessToken}`
-                                    }
-                                }).then(value => {
-                                    let niis:NiiFile[] = value.data;
-                                    let volumes = niis.map((value)=>{
-                                        console.log(value);
-                                        return {url: value.link,
-                                            name: (value.filename.split('/').pop() as string),
-                                            alias: value.name
-                                        };
-                                    });
-                                    // let volumes = [{url:niis[1].link,name:niis[1].filename}]
-                                    //@ts-ignore
-                                    // setVolumes([{url:'./mni.nii'}])
-                                    setVolumes(volumes);
-                                    nv.closeDrawing();
-                                    setSelectedVolume(1);
-                                    nv.loadVolumes([volumes[1]]);
-                                    // Only open panel after loading is complete
-                                    setOpenPanel([1]);
-                                    setLoading(-1);
-                                    setTimeout(args => nv.resizeListener(),700);
-                                    // nv.createEmptyDrawing();
-                                    // nv.loadVolumes([{url:'./mni.nii'}]);
-                                }).catch((reason)=>{
-                                    console.log(reason);
-                                    console.log(JSON.parse(file.location));
-                                });
+                            dispatch(loadResult({
+                                accessToken,
+                                job:params.row,
+                            })).then(value => {
+                                //@ts-ignore
+                                let volumes = value.payload.volumes;
+                                console.log(volumes);
+                                nv.loadVolumes([volumes[1]]);
+                                nv.closeDrawing();
+                                setOpenPanel([1]);
+                                setTimeout(args => nv.resizeListener(),700);
+                                dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
+                                    accessToken:accessToken}));
                             });
-                            // Set pipeline ID
-                            setPipelineID(params.row.pipeline_id);
-                            setActiveJobAlias(params.row.alias);
-                            // Set roi
-                            //@ts-ignore
-                            dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
-                                accessToken:accessToken}));
                         }}>
-                            {loading==params.row.id?
+                            {resultLoading==params.row.id?
                                 <div className="spinner-border spinner-border-sm" style={{aspectRatio: '1 / 1'}} role="status"/>
                                     :
                                 <PlayArrowIcon sx={{
@@ -165,28 +154,6 @@ const Results = () => {
             },
         }
     ];
-
-    const [openPanel, setOpenPanel] = useState([0]);
-
-    const [autoRefresh, setAutoRefresh] = useState(true);
-    useEffect(() => {
-        //@ts-ignore
-        dispatch(getUploadedData(accessToken));
-        //@ts-ignore
-        dispatch(getUpstreamJobs(accessToken));
-        setTimeout( ()=>{
-            if(Date.now()-lastUpdated>=60000){//Only auto get job state after 1 minute
-                setLastUpdated(Date.now());
-                if(autoRefresh){
-                    //@ts-ignore
-                    dispatch(getUpstreamJobs(accessToken));
-                }
-            }
-        },60000);
-    }, []);
-
-    const [lastUpdated, setLastUpdated] = useState(Date.now());
-    const [selectedVolume, setSelectedVolume] = useState(0);
     return (
         <Fragment>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel} onChange={(key: any) => {
@@ -206,7 +173,9 @@ const Results = () => {
                     }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
-                    <NiiVue volumes={volumes} setSelectedVolume={setSelectedVolume} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
+                    <NiiVue volumes={volumes} setSelectedVolume={(index:number)=>{
+                        dispatch(resultActions.selectVolume(index));
+                    }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore
                         dispatch(getPipelineROI({pipeline: pipelineID,
                             accessToken:accessToken}));
