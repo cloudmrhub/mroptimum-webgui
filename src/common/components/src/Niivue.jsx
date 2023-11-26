@@ -781,13 +781,14 @@ export default function NiiVueport(props) {
                 showgrid: true
                 // other y-axis properties
             },
+
         }; // Set the height of the plot here};
         // Bitmap depicts the drawn content
         if(nv.drawBitmap==null){
             if(verticalLayout){
-                Plotly.newPlot('histoplotv', [], layout);
+                Plotly.newPlot('histoplotv', [], layout, {responsive: true});
             }else
-                Plotly.newPlot('histoplot', [], layout);
+                Plotly.newPlot('histoplot', [], layout, {responsive: true});
             setROIs([]);
             return;
         }//If ROI (drawing) is not inside the stack
