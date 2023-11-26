@@ -427,6 +427,17 @@ export default function NiiVueport(props) {
         // histogram.current?.addEventListener('resize',()=>props.resampleImage());
     }, [histoRef]);
 
+    React.useEffect(()=>{
+        window.addEventListener('resize',useState=>{
+            console.log(window.innerWidth);
+            if(window.innerWidth<1250&&!verticalLayout){
+                setVerticalLayout(true);
+            }else{
+                setVerticalLayout(false);
+            }
+        });
+    },[]);
+
     // only run this when the component is mounted on the page
     // or else it will be recursive and continuously add all
     // initial images supplied to the NiiVue component

@@ -124,7 +124,9 @@ export function NiivuePanel (props:NiivuePanelProps) {
             <Box
                 sx={{
                     width:props.displayVertical?'100%':height,
-                    height: height+1,
+                    height: (props.displayVertical?undefined:height+1),
+                    aspectRatio:props.displayVertical?1:undefined,
+                    maxHeight:height+1,
                     display:'flex',
                     flexDirection:'column',
                 }}

@@ -35,7 +35,7 @@ export default function Layer(props) {
   const [color, setColor] = React.useState(image.colormap)
   const [opacity, setOpacity] = React.useState(1.0)
   let ArrowIcon = detailsOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
-  console.log(props.colorMapValues)
+  // console.log(props.colorMapValues)
   let allColors = props.nv.colormaps().map((colorName) => {
     return (
       <MenuItem value={colorName} key={colorName}>
