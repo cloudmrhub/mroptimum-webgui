@@ -29,7 +29,7 @@ export const nv = new Niivue({
     dragMode: 'pan',
     // crosshairColor: [0.098,0.453,0.824]
     crosshairColor: [1,1,0],
-    fontColor:[0.00,0.94,0.37, 1]
+    fontColor:[0.00,0.94,0.37, 1],
 });
 
 window.nv = nv;
@@ -253,6 +253,7 @@ export default function NiiVueport(props) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
         nv.setPenValue(penValue & 7, penValue > 7)
+        nv.opts.penBounds = 2;
         if (penValue == 12) {
             nv.setPenValue(-0)
         }
@@ -442,7 +443,7 @@ export default function NiiVueport(props) {
         let rois = [];
         let layout = {
             barmode: "overlay",
-            title: 'ROI Distributions',  // Set your title here
+            title: 'ROI Histogram',  // Set your title here
             // height: 100,
             margin: {
                 l: 50,   // left margin

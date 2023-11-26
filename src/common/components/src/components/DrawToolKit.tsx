@@ -36,7 +36,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         let expand = !expandDrawOptions;
         if(expand){
             setExpandEraseOptions(false);
-            props.updateDrawPen({target:{value:1}});
+            props.updateDrawPen({target:{value:5}});
         }
         props.setDrawingEnabled(expand||expandEraseOptions);
         setExpandDrawOptions(expand);

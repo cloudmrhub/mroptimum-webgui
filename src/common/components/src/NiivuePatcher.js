@@ -297,5 +297,37 @@ Niivue.prototype.drawSceneCore = function () {
 }; // drawSceneCore()
 
 
+// not included in public docs
+// set color of single voxel in drawing
+// Include thickness in opts
+/**
+ * Pen bounds specify the padding added
+ * around the drawing center
+ * @param x
+ * @param y
+ * @param z
+ * @param penValue
+ */
+Niivue.prototype.drawPt=function (x, y, z, penValue) {
+    const penBounds = this.opts.penBounds?this.opts.penBounds:0;
+    console.log(penBounds);
+    const dx = this.back.dims[1]
+    const dy = this.back.dims[2]
+    const dz = this.back.dims[3]
+    //Sweep through cubic area, filter by radius
+    for(let i = x-penBounds; i<=x+penBounds; i++){
+        for(let j = y-penBounds; j<=y+penBounds; j++){
+            for(let k = z-penBounds; k<=z+penBounds; k++){
+                // (penBounds+1)*(penBounds) as radius filter makes better circles in discrete case
+                if((i-x)*(i-x)+(j-y)*(j-y)+(k-z)*(k-z)<=(penBounds+1)*(penBounds)){
+                    let xn = Math.min(Math.max(i, 0), dx - 1)
+                    let yn = Math.min(Math.max(j, 0), dy - 1)
+                    let zn = Math.min(Math.max(k, 0), dz - 1)
+                    this.drawBitmap[xn + yn * dx + zn * dx * dy] = penValue;
+                }
+            }
+        }
+    }
+}
 
 export {Niivue};
