@@ -34,11 +34,12 @@ export interface ROIState{
     volumes:{[pipeline_id:string]:Volume[]};
     activeJob: Job;
     selectedVolume: number;
+    openPanel: number[];
 }
 
 const initialState: ROIState = {
     rois:{},
-    volumes:{},
+    volumes:{'-1':[]},
     resultLoading: -1,
     loading:false,
     activeJob:{id:0,
@@ -46,7 +47,7 @@ const initialState: ROIState = {
         status: 'completed',
         createdAt: '08-21-2023',
         updatedAt: '08-21-2023',
-        pipeline_id:'###',
+        pipeline_id:'-1',
         setup: {
             version: 'v0',
             alias: 'sample0',
@@ -60,6 +61,7 @@ const initialState: ROIState = {
         files: []
     },
     selectedVolume:1,
+    openPanel:[0]
 };
 
 export const resultSlice = createSlice({
@@ -74,6 +76,9 @@ export const resultSlice = createSlice({
         },
         selectVolume(state:ROIState,action:PayloadAction<number>){
             state.selectedVolume = action.payload;
+        },
+        setOpenPanel(state:ROIState,action:PayloadAction<number[]>){
+            state.openPanel = action.payload;
         }
     },
     extraReducers: (builder) => (

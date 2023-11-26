@@ -9,7 +9,6 @@ import {NumberPicker} from './components/NumberPicker.jsx'
 import {LayersPanel} from './components/LayersPanel.jsx'
 import {NiivuePanel} from './components/NiivuePanel.tsx'
 import NVSwitch from './components/Switch.jsx'
-import LocationTable from './components/LocationTable.jsx'
 import Layer from './components/Layer.jsx'
 import './Niivue.css'
 import EditConfirmation from "../Cmr-components/dialogue/EditConfirmation";
@@ -20,51 +19,6 @@ import Plotly from "plotly.js-dist-min";
 import {DrawToolkit} from "./components/DrawToolKit";
 import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
-
-//
-// let largestScale = 0;
-//
-// Niivue.prototype.sliceScale = function (forceVox = false) {
-//     let dimsMM = this.screenFieldOfViewMM(SLICE_TYPE.AXIAL);
-//     if (forceVox) dimsMM = this.screenFieldOfViewVox(SLICE_TYPE.AXIAL);
-//     let longestAxis = Math.max(dimsMM[0], Math.max(dimsMM[1], dimsMM[2]));
-//     let volScale = [
-//         dimsMM[0] / longestAxis,
-//         dimsMM[1] / longestAxis,
-//         dimsMM[2] / longestAxis,
-//     ];
-//     let vox = [this.back.dims[1], this.back.dims[2], this.back.dims[3]];
-//     largestScale = Math.max(...volScale)
-//     return { volScale, vox, longestAxis, dimsMM };
-// }; // sliceScale()
-//
-// const orgScaleSlice = Niivue.prototype.scaleSlice;
-//
-// /*
-//     Proxy NiiVue draw2D to produce square quadrants
-//  */
-// Niivue.prototype.scaleSlice = function (
-//     w,
-//     h,
-//     widthPadPixels = 0,
-//     heightPadPixels = 0 ) {
-//     const superScaleSlice = orgScaleSlice.bind(this);
-//     return superScaleSlice(largestScale*2,largestScale*2,widthPadPixels,heightPadPixels);
-// };
-//
-// const orgDraw2D = Niivue.prototype.draw2D;
-// let vtPadding = 300;
-// /*
-//     Proxy NiiVue draw2D to produce square quadrants
-//  */
-// Niivue.prototype.draw2D = function (
-//     leftTopWidthHeight, axCorSag, customMM = NaN ) {
-//     const superDraw2D = orgDraw2D.bind(this);
-//     let largestDim = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);
-//     leftTopWidthHeight[0] +=(largestDim-leftTopWidthHeight[2]);
-//     leftTopWidthHeight[1] +=(largestDim-leftTopWidthHeight[3])
-//     return superDraw2D(leftTopWidthHeight,axCorSag,customMM);
-// };
 
 export const nv = new Niivue({
     loadingText: '',
@@ -146,6 +100,13 @@ export default function NiiVueport(props) {
                 setVerticalLayout(false);
             }
         });
+        if(nv.volumes.length!==0){
+            setLayers([...nv.volumes]);
+            setBoundMins(nv.frac2mm([0,0,0]));
+            setBoundMaxs(nv.frac2mm([1,1,1]));
+            setMMs(nv.frac2mm([0.5,0.5,0.5]));
+            setTimeout(args => nv.resizeListener(),700);
+        }
     },[]);
 
     // only run this when the component is mounted on the page

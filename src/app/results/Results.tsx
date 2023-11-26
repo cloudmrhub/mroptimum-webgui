@@ -33,23 +33,21 @@ export interface NiiFile {
 }
 
 const Results = () => {
-    const [activeJobAlias, setActiveJobAlias] = useState<string|undefined>(undefined);
     const dispatch = useAppDispatch();
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
         state.jobs.jobs);
+    const activeJobAlias = useAppSelector((state)=>state.result.activeJob.alias);
     // const [rois, setROIS] = useState<ROI[]>([]);
-    const volumes = useAppSelector(state => state.result.volumes);
-    const pipelineID = useAppSelector(state => state.result.activeJob?.pipeline_id);
+    const pipelineID = useAppSelector(state => state.result.activeJob.pipeline_id);
+    const volumes = useAppSelector(state => state.result.volumes[pipelineID]);
     const rois:ROI[] = useAppSelector(state=>{
         return (state.result.rois[pipelineID]==undefined)?[]:state.result.rois[pipelineID];
     })
     const selectedVolume = useAppSelector(state => state.result.selectedVolume);
     const resultLoading  = useAppSelector(state => state.result.resultLoading);
-
-    const [openPanel, setOpenPanel] = useState([0]);
     const [autoRefresh, setAutoRefresh] = useState(true);
-
+    const openPanel = useAppSelector(state => state.result.openPanel);
     useEffect(() => {
         dispatch(getUploadedData(accessToken));
         dispatch(getUpstreamJobs(accessToken));
@@ -106,10 +104,9 @@ const Results = () => {
                             })).then(value => {
                                 //@ts-ignore
                                 let volumes = value.payload.volumes;
-                                console.log(volumes);
-                                nv.loadVolumes([volumes[1]]);
                                 nv.closeDrawing();
-                                setOpenPanel([1]);
+                                nv.loadVolumes([volumes[1]]);
+                                dispatch(resultActions.setOpenPanel([1]));
                                 setTimeout(args => nv.resizeListener(),700);
                                 dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
                                     accessToken:accessToken}));
@@ -157,7 +154,7 @@ const Results = () => {
     return (
         <Fragment>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel} onChange={(key: any) => {
-                setOpenPanel(key)
+                dispatch(resultActions.setOpenPanel(key));
             }}>
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
                     <Row>

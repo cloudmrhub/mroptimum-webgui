@@ -47,7 +47,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
     });
     return {pipelineID:job.pipeline_id, job:job,volumes:volumes};
         // Set pipeline ID
-    },{
+},{
         // Adding extra information to the meta field
         getPendingMeta: ({ arg, requestId }) => {
             return {
@@ -55,7 +55,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
                 requestId
             };
         }
-    });
+});
 // export const uploadROI = createAsyncThunk('PostROI', async(accessToken:string, roiFile: File)=>{
 //     const config = {
 //         headers: {
