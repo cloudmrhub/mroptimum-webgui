@@ -484,7 +484,7 @@ export default function NiiVueport(props) {
 
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
-        let samples = {1:[],2:[],3:[]};
+        let samples = {1:[],2:[],3:[],4:[],5:[],6:[]};
         for (let i = 0; i < nv.drawBitmap.length; i++) {
             //val&7-1 converts to r,g,b index through bit operations
             if(samples[nv.drawBitmap[i]]===undefined){
@@ -532,6 +532,33 @@ export default function NiiVueport(props) {
                 opacity: 0.5,
                 marker: {
                     color: 'blue',
+                },
+            },
+            {
+                x: samples[4],
+                type: "histogram",
+                name: '4',
+                opacity: 0.5,
+                marker: {
+                    color: 'yellow',
+                },
+            },
+            {
+                x: samples[5],
+                type: "histogram",
+                name: '5',
+                opacity: 0.5,
+                marker: {
+                    color: 'cyan',
+                },
+            },
+            {
+                x: samples[6],
+                type: "histogram",
+                name: '6',
+                opacity: 0.5,
+                marker: {
+                    color: '#e81ce8',
                 },
             }];
 
@@ -704,7 +731,8 @@ export default function NiiVueport(props) {
             resampleImage();
         },
         brushSize,
-        updateBrushSize:nvUpdateBrushSize
+        updateBrushSize:nvUpdateBrushSize,
+        resampleImage:resampleImage
     };
     return (
         <Box sx={{

@@ -30,6 +30,7 @@ export interface DrawToolkitProps{
     style: CSSProperties;
     brushSize:number;
     updateBrushSize:(size:number)=>void;
+    resampleImage:()=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
@@ -41,7 +42,6 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         let expand = !expandDrawOptions;
         if(expand){
             setExpandEraseOptions(false);
-            props.updateDrawPen({target:{value:1}});
         }
         props.setDrawingEnabled(expand||expandEraseOptions);
         setExpandDrawOptions(expand);
@@ -137,6 +137,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <IconButton aria-label="delete" onClick={()=>{
                 props.nv.closeDrawing();
+                props.resampleImage();
             }}>
                 <DeleteIcon  style={{color:'white'}}/>
             </IconButton>

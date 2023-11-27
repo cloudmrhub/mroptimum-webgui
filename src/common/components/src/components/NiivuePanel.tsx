@@ -56,12 +56,12 @@ export function NiivuePanel (props:NiivuePanelProps) {
     }, [histogram]);
 
     const [pause, pauseUpdate] = React.useState(false);
-    controllerX.min(mins[0]).max(maxs[0]);
-    controllerY.min(mins[1]).max(maxs[1]);
-    controllerZ.min(mins[2]).max(maxs[2]);
-    controllerX.setValue(mms[0]);
-    controllerY.setValue(mms[1]);
-    controllerZ.setValue(mms[2]);
+    controllerX.min(mins[0]).max(maxs[0]).step(0.01);
+    controllerY.min(mins[1]).max(maxs[1]).step(0.01);
+    controllerZ.min(mins[2]).max(maxs[2]).step(0.01);
+    controllerX.setValue(Number(mms[0]).toFixed(3));
+    controllerY.setValue(Number(mms[1]).toFixed(3));
+    controllerZ.setValue(Number(mms[2]).toFixed(3));
     controllerX.onChange((val:number)=>{
         console.log(val);
         console.log(props.nv.drawPenLocation);
