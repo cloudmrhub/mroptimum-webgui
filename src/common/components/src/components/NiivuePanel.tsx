@@ -144,7 +144,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                 display:(props.displayVertical)?'none':'flex',
                 height:height+1, marginLeft:1, flexDirection:'column'}}>
                 <DrawToolkit {...props.drawToolkitProps}
-                     style={{height:'10%'}} />
+                     style={{height:'30pt'}} />
                 <Box
                     ref={histogram}
                     id={'histoplot'}

@@ -84,6 +84,8 @@ export default function NiiVueport(props) {
 
     const [showCrosshair, setShowCrosshair] = React.useState(true);
 
+    const [brushSize,setBrushSize] = useState(1);
+
 
     React.useEffect(() => {
         if(props.displayVertical)
@@ -253,10 +255,14 @@ export default function NiiVueport(props) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
         nv.setPenValue(penValue & 7, penValue > 7)
-        nv.opts.penBounds = 2;
         if (penValue == 12) {
             nv.setPenValue(-0)
         }
+    }
+
+    function nvUpdateBrushSize(size){
+        setBrushSize(size);
+        nv.opts.penBounds = (size-1)/2;
     }
 
     function nvUpdateDrawOpacity(a) {
@@ -486,7 +492,7 @@ export default function NiiVueport(props) {
             }
             samples[nv.drawBitmap[i]].push(image.img[i]);
         }
-        const colors = ['#bbb','#f00','#0f0','#00f']
+        const colors = ['#bbb','#f00','#0f0','#00f','yellow','cyan','#e81ce8']
         for(let key in samples){
             let sample = samples[key];
             if(sample.length>0&&key!=='0'){
@@ -696,7 +702,9 @@ export default function NiiVueport(props) {
         drawUndo:()=>{//To be moved and organized
             nv.drawUndo();
             resampleImage();
-        }
+        },
+        brushSize,
+        updateBrushSize:nvUpdateBrushSize
     };
     return (
         <Box sx={{
@@ -1004,9 +1012,9 @@ export default function NiiVueport(props) {
                                   props.rois[selectedROI].filename : undefined)}
             />
             {verticalLayout &&
-                <Box style={{paddingLeft:'245px', width:'100%', marginBottom:'5pt'}}>
+                <Box style={{paddingLeft:'253px', width:'100%', marginBottom:'5pt'}}>
                     <DrawToolkit {...drawToolkitProps}
-                                 style={{height:'10%'}} />
+                                 style={{height:'30pt'}} />
                 </Box>}
             {props.volumes[selectedVolume]!=undefined && <NiivuePanel
                 nv={nv}

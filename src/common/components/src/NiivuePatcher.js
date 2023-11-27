@@ -310,7 +310,6 @@ Niivue.prototype.drawSceneCore = function () {
  */
 Niivue.prototype.drawPt=function (x, y, z, penValue) {
     const penBounds = this.opts.penBounds?this.opts.penBounds:0;
-    console.log(penBounds);
     const dx = this.back.dims[1]
     const dy = this.back.dims[2]
     const dz = this.back.dims[3]

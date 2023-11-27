@@ -9,6 +9,9 @@ import {ROI} from "../../../../features/rois/resultSlice";
 import SvgIcon from "@mui/material/SvgIcon";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import FiberManualRecordOutlinedIcon from "@mui/icons-material/FiberManualRecordOutlined";
+import DrawPlatte from './DrawPlatte'; // Adjust the path as per your folder structure
+import DeleteIcon from '@mui/icons-material/Delete';
+
 
 export interface DrawToolkitProps{
     nv: any;
@@ -25,18 +28,20 @@ export interface DrawToolkitProps{
     changesMade: boolean;
     drawUndo: ()=>void;
     style: CSSProperties;
+    brushSize:number;
+    updateBrushSize:(size:number)=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
     const [expandDrawOptions, setExpandDrawOptions] = React.useState(false);
     const [expandEraseOptions, setExpandEraseOptions] = React.useState(false);
-    const penColor = ['red','green','blue'][(props.drawPen&7)-1];
+    const penColor = ['red','green','blue','yellow','cyan','#e81ce8'][(props.drawPen&7)-1];
     const filled = props.drawPen>7;
     function clickPaintBrush(){
         let expand = !expandDrawOptions;
         if(expand){
             setExpandEraseOptions(false);
-            props.updateDrawPen({target:{value:5}});
+            props.updateDrawPen({target:{value:1}});
         }
         props.setDrawingEnabled(expand||expandEraseOptions);
         setExpandDrawOptions(expand);
@@ -50,7 +55,6 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         props.setDrawingEnabled(expand||expandDrawOptions);
         setExpandEraseOptions(expand);
     }
-
 
     let options = [
         <FiberManualRecordOutlinedIcon sx={{color:'red'}}/>,
@@ -71,8 +75,9 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             flexDirection: 'row',
             justifyItems: 'center',
             alignItems: 'center',
+            borderRadius:'6px',
             // justifyContent:'center',
-            backgroundColor: 'white',
+            backgroundColor: '#333',
         }} style={props.style}>
         {/*<FormControl>*/}
         {/*    <Button className={'ms-2'} variant='contained' disabled={!props.changesMade} onClick={props.saveROI}>*/}
@@ -84,18 +89,15 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
                     {(filled&&expandDrawOptions)?
                         <ImagesearchRollerIcon style={{color:penColor}}/>
-                        :<BrushIcon style={{color:(props.drawingEnabled)?penColor:undefined}}/>}
+                        :<BrushIcon style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>}
                 </IconButton>
-                <Stack style={{border:`${(expandDrawOptions)?'1px':0} solid #ccc`,
-                    maxWidth:(expandDrawOptions)?300:0,transition:'all 0.5s', overflow:'hidden', borderRadius:'16px'}} direction="row">
-                    {options.map((value,index)=><IconButton
-                        onClick={()=>{
-                            props.updateDrawPen({target:{value:index+((index>=3)?6:1)}});
-                            props.setDrawingEnabled(true);
-                        }}>
-                        {value}
-                    </IconButton>)}
-                </Stack>
+                <DrawPlatte
+                    expandDrawOptions={expandDrawOptions}
+                    updateDrawPen={props.updateDrawPen}
+                    setDrawingEnabled={props.setDrawingEnabled}
+                    brushSize={props.brushSize}
+                    updateBrushSize={props.updateBrushSize}
+                />
             </Stack>
         </FormControl>
 
@@ -103,8 +105,8 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             <Stack direction="row" >
                 <IconButton aria-label="erase" onClick={clickEraser}>
                     {(filled||!expandEraseOptions)?
-                        <EraserIcon/>
-                        :<AutoFixNormalOutlinedIcon/>}
+                        <EraserIcon style={{color:'#ddd'}}/>
+                        :<AutoFixNormalOutlinedIcon style={{color:'white'}}/>}
                 </IconButton>
                 <Stack style={{border:`${(expandEraseOptions)?'1px':0} solid #ccc`,
                     maxWidth:(expandEraseOptions)?300:0,transition:'all 0.5s', overflow:'hidden', borderRadius:'16px'}} direction="row">
@@ -121,7 +123,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="revert" onClick={()=>{props.drawUndo()}}>
-                    <ReplyIcon/>
+                    <ReplyIcon style={{color:'white'}}/>
                 </IconButton>
             </Stack>
         </FormControl>
@@ -129,7 +131,14 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             <IconButton aria-label="capture" onClick={()=>{
                 props.nv.saveScene(`${props.volumes[props.selectedVolume].name}_drawing.jpg`);
             }}>
-                <CameraAltIcon/>
+                <CameraAltIcon  style={{color:'white'}}/>
+            </IconButton>
+        </FormControl>
+        <FormControl>
+            <IconButton aria-label="delete" onClick={()=>{
+                props.nv.closeDrawing();
+            }}>
+                <DeleteIcon  style={{color:'white'}}/>
             </IconButton>
         </FormControl>
     </Box>;
