@@ -12,6 +12,7 @@ import {useAppSelector} from "../../features/hooks";
 import {nv} from "../../common/components/src/Niivue";
 import {GridRowSelectionModel} from "@mui/x-data-grid";
 import axios from "axios";
+import Box from "@mui/material/Box";
 
 export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=>void, style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
@@ -85,17 +86,29 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
             }
         },
     ];
-    return <div style={props.style}>
-        <CmrTable hideFooter={true} style={{height:'84%'}} dataSource={props.rois} columns={roiColumns}
+    return <Box style={props.style}>
+        <CmrTable hideFooter={true} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);
         }}/>
         <div className="row mt-2">
-            <div className="col-3">
+            <div className="col-6">
                 <Button color={'warning'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                    props.nv.groupLabelsInto(selectedData.map(value => Number(value)));
+                    props.nv.drawScene();
+                    props.resampleImage();
                 }}>Group</Button>
             </div>
-            <div className="col-3">
+            <div className="col-6">
+                <Button color={'info'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                    props.nv.ungroup();
+                    props.nv.drawScene();
+                    props.resampleImage();
+                }}>Ungroup</Button>
+            </div>
+        </div>
+        <div className="row mt-2">
+            <div className="col-4">
                 <Button color={'success'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={async ()=>{
                     let fileName = 'label';
                     let selectedLabels = []
@@ -107,46 +120,42 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
                     await props.nv.saveImageByLabels(fileName, selectedLabels);
                 }}>Download</Button>
             </div>
-            <div className="col-3">
+            <div className="col-4">
                 <Button color={'error'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
                     props.nv.deleteDrawingByLabel(selectedData.map(value => Number(value)))
                     props.resampleImage();
-                    props.nv.refreshDrawing(false);
                     props.nv.drawScene();
                 }}>Delete</Button>
             </div>
-            <div className="col-3">
+            <div className="col-4">
                 <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
                 }}
-                        upload={async (file)=>{
-                            const config = {
-                                headers: {
-                                    Authorization: `Bearer ${accessToken}`,
-                                },
-                            };
-                            console.log(props);
-                            const response = await axios.post(ROI_UPLOAD, {
-                                "filename": file.name,
-                                "pipeline_id": props.pipelineID,
-                                "type": "image",
-                                "contentType": "application/octet-stream"
-                            }, config);
-                            console.log(response.data);
-                            // Monkey patch object URL creation
-                            // Store the original URL.createObjectURL method
-                            const originalCreateObjectURL = URL.createObjectURL;
-                            // Redefine the method
-                            axios.put(response.data.upload_url, file, {
-                                headers: {
-                                    'Content-Type': "application/octet-stream"
-                                }
-                            }).then((payload) => {
-                                props.nv.loadDrawingFromUrl(response.data.access_url);
-                            });
-                            return 200;
-                        }}
+                           upload={async (file)=>{
+                               const config = {
+                                   headers: {
+                                       Authorization: `Bearer ${accessToken}`,
+                                   },
+                               };
+                               console.log(props);
+                               const response = await axios.post(ROI_UPLOAD, {
+                                   "filename": file.name,
+                                   "pipeline_id": props.pipelineID,
+                                   "type": "image",
+                                   "contentType": "application/octet-stream"
+                               }, config);
+                               console.log(response);
+                               axios.put(response.data.upload_url, file, {
+                                   headers: {
+                                       'Content-Type': "application/octet-stream"
+                                   }
+                               }).then(async (payload) => {
+                                   await props.nv.loadDrawingFromUrl(response.data.access_url);
+                                   props.resampleImage();
+                               });
+                               return 200;
+                           }}
                            createPayload={createPayload} maxCount={1}></CMRUpload>
             </div>
         </div>
-    </div>;
+    </Box>;
 }

@@ -411,6 +411,34 @@ Niivue.prototype.deleteDrawingByLabel=function(labels=[0]){
     for (let i = 0; i< this.drawBitmap.length; i++){
         this.drawBitmap[i] = (labels.indexOf(this.drawBitmap[i])<0)?this.drawBitmap[i]:0;
     }
+    this.refreshDrawing(false);
+}
+
+/*
+    For each spatial point, bitmap overlay tracks
+    the layers of bitmaps during the grouping operation.
+    For now, a single label for each voxel suffices, in future
+    entries will be replaced with bit strings of the combination
+    of labels
+ */
+const bitmapOverlay = [];
+
+Niivue.prototype.groupLabelsInto=function(sourceLabels=[0],targetLabel = 7){
+    for (let i = 0; i< this.drawBitmap.length; i++){
+        if(sourceLabels.indexOf(this.drawBitmap[i])>=0){
+            bitmapOverlay.push([i,this.drawBitmap[i]]);
+            this.drawBitmap[i] = targetLabel;
+        }
+    }
+    this.refreshDrawing(false);
+}
+
+Niivue.prototype.ungroup = function(){
+    for(let tuple of bitmapOverlay){
+        this.drawBitmap[tuple[0]] = tuple[1];
+    }
+    bitmapOverlay.length = 0;
+    this.refreshDrawing(false);
 }
 
 /**

@@ -484,7 +484,7 @@ export default function NiiVueport(props) {
 
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
-        let samples = {1:[],2:[],3:[],4:[],5:[],6:[]};
+        let samples = {1:[],2:[],3:[],4:[],5:[],6:[],7:[]};
         for (let i = 0; i < nv.drawBitmap.length; i++) {
             //val&7-1 converts to r,g,b index through bit operations
             if(samples[nv.drawBitmap[i]]===undefined){
@@ -492,7 +492,7 @@ export default function NiiVueport(props) {
             }
             samples[nv.drawBitmap[i]].push(image.img[i]);
         }
-        const colors = ['#bbb','#f00','#0f0','#00f','yellow','cyan','#e81ce8']
+        const colors = ['#bbb','#f00','#0f0','#00f','yellow','cyan','#e81ce8','#e8dbc7']
         for(let key in samples){
             let sample = samples[key];
             if(sample.length>0&&key!=='0'){
@@ -559,6 +559,15 @@ export default function NiiVueport(props) {
                 opacity: 0.5,
                 marker: {
                     color: '#e81ce8',
+                },
+            },
+            {
+                x: samples[7],
+                type: "histogram",
+                name: '7',
+                opacity: 0.5,
+                marker: {
+                    color: '#e8dbc7',
                 },
             }];
 
