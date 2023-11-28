@@ -160,8 +160,10 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     rois={props.rois}
                     style={{
                         width:'100%',
-                        height:'45%'
+                        height:'50%'
                     }}
+                    nv={props.nv}
+                    resampleImage={props.resampleImage}
                 />
             </Box>
         </Box>

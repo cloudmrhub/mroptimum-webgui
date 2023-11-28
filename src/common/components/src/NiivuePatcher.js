@@ -329,4 +329,171 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
     }
 }
 
+/**
+ * save voxel-based image to disk
+ * @param {string} fnm filename of NIfTI image to create
+ * @param {boolean} [false] isSaveDrawing determines whether drawing or background image is saved
+ * @param {number} [0] volumeByIndex determines layer to save (0 for background)
+ * @param {number} [0] volumeByIndex determines layer to save (0 for background)
+ * @example niivue.saveImage('test.nii', true);
+ * @see {@link https://niivue.github.io/niivue/features/draw.ui.html|live demo usage}
+ */
+Niivue.prototype.saveImageByLabels = async function(fnm, labels=[1]) {
+    if (this.back.dims === undefined) {
+        console.debug('No voxelwise image open')
+        return false
+    }
+    if (!this.drawBitmap) {
+        console.debug('No drawing open')
+        return false
+    }
+    const perm = this.volumes[0].permRAS
+    if (perm[0] === 1 && perm[1] === 2 && perm[2] === 3) {
+        await this.volumes[0].saveToDisk(fnm, this.drawBitmap) // createEmptyDrawing
+        return true
+    } else {
+        const dims = this.volumes[0].hdr.dims // reverse to original
+        // reverse RAS to native space, layout is mrtrix MIF format
+        // for details see NVImage.readMIF()
+        const layout = [0, 0, 0]
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (Math.abs(perm[i]) - 1 !== j) continue
+                layout[j] = i * Math.sign(perm[i])
+            }
+        }
+        let stride = 1
+        const instride = [1, 1, 1]
+        const inflip = [false, false, false]
+        for (let i = 0; i < layout.length; i++) {
+            for (let j = 0; j < layout.length; j++) {
+                const a = Math.abs(layout[j])
+                if (a !== i) continue
+                instride[j] = stride
+                // detect -0: https://medium.com/coding-at-dawn/is-negative-zero-0-a-number-in-javascript-c62739f80114
+                if (layout[j] < 0 || Object.is(layout[j], -0)) inflip[j] = true
+                stride *= dims[j + 1]
+            }
+        }
+        // lookup table for flips and stride offsets:
+        const range = (start, stop, step) =>
+            Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
+        let xlut = range(0, dims[1] - 1, 1)
+        if (inflip[0]) xlut = range(dims[1] - 1, 0, -1)
+        for (let i = 0; i < dims[1]; i++) xlut[i] *= instride[0]
+        let ylut = range(0, dims[2] - 1, 1)
+        if (inflip[1]) ylut = range(dims[2] - 1, 0, -1)
+        for (let i = 0; i < dims[2]; i++) ylut[i] *= instride[1]
+        let zlut = range(0, dims[3] - 1, 1)
+        if (inflip[2]) zlut = range(dims[3] - 1, 0, -1)
+        for (let i = 0; i < dims[3]; i++) zlut[i] *= instride[2]
+        // convert data
+
+        const inVs = new Uint8Array(this.drawBitmap)
+        const outVs = new Uint8Array(dims[1] * dims[2] * dims[3])
+        let j = 0
+        for (let z = 0; z < dims[3]; z++) {
+            for (let y = 0; y < dims[2]; y++) {
+                for (let x = 0; x < dims[1]; x++) {
+                    let bit = inVs[xlut[x] + ylut[y] + zlut[z]]
+                    //Only fill matched bits
+                    outVs[j] = (labels.indexOf(bit)>=0)?bit:0
+                    j++
+                }
+            }
+        }
+        await this.volumes[0].saveToDisk(fnm, outVs)
+        return true
+    }
+}
+
+Niivue.prototype.deleteDrawingByLabel=function(labels=[0]){
+    for (let i = 0; i< this.drawBitmap.length; i++){
+        this.drawBitmap[i] = (labels.indexOf(this.drawBitmap[i])<0)?this.drawBitmap[i]:0;
+    }
+}
+
+/**
+ * save voxel-based image to disk
+ * @param {string} fnm filename of NIfTI image to create
+ * @param {boolean} [false] isSaveDrawing determines whether drawing or background image is saved
+ * @param {number} [0] volumeByIndex determines layer to save (0 for background)
+ * @param {number} [0] volumeByIndex determines layer to save (0 for background)
+ * @example niivue.saveImage('test.nii', true);
+ * @see {@link https://niivue.github.io/niivue/features/draw.ui.html|live demo usage}
+ */
+Niivue.prototype.saveImage = async function (fnm, isSaveDrawing = false, volumeByIndex = 0) {
+    if (this.back.dims === undefined) {
+        // log.debug('No voxelwise image open')
+        return false
+    }
+    if (isSaveDrawing) {
+        if (!this.drawBitmap) {
+            // log.debug('No drawing open')
+            return false
+        }
+        const perm = this.volumes[0].permRAS
+        console.log(perm);
+        if (perm[0] === 1 && perm[1] === 2 && perm[2] === 3) {
+            await this.volumes[0].saveToDisk(fnm, this.drawBitmap) // createEmptyDrawing
+            return true
+        } else {
+            const dims = this.volumes[0].hdr.dims // reverse to original
+            // reverse RAS to native space, layout is mrtrix MIF format
+            // for details see NVImage.readMIF()
+            const layout = [0, 0, 0]
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (Math.abs(perm[i]) - 1 !== j) continue
+                    layout[j] = i * Math.sign(perm[i])
+                }
+            }
+            let stride = 1
+            const instride = [1, 1, 1]
+            const inflip = [false, false, false]
+            for (let i = 0; i < layout.length; i++) {
+                for (let j = 0; j < layout.length; j++) {
+                    const a = Math.abs(layout[j])
+                    if (a !== i) continue
+                    instride[j] = stride
+                    // detect -0: https://medium.com/coding-at-dawn/is-negative-zero-0-a-number-in-javascript-c62739f80114
+                    if (layout[j] < 0 || Object.is(layout[j], -0)) inflip[j] = true
+                    stride *= dims[j + 1]
+                }
+            }
+            // lookup table for flips and stride offsets:
+            const range = (start, stop, step) =>
+                Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step)
+            let xlut = range(0, dims[1] - 1, 1)
+            if (inflip[0]) xlut = range(dims[1] - 1, 0, -1)
+            for (let i = 0; i < dims[1]; i++) xlut[i] *= instride[0]
+            let ylut = range(0, dims[2] - 1, 1)
+            if (inflip[1]) ylut = range(dims[2] - 1, 0, -1)
+            for (let i = 0; i < dims[2]; i++) ylut[i] *= instride[1]
+            let zlut = range(0, dims[3] - 1, 1)
+            if (inflip[2]) zlut = range(dims[3] - 1, 0, -1)
+            for (let i = 0; i < dims[3]; i++) zlut[i] *= instride[2]
+            // convert data
+
+            const inVs = new Uint8Array(this.drawBitmap)
+            const outVs = new Uint8Array(dims[1] * dims[2] * dims[3])
+            let j = 0
+            for (let z = 0; z < dims[3]; z++) {
+                for (let y = 0; y < dims[2]; y++) {
+                    for (let x = 0; x < dims[1]; x++) {
+                        outVs[j] = inVs[xlut[x] + ylut[y] + zlut[z]]
+                        j++
+                    }
+                }
+            }
+            await this.volumes[0].saveToDisk(fnm, outVs)
+            return true
+        }
+    }
+    const img = await this.volumes[volumeByIndex].saveToDisk(fnm)
+    const isString = (typeof fnm === 'string' || fnm instanceof String) && fnm.length > 0
+    if (isString) return true
+    return img
+}
+
 export {Niivue};

@@ -41,6 +41,8 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     fileExtension?: string;
     uploadStarted?:()=>void;
     uploadEnded?:()=>void;
+    //Override this to replace the default behavior of uploading
+    upload?:(file:File,fileAlias:string,fileDatabase:string)=>Promise<number>;
 }
 
 
@@ -53,7 +55,8 @@ const CmrUpload = (props: CMRUploadProps) => {
      */
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
-    let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);const upload= async (file: File, fileAlias:string, fileDatabase: string)=>{
+    let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
+    const {upload= async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
         if(props.uploadStarted)
             props.uploadStarted();
@@ -100,7 +103,7 @@ const CmrUpload = (props: CMRUploadProps) => {
             setUploading(false);
         }
         return status;
-    }
+    }} = props;
 
     return (
         <React.Fragment>

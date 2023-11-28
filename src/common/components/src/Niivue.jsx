@@ -255,8 +255,8 @@ export default function NiiVueport(props) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
         nv.setPenValue(penValue & 7, penValue > 7)
-        if (penValue == 12) {
-            nv.setPenValue(-0)
+        if (penValue == 8) {
+            nv.setPenValue(0,true)
         }
     }
 
@@ -470,7 +470,7 @@ export default function NiiVueport(props) {
                 showgrid: true
                 // other y-axis properties
             },
-
+            responsive:true
         }; // Set the height of the plot here};
         // Bitmap depicts the drawn content
         if(nv.drawBitmap==null){
@@ -1087,6 +1087,8 @@ export default function NiiVueport(props) {
                         width:'100%',
                         height:'50%'
                     }}
+                    nv={nv}
+                    resampleImage={resampleImage}
                 />
             </Box>
         </Box>
