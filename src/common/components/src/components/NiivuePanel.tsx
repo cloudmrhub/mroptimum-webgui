@@ -114,8 +114,8 @@ export function NiivuePanel (props:NiivuePanelProps) {
     // },[mins,maxs,props.locationData])
 
 	return (
-		<Box style={{width:'100%',height:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
-            <Box sx={{width:'1fr',marginRight:'8px'}} style={{display:'flex',flexDirection:'column'}}>
+		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
+            <Box sx={{width:'253px',marginRight:'8px'}} style={{display:'flex',flexDirection:'column'}}>
                 <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
                 <Box style={{height:'70%', marginTop:20}}>
                     {props.layerList}

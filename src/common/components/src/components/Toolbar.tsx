@@ -16,6 +16,8 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import {ROI} from "../../../../features/rois/resultSlice";
 import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
 import {createTheme} from "@mui/material/styles";
+import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
+import {getPipelineROI} from "../../../../features/rois/resultActionCreation";
 // import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
@@ -39,11 +41,14 @@ interface ToolbarProps {
     setDragMode:(dragMode:string|boolean)=>void;
     radiological:boolean;
     toggleRadiological:()=>void;
+    saveROI:(callback: ()=>void)=>void;
+    complexMode: string;
+    setComplexMode:(complexMode:string)=>void;
 }
 
 export default function Toolbar(props:ToolbarProps) {
     const [sliceType, setSliceType] = React.useState('multi')
-
+    let dispatch = useAppDispatch();
     function handleSliceTypeChange(e: { target: { value: any } }) {
         let newSliceType = e.target.value
         let nvUpdateSliceType = props.nvUpdateSliceType
@@ -52,7 +57,8 @@ export default function Toolbar(props:ToolbarProps) {
     }
 
     let dragModes = ["Pan","Measurement","Contrast",'None'];
-
+    let accessToken = useAppSelector(state => state.authenticate.accessToken);
+    let pipeline = useAppSelector(state => state.result.activeJob.pipeline_id);
     return (
         <Box  sx={{display:'flex', flexDirection:'column',width:'100%'}}>
             {props.volumes[props.selectedVolume]!=undefined&&<Fragment>
@@ -139,7 +145,6 @@ export default function Toolbar(props:ToolbarProps) {
                             )}
                         </Select>
                     </FormControl>
-
                     <FormControl
                         size='small'
                         sx={{
@@ -159,6 +164,31 @@ export default function Toolbar(props:ToolbarProps) {
                             })}
                         </Select>
                     </FormControl>
+                    <Button variant={'contained'} onClick={()=>{
+                        props.saveROI(()=>{
+                            dispatch(getPipelineROI({accessToken,pipeline}));
+                        });
+                    }}>
+                        Save Drawing Layer
+                    </Button>
+                    <IconButton
+                        onClick={props.toggleSettings}
+                        style={{marginLeft:'auto'}}
+                    >
+                        <SettingsIcon/>
+                    </IconButton>
+                </Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        width: '100%',
+                        flexDirection: 'row',
+                        justifyItems: 'left',
+                        alignItems: 'center',
+                        backgroundColor: 'white',
+                        flexWrap: 'wrap',
+                    }}
+                >
                     <Box
                         sx={{
                             display:'flex',
@@ -235,13 +265,27 @@ export default function Toolbar(props:ToolbarProps) {
                             onChange={props.toggleColorBar}
                         />
                     </Box>
-                    <IconButton
-                        onClick={props.toggleSettings}
-                    >
-                        <SettingsIcon/>
-                    </IconButton>
+                    <FormControl
+                        size='small'
+                        sx={{
+                            m: 2,
+                            minWidth: 120
+                        }}>
+                        <InputLabel id="slice-type-label">Complex Mode</InputLabel>
+                        <Select
+                            labelId="slice-type-label"
+                            id="slice-type"
+                            value={props.complexMode}
+                            label="Opened ROIs"
+                            onChange={(e)=>props.setComplexMode(e.target.value)}
+                        >
+                            <MenuItem value={'real'}>Real</MenuItem>
+                            <MenuItem value={'imaginary'}>Imaginary</MenuItem>
+                            <MenuItem value={'absolute'}>Absolute</MenuItem>
+                            <MenuItem value={'phase'}>Phase</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Box>
-
             </Fragment>}
         </Box>
     );

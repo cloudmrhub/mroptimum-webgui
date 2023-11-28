@@ -30,6 +30,7 @@ export const nv = new Niivue({
     // crosshairColor: [0.098,0.453,0.824]
     crosshairColor: [1,1,0],
     fontColor:[0.00,0.94,0.37, 1],
+    isNearestInterpolation: true,
 });
 
 window.nv = nv;
@@ -85,6 +86,7 @@ export default function NiiVueport(props) {
     const [showCrosshair, setShowCrosshair] = React.useState(true);
 
     const [brushSize,setBrushSize] = useState(1);
+    const [complexMode, setComplexMode] = useState('real');
 
 
     React.useEffect(() => {
@@ -135,6 +137,57 @@ export default function NiiVueport(props) {
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
         setMMs(nv.frac2mm([0.5,0.5,0.5]));
+        nv.volumes.forEach(volume=>{
+           verifyComplex(volume);
+        });
+    }
+
+    function verifyComplex(volume){
+        // Copying the contents of volume.img to volume.real
+        volume.real = new Float32Array(volume.img);
+
+        // Ensure volume.imaginary is defined and has the same length as volume.img
+        if (!volume.imaginary || volume.imaginary.length !== volume.img.length) {
+            return false;
+        }
+
+        // Initialize absolute and phase arrays
+        volume.absolute = new Float32Array(volume.img.length);
+        volume.phase = new Float32Array(volume.img.length);
+
+        // Calculate absolute and phase values
+        for (let i = 0; i < volume.img.length; i++) {
+            const realPart = volume.real[i];
+            const imaginaryPart = volume.imaginary[i];
+            // Calculate the absolute value (magnitude)
+            volume.absolute[i] = Math.sqrt(realPart * realPart + imaginaryPart * imaginaryPart);
+
+            // Calculate the phase (argument)
+            volume.phase[i] = Math.atan2(imaginaryPart, realPart);
+        }
+        return true;
+    }
+
+    function nvSetDisplayedVoxels(voxelType){
+        setComplexMode(voxelType);
+        let volume = nv.volumes[0];
+        switch (voxelType){
+            case 'phase':
+                volume.img = volume.phase;
+                break;
+            case 'absolute':
+                volume.img = volume.absolute;
+                break;
+            case 'real':
+                volume.img = volume.real;
+                break;
+            case 'imaginary':
+                volume.img = volume.imaginary;
+                break;
+        }
+        volume.calMinMax();
+        nv.setVolume(volume);
+        nv.drawScene();
     }
 
     nv.onLocationChange = (data) => {
@@ -152,7 +205,6 @@ export default function NiiVueport(props) {
             resampleImage();
         }
     }
-
 
     // nv.createEmptyDrawing();
 
@@ -655,23 +707,7 @@ export default function NiiVueport(props) {
             setSelectedROI(roiIndex);
             setDrawingChanged(false);
         };
-        // In case that changes has been made
-        if (drawingChanged) {
-            setWarningConfirmationCallback(()=>(()=>{
-                saveROI(() => {
-                    nv.closeDrawing();
-                    nv.drawScene();
-                    load();
-                });
-            }));
-            setWarningCancelCallback(()=>(()=>{
-                nv.closeDrawing();
-                nv.drawScene();
-                load();
-            }));
-            setConfirmationOpen(true);
-        } else
-            load();
+        load();
     }
     const saveROI = (afterSaveCallback) => {
         setSaveDialogOpen(true);
@@ -1031,6 +1067,9 @@ export default function NiiVueport(props) {
                 setDragMode={nvSetDragMode}
                 toggleRadiological={nvUpdateRadiological}
                 radiological={radiological}
+                saveROI = {saveROI}
+                complexMode={complexMode}
+                setComplexMode={nvSetDisplayedVoxels}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}

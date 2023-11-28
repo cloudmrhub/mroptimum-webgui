@@ -23,7 +23,6 @@ export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pi
             pipeline_id: pipeline,
         }
     };
-    console.log("executing get");
     const response = await axios.get(ROI_GET, config);
     console.log(response);
     return {rois:response.data, pipeline_id:pipeline};

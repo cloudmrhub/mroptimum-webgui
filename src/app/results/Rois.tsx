@@ -68,7 +68,7 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
         {
             headerName: 'Mean',
             field: 'mu',
-            flex: 1.5,
+            flex: 1,
             renderCell: (params:{row:any})=>{
                 return <div>
                     {`${params.row.mu.toFixed(3)}`}
@@ -78,7 +78,17 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
         {
             headerName: 'SD',
             field: 'std',
-            flex: 1.5,
+            flex: 1,
+            renderCell: (params:{row:any})=>{
+                return <div>
+                    {`${params.row.std.toFixed(3)}`}
+                </div>
+            }
+        },
+        {
+            headerName: 'Visibility',
+            field: 'visiblility',
+            flex: 1,
             renderCell: (params:{row:any})=>{
                 return <div>
                     {`${params.row.std.toFixed(3)}`}
