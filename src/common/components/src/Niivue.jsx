@@ -87,6 +87,7 @@ export default function NiiVueport(props) {
 
     const [brushSize,setBrushSize] = useState(1);
     const [complexMode, setComplexMode] = useState('real');
+    const [complexOptions, setComplexOptions] = useState(['real']);
 
 
     React.useEffect(() => {
@@ -137,9 +138,7 @@ export default function NiiVueport(props) {
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
         setMMs(nv.frac2mm([0.5,0.5,0.5]));
-        nv.volumes.forEach(volume=>{
-           verifyComplex(volume);
-        });
+        verifyComplex(nv.volumes[0]);
     }
 
     function verifyComplex(volume){
@@ -148,6 +147,8 @@ export default function NiiVueport(props) {
 
         // Ensure volume.imaginary is defined and has the same length as volume.img
         if (!volume.imaginary || volume.imaginary.length !== volume.img.length) {
+            setComplexMode('real');
+            setComplexOptions(['real']);
             return false;
         }
 
@@ -165,6 +166,7 @@ export default function NiiVueport(props) {
             // Calculate the phase (argument)
             volume.phase[i] = Math.atan2(imaginaryPart, realPart);
         }
+        setComplexOptions(['real','imaginary','absolute','phase']);
         return true;
     }
 
@@ -1070,6 +1072,7 @@ export default function NiiVueport(props) {
                 saveROI = {saveROI}
                 complexMode={complexMode}
                 setComplexMode={nvSetDisplayedVoxels}
+                complexOptions={complexOptions}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}

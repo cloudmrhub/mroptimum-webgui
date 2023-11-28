@@ -44,6 +44,7 @@ interface ToolbarProps {
     saveROI:(callback: ()=>void)=>void;
     complexMode: string;
     setComplexMode:(complexMode:string)=>void;
+    complexOptions:string[];
 }
 
 export default function Toolbar(props:ToolbarProps) {
@@ -279,10 +280,9 @@ export default function Toolbar(props:ToolbarProps) {
                             label="Opened ROIs"
                             onChange={(e)=>props.setComplexMode(e.target.value)}
                         >
-                            <MenuItem value={'real'}>Real</MenuItem>
-                            <MenuItem value={'imaginary'}>Imaginary</MenuItem>
-                            <MenuItem value={'absolute'}>Absolute</MenuItem>
-                            <MenuItem value={'phase'}>Phase</MenuItem>
+                            {props.complexOptions.map(value=>{
+                                return <MenuItem value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</MenuItem>
+                            })}
                         </Select>
                     </FormControl>
                 </Box>
