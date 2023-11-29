@@ -140,30 +140,7 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
             <div className="col-4">
                 <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
                 }}
-                           upload={async (file)=>{
-                               const config = {
-                                   headers: {
-                                       Authorization: `Bearer ${accessToken}`,
-                                   },
-                               };
-                               console.log(props);
-                               const response = await axios.post(ROI_UPLOAD, {
-                                   "filename": file.name,
-                                   "pipeline_id": props.pipelineID,
-                                   "type": "image",
-                                   "contentType": "application/octet-stream"
-                               }, config);
-                               console.log(response);
-                               axios.put(response.data.upload_url, file, {
-                                   headers: {
-                                       'Content-Type': "application/octet-stream"
-                                   }
-                               }).then(async (payload) => {
-                                   await props.nv.loadDrawingFromUrl(response.data.access_url);
-                                   props.resampleImage();
-                               });
-                               return 200;
-                           }}
+                           upload={true}
                            createPayload={createPayload} maxCount={1}></CMRUpload>
             </div>
         </div>

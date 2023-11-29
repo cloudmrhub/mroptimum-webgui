@@ -56,7 +56,7 @@ const CmrUpload = (props: CMRUploadProps) => {
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
     let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
-    const {upload= async (file: File, fileAlias:string, fileDatabase: string)=>{
+    const upload = props.upload==undefined?async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
         if(props.uploadStarted)
             props.uploadStarted();
@@ -103,7 +103,7 @@ const CmrUpload = (props: CMRUploadProps) => {
             setUploading(false);
         }
         return status;
-    }} = props;
+    }:props.upload;
 
     return (
         <React.Fragment>
