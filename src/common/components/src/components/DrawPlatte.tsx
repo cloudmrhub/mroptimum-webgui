@@ -51,8 +51,8 @@ const DrawPlatte: React.FC<DrawPlatteProps> = ({ expandDrawOptions, updateDrawPe
 
                 <Typography color={'white'} noWrap gutterBottom width={'100%'} marginLeft={'10pt'}
                             fontSize={'11pt'} alignItems={'start'}>{`Brush Size: ${brushSize}`}</Typography>
-                <Slider
-                sx={{width:'80%'}} defaultValue={1} step={2} min={1} max={15} marks={true}
+                <Slider value={brushSize}
+                sx={{width:'80%'}} step={2} min={1} max={15} marks={true}
                     onChange={(event, value) => {
                         updateBrushSize(value as number);
                     }}/>

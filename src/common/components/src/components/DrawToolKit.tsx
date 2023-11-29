@@ -11,6 +11,7 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import FiberManualRecordOutlinedIcon from "@mui/icons-material/FiberManualRecordOutlined";
 import DrawPlatte from './DrawPlatte'; // Adjust the path as per your folder structure
 import DeleteIcon from '@mui/icons-material/Delete';
+import EraserPlatte from "./EraserPlatte";
 
 
 export interface DrawToolkitProps{
@@ -108,16 +109,13 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                         <EraserIcon style={{color:'#ddd'}}/>
                         :<AutoFixNormalOutlinedIcon style={{color:'white'}}/>}
                 </IconButton>
-                <Stack style={{border:`${(expandEraseOptions)?'1px':0} solid #ccc`,
-                    maxWidth:(expandEraseOptions)?300:0,transition:'all 0.5s', overflow:'hidden', borderRadius:'16px'}} direction="row">
-                    {eraseOptions.map((value,index)=><IconButton
-                        onClick={()=>{
-                            props.updateDrawPen({target:{value:(index==0)?8:0}});
-                            props.setDrawingEnabled(true);
-                        }}>
-                        {value}
-                    </IconButton>)}
-                </Stack>
+                <EraserPlatte
+                    expandEraseOptions={expandEraseOptions}
+                    updateDrawPen={props.updateDrawPen}
+                    setDrawingEnabled={props.setDrawingEnabled}
+                    brushSize={props.brushSize}
+                    updateBrushSize={props.updateBrushSize}
+                />
             </Stack>
         </FormControl>
         <FormControl>
