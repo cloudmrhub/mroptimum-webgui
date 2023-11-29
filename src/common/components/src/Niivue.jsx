@@ -1,22 +1,22 @@
-import React, {useEffect, useState} from 'react'
-import {Box, Button, Typography} from '@mui/material'
+import React, {useState} from 'react'
+import {Box, Button} from '@mui/material'
 import {NVImage} from '@niivue/niivue';
-import {Niivue} from './NiivuePatcher';
-import Toolbar from './components/Toolbar.tsx'
 import {SettingsPanel} from './components/SettingsPanel.jsx'
-import {ColorPicker} from './components/ColorPicker.jsx'
 import {NumberPicker} from './components/NumberPicker.jsx'
+import {ColorPicker} from './components/ColorPicker.jsx'
 import {LayersPanel} from './components/LayersPanel.jsx'
 import {NiivuePanel} from './components/NiivuePanel.tsx'
+import {Niivue} from './NiivuePatcher';
 import NVSwitch from './components/Switch.jsx'
+import Toolbar from './components/Toolbar.tsx'
 import Layer from './components/Layer.jsx'
 import './Niivue.css'
 import EditConfirmation from "../Cmr-components/dialogue/EditConfirmation";
 import axios from "axios";
 import {ROI_UPLOAD} from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
-import Plotly from "plotly.js-dist-min";
 import {DrawToolkit} from "./components/DrawToolKit";
+import Plotly from "plotly.js-dist-min";
 import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
 
@@ -89,6 +89,9 @@ export default function NiiVueport(props) {
     const [complexMode, setComplexMode] = useState('real');
     const [complexOptions, setComplexOptions] = useState(['real']);
 
+    const [min, setMin] = useState(0);
+    const [max, setMax] = useState(1);
+
 
     React.useEffect(() => {
         if(props.displayVertical)
@@ -139,6 +142,9 @@ export default function NiiVueport(props) {
         setBoundMaxs(nv.frac2mm([1,1,1]));
         setMMs(nv.frac2mm([0.5,0.5,0.5]));
         verifyComplex(nv.volumes[0]);
+        let volume = nv.volumes[0];
+        setMin(volume.cal_min);
+        setMax(volume.cal_max);
     }
 
     function verifyComplex(volume){
@@ -188,6 +194,8 @@ export default function NiiVueport(props) {
                 break;
         }
         volume.calMinMax();
+        setMin(volume.cal_min);
+        setMax(volume.cal_max);
         nv.setVolume(volume);
         nv.drawScene();
     }
@@ -206,6 +214,15 @@ export default function NiiVueport(props) {
             setDrawingChanged(true);
             resampleImage();
         }
+    }
+
+    /**
+     * Way to test all value changes
+     */
+    nv.onIntensityChange = ()=>{
+        let volume = nv.volumes[0];
+        setMin(volume.cal_min);
+        setMax(volume.cal_max);
     }
 
     // nv.createEmptyDrawing();
@@ -656,6 +673,9 @@ export default function NiiVueport(props) {
 
     function nvUpdateColorMap(id, clr) {
         nv.setColorMap(id, clr)
+        let volume = nv.volumes[0];
+        setMin(volume.cal_min);
+        setMax(volume.cal_max);
     }
 
     function nvRemoveLayer(imageToRemove) {
@@ -1117,6 +1137,11 @@ export default function NiiVueport(props) {
                 mins={boundMins}
                 maxs={boundMaxs}
                 mms={mms}
+
+                min={min}
+                max={max}
+                setMin={setMin}
+                setMax={setMax}
             />}
             <Box sx={{width: '100%',
                 display:(!verticalLayout)?'none':'flex',

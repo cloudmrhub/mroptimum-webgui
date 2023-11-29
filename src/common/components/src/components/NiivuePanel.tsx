@@ -7,6 +7,7 @@ import {DrawToolkit, DrawToolkitProps} from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
 
+
 interface NiivuePanelProps{
     nv:any;
     displayVertical:boolean;
@@ -21,6 +22,10 @@ interface NiivuePanelProps{
     maxs: number[];
     mms: number[];
     rois: {}[];
+    min: number;
+    max:number;
+    setMin:(min:number)=>void;
+    setMax:(max:number)=>void;
 }
 
 
@@ -33,7 +38,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 	const canvas = React.useRef(null)
     const histogram = React.useRef<HTMLElement>(null);
     const {mins,maxs,mms} = props;
-    const {gui,controllerX,controllerY,controllerZ} = createGUI();
+    const {gui,controllerX,controllerY,controllerZ,controllerMin,controllerMax} = createGUI();
 
     let height = 650;
     // This hook is for initialization, called only once
@@ -55,6 +60,30 @@ export function NiivuePanel (props:NiivuePanelProps) {
         // histogram.current?.addEventListener('resize',()=>props.resampleImage());
     }, [histogram]);
 
+    React.useEffect(()=>{
+
+        controllerY.onChange((val:number)=>{
+            let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
+                toRatio(val,mins[1],maxs[1]),
+                toRatio(mms[2],mins[2],maxs[2])];
+            props.nv.scene.crosshairPos = crosshairPos;
+            props.nv.drawScene();
+        });
+        controllerZ.onChange((val:number)=>{
+            console.log(val);
+            console.log(props.nv.drawPenLocation);
+            let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
+                toRatio(mms[1],mins[1],maxs[1]),
+                toRatio(val,mins[2],maxs[2])];
+            props.nv.scene.crosshairPos = crosshairPos;
+            // The following code are taken from Niivue source to change
+            // crosshair location imperatively, in the future shall be replaced with Niivue
+            // official API if otherwise supported
+            props.nv.drawScene();
+            // props.nv.createOnLocationChange();
+        });
+    },[])
+
     const [pause, pauseUpdate] = React.useState(false);
     controllerX.min(mins[0]).max(maxs[0]).step(0.01);
     controllerY.min(mins[1]).max(maxs[1]).step(0.01);
@@ -62,6 +91,8 @@ export function NiivuePanel (props:NiivuePanelProps) {
     controllerX.setValue(Number(mms[0]).toFixed(3));
     controllerY.setValue(Number(mms[1]).toFixed(3));
     controllerZ.setValue(Number(mms[2]).toFixed(3));
+    controllerMin.setValue(props.min);
+    controllerMax.setValue(props.max);
     controllerX.onChange((val:number)=>{
         console.log(val);
         console.log(props.nv.drawPenLocation);
@@ -74,34 +105,34 @@ export function NiivuePanel (props:NiivuePanelProps) {
         // official API if otherwise supported
         props.nv.drawScene();
     });
-    controllerY.onChange((val:number)=>{
-        let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
-            toRatio(val,mins[1],maxs[1]),
-            toRatio(mms[2],mins[2],maxs[2])];
-        props.nv.scene.crosshairPos = crosshairPos;
-        props.nv.drawScene();
-    })
-    controllerZ.onChange((val:number)=>{
-        console.log(val);
-        console.log(props.nv.drawPenLocation);
-        let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
-            toRatio(mms[1],mins[1],maxs[1]),
-            toRatio(val,mins[2],maxs[2])];
-        props.nv.scene.crosshairPos = crosshairPos;
-        // The following code are taken from Niivue source to change
-        // crosshair location imperatively, in the future shall be replaced with Niivue
-        // official API if otherwise supported
-        props.nv.drawScene();
-        // props.nv.createOnLocationChange();
-    })
+
     controllerX.onFinishChange(()=>{
         props.nv.createOnLocationChange();
-    })
+    });
     controllerY.onFinishChange(()=>{
         props.nv.createOnLocationChange();
-    })
+    });
     controllerZ.onFinishChange(()=>{
         props.nv.createOnLocationChange();
+    });
+
+    controllerMin.onFinishChange((val:number)=>{
+        // Source: niivue.js 1236
+        let volume = props.nv.volumes[0];
+        volume.cal_min = val;
+        console.log(val);
+        props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
+        console.log(val);
+        props.nv.drawScene()
+        props.setMin(val)
+    })
+
+    controllerMax.onFinishChange((val:number)=>{
+        let volume = props.nv.volumes[0];
+        volume.cal_max = val;
+        props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
+        props.nv.drawScene()
+        props.setMax(val)
     })
     React.useEffect(()=>{
         document.getElementById('controlDock')?.appendChild(gui.domElement);
@@ -178,15 +209,18 @@ function createGUI(){
     }
     const gui = new GUI({
         container: (document.getElementById( 'controlDock' )as HTMLElement) });
-
     const myObject = {
         xSlice: 0,
         ySlice: 1,
         zSlice: 2,
+        min: 0,
+        max: 1
     };
     let controllerX= gui.add( myObject, 'xSlice', 0, 1);   // Number Field
     let controllerY= gui.add( myObject, 'ySlice', 0, 1);   // Number Field
     let controllerZ= gui.add( myObject, 'zSlice', 0, 1);   // Number Field
-    return {gui,controllerX,controllerY,controllerZ};
+    let controllerMin= gui.add( myObject, 'min');   // Number Field
+    let controllerMax= gui.add( myObject, 'max');   // Number Field
+    return {gui,controllerX,controllerY,controllerZ,controllerMin,controllerMax};
 }
 
