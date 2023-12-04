@@ -12,6 +12,8 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
             Authorization: `Bearer ${accessToken}`}
     }
     const response = await axios.get(DATAAPI, config);
+    if(response.status!=200)
+        return undefined;
     return response.data;
 });
 

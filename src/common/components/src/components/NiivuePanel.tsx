@@ -1,6 +1,5 @@
 import React from "react"
-import { Box } from "@mui/material"
-import {nv} from "../Niivue";
+import {Box} from "@mui/material"
 import LocationTable from "./LocationTable";
 import {ROITable} from "../../../../app/results/Rois";
 import {DrawToolkit, DrawToolkitProps} from "./DrawToolKit";
@@ -62,26 +61,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
     React.useEffect(()=>{
 
-        controllerY.onChange((val:number)=>{
-            let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
-                toRatio(val,mins[1],maxs[1]),
-                toRatio(mms[2],mins[2],maxs[2])];
-            props.nv.scene.crosshairPos = crosshairPos;
-            props.nv.drawScene();
-        });
-        controllerZ.onChange((val:number)=>{
-            console.log(val);
-            console.log(props.nv.drawPenLocation);
-            let crosshairPos = [toRatio(mms[0],mins[0],maxs[0]),
-                toRatio(mms[1],mins[1],maxs[1]),
-                toRatio(val,mins[2],maxs[2])];
-            props.nv.scene.crosshairPos = crosshairPos;
-            // The following code are taken from Niivue source to change
-            // crosshair location imperatively, in the future shall be replaced with Niivue
-            // official API if otherwise supported
-            props.nv.drawScene();
-            // props.nv.createOnLocationChange();
-        });
     },[])
 
     const [pause, pauseUpdate] = React.useState(false);
@@ -96,16 +75,33 @@ export function NiivuePanel (props:NiivuePanelProps) {
     controllerX.onChange((val:number)=>{
         console.log(val);
         console.log(props.nv.drawPenLocation);
-        let crosshairPos = [toRatio(val,mins[0],maxs[0]),
-                                        toRatio(mms[1],mins[1],maxs[1]),
-                                        toRatio(mms[2],mins[2],maxs[2])];
-        props.nv.scene.crosshairPos = crosshairPos;
+        props.nv.scene.crosshairPos = [toRatio(val, mins[0], maxs[0]),
+            toRatio(mms[1], mins[1], maxs[1]),
+            toRatio(mms[2], mins[2], maxs[2])];
         // The following code are taken from Niivue source to change
         // crosshair location imperatively, in the future shall be replaced with Niivue
         // official API if otherwise supported
         props.nv.drawScene();
     });
 
+    controllerY.onChange((val:number)=>{
+        props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
+            toRatio(val, mins[1], maxs[1]),
+            toRatio(mms[2], mins[2], maxs[2])];
+        props.nv.drawScene();
+    });
+    controllerZ.onChange((val:number)=>{
+        console.log(val);
+        console.log(props.nv.drawPenLocation);
+        props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
+            toRatio(mms[1], mins[1], maxs[1]),
+            toRatio(val, mins[2], maxs[2])];
+        // The following code are taken from Niivue source to change
+        // crosshair location imperatively, in the future shall be replaced with Niivue
+        // official API if otherwise supported
+        props.nv.drawScene();
+        // props.nv.createOnLocationChange();
+    });
     controllerX.onFinishChange(()=>{
         props.nv.createOnLocationChange();
     });
