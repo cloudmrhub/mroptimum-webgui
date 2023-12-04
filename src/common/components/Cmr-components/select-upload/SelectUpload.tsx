@@ -70,14 +70,15 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
 
     const selectionDialog =  <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Upload or select</DialogTitle>
-        <DialogContent sx={{width: 'fit-content'}}>
+        <DialogContent sx={{width: 520}}>
             <DialogContentText sx={{pl:1, pr:1, pb:0}}>
-                Upload a new file or select from previously uploaded files:
+                {(uploading)?"Please wait for the upload to finish.":"Upload a new file or select from previously uploaded files:"}
             </DialogContentText>
                 <DialogContent sx={{p:1}}>
                 <Select
                     value={fileIndex}
                     onChange={handleChange}
+                    disabled={uploading}
                     inputProps={{ 'aria-label': 'Without label' }}
                     sx={{width: '100%'}}
                 >

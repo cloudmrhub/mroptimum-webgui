@@ -61,7 +61,7 @@ const CmrUpload = (props: CMRUploadProps) => {
         if(props.uploadStarted)
             props.uploadStarted();
         let status:any = 0;
-        try {
+        // try {
             if(props.beforeUpload!=undefined&&!await props.beforeUpload(file)){
                 if(props.uploadEnded)
                     props.uploadEnded();
@@ -92,16 +92,16 @@ const CmrUpload = (props: CMRUploadProps) => {
                 await props.onUploaded(res,file);
                 setUploadedFile(file.name);
             }
-        } catch (err) {
-            console.log('Upload mask file error: ', err);
-            status = err;
-            setOpen(true);
-            throw(err);
-        } finally {
+        // } catch (err) {
+        //     console.log('Upload mask file error: ', err);
+        //     status = err;
+        //     setOpen(true);
+        //     throw(err);
+        // } finally {
             if(props.uploadEnded)
                 props.uploadEnded();
             setUploading(false);
-        }
+        // }
         return status;
     };
 

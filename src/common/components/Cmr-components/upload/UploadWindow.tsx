@@ -71,7 +71,7 @@ export default function UploadWindow({upload, open, setOpen, fileExtension,
         formData.append("size", uploadedFiles[0].size.toString());
         formData.append("database", locationSelection);
         formData.append("fileName", fileName);
-        upload(uploadedFiles[0], fileName, locationSelection).then(async (response:number) => {
+        upload(uploadedFiles[0], fileName, locationSelection).then((response:number) => {
             console.log(response);
             //Update image with another ajax
             if (response>0) {
