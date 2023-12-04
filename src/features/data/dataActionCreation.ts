@@ -7,20 +7,12 @@ import {UploadedFile} from "./dataSlice";
 // axios.defaults.httpsAgent = httpsAgent;
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
-
     const config = {
         headers: {
             Authorization: `Bearer ${accessToken}`}
     }
-
-    try{
-        const response = await axios.get(DATAAPI, config);
-        console.log(response.data);
-        return response.data;
-    }catch(e){
-        console.log(e);
-        return undefined;
-    }
+    const response = await axios.get(DATAAPI, config);
+    return response.data;
 });
 
 

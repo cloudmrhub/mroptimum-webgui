@@ -49,12 +49,15 @@ const Results = () => {
     const [autoRefresh, setAutoRefresh] = useState(true);
     const openPanel = useAppSelector(state => state.result.openPanel);
     useEffect(() => {
+        //@ts-ignore
         dispatch(getUploadedData(accessToken));
+        //@ts-ignore
         dispatch(getUpstreamJobs(accessToken));
         setTimeout( ()=>{
             if(Date.now()-lastUpdated>=60000){//Only auto get job state after 1 minute
                 setLastUpdated(Date.now());
                 if(autoRefresh){
+                    //@ts-ignore
                     dispatch(getUpstreamJobs(accessToken));
                 }
             }
@@ -98,16 +101,18 @@ const Results = () => {
                 return (
                     <div>
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
+                            //@ts-ignore
                             dispatch(loadResult({
                                 accessToken,
                                 job:params.row,
-                            })).then(value => {
+                            })).then((value:any) => {
                                 //@ts-ignore
                                 let volumes = value.payload.volumes;
                                 nv.closeDrawing();
                                 nv.loadVolumes([volumes[1]]);
                                 dispatch(resultActions.setOpenPanel([1]));
                                 setTimeout(args => nv.resizeListener(),700);
+                                //@ts-ignore
                                 dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
                                     accessToken:accessToken}));
                             });

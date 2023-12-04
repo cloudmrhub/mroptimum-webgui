@@ -167,6 +167,7 @@ export default function Toolbar(props:ToolbarProps) {
                     </FormControl>
                     <Button variant={'contained'} onClick={()=>{
                         props.saveROI(()=>{
+                            //@ts-ignore
                             dispatch(getPipelineROI({accessToken,pipeline}));
                         });
                     }}>
@@ -202,11 +203,11 @@ export default function Toolbar(props:ToolbarProps) {
                                 marginRight: 'auto'
                             }}
                         >
-                            Radiological
+                            Neurological
                         </Typography>
                         <Switch
-                            defaultChecked={true}
-                            checked={props.radiological}
+                            defaultChecked={false}
+                            checked={!props.radiological}
                             onChange={props.toggleRadiological}
                         />
                     </Box>

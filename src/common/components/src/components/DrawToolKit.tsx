@@ -127,7 +127,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         </FormControl>
         <FormControl>
             <IconButton aria-label="capture" onClick={()=>{
-                props.nv.saveScene(`${props.volumes[props.selectedVolume].name}_drawing.jpg`);
+                props.nv.saveScene(`${props.volumes[props.selectedVolume].name}_drawing.png`);
             }}>
                 <CameraAltIcon  style={{color:'white'}}/>
             </IconButton>

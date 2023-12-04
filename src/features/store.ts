@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux';
-import {configureStore, getDefaultMiddleware} from "@reduxjs/toolkit";
+import {configureStore} from "@reduxjs/toolkit";
 import {authenticateSlice} from "./authenticate/autheticateSlice";
 import {dataSlice} from "./data/dataSlice";
 import {jobsSlice} from "./jobs/jobsSlice";
@@ -18,7 +18,7 @@ let rootReducer = combineReducers({authenticate: authenticateSlice.reducer, data
 jobs:jobsSlice.reducer, setup: setupSlice.reducer, result: resultSlice.reducer});
 
 const persistConfig = {
-        whitelist: ['authenticate', 'setup', 'home', 'pipeline'],
+        whitelist: ['authenticate', 'setup', 'data'],
         key: 'root',
         storage,
 };
@@ -30,7 +30,8 @@ export const store = configureStore({ reducer: persistedReducer,
         serializableCheck: {
             ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
-    }),});
+    }),
+});
 
 export const persistor = persistStore(store);
 

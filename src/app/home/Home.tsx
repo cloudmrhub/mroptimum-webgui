@@ -5,7 +5,6 @@ import CmrCollapse from '../../common/components/Cmr-components/collapse/Collaps
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import CmrTable from '../../common/components/CmrTable/CmrTable';
 import CmrProgress from '../../common/components/Cmr-components/progress/Progress';
-import { getUploadedData } from '../../features/data/dataActionCreation';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import {dataSlice, UploadedFile} from '../../features/data/dataSlice';
 import IconButton from "@mui/material/IconButton";
@@ -14,6 +13,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NameDialog from "../../common/components/Cmr-components/rename/edit";
 import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
+import {getUploadedData} from '../../features/data/dataActionCreation';
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 import {Button} from "@mui/material";
@@ -21,8 +21,21 @@ import {GridRowSelectionModel} from "@mui/x-data-grid";
 import CMRUpload, {CMRUploadProps, LambdaFile} from '../../common/components/Cmr-components/upload/Upload';
 import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
-import {DATAUPLODAAPI} from "../../Variables";
-import {AxiosRequestConfig} from "axios";
+import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
+import axios, {AxiosRequestConfig} from "axios";
+const getDataMethod = async (accessToken: string) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${accessToken}`}
+    }
+    try{
+        const response = await axios.get(DATAAPI, config);
+        return response.data;
+    }catch(e){
+        console.log(e);
+        return undefined;
+    }
+};
 
 const Home = () => {
     const uploadedFilesColumns = [
@@ -225,9 +238,7 @@ const Home = () => {
     const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
 
     useEffect(() => {
-        //@ts-ignore
         dispatch(getUploadedData(accessToken));
-        //@ts-ignore
         dispatch(getUpstreamJobs(accessToken));
         console.log("dispatched");
     }, []);
@@ -327,7 +338,6 @@ const Home = () => {
                                // selectFileIndex(props.fileSelection.length);
                                // props.onUploaded(res, file);
                                // setOpen(false);
-                               //@ts-ignore
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }} 
