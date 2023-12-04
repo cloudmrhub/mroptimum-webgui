@@ -58,13 +58,13 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
         {
             headerName:'ROI Label',
             field: 'label',
-            flex: 1,
+            flex: 1.5,
             editable:true
         },
         {
             headerName: 'ROI Color',
             field: 'color',
-            flex: 1,
+            flex: 1.5,
             renderCell: (params:{row:any})=>{
                 return <div style={{width:'14pt',height:'14pt',
                     borderRadius:'3pt',background:`${params.row.color}`}}>

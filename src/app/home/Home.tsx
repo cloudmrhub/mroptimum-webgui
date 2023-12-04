@@ -1,10 +1,8 @@
 import React, {Fragment, useEffect, useState} from 'react';
 import './Home.scss';
-import { Row, Col } from 'antd';
 import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import CmrTable from '../../common/components/CmrTable/CmrTable';
-import CmrProgress from '../../common/components/Cmr-components/progress/Progress';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import {dataSlice, UploadedFile} from '../../features/data/dataSlice';
 import IconButton from "@mui/material/IconButton";
@@ -115,7 +113,7 @@ const Home = () => {
                             setColor('error');
                             setConfirmCallback(()=>()=>{
                                 dispatch(dataSlice.actions.deleteData({index}));
-                            });
+                            })
                             setOpen(true);
                             e.stopPropagation();
                         }}>
