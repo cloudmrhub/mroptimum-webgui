@@ -98,19 +98,20 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
     ];
     return <Box style={props.style}>
         <CmrTable hideFooter={true} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
+                  columnHeaderHeight={40}
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);
         }}/>
         <div className="row mt-2">
             <div className="col-6">
-                <Button color={'warning'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                <Button sx={{background:'#555', ":hover":{background:'#333'}}}  style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
                     props.nv.groupLabelsInto(selectedData.map(value => Number(value)));
                     props.nv.drawScene();
                     props.resampleImage();
                 }}>Group</Button>
             </div>
             <div className="col-6">
-                <Button color={'info'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                <Button sx={{background:'#555', ":hover":{background:'#333'}}} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
                     props.nv.ungroup();
                     props.nv.drawScene();
                     props.resampleImage();

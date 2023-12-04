@@ -14,9 +14,12 @@
   font-size:12pt;
 }
 .lil-gui .title {
-  font-size:12pt;
-  border-top-right-radius:2pt;
-  border-top-left-radius:2pt;
+  font-size:14pt;
+  display: flex;
+  align-items: center;
+  padding-left: 5pt;
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
   font-weight: normal;
-  height: 20pt;
+  height: 28pt;
 }

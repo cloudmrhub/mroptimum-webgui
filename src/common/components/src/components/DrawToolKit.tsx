@@ -76,7 +76,8 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             flexDirection: 'row',
             justifyItems: 'center',
             alignItems: 'center',
-            borderRadius:'6px',
+            borderRadius:'4px',
+            height:'20pt',
             // justifyContent:'center',
             backgroundColor: '#333',
         }} style={props.style}>

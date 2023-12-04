@@ -105,9 +105,14 @@ export default function NiiVueport(props) {
             if(window.innerWidth<1250&&!verticalLayout){
                 setVerticalLayout(true);
             }else{
-                setVerticalLayout(false);
+                // setVerticalLayout(false);
             }
         });
+        if(window.innerWidth<1250&&!verticalLayout){
+            setVerticalLayout(true);
+        }else{
+            setVerticalLayout(false);
+        }
         if(nv.volumes.length!==0){
             setLayers([...nv.volumes]);
             setBoundMins(nv.frac2mm([0,0,0]));
