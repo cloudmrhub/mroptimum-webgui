@@ -148,13 +148,21 @@ export default function NiiVueport(props) {
     }
 
     function verifyComplex(volume){
-        // Copying the contents of volume.img to volume.real
         volume.real = new Float32Array(volume.img);
 
+        setComplexMode('real');
         // Ensure volume.imaginary is defined and has the same length as volume.img
         if (!volume.imaginary || volume.imaginary.length !== volume.img.length) {
-            setComplexMode('real');
-            setComplexOptions(['real']);
+            setComplexOptions(['real','absolute']);
+
+            // Initialize absolute and phase arrays
+            volume.absolute = new Float32Array(volume.img.length);
+            // Calculate absolute and phase values
+            for (let i = 0; i < volume.img.length; i++) {
+                const realPart = volume.real[i];
+                // Calculate the absolute value (magnitude)
+                volume.absolute[i] = Math.sqrt(realPart * realPart);
+            }
             return false;
         }
 
