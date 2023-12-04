@@ -91,7 +91,7 @@ const DrawPlatte: React.FC<DrawPlatteProps> = ({ expandDrawOptions, updateDrawPe
                 {filledOptions.map((value, index) => (
                     <IconButton
                         onClick={() => {
-                            updateDrawPen({ target: { value: index+9 } });
+                            updateDrawPen({ target: { value: index+1 } });
                             setDrawingEnabled(true);
                         }}
                     >

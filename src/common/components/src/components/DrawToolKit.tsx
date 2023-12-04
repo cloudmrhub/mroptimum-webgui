@@ -95,9 +95,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
-                    {(filled&&expandDrawOptions)?
-                        <ImagesearchRollerIcon style={{color:penColor}}/>
-                        :<BrushIcon style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>}
+                     <BrushIcon  style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>
                 </IconButton>
                 <DrawPlatte
                     expandDrawOptions={expandDrawOptions}

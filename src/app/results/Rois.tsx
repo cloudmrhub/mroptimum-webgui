@@ -119,6 +119,7 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
                       if(params.field=='label') {
                           props.nv.relabelROIs(Number(params.value), Number(event.target.value));
                           props.resampleImage();
+                          // params.id = event.target.3;
                       }
             // if (params.reason === GridCellEditStopReasons.cellFocusOut) {
             //     event.defaultMuiPrevented = true;

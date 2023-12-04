@@ -31,6 +31,8 @@ export const nv = new Niivue({
     crosshairColor: [1,1,0],
     fontColor:[0.00,0.94,0.37, 1],
     isNearestInterpolation: true,
+    isFilledPen:true,
+    drawPen:1
 });
 
 window.nv = nv;
@@ -122,7 +124,6 @@ export default function NiiVueport(props) {
             setMMs(nv.frac2mm([0.5,0.5,0.5]));
             setTimeout(args => nv.resizeListener(),700);
         }
-        nv.setPenValue(1,true);
     },[]);
 
     // only run this when the component is mounted on the page
@@ -355,7 +356,7 @@ export default function NiiVueport(props) {
     function nvUpdateDrawPen(a) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
-        nv.setPenValue(penValue & 7, penValue > 7);
+        nv.setPenValue(penValue & 7, penValue > 0);
         if (penValue == 8) {
             nv.setPenValue(0,true)
         }
