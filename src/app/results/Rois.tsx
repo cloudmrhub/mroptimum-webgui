@@ -110,7 +110,7 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
         setWarningVisible(true);
     }
     return <Box style={props.style}>
-        <CmrTable hideFooter={true} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
+        <CmrTable hideFooter={true} getRowId={(row) => row.label} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
                   columnHeaderHeight={40}
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);
