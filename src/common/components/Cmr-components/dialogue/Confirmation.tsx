@@ -6,11 +6,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import CmrButton from '../button/Button';
+import {StyledComponentProps} from "@mui/material";
 
 export default function Confirmation({ name,message,cancelText='Cancel',
-    color, open, setOpen, confirmCallback=()=>{}, cancellable=false, cancelCallback=()=>{}}: { name: string | undefined; cancelText?:string; message:string|undefined;
+    color, open, setOpen, confirmCallback=()=>{}, cancellable=false, cancelCallback=()=>{}, width}: { name: string | undefined; cancelText?:string; message:string|undefined;
     color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined, open:boolean, setOpen:(open:boolean)=>void, confirmCallback?:()=>void,
-    cancellable?:boolean, cancelCallback?:()=>void}) {
+    cancellable?:boolean, cancelCallback?:()=>void, width?:number}) {
     const [text, setText] = React.useState('');
 
     const handleClose = () => {
@@ -31,7 +32,7 @@ export default function Confirmation({ name,message,cancelText='Cancel',
     return (
         <Dialog open={open} onClose={handleClose}>
             <DialogTitle>{name?name:'Confirmation'}</DialogTitle>
-            <DialogContent>
+            <DialogContent sx={{width:width}}>
                 <DialogContentText alignContent={'center'}>
                     {message}
                 </DialogContentText>

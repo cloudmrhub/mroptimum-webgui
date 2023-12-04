@@ -2,6 +2,7 @@
  * This method patches the original NiiVue library to produce customized behaviors and effects.
  */
 import {Niivue} from "@niivue/niivue";
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 
 const SLICE_TYPE = Object.freeze({
     AXIAL: 0,
@@ -219,11 +220,11 @@ Niivue.prototype.drawSceneCore = function () {
                 let py = (sS-sY)/2;
                 let pz = (sS-sZ)/2;
                 //draw axial
-                this.draw2D([ltwh[0]+px, ltwh[1] + sZ + pad+pz*2+py, sX, sY], 0);
+                this.draw2D([ltwh[0], ltwh[1] + sZ + pad+pz*2, sX, sY], 0);
                 //draw coronal
-                this.draw2D([ltwh[0]+px, ltwh[1]+pz, sX, sZ], 1);
+                this.draw2D([ltwh[0], ltwh[1], sX, sZ], 1);
                 //draw sagittal
-                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1]+pz, sY, sZ], 2);
+                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1], sY, sZ], 2);
                 if (isDraw3D)
                     this.draw3D([ltwh[0] + sX + pad+2*px+py, ltwh[1] + sZ + pad+2*pz+py, sY, sY]);
             } //if isDrawGrid
@@ -295,6 +296,212 @@ Niivue.prototype.drawSceneCore = function () {
     this.sync();
     return posString;
 }; // drawSceneCore()
+
+Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN) {
+    let frac2mmTexture = this.volumes[0].frac2mm.slice()
+    let screen = this.screenFieldOfViewExtendedMM(axCorSag)
+    let mesh2ortho = mat4.create()
+    if (!this.opts.isSliceMM) {
+        frac2mmTexture = this.volumes[0].frac2mmOrtho.slice()
+        mesh2ortho = mat4.clone(this.volumes[0].mm2ortho)
+        screen = this.screenFieldOfViewExtendedVox(axCorSag)
+    }
+    let isRadiolgical = this.opts.isRadiologicalConvention && axCorSag < SLICE_TYPE.SAGITTAL
+    if (customMM === Infinity || customMM === -Infinity) {
+        isRadiolgical = customMM !== Infinity
+        if (axCorSag === SLICE_TYPE.CORONAL) {
+            isRadiolgical = !isRadiolgical
+        }
+    } else if (this.opts.sagittalNoseLeft && axCorSag === SLICE_TYPE.SAGITTAL) {
+        isRadiolgical = !isRadiolgical
+    }
+    let elevation = 0
+    let azimuth = 0
+    if (axCorSag === SLICE_TYPE.SAGITTAL) {
+        azimuth = isRadiolgical ? 90 : -90
+    } else if (axCorSag === SLICE_TYPE.CORONAL) {
+        azimuth = isRadiolgical ? 180 : 0
+    } else {
+        azimuth = isRadiolgical ? 180 : 0
+        elevation = isRadiolgical ? -90 : 90
+    }
+    const gl = this.gl
+    if (leftTopWidthHeight[2] === 0 || leftTopWidthHeight[3] === 0) {
+        // only one tile: stretch tile to fill whole screen.
+        const pixPerMMw = gl.canvas.width / screen.fovMM[0]
+        const pixPerMMh = gl.canvas.height / screen.fovMM[1]
+        const pixPerMMmin = Math.min(pixPerMMw, pixPerMMh)
+        const zoomW = pixPerMMw / pixPerMMmin
+        const zoomH = pixPerMMh / pixPerMMmin
+        screen.fovMM[0] *= zoomW
+        screen.fovMM[1] *= zoomH
+        let center = (screen.mnMM[0] + screen.mxMM[0]) * 0.5
+        screen.mnMM[0] = center - screen.fovMM[0] * 0.5
+        screen.mxMM[0] = center + screen.fovMM[0] * 0.5
+        center = (screen.mnMM[1] + screen.mxMM[1]) * 0.5
+        screen.mnMM[1] = center - screen.fovMM[1] * 0.5
+        screen.mxMM[1] = center + screen.fovMM[1] * 0.5
+        // screen.mnMM[0] *= zoomW;
+        // screen.mxMM[0] *= zoomW;
+        // screen.mnMM[1] *= zoomH;
+        // screen.mxMM[1] *= zoomH;
+        leftTopWidthHeight = [0, 0, gl.canvas.width, gl.canvas.height]
+    }
+    if (leftTopWidthHeight[2] !== leftTopWidthHeight[3]) {
+        const mx = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);
+        // only one tile: stretch tile to fill whole screen.
+        const pixPerMMw = mx / screen.fovMM[0]
+        const pixPerMMh = mx / screen.fovMM[1]
+        const pixPerMMmin = Math.min(pixPerMMw, pixPerMMh)
+        const zoomW = pixPerMMw / pixPerMMmin
+        const zoomH = pixPerMMh / pixPerMMmin
+        screen.fovMM[0] *= zoomW
+        screen.fovMM[1] *= zoomH
+        let center = (screen.mnMM[0] + screen.mxMM[0]) * 0.5
+        screen.mnMM[0] = center - screen.fovMM[0] * 0.5
+        screen.mxMM[0] = center + screen.fovMM[0] * 0.5
+        center = (screen.mnMM[1] + screen.mxMM[1]) * 0.5
+        screen.mnMM[1] = center - screen.fovMM[1] * 0.5
+        screen.mxMM[1] = center + screen.fovMM[1] * 0.5
+        // screen.mnMM[0] *= zoomW;
+        // screen.mxMM[0] *= zoomW;
+        // screen.mnMM[1] *= zoomH;
+        // screen.mxMM[1] *= zoomH;
+        leftTopWidthHeight[2] = mx;
+        leftTopWidthHeight[3] = mx;
+    }
+    if (isNaN(customMM)) {
+        const panXY = this.swizzleVec3MM(this.scene.pan2Dxyzmm, axCorSag)
+        const zoom = this.scene.pan2Dxyzmm[3]
+        screen.mnMM[0] -= panXY[0]
+        screen.mxMM[0] -= panXY[0]
+        screen.mnMM[1] -= panXY[1]
+        screen.mxMM[1] -= panXY[1]
+        screen.mnMM[0] /= zoom
+        screen.mxMM[0] /= zoom
+        screen.mnMM[1] /= zoom
+        screen.mxMM[1] /= zoom
+    }
+
+    let sliceDim = 2 // axial depth is NIfTI k dimension
+    if (axCorSag === SLICE_TYPE.CORONAL) {
+        sliceDim = 1
+    } // sagittal depth is NIfTI j dimension
+    if (axCorSag === SLICE_TYPE.SAGITTAL) {
+        sliceDim = 0
+    } // sagittal depth is NIfTI i dimension
+    let sliceFrac = this.scene.crosshairPos[sliceDim]
+    let mm = this.frac2mm(this.scene.crosshairPos)
+    if (!isNaN(customMM) && customMM !== Infinity && customMM !== -Infinity) {
+        mm = this.frac2mm([0.5, 0.5, 0.5])
+        mm[sliceDim] = customMM
+        const frac = this.mm2frac(mm)
+        sliceFrac = frac[sliceDim]
+    }
+    const sliceMM = mm[sliceDim]
+    gl.clear(gl.DEPTH_BUFFER_BIT)
+    let obj = this.calculateMvpMatrix2D(
+        leftTopWidthHeight,
+        screen.mnMM,
+        screen.mxMM,
+        Infinity,
+        0,
+        azimuth,
+        elevation,
+        isRadiolgical
+    )
+    if (customMM === Infinity || customMM === -Infinity) {
+        // draw rendering
+        const ltwh = leftTopWidthHeight.slice()
+        this.draw3D(
+            leftTopWidthHeight,
+            obj.modelViewProjectionMatrix,
+            obj.modelMatrix,
+            obj.normalMatrix,
+            azimuth,
+            elevation
+        )
+        const tile = this.screenSlices[this.screenSlices.length - 1]
+        // tile.AxyzMxy = this.xyMM2xyzMM(axCorSag, 0.5);
+        tile.leftTopWidthHeight = ltwh
+        tile.axCorSag = axCorSag
+        tile.sliceFrac = Infinity // use infinity to denote this is a rendering, not slice: not one depth
+        tile.AxyzMxy = this.xyMM2xyzMM(axCorSag, sliceFrac)
+        tile.leftTopMM = obj.leftTopMM
+        tile.fovMM = obj.fovMM
+        return
+    }
+    gl.enable(gl.DEPTH_TEST)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    // draw the slice
+    gl.disable(gl.BLEND)
+    gl.depthFunc(gl.GREATER)
+    gl.disable(gl.CULL_FACE) // show front and back faces
+    this.sliceMMShader.use(this.gl)
+    gl.uniform1f(this.sliceMMShader.overlayOutlineWidthLoc, this.overlayOutlineWidth)
+    gl.uniform1f(this.sliceMMShader.overlayAlphaShaderLoc, this.overlayAlphaShader)
+    gl.uniform1i(this.sliceMMShader.isAlphaClipDarkLoc, this.isAlphaClipDark)
+    gl.uniform1i(this.sliceMMShader.backgroundMasksOverlaysLoc, this.backgroundMasksOverlays)
+    gl.uniform1f(this.sliceMMShader.drawOpacityLoc, this.drawOpacity)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+    gl.uniform1f(this.sliceMMShader.opacityLoc, this.volumes[0].opacity)
+    gl.uniform1i(this.sliceMMShader.axCorSagLoc, axCorSag)
+    gl.uniform1f(this.sliceMMShader.sliceLoc, sliceFrac)
+    gl.uniformMatrix4fv(
+        this.sliceMMShader.frac2mmLoc,
+        false,
+        frac2mmTexture // this.volumes[0].frac2mm
+    )
+    gl.uniformMatrix4fv(this.sliceMMShader.mvpLoc, false, obj.modelViewProjectionMatrix.slice())
+    gl.bindVertexArray(this.genericVAO) // set vertex attributes
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    gl.bindVertexArray(this.unusedVAO) // set vertex attributes
+    // record screenSlices to detect mouse click positions
+    this.screenSlices.push({
+        leftTopWidthHeight,
+        axCorSag,
+        sliceFrac,
+        AxyzMxy: this.xyMM2xyzMM(axCorSag, sliceFrac),
+        leftTopMM: obj.leftTopMM,
+        screen2frac: [],
+        fovMM: obj.fovMM
+    })
+    if (isNaN(customMM)) {
+        // draw crosshairs
+        this.drawCrosshairs3D(true, 1.0, obj.modelViewProjectionMatrix, true, this.opts.isSliceMM)
+    }
+    if (this.opts.meshThicknessOn2D > 0.0) {
+        if (this.opts.meshThicknessOn2D !== Infinity) {
+            obj = this.calculateMvpMatrix2D(
+                leftTopWidthHeight,
+                screen.mnMM,
+                screen.mxMM,
+                this.opts.meshThicknessOn2D,
+                sliceMM,
+                azimuth,
+                elevation,
+                isRadiolgical
+            )
+        }
+        // we may need to transform mesh vertices to the orthogonal voxel space
+        const mx = mat4.clone(obj.modelViewProjectionMatrix)
+        mat4.multiply(mx, mx, mesh2ortho)
+        this.drawMesh3D(
+            true,
+            1,
+            mx, // obj.modelViewProjectionMatrix,
+            obj.modelMatrix,
+            obj.normalMatrix
+        )
+    }
+    if (isNaN(customMM)) {
+        // no crossbars for mosaic view
+        this.drawCrosshairs3D(false, 0.15, obj.modelViewProjectionMatrix, true, this.opts.isSliceMM)
+    }
+    this.drawSliceOrientationText(leftTopWidthHeight, axCorSag)
+    this.readyForSync = true
+}
 
 
 // not included in public docs
@@ -439,6 +646,24 @@ Niivue.prototype.ungroup = function(){
     }
     bitmapOverlay.length = 0;
     this.refreshDrawing(false);
+}
+
+// Niivue.prototype.hideROI = function(label=0){
+//     for (let i = 0; i< this.drawBitmap.length; i++){
+//         if(this.drawBitmap[i] === label){
+//             this.drawBitmap[i] = -label;
+//         }
+//     }
+//     this.refreshDrawing(true);
+// }
+
+Niivue.prototype.relabelROIs = function(source=0, target = 0){
+    for (let i = 0; i< this.drawBitmap.length; i++){
+        if(this.drawBitmap[i] === source){
+            this.drawBitmap[i] = target;
+        }
+    }
+    this.refreshDrawing(true);
 }
 
 export {Niivue};

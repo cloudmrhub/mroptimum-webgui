@@ -1,4 +1,4 @@
-import {Box, Button, FormControl, IconButton, Stack, SvgIconProps} from "@mui/material";
+import {Box, Button, FormControl, IconButton, Stack, SvgIconProps, Tooltip} from "@mui/material";
 import ImagesearchRollerIcon from "@mui/icons-material/ImagesearchRoller";
 import BrushIcon from "@mui/icons-material/Brush";
 import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined";
@@ -12,6 +12,10 @@ import FiberManualRecordOutlinedIcon from "@mui/icons-material/FiberManualRecord
 import DrawPlatte from './DrawPlatte'; // Adjust the path as per your folder structure
 import DeleteIcon from '@mui/icons-material/Delete';
 import EraserPlatte from "./EraserPlatte";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import {VisibilityOff} from "@mui/icons-material";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import CmrTooltip from "../../Cmr-components/tooltip/Tooltip";
 
 
 export interface DrawToolkitProps{
@@ -32,6 +36,8 @@ export interface DrawToolkitProps{
     brushSize:number;
     updateBrushSize:(size:number)=>void;
     resampleImage:()=>void;
+    roiVisible:boolean;
+    toggleROIVisible:()=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
@@ -141,6 +147,17 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                 <DeleteIcon  style={{color:'white'}}/>
             </IconButton>
         </FormControl>
+
+        <Tooltip title={'Region of interests visibility'}>
+            <FormControl>
+                <IconButton aria-label="visible" onClick={()=>{
+                    props.toggleROIVisible();
+                }}>
+                    {props.roiVisible?<VisibilityIcon  style={{color:'white'}}/>:
+                        <VisibilityOffIcon  style={{color:'white'}}/>}
+                </IconButton>
+            </FormControl>
+        </Tooltip>
     </Box>;
 }
 

@@ -1,5 +1,5 @@
 import CmrTable from "../../common/components/CmrTable/CmrTable";
-import React, {CSSProperties, useState} from "react";
+import React, {ChangeEvent, CSSProperties, useState} from "react";
 import {Button} from "@mui/material";
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import CMRUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
@@ -10,9 +10,14 @@ import {DATAUPLODAAPI, ROI_UPLOAD} from "../../Variables";
 import {AxiosRequestConfig} from "axios";
 import {useAppSelector} from "../../features/hooks";
 import {nv} from "../../common/components/src/Niivue";
-import {GridRowSelectionModel} from "@mui/x-data-grid";
+import {GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, MuiEvent} from "@mui/x-data-grid";
 import axios from "axios";
 import Box from "@mui/material/Box";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import IconButton from "@mui/material/IconButton";
+import Checkbox from "@mui/material/Checkbox";
+import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 
 export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=>void, style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
@@ -54,6 +59,7 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
             headerName:'ROI Label',
             field: 'label',
             flex: 1,
+            editable:true
         },
         {
             headerName: 'ROI Color',
@@ -86,22 +92,39 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
             }
         },
         {
-            headerName: 'Visibility',
-            field: 'visiblility',
-            flex: 1,
-            renderCell: (params:{row:any})=>{
-                return <div>
-                    {`${params.row.std.toFixed(3)}`}
-                </div>
-            }
+            headerName: 'Opacity',
+            field: 'opacity',
+            flex: 1
+        },
+        {
+            headerName: 'Voxel Count',
+            field: 'count',
+            flex: 1.5
         },
     ];
+
+    const [warningVisible, setWarningVisible] = useState(false);
+    const [warningMessage, setWarningMessage] = useState('');
+    const warnEmptySelection = function(message:string){
+        setWarningMessage(message);
+        setWarningVisible(true);
+    }
     return <Box style={props.style}>
         <CmrTable hideFooter={true} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
                   columnHeaderHeight={40}
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);
-        }}/>
+        }}
+                  onCellEditStop={(params: GridCellEditStopParams, event: any) => {
+                      if(params.field=='label') {
+                          props.nv.relabelROIs(Number(params.value), Number(event.target.value));
+                          props.resampleImage();
+                      }
+            // if (params.reason === GridCellEditStopReasons.cellFocusOut) {
+            //     event.defaultMuiPrevented = true;
+            // }
+        }}
+        />
         <div className="row mt-2">
             <div className="col-6">
                 <Button sx={{background:'#555', ":hover":{background:'#333'}}}  style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
@@ -128,6 +151,10 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
                         selectedLabels.push(Number(label));
                     }
                     fileName+='.nii';
+                    if(selectedLabels.length==0) {
+                        warnEmptySelection("No ROI selected for download");
+                        return;
+                    }
                     await props.nv.saveImageByLabels(fileName, selectedLabels);
                 }}>Download</Button>
             </div>
@@ -168,5 +195,6 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
                            createPayload={createPayload} maxCount={1}></CMRUpload>
             </div>
         </div>
+        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open)=>setWarningVisible(open)}/>
     </Box>;
 }

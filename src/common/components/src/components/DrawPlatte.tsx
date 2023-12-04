@@ -57,27 +57,27 @@ const DrawPlatte: React.FC<DrawPlatteProps> = ({ expandDrawOptions, updateDrawPe
                         updateBrushSize(value as number);
                     }}/>
             </Stack>
-            <Stack
-                // style={{
-                //     border: `${expandDrawOptions ? '1px' : 0} solid #ccc`,
-                //     maxWidth: expandDrawOptions ? 300 : 0,
-                //     transition: 'all 0.5s',
-                //     overflow: 'hidden',
-                //     borderRadius: '16px'
-                // }}
-                direction="row"
-            >
-                {options.map((value, index) => (
-                    <IconButton
-                        onClick={() => {
-                            updateDrawPen({ target: { value: index+1 } });
-                            setDrawingEnabled(true);
-                        }}
-                    >
-                        {value}
-                    </IconButton>
-                ))}
-            </Stack>
+            {/*<Stack*/}
+            {/*    // style={{*/}
+            {/*    //     border: `${expandDrawOptions ? '1px' : 0} solid #ccc`,*/}
+            {/*    //     maxWidth: expandDrawOptions ? 300 : 0,*/}
+            {/*    //     transition: 'all 0.5s',*/}
+            {/*    //     overflow: 'hidden',*/}
+            {/*    //     borderRadius: '16px'*/}
+            {/*    // }}*/}
+            {/*    direction="row"*/}
+            {/*>*/}
+            {/*    {options.map((value, index) => (*/}
+            {/*        <IconButton*/}
+            {/*            onClick={() => {*/}
+            {/*                updateDrawPen({ target: { value: index+1 } });*/}
+            {/*                setDrawingEnabled(true);*/}
+            {/*            }}*/}
+            {/*        >*/}
+            {/*            {value}*/}
+            {/*        </IconButton>*/}
+            {/*    ))}*/}
+            {/*</Stack>*/}
             <Stack
                 // style={{
                 //     border: `${expandDrawOptions ? '1px' : 0} solid #ccc`,

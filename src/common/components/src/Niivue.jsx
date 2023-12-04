@@ -88,6 +88,8 @@ export default function NiiVueport(props) {
     const [brushSize,setBrushSize] = useState(1);
     const [complexMode, setComplexMode] = useState('real');
     const [complexOptions, setComplexOptions] = useState(['real']);
+    const [roiVisible, setROIVisible] = useState(true);
+    const [orgOpacity, setOrgOpacity] = useState(0.8);
 
     const [min, setMin] = useState(0);
     const [max, setMax] = useState(1);
@@ -120,6 +122,7 @@ export default function NiiVueport(props) {
             setMMs(nv.frac2mm([0.5,0.5,0.5]));
             setTimeout(args => nv.resizeListener(),700);
         }
+        nv.setPenValue(1,true);
     },[]);
 
     // only run this when the component is mounted on the page
@@ -213,6 +216,7 @@ export default function NiiVueport(props) {
         nv.drawScene();
     }
 
+
     nv.onLocationChange = (data) => {
         setLocationData(data.values);
         if(data.values[0])
@@ -286,6 +290,19 @@ export default function NiiVueport(props) {
         setLocationTableVisible(!locationTableVisible)
     }
 
+    function toggleROIVisible(){
+        if(roiVisible){
+            setOrgOpacity(nv.drawOpacity);
+            setROIVisible(false);
+            nv.setDrawOpacity(0);
+            resampleImage();
+        }else{
+            nv.setDrawOpacity(orgOpacity);
+            setROIVisible(true);
+            resampleImage();
+        }
+    }
+
     function nvUpdateOpacity(a) {
         console.log("Opacity = " + a)
         setopacity(a)
@@ -338,7 +355,7 @@ export default function NiiVueport(props) {
     function nvUpdateDrawPen(a) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
-        nv.setPenValue(penValue & 7, penValue > 7)
+        nv.setPenValue(penValue & 7, penValue > 7);
         if (penValue == 8) {
             nv.setPenValue(0,true)
         }
@@ -579,14 +596,17 @@ export default function NiiVueport(props) {
         const colors = ['#bbb','#f00','#0f0','#00f','yellow','cyan','#e81ce8','#e8dbc7']
         for(let key in samples){
             let sample = samples[key];
-            if(sample.length>0&&key!=='0'){
+            if(sample.length>0&&key>0){
                 console.log(key);
                 rois.push({
                     id:key,
                     label:key,
                     color:colors[key],
                     mu:calculateMean(sample),
-                    std:calculateStandardDeviation(sample)})
+                    std:calculateStandardDeviation(sample),
+                    opacity:nv.drawOpacity,
+                    count: sample.length
+                })
             }
         }
         setROIs(rois);
@@ -812,7 +832,9 @@ export default function NiiVueport(props) {
         },
         brushSize,
         updateBrushSize:nvUpdateBrushSize,
-        resampleImage:resampleImage
+        resampleImage:resampleImage,
+        roiVisible,
+        toggleROIVisible
     };
     return (
         <Box sx={{
