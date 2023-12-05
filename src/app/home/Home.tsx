@@ -236,7 +236,9 @@ const Home = () => {
     const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
 
     useEffect(() => {
+        //@ts-ignore
         dispatch(getUploadedData(accessToken));
+        //@ts-ignore
         dispatch(getUpstreamJobs(accessToken));
         console.log("dispatched");
     }, []);
@@ -336,6 +338,7 @@ const Home = () => {
                                // selectFileIndex(props.fileSelection.length);
                                // props.onUploaded(res, file);
                                // setOpen(false);
+                               //@ts-ignore
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }} 

@@ -483,11 +483,13 @@ const Setup = () => {
                                   confirmCallback={snrEditWarningCallback}/>
                     <CmrButton sx={{width: '50%', mt: 1}} variant={"contained"}
                                color={'success'} onClick={() => {
+                        console.log(jobSelectionModel);
                         if (jobSelectionModel.length == 0) {
                             setSDWarning("Please select the jobs that you would like to submit.");
                             setSDWarningHeader("No Job Selected for Submission");
                             setSDOpen(true);
                         } else {
+                            console.log(queuedJobs);
                             let selectedJobs = jobSelectionModel.map((value, index) => {
                                 for (let job of queuedJobs) {
                                     if (job.id == value) {
@@ -496,6 +498,7 @@ const Setup = () => {
                                 }
                             });
                             dispatch(jobActions.resetSubmissionState());
+                            console.log(selectedJobs);
                             // @ts-ignore
                             dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
                             setSnackOpen(true);

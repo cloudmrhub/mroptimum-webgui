@@ -394,9 +394,11 @@ export const setupSlice = createSlice({
         builder.addCase(submitJobs.fulfilled, (state,responses)=>{
             console.log(responses.payload);
             for(let response of responses.payload){
+                //@ts-ignore
                 let id = response.id;
                 for(let job of state.queuedJobs){
                     if(job.id==id){
+                        //@ts-ignore
                         if(response.status==200){
                             job.status='submitted';
                         }else{

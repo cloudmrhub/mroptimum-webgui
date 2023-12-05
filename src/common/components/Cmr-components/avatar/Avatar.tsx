@@ -1,6 +1,7 @@
 import React from 'react';
 import './Avatar.scss';
 import { Avatar } from 'antd';
+//@ts-ignore
 import { AvatarSize } from 'antd/lib/avatar/SizeContext';
 
 interface CmrAvatarProps {

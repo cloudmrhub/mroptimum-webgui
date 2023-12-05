@@ -6,10 +6,9 @@ import {HOST, JOBS_API, JOBS_RETRIEVE_API} from "../../Variables";
 
 export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
     async ({accessToken,jobQueue}:{accessToken:string, jobQueue:Job[]}, thunkAPI) => {
-
     let responses = [];
     for(let job of jobQueue){
-        console.log(job);
+        // console.log(job);
         let res = await axios.post(JOBS_API, JSON.stringify(job.setup), {headers:{Authorization:`Bearer ${accessToken}`,
                 accept: 'application/json','X-Api-Key':'blablablalla','Content-Type': 'application/json'}});
         responses.push({
@@ -17,8 +16,8 @@ export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
             status: res.status
         })
     }
-    //Update upstream jobs right after submission
+    // //Update upstream jobs right after submission
     thunkAPI.dispatch(getUpstreamJobs(accessToken));
-    //Return whether the submission was successful
+    // Return whether the submission was successful
     return responses;
 });

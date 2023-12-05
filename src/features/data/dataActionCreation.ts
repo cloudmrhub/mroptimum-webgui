@@ -11,10 +11,14 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
         headers: {
             Authorization: `Bearer ${accessToken}`}
     }
-    const response = await axios.get(DATAAPI, config);
-    if(response.status!=200)
+    try{
+        const response = await axios.get(DATAAPI, config);
+        console.log(response.data);
+        return response.data;
+    }catch(e){
+        console.log(e);
         return undefined;
-    return response.data;
+    }
 });
 
 
