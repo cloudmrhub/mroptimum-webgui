@@ -19,6 +19,7 @@ import {DrawToolkit} from "./components/DrawToolKit";
 import Plotly from "plotly.js-dist-min";
 import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
+import JSZip from "jszip";
 
 export const nv = new Niivue({
     loadingText: '',
@@ -753,7 +754,98 @@ export default function NiiVueport(props) {
     const [warningConfirmationCallback, setWarningConfirmationCallback] = useState(() => {});
     const [warningCancelCallback, setWarningCancelCallback] = useState(() => {});
     const [drawingChanged, setDrawingChanged] = useState(false);
+
+    const zipAndSendROI = function(uploadURL,filename,blob){
+        let zip = new JSZip();
+        let descriptor = {
+            "data": [
+                {
+                    "filename": `${filename}.nii`,
+                    "id": 1,
+                    "name": filename,
+                    "type": "image",
+                    // "numpyPixelType": "complex64",
+                    // "pixelType": "complex"
+                    "labelMapping":{
+                        1:'Cerebrum',
+                        2:'Cerebellum'
+                    }
+                }
+            ]
+        }
+        zip.file("info.json", JSON.stringify(descriptor));
+        zip.file(`${filename}.nii`, blob, {base64: true});
+        zip.generateAsync({type:"blob"})
+            .then(function(content) {
+                const file = new File([content], filename, {
+                    type: blob.type,
+                    lastModified: Date.now()
+                });
+                // Upload to bucket
+                axios.put(uploadURL, file, {
+                    headers: {
+                        'Content-Type': file.type
+                    }
+                }).then(() => {
+                    // Update available rois with this callback
+                    props.saveROICallback();
+                });
+            });
+    }
     const selectROI = async (roiIndex) => {
+        console.log(nv.drawBitmap);
+        const load = async () => {
+            // console.log(props.rois[roiIndex]);
+            // console.trace();
+
+            // Fetch the file from the URL
+            const response = await fetch(props.rois[roiIndex].link);
+
+            // Check if the request was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            // Convert the response to a Blob
+            const blob = await response.blob();
+
+            // Create a new JSZip instance
+            const zip = new JSZip();
+
+            await zip.loadAsync(blob);
+
+            // Check if info.js exists in the zip
+            const fileInfo = zip.file("info.json");
+            if (fileInfo) {
+                // Read the content of info.js
+                const content = await fileInfo.async("string");
+                let info = JSON.parse(content);
+                let niiFilePath = info.data[0].filename;
+                const niiDrawing = zip.file(niiFilePath);
+                if (niiDrawing) {
+                    // Read the content as a blob
+                    const base64 = await niiDrawing.async("base64");
+                    console.log(niiFilePath);
+                    nv.loadDrawingFromBase64(niiFilePath,base64).then((value) => {
+                        resampleImage();
+                    });
+
+                } else {
+                    console.log(`${niiFilePath} not found in the ZIP file.`);
+                    return null;
+                }
+                // return content;
+            } else {
+                console.log("info.json not found in the ZIP file.");
+                return null;
+            }
+            setSelectedROI(roiIndex);
+            setDrawingChanged(false);
+        };
+        load();
+    }
+    const refreshROI = async () => {
+        let roiIndex = selectedROI;
         console.log(nv.drawBitmap);
         const load = () => {
             console.log(props.rois[roiIndex].link);
@@ -774,32 +866,19 @@ export default function NiiVueport(props) {
                     Authorization: `Bearer ${props.accessToken}`,
                 },
             };
-            console.log(props);
             const response = await axios.post(ROI_UPLOAD, {
-                "filename": filename,
+                "filename": `${filename}`,
                 "pipeline_id": props.pipelineID,
                 "type": "image",
                 "contentType": "application/octet-stream"
             }, config);
-            console.log(response.data);
+            // console.log(response.data);
             // Monkey patch object URL creation
             // Store the original URL.createObjectURL method
             const originalCreateObjectURL = URL.createObjectURL;
             // Redefine the method
             URL.createObjectURL = function (blob) {
-                const file = new File([blob], filename, {
-                    type: blob.type,
-                    lastModified: Date.now()
-                });
-                // Upload to bucket
-                axios.put(response.data.upload_url, file, {
-                    headers: {
-                        'Content-Type': file.type
-                    }
-                }).then(() => {
-                    // Update available rois with this callback
-                    props.saveROICallback();
-                });
+                zipAndSendROI(response.data.upload_url,filename, blob);
                 // Call the original method and return its result
                 return 'javascript:void(0);';
             };
@@ -1117,6 +1196,7 @@ export default function NiiVueport(props) {
                 toggleColorBar={nvUpdateColorBar}
                 rois={props.rois}
                 selectedROI={selectedROI}
+                refreshROI={refreshROI}
                 setSelectedROI={selectROI}
                 verticalLayout={verticalLayout}
                 toggleVerticalLayout={toggleSampleDistribution}
@@ -1143,7 +1223,7 @@ export default function NiiVueport(props) {
                               cancellable={true}
                               cancelCallback={() => {
                               }}
-                              suffix={'.nii'}
+                              // suffix={'.zip'}
                               defaultText={(props.rois[selectedROI] !== undefined ?
                                   props.rois[selectedROI].filename : undefined)}
             />

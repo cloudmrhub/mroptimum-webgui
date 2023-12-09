@@ -117,7 +117,7 @@ const Results = () => {
                                     accessToken:accessToken}));
                             });
                         }}>
-                            {resultLoading==params.row.id?
+                            {resultLoading==params.row.id||params.row.status=='pending'?
                                 <div className="spinner-border spinner-border-sm" style={{aspectRatio: '1 / 1'}} role="status"/>
                                     :
                                 <PlayArrowIcon sx={{

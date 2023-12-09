@@ -1,7 +1,7 @@
 /**
  * This method patches the original NiiVue library to produce customized behaviors and effects.
  */
-import {Niivue} from "@niivue/niivue";
+import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 
 const SLICE_TYPE = Object.freeze({
@@ -666,4 +666,46 @@ Niivue.prototype.relabelROIs = function(source=0, target = 0){
     this.refreshDrawing(true);
 }
 
+function getBase64FromBlob(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        // Event handler executed when the load event is fired (when readAsDataURL is complete)
+        reader.onload = () => {
+            // reader.result contains the base64 string
+            // It includes the full data URL, so we split by ',' and take the second part
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+        };
+
+        // Event handler executed if there is an error reading the file
+        reader.onerror = (error) => {
+            reject(error);
+        };
+
+        // Read the blob as a data URL
+        reader.readAsDataURL(blob);
+    });
+}
+
+Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
+    if (this.drawBitmap) {
+        console.debug('Overwriting open drawing!')
+    }
+    this.drawClearAllUndoBitmaps()
+    try {
+        // const volume = await NVImage.loadFromUrl()
+        if (base64) {
+            let imageOptions = new NVImageFromUrlOptions(fnm);
+            const drawingBitmap = NVImage.loadFromBase64({name:fnm,base64})
+            if (drawingBitmap) {
+                this.loadDrawing(drawingBitmap)
+            }
+        }
+    } catch (err) {
+        console.error('loadDrawingFromBlob() failed to load ' + fnm)
+        this.drawClearAllUndoBitmaps()
+    }
+    return base64!==undefined;
+}
 export {Niivue};

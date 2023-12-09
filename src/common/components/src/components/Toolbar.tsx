@@ -33,6 +33,7 @@ interface ToolbarProps {
     rois: ROI[];
     selectedROI: number;
     setSelectedROI: (selected:number)=>void;
+    refreshROI: ()=>void;
     verticalLayout:boolean;
     toggleVerticalLayout: ()=>void;
     showCrosshair: boolean;
@@ -158,10 +159,10 @@ export default function Toolbar(props:ToolbarProps) {
                             id="slice-type"
                             value={props.selectedROI}
                             label="Opened ROIs"
-                            onChange={(e)=>props.setSelectedROI(Number(e.target.value))}
+                            // onChange={(e)=>}
                         >
                             {props.rois.map((value,index)=>{
-                                return <MenuItem value={index}>{value.filename}</MenuItem>;
+                                return <MenuItem value={index} onClick={()=>props.setSelectedROI(Number(index))}>{value.filename}</MenuItem>;
                             })}
                         </Select>
                     </FormControl>

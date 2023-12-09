@@ -19,7 +19,10 @@ import IconButton from "@mui/material/IconButton";
 import Checkbox from "@mui/material/Checkbox";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 
-export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=>void, style?: CSSProperties,nv:any})=>{
+export const ROITable = (props:{pipelineID: string,
+    rois:any[], resampleImage:()=>void,
+    // zipAndSendROI:(url:string,filename:string,blob:Blob)=>void;
+    style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
     //     return (state.roi.rois[props.pipelineID]==undefined)?[]:state.roi.rois[props.pipelineID];
     // })
@@ -62,9 +65,9 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
             editable:true
         },
         {
-            headerName: 'ROI Color',
+            headerName: 'Color',
             field: 'color',
-            flex: 1.5,
+            flex: 1,
             renderCell: (params:{row:any})=>{
                 return <div style={{width:'14pt',height:'14pt',
                     borderRadius:'3pt',background:`${params.row.color}`}}>
@@ -176,13 +179,16 @@ export const ROITable = (props:{pipelineID: string,rois:any[], resampleImage:()=
                                    },
                                };
                                console.log(props);
+                               let filename = file.name;
+                               filename.split('.').pop();
                                const response = await axios.post(ROI_UPLOAD, {
-                                   "filename": file.name,
+                                   "filename": filename,
                                    "pipeline_id": props.pipelineID,
                                    "type": "image",
                                    "contentType": "application/octet-stream"
                                }, config);
                                console.log(response);
+                               //@TODO: continue your work here
                                axios.put(response.data.upload_url, file, {
                                    headers: {
                                        'Content-Type': "application/octet-stream"
