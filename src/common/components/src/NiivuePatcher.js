@@ -220,11 +220,11 @@ Niivue.prototype.drawSceneCore = function () {
                 let py = (sS-sY)/2;
                 let pz = (sS-sZ)/2;
                 //draw axial
-                this.draw2D([ltwh[0], ltwh[1] + sZ + pad+pz*2, sX, sY], 0);
+                this.draw2D([ltwh[0], ltwh[1] + sZ + pad+pz*2, sX, sY,sS], 0);
                 //draw coronal
-                this.draw2D([ltwh[0], ltwh[1], sX, sZ], 1);
+                this.draw2D([ltwh[0], ltwh[1], sX, sZ,sS], 1);
                 //draw sagittal
-                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1], sY, sZ], 2);
+                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1], sY, sZ,sS], 2);
                 if (isDraw3D)
                     this.draw3D([ltwh[0] + sX + pad+2*px+py, ltwh[1] + sZ + pad+2*pz+py, sY, sY]);
             } //if isDrawGrid
@@ -346,6 +346,30 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
         // screen.mnMM[1] *= zoomH;
         // screen.mxMM[1] *= zoomH;
         leftTopWidthHeight = [0, 0, gl.canvas.width, gl.canvas.height]
+    }
+
+    if (leftTopWidthHeight[4] !== undefined) {
+        const mx = leftTopWidthHeight[4];
+        // only one tile: stretch tile to fill whole screen.
+        const pixPerMMw = mx / screen.fovMM[0]
+        const pixPerMMh = mx / screen.fovMM[1]
+        const pixPerMMmin = Math.min(pixPerMMw, pixPerMMh)
+        const zoomW = pixPerMMw / pixPerMMmin
+        const zoomH = pixPerMMh / pixPerMMmin
+        screen.fovMM[0] *= zoomW
+        screen.fovMM[1] *= zoomH
+        let center = (screen.mnMM[0] + screen.mxMM[0]) * 0.5
+        screen.mnMM[0] = center - screen.fovMM[0] * 0.5
+        screen.mxMM[0] = center + screen.fovMM[0] * 0.5
+        center = (screen.mnMM[1] + screen.mxMM[1]) * 0.5
+        screen.mnMM[1] = center - screen.fovMM[1] * 0.5
+        screen.mxMM[1] = center + screen.fovMM[1] * 0.5
+        // screen.mnMM[0] *= zoomW;
+        // screen.mxMM[0] *= zoomW;
+        // screen.mnMM[1] *= zoomH;
+        // screen.mxMM[1] *= zoomH;
+        leftTopWidthHeight[2] = mx;
+        leftTopWidthHeight[3] = mx;
     }
     if (leftTopWidthHeight[2] !== leftTopWidthHeight[3]) {
         const mx = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);

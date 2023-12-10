@@ -42,7 +42,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
     const {mins,maxs,mms} = props;
     const {gui,controllerX,controllerY,controllerZ,controllerMin,controllerMax} = createGUI();
 
-    let height = 650;
+    let height = window.innerHeight*0.75;
     // This hook is for initialization, called only once
     React.useEffect(()=>{
         props.nv.attachTo('niiCanvas');

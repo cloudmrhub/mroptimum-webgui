@@ -67,21 +67,21 @@ export const authenticateSlice = createSlice({
             }),
             builder.addCase(webSignin.fulfilled,(state, action) => {
                 state.accessToken = action.payload.access_token;
-            }),
-            builder.addCase(getUploadedData.pending, (state, action) => {
-                state.loading = true;
-            }),
-            builder.addCase(getUploadedData.fulfilled, (state, action) => {
-                let data: Array<UploadedFile> = [];
-                const payloadData: any = action.payload;
-                if (payloadData == undefined||payloadData.error=='user not recognized') {
-                    state.accessToken = "";
-                    state.expiresIn = "";
-                    state.password = "";
-                    state.tokenType = "";
-                    state.loading = false;
-                }
-                state.loading = false;
-            })
+            })//,
+            // builder.addCase(getUploadedData.pending, (state, action) => {
+            //     state.loading = true;
+            // }),
+            // builder.addCase(getUploadedData.fulfilled, (state, action) => {
+            //     let data: Array<UploadedFile> = [];
+            //     const payloadData: any = action.payload;
+            //     if (payloadData == undefined||payloadData.error=='user not recognized') {
+            //         state.accessToken = "";
+            //         state.expiresIn = "";
+            //         state.password = "";
+            //         state.tokenType = "";
+            //         state.loading = false;
+            //     }
+            //     state.loading = false;
+            // })
     ),
 });
