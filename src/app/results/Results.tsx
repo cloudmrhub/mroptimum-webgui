@@ -22,6 +22,7 @@ import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbo
 import {Row} from "antd";
 import {ROITable} from "./Rois";
 import {createTheme} from "@mui/material/styles";
+import Box from "@mui/material/Box";
 
 export interface NiiFile {
     filename:string;
@@ -37,12 +38,13 @@ const Results = () => {
     const { accessToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state)=>
         state.jobs.jobs);
-    const activeJobAlias = useAppSelector((state)=>state.result.activeJob.alias);
     // const [rois, setROIS] = useState<ROI[]>([]);
-    const pipelineID = useAppSelector(state => state.result.activeJob.pipeline_id);
-    const volumes = useAppSelector(state => state.result.volumes[pipelineID]);
+    const activeJob = useAppSelector(state=>state.result.activeJob);
+    const activeJobAlias = useAppSelector((state)=>state.result.activeJob?.alias);
+    const pipelineID = useAppSelector(state => state.result.activeJob?.pipeline_id);
+    const volumes = useAppSelector(state => pipelineID?state.result.volumes[pipelineID]:[]);
     const rois:ROI[] = useAppSelector(state=>{
-        return (state.result.rois[pipelineID]==undefined)?[]:state.result.rois[pipelineID];
+        return (pipelineID==undefined||state.result.rois[pipelineID]==undefined)?[]:state.result.rois[pipelineID];
     })
     const selectedVolume = useAppSelector(state => state.result.selectedVolume);
     const resultLoading  = useAppSelector(state => state.result.resultLoading);
@@ -175,14 +177,18 @@ const Results = () => {
                     }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
-                    <NiiVue volumes={volumes} setSelectedVolume={(index:number)=>{
+                    {activeJob!=undefined&&<NiiVue volumes={volumes} setSelectedVolume={(index:number)=>{
                         dispatch(resultActions.selectVolume(index));
                     }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore
                         dispatch(getPipelineROI({pipeline: pipelineID,
                             accessToken:accessToken}));
                     }}
-                    accessToken={accessToken}/>
+                     accessToken={accessToken}/>}
+                    {activeJob==undefined&&
+                    <Box sx={{display:'flex', justifyContent:'center'}}>
+                        No Result Inspections Running
+                    </Box>}
                 </CmrPanel>
             </CmrCollapse>
             <div style={{height:'69px'}}></div>

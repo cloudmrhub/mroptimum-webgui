@@ -32,7 +32,7 @@ export interface ROIState{
     resultLoading: number;
     loading:boolean;
     volumes:{[pipeline_id:string]:Volume[]};
-    activeJob: Job;
+    activeJob?: Job;
     selectedVolume: number;
     openPanel: number[];
 }
@@ -42,24 +42,7 @@ const initialState: ROIState = {
     volumes:{'-1':[]},
     resultLoading: -1,
     loading:false,
-    activeJob:{id:0,
-        alias: 'sample0',
-        status: 'completed',
-        createdAt: '08-21-2023',
-        updatedAt: '08-21-2023',
-        pipeline_id:'-1',
-        setup: {
-            version: 'v0',
-            alias: 'sample0',
-            output:{
-                coilsensitivity: false,
-                gfactor: false,
-                matlab: true
-            },
-            task: defaultSNR
-        },
-        files: []
-    },
+    activeJob:undefined,
     selectedVolume:1,
     openPanel:[0]
 };

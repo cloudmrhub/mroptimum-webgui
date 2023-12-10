@@ -21,7 +21,8 @@ import Confirmation from "../../common/components/Cmr-components/dialogue/Confir
 
 export const ROITable = (props:{pipelineID: string,
     rois:any[], resampleImage:()=>void,
-    // zipAndSendROI:(url:string,filename:string,blob:Blob)=>void;
+    zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>,
+    unzipAndRenderROI:(url:string)=>Promise<void>,
     style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
     //     return (state.roi.rois[props.pipelineID]==undefined)?[]:state.roi.rois[props.pipelineID];
@@ -172,34 +173,28 @@ export const ROITable = (props:{pipelineID: string,
             <div className="col-4">
                 <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
                 }}
-                           upload={async (file)=>{
-                               const config = {
-                                   headers: {
-                                       Authorization: `Bearer ${accessToken}`,
-                                   },
-                               };
-                               console.log(props);
-                               let filename = file.name;
-                               filename.split('.').pop();
-                               const response = await axios.post(ROI_UPLOAD, {
-                                   "filename": filename,
-                                   "pipeline_id": props.pipelineID,
-                                   "type": "image",
-                                   "contentType": "application/octet-stream"
-                               }, config);
-                               console.log(response);
-                               //@TODO: continue your work here
-                               axios.put(response.data.upload_url, file, {
-                                   headers: {
-                                       'Content-Type': "application/octet-stream"
-                                   }
-                               }).then(async (payload) => {
-                                   await props.nv.loadDrawingFromUrl(response.data.access_url);
-                                   props.resampleImage();
-                               });
-                               return 200;
-                           }}
-                           createPayload={createPayload} maxCount={1}></CMRUpload>
+                    upload={async (file)=>{
+                       const config = {
+                           headers: {
+                               Authorization: `Bearer ${accessToken}`,
+                           },
+                       };
+                       console.log(props);
+                       let filename = file.name;
+                       filename.split('.').pop();
+                       const response = await axios.post(ROI_UPLOAD, {
+                           "filename": filename,
+                           "pipeline_id": props.pipelineID,
+                           "type": "image",
+                           "contentType": "application/octet-stream"
+                       }, config);
+                       console.log(response);
+                       props.zipAndSendROI(response.data.upload_url,filename,file).then(async () => {
+                           await props.unzipAndRenderROI(response.data.access_url);
+                       });
+                       return 200;
+                   }}
+                   createPayload={createPayload} maxCount={1}></CMRUpload>
             </div>
         </div>
         <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open)=>setWarningVisible(open)}/>

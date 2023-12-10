@@ -3,7 +3,8 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import {ROI_GET, ROI_UPLOAD, UNZIP} from '../../Variables';
 import {resultActions, ROI, Volume} from "./resultSlice";
 import {nv} from "../../common/components/src/Niivue";
-import {Job} from "../jobs/jobsSlice";
+import {Job, sampleJob} from "../jobs/jobsSlice";
+import {defaultSNR} from "../setup/setupSlice";
 
 export interface NiiFile {
     filename:string;
@@ -30,6 +31,9 @@ export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pi
 
 
 export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job}:{accessToken:string,job:Job})=>{
+    if(job.pipeline_id==sampleJob.pipeline_id){
+        return sampleResult;
+    }
     let volumes:Volume[] = [];
     let file = job.files[0];
     console.log(file);
@@ -39,8 +43,12 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
         }
     })).data;
     niis.forEach((value)=>{
-        volumes.push({url: value.link,
+        volumes.push({
+            //URL is for NiiVue blob loading
+            url: value.link,
+            //name is for NiiVue name replacer (needs proper extension like .nii)
             name: (value.filename.split('/').pop() as string),
+            //alias is for user selection in toolbar
             alias: value.name
         });
     });
@@ -65,3 +73,19 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
 //
 //     })
 // });
+
+// For local testing purposes:
+let sampleResult = {
+    job: sampleJob,
+    pipeline_id:'###',
+    volumes: [
+        {
+            name: 'Brain.nii',
+            url: './mni.nii',
+            alias: 'Brain'
+        },{
+            name: 'Hippocampus.nii',
+            url: './hippo.nii',
+            alias: 'Hippocampus',
+        }]
+}

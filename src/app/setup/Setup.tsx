@@ -207,8 +207,7 @@ const Setup = () => {
                 switch(params.id){
                     case 1:
                         return <CmrInputNumber value={decimateAcceleration1}
-                                               min={1}
-                                               max={1}
+                                               min={0}
                                                style={{width:'100%'}}
                                                onChange={(val) => {
                                                    dispatch(setupSetters.setDecimateAccelerations1((val == null) ? 0 : val))
@@ -231,13 +230,13 @@ const Setup = () => {
             }
         }];
     const rows: GridRowsProp = [
-        // {
-        //     id: 1,
-        //     type: 'Acceleration factor 1',
-        // },
+        {
+            id: 1,
+            type: 'Acceleration factor 1',
+        },
         {
             id: 2,
-            type: 'Acceleration factor',
+            type: 'Acceleration factor 2',
         },
         {
             id: 3,
@@ -606,7 +605,7 @@ const Setup = () => {
                         </RadioGroup>
                     </FormControl>
 
-                    {snrDescription != '' &&
+                    {analysisMethod!=undefined && snrDescription != '' &&
                         <CmrPanel className='mb-3' header={undefined} cardProps={{className: 'mb-2 ms-2 me-2 mt-2'}}
                                   expanded={true}>
                             {snrDescription}

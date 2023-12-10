@@ -25,6 +25,9 @@ interface NiivuePanelProps{
     max:number;
     setMin:(min:number)=>void;
     setMax:(max:number)=>void;
+
+    zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>;
+    unzipAndRenderROI:(url:string)=>Promise<void>;
 }
 
 
@@ -191,6 +194,9 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     }}
                     nv={props.nv}
                     resampleImage={props.resampleImage}
+
+                    unzipAndRenderROI={props.unzipAndRenderROI}
+                    zipAndSendROI={props.zipAndSendROI}
                 />
             </Box>
         </Box>

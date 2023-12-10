@@ -755,7 +755,7 @@ export default function NiiVueport(props) {
     const [warningCancelCallback, setWarningCancelCallback] = useState(() => {});
     const [drawingChanged, setDrawingChanged] = useState(false);
 
-    const zipAndSendROI = function(uploadURL,filename,blob){
+    const zipAndSendROI = async function(uploadURL,filename,blob){
         let zip = new JSZip();
         let descriptor = {
             "data": [
@@ -775,74 +775,67 @@ export default function NiiVueport(props) {
         }
         zip.file("info.json", JSON.stringify(descriptor));
         zip.file(`${filename}.nii`, blob, {base64: true});
-        zip.generateAsync({type:"blob"})
-            .then(function(content) {
-                const file = new File([content], filename, {
-                    type: blob.type,
-                    lastModified: Date.now()
-                });
-                // Upload to bucket
-                axios.put(uploadURL, file, {
-                    headers: {
-                        'Content-Type': file.type
-                    }
-                }).then(() => {
-                    // Update available rois with this callback
-                    props.saveROICallback();
-                });
-            });
-    }
-    const selectROI = async (roiIndex) => {
-        console.log(nv.drawBitmap);
-        const load = async () => {
-            // console.log(props.rois[roiIndex]);
-            // console.trace();
-
-            // Fetch the file from the URL
-            const response = await fetch(props.rois[roiIndex].link);
-
-            // Check if the request was successful
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+        let content = await zip.generateAsync({type:"blob"});
+        const file = new File([content], filename, {
+            type: content.type,
+            lastModified: Date.now()
+        });
+        // Upload to bucket
+        await axios.put(uploadURL, file, {
+            headers: {
+                'Content-Type': file.type
             }
+        });
+    }
 
-            // Convert the response to a Blob
-            const blob = await response.blob();
+    const unzipAndRenderROI = async (accessURL) => {
+        // console.log(props.rois[roiIndex]);
+        // console.trace();
 
-            // Create a new JSZip instance
-            const zip = new JSZip();
+        // Fetch the file from the URL
+        const response = await fetch(accessURL);
 
-            await zip.loadAsync(blob);
+        // Check if the request was successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Convert the response to a Blob
+        const blob = await response.blob();
+        // Create a new JSZip instance
+        const zip = new JSZip();
+        await zip.loadAsync(blob);
 
-            // Check if info.js exists in the zip
-            const fileInfo = zip.file("info.json");
-            if (fileInfo) {
-                // Read the content of info.js
-                const content = await fileInfo.async("string");
-                let info = JSON.parse(content);
-                let niiFilePath = info.data[0].filename;
-                const niiDrawing = zip.file(niiFilePath);
-                if (niiDrawing) {
-                    // Read the content as a blob
-                    const base64 = await niiDrawing.async("base64");
-                    console.log(niiFilePath);
-                    nv.loadDrawingFromBase64(niiFilePath,base64).then((value) => {
-                        resampleImage();
-                    });
+        // Check if info.js exists in the zip
+        const fileInfo = zip.file("info.json");
+        if (fileInfo) {
+            // Read the content of info.js
+            const content = await fileInfo.async("string");
+            let info = JSON.parse(content);
+            let niiFilePath = info.data[0].filename;
+            const niiDrawing = zip.file(niiFilePath);
+            if (niiDrawing) {
+                // Read the content as a blob
+                const base64 = await niiDrawing.async("base64");
+                console.log(niiFilePath);
+                nv.loadDrawingFromBase64(niiFilePath,base64).then((value) => {
+                    resampleImage();
+                });
 
-                } else {
-                    console.log(`${niiFilePath} not found in the ZIP file.`);
-                    return null;
-                }
-                // return content;
             } else {
-                console.log("info.json not found in the ZIP file.");
+                console.log(`${niiFilePath} not found in the ZIP file.`);
                 return null;
             }
-            setSelectedROI(roiIndex);
-            setDrawingChanged(false);
-        };
-        load();
+            // return content;
+        } else {
+            console.log("info.json not found in the ZIP file.");
+            return null;
+        }
+    };
+    const selectROI = async (roiIndex) => {
+        console.log(nv.drawBitmap);
+        await unzipAndRenderROI(props.rois[roiIndex].link);
+        setSelectedROI(roiIndex);
+        setDrawingChanged(false);
     }
     const refreshROI = async () => {
         let roiIndex = selectedROI;
@@ -878,7 +871,10 @@ export default function NiiVueport(props) {
             const originalCreateObjectURL = URL.createObjectURL;
             // Redefine the method
             URL.createObjectURL = function (blob) {
-                zipAndSendROI(response.data.upload_url,filename, blob);
+                zipAndSendROI(response.data.upload_url,filename, blob).then(()=>{
+                    // Update available rois with this callback
+                    props.saveROICallback();
+                });
                 // Call the original method and return its result
                 return 'javascript:void(0);';
             };
@@ -1259,6 +1255,9 @@ export default function NiiVueport(props) {
                 max={max}
                 setMin={setMin}
                 setMax={setMax}
+
+                unzipAndRenderROI={unzipAndRenderROI}
+                zipAndSendROI={zipAndSendROI}
             />}
             <Box sx={{width: '100%',
                 display:(!verticalLayout)?'none':'flex',
@@ -1282,6 +1281,8 @@ export default function NiiVueport(props) {
                     }}
                     nv={nv}
                     resampleImage={resampleImage}
+                    unzipAndRenderROI={unzipAndRenderROI}
+                    zipAndSendROI={zipAndSendROI}
                 />
             </Box>
         </Box>

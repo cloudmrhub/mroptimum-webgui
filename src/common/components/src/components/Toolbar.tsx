@@ -2,20 +2,8 @@ import React, {ChangeEvent, Fragment, useState} from 'react'
 import {Box, Button, Menu, Stack, SvgIconProps, Switch, Typography} from "@mui/material"
 import {IconButton,FormControl,Select,MenuItem,InputLabel} from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
-import MenuIcon from '@mui/icons-material/Menu'
-import BrushIcon from '@mui/icons-material/Brush';
-import LayersIcon from '@mui/icons-material/Layers'
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import SvgIcon from '@mui/material/SvgIcon';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import FiberManualRecordOutlinedIcon from '@mui/icons-material/FiberManualRecordOutlined';
-import ImagesearchRollerIcon from '@mui/icons-material/ImagesearchRoller';
-import BrushOutlinedIcon from '@mui/icons-material/BrushOutlined';
-import AutoFixNormalOutlinedIcon from '@mui/icons-material/AutoFixNormalOutlined';
-import ReplyIcon from '@mui/icons-material/Reply';
+import MenuIcon from '@mui/icons-material/Menu';
 import {ROI} from "../../../../features/rois/resultSlice";
-import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
-import {createTheme} from "@mui/material/styles";
 import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
 import {getPipelineROI} from "../../../../features/rois/resultActionCreation";
 // import {Niivue} from "@niivue/niivue";
@@ -60,7 +48,7 @@ export default function Toolbar(props:ToolbarProps) {
 
     let dragModes = ["Pan","Measurement","Contrast",'None'];
     let accessToken = useAppSelector(state => state.authenticate.accessToken);
-    let pipeline = useAppSelector(state => state.result.activeJob.pipeline_id);
+    let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
     return (
         <Box  sx={{display:'flex', flexDirection:'column',width:'100%'}}>
             {props.volumes[props.selectedVolume]!=undefined&&<Fragment>
