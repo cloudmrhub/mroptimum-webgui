@@ -58,10 +58,6 @@ const MULTIPLANAR_TYPE = Object.freeze({
 });
 
 const labelVisibility = {};
-// Caches bitmaps by label visibilities
-const bitmapCache = {
-
-};
 Niivue.prototype.getLabelVisibility = function(label){
     if(labelVisibility[label]===undefined){
         labelVisibility[label] = true;
@@ -73,24 +69,47 @@ Niivue.prototype.getLabelVisibility = function(label){
 }
 
 Niivue.prototype.setLabelVisibility = function(label, visible){
+    console.log(label);
     labelVisibility[label] = visible;
-    if(!visible){
-        if(bitmapCache[label]===undefined)
-            bitmapCache[label] = []
+    if(this.hiddenBitmap===undefined)
+        this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+    if(!visible) {
         for(let i = 0; i<this.drawBitmap.length; i++){
             if(this.drawBitmap[i]===label){
-                bitmapCache[label].push(i);
-                this.drawBitmap[i]=0;
+                console.log(this.drawBitmap[i])
+                this.hiddenBitmap[i] = label;
+                this.drawBitmap[i] = 0;
             }
         }
-    } else{
-        if(bitmapCache[label]!=undefined){
-            let cache = bitmapCache[label];
-            while(cache.length!=0){
-                this.drawBitmap[cache.pop()] = label;
+        this.refreshDrawing(false);
+    } else {
+        for(let i = 0; i<this.hiddenBitmap.length; i++){
+            if(this.hiddenBitmap[i]===label){
+                this.hiddenBitmap[i] = 0;
+                if(this.drawBitmap[i] === 0){
+                    this.drawBitmap[i] = label;
+                }
             }
         }
+        this.refreshDrawing(false);
     }
+}
+
+// const drawAddUndoBitmap = Niivue.prototype.drawAddUndoBitmap;
+// // This patching adds visibility filtering to drawings
+// Niivue.prototype.drawAddUndoBitmap = async function(){
+//     let resp = await drawAddUndoBitmap.call(this);
+//     return resp;
+// }
+
+// This patch to closeDrawing clears invisible bitmapCache when applied
+const closeDrawing = Niivue.prototype.closeDrawing;
+Niivue.prototype.closeDrawing = function(){
+    if(this.drawBitmap!==undefined&&this.drawBitmap!==null)
+        this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+     else if(this.hiddenBitmap!==undefined)
+         this.hiddenBitmap.length = 0;
+    closeDrawing.call(this);
 }
 
 Niivue.prototype.drawSceneCore = function () {
@@ -594,7 +613,6 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
     this.readyForSync = true
 }
 
-
 // not included in public docs
 // set color of single voxel in drawing
 // Include thickness in opts
@@ -611,7 +629,6 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
     const dx = this.back.dims[1]
     const dy = this.back.dims[2]
     const dz = this.back.dims[3]
-    const penVisible = this.getLabelVisibility(penValue);
     //Sweep through cubic area, filter by radius
     for(let i = x-penBounds; i<=x+penBounds; i++){
         for(let j = y-penBounds; j<=y+penBounds; j++){
@@ -621,11 +638,7 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
                     let xn = Math.min(Math.max(i, 0), dx - 1)
                     let yn = Math.min(Math.max(j, 0), dy - 1)
                     let zn = Math.min(Math.max(k, 0), dz - 1)
-                    if(penVisible){
-                        this.drawBitmap[xn + yn * dx + zn * dx * dy] = penValue;
-                    }else{
-                        bitmapCache[penValue].push(xn + yn * dx + zn * dx * dy);
-                    }
+                    this.drawBitmap[xn + yn * dx + zn * dx * dy] = penValue;
                 }
             }
         }
@@ -635,6 +648,8 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
 // not included in public docs
 // given series of line segments, connect first and last
 // voxel and fill the interior of the line segments
+// yuelong: fill volumetric interior of the paint space,
+// if active draw pen set to invisible
 Niivue.prototype.drawPenFilled = function() {
     const nPts = this.drawPenFillPts.length
     if (nPts < 2) {
@@ -851,6 +866,16 @@ Niivue.prototype.drawPenFilled = function() {
     }
     this.drawPenFillPts = []
     this.drawAddUndoBitmap()
+    if(this.hiddenBitmap == undefined || this.hiddenBitmap.length!=this.drawBitmap.length){
+        this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+    }
+    for(let i = 0; i<this.drawBitmap.length; i++){
+        let pen = this.drawBitmap[i];
+        if(!this.getLabelVisibility(pen)){
+            this.hiddenBitmap[i] = this.drawBitmap[i];
+            this.drawBitmap[i]=0;
+        }
+    }
     this.refreshDrawing(false)
 }
 

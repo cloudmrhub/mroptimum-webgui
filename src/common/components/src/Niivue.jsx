@@ -596,6 +596,16 @@ export default function NiiVueport(props) {
             }
             samples[nv.drawBitmap[i]].push(image.img[i]);
         }
+        if(nv.hiddenBitmap!==undefined){
+            for (let i = 0; i < nv.hiddenBitmap.length; i++) {
+                //val&7-1 converts to r,g,b index through bit operations
+                if(samples[nv.hiddenBitmap[i]]===undefined){
+                    samples[nv.hiddenBitmap[i]] = [];
+                }
+                samples[nv.hiddenBitmap[i]].push(image.img[i]);
+            }
+        }
+
         const colors = ['#bbb','#f00','#0f0','#00f','yellow','cyan','#e81ce8','#e8dbc7']
         for(let key in samples){
             let sample = samples[key];
@@ -604,6 +614,7 @@ export default function NiiVueport(props) {
                 rois.push({
                     id:key,
                     label:key,
+                    visibility:nv.getLabelVisibility(Number(key)),
                     color:colors[key],
                     mu:calculateMean(sample),
                     std:calculateStandardDeviation(sample),

@@ -66,16 +66,19 @@ export const ROITable = (props:{pipelineID: string,
             headerName:'ROI Label',
             field: 'label',
             flex: 1.5,
-            editable:true
+            editable:true,
         },
         {
             headerName: 'Color',
             field: 'color',
             flex: 1,
+            sortable:false,
             renderCell: (params:{row:any})=>{
-                return <div style={{width:'14pt',height:'14pt',
-                    borderRadius:'3pt',background:`${params.row.color}`}}>
-                </div>
+                return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
+                    <div style={{width:'14pt',height:'14pt',
+                        borderRadius:'3pt',background:`${params.row.color}`}}>
+                    </div>
+                </Box>
             }
         },
         {
@@ -99,9 +102,22 @@ export const ROITable = (props:{pipelineID: string,
             }
         },
         {
-            headerName: 'Opacity',
-            field: 'opacity',
-            flex: 1
+            headerName: 'Visibility',
+            field: 'visibility',
+            flex: 1,
+            sortable:false,
+            renderCell: (params:{row:any})=>{
+                return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
+                    <IconButton onClick={(event)=>{
+                        props.nv.setLabelVisibility(Number(params.row.label),!props.nv.getLabelVisibility(Number(params.row.label)));
+                        props.resampleImage();
+                        props.nv.drawScene();
+                        event.stopPropagation();
+                    }}>
+                        {params.row.visibility?<VisibilityIcon sx={{color:'#aaa'}}/>:<VisibilityOffIcon sx={{color:'#aaa'}}/>}
+                    </IconButton>
+                </Box>
+            }
         },
         {
             headerName: 'Voxel Count',
