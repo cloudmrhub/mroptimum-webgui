@@ -28,6 +28,7 @@ interface NiivuePanelProps{
 
     zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>;
     unzipAndRenderROI:(url:string)=>Promise<void>;
+    setLabelAlias:(label:string|number,alias:string)=>void;
 }
 
 
@@ -197,6 +198,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
                     unpackROI={props.unzipAndRenderROI}
                     zipAndSendROI={props.zipAndSendROI}
+                    setLabelAlias={props.setLabelAlias}
                 />
             </Box>
         </Box>

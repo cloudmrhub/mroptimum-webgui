@@ -1,5 +1,5 @@
 import React, {ChangeEvent, Fragment, useState} from 'react'
-import {Box, Button, Menu, Stack, SvgIconProps, Switch, Typography} from "@mui/material"
+import {Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Typography} from "@mui/material"
 import {IconButton,FormControl,Select,MenuItem,InputLabel} from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -30,7 +30,7 @@ interface ToolbarProps {
     setDragMode:(dragMode:string|boolean)=>void;
     radiological:boolean;
     toggleRadiological:()=>void;
-    saveROI:(callback: ()=>void)=>void;
+    saveROI:(callback: ()=>void,preSaving:()=>void)=>void;
     complexMode: string;
     setComplexMode:(complexMode:string)=>void;
     complexOptions:string[];
@@ -38,6 +38,7 @@ interface ToolbarProps {
 
 export default function Toolbar(props:ToolbarProps) {
     const [sliceType, setSliceType] = React.useState('multi')
+    const [saving,setSaving] = React.useState(false);
     let dispatch = useAppDispatch();
     function handleSliceTypeChange(e: { target: { value: any } }) {
         let newSliceType = e.target.value
@@ -154,10 +155,15 @@ export default function Toolbar(props:ToolbarProps) {
                             })}
                         </Select>
                     </FormControl>
-                    <Button variant={'contained'} onClick={()=>{
+                    <Button variant={'contained'}
+                            endIcon={saving && <CircularProgress sx={{color:'white'}} size={20} />}
+                            onClick={()=>{
                         props.saveROI(()=>{
                             //@ts-ignore
                             dispatch(getPipelineROI({accessToken,pipeline}));
+                            setSaving(false);
+                        },()=>{
+                            setSaving(true);
                         });
                     }}>
                         Save Drawing Layer

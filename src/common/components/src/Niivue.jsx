@@ -97,7 +97,6 @@ export default function NiiVueport(props) {
     const [min, setMin] = useState(0);
     const [max, setMax] = useState(1);
 
-
     React.useEffect(() => {
         if(props.displayVertical)
             resampleImage();
@@ -548,7 +547,8 @@ export default function NiiVueport(props) {
         nv.drawScene()
     }
 
-    function resampleImage() {
+    const [labelMapping, setLabelMapping] = useState({});
+    function resampleImage(mapping=labelMapping) {
         let image = nv.volumes[0];
         let rois = [];
         let layout = {
@@ -612,83 +612,34 @@ export default function NiiVueport(props) {
             if(sample.length>0&&key>0){
                 console.log(key);
                 rois.push({
-                    id:key,
                     label:key,
+                    alias:mapping[key]?mapping[key]:key,
                     visibility:nv.getLabelVisibility(Number(key)),
                     color:colors[key],
                     mu:calculateMean(sample),
                     std:calculateStandardDeviation(sample),
                     opacity:nv.drawOpacity,
-                    count: sample.length
+                    count: sample.length,
+                    sample:sample
                 })
             }
         }
         setROIs(rois);
         // plot a histogram of numbers
-        let traces = [{
-                x: samples[1],
-                type: "histogram",
-                name: '1',
-                opacity: 0.5,
-                marker: {
-                    color: 'red',
-                }
-            },
-            {
-                x: samples[2],
-                type: "histogram",
-                opacity: 0.5,
-                name: '2',
-                marker: {
-                    color: 'green',
-                },
-            },
-            {
-                x: samples[3],
-                type: "histogram",
-                name: '3',
-                opacity: 0.5,
-                marker: {
-                    color: 'blue',
-                },
-            },
-            {
-                x: samples[4],
-                type: "histogram",
-                name: '4',
-                opacity: 0.5,
-                marker: {
-                    color: 'yellow',
-                },
-            },
-            {
-                x: samples[5],
-                type: "histogram",
-                name: '5',
-                opacity: 0.5,
-                marker: {
-                    color: 'cyan',
-                },
-            },
-            {
-                x: samples[6],
-                type: "histogram",
-                name: '6',
-                opacity: 0.5,
-                marker: {
-                    color: '#e81ce8',
-                },
-            },
-            {
-                x: samples[7],
-                type: "histogram",
-                name: '7',
-                opacity: 0.5,
-                marker: {
-                    color: '#e8dbc7',
-                },
-            }];
-
+        let traces = [];
+        for(let roi of rois){
+            // if(roi.visibility){
+                traces.push({
+                    x: roi.sample,
+                    type: "histogram",
+                    name: roi.alias,
+                    opacity: roi.visibility?0.5:0.1,
+                    marker: {
+                        color: roi.color,
+                    }
+                });
+            // }
+        }
         if(verticalLayout){
             Plotly.newPlot('histoplotv', traces, layout, {responsive: true});
         }else
@@ -740,12 +691,12 @@ export default function NiiVueport(props) {
             }
             nv.loadVolumes([props.volumes[volumeIndex]]);
             setSelectedVolume(volumeIndex);
-            setSelectedROI('');
+            setSelectedDrawingLayer('');
         }
         // In case that changes has been made
         if (drawingChanged) {
             setWarningConfirmationCallback(()=>(()=>{
-                saveROI(() => {
+                saveDrawingLayer(() => {
                     openVolume();
                 });
             }));
@@ -756,7 +707,7 @@ export default function NiiVueport(props) {
         } else
             openVolume();
     }
-    const [selectedROI, setSelectedROI] = useState('');
+    const [selectedROI, setSelectedDrawingLayer] = useState('');
     const [saveDialogOpen, setSaveDialogOpen] = useState(false);
     const [saveConfirmCallback, setSaveConfirmCallback] = useState(() => {
     });
@@ -766,7 +717,12 @@ export default function NiiVueport(props) {
     const [warningCancelCallback, setWarningCancelCallback] = useState(() => {});
     const [drawingChanged, setDrawingChanged] = useState(false);
 
-    const zipAndSendROI = async function(uploadURL,filename,blob){
+    const setLabelAlias = function(label,alias){
+        labelMapping[label] = alias;
+        setLabelMapping(labelMapping);
+        resampleImage(labelMapping);
+    }
+    const zipAndSendDrawingLayer = async function(uploadURL,filename,blob){
         let zip = new JSZip();
         let descriptor = {
             "data": [
@@ -777,10 +733,7 @@ export default function NiiVueport(props) {
                     "type": 'image',
                     // "numpyPixelType": "complex64",
                     // "pixelType": "complex"
-                    "labelMapping":{
-                        1:'Cerebrum',
-                        2:'Cerebellum'
-                    }
+                    "labelMapping":labelMapping
                 }
             ]
         }
@@ -799,7 +752,7 @@ export default function NiiVueport(props) {
         });
     }
 
-    const unzipAndRenderROI = async (accessURL) => {
+    const unzipAndRenderDrawingLayer = async (accessURL) => {
         // console.log(props.rois[roiIndex]);
         // console.trace();
 
@@ -829,7 +782,8 @@ export default function NiiVueport(props) {
                 const base64 = await niiDrawing.async("base64");
                 console.log(niiFilePath);
                 nv.loadDrawingFromBase64(niiFilePath,base64).then((value) => {
-                    resampleImage();
+                    setLabelMapping(info.data[0].labelMapping);
+                    resampleImage(info.data[0].labelMapping);
                 });
 
             } else {
@@ -842,16 +796,16 @@ export default function NiiVueport(props) {
             return null;
         }
     };
-    const selectROI = async (roiIndex) => {
+    const selectDrawingLayer = async (roiIndex) => {
         // console.log(nv.drawBitmap);
-        await unzipAndRenderROI(props.rois[roiIndex].link);
-        setSelectedROI(roiIndex);
+        await unzipAndRenderDrawingLayer(props.rois[roiIndex].link);
+        setSelectedDrawingLayer(roiIndex);
         setDrawingChanged(false);
     }
     const unpackROI = async (accessURL)=>{
-        await unzipAndRenderROI(accessURL);
+        await unzipAndRenderDrawingLayer(accessURL);
         setDrawingChanged(false);
-        setSelectedROI(props.rois.length);
+        setSelectedDrawingLayer(props.rois.length);
     }
     const refreshROI = async () => {
         let roiIndex = selectedROI;
@@ -862,14 +816,16 @@ export default function NiiVueport(props) {
             nv.loadDrawingFromUrl(props.rois[roiIndex].link).then((value) => {
                 resampleImage();
             });
-            setSelectedROI(roiIndex);
+            setSelectedDrawingLayer(roiIndex);
             setDrawingChanged(false);
         };
         load();
     }
-    const saveROI = (afterSaveCallback) => {
+
+    const saveDrawingLayer = (afterSaveCallback,preSaveCallback=()=>{}) => {
         setSaveDialogOpen(true);
         setSaveConfirmCallback(() => (async (filename) => {
+            preSaveCallback();
             const config = {
                 headers: {
                     Authorization: `Bearer ${props.accessToken}`,
@@ -887,9 +843,13 @@ export default function NiiVueport(props) {
             const originalCreateObjectURL = URL.createObjectURL;
             // Redefine the method
             URL.createObjectURL = function (blob) {
-                zipAndSendROI(response.data.upload_url,filename, blob).then(()=>{
+                zipAndSendDrawingLayer(response.data.upload_url,filename, blob).then(()=>{
                     // Update available rois with this callback
-                    props.saveROICallback();
+                    // props.saveROICallback();
+                    setDrawingChanged(false);
+                    setSelectedDrawingLayer(props.rois.length);
+                    if (afterSaveCallback instanceof Function)
+                        afterSaveCallback();
                 });
                 // Call the original method and return its result
                 return 'javascript:void(0);';
@@ -899,10 +859,6 @@ export default function NiiVueport(props) {
             let successful = await nv.saveImage(filename, true);
             // De-patch
             URL.createObjectURL = originalCreateObjectURL;
-            setDrawingChanged(false);
-            setSelectedROI(props.rois.length);
-            if (afterSaveCallback instanceof Function)
-                afterSaveCallback();
         }));
     }
 
@@ -1209,7 +1165,7 @@ export default function NiiVueport(props) {
                 rois={props.rois}
                 selectedROI={selectedROI}
                 refreshROI={refreshROI}
-                setSelectedROI={selectROI}
+                setSelectedROI={selectDrawingLayer}
                 verticalLayout={verticalLayout}
                 toggleVerticalLayout={toggleSampleDistribution}
                 toggleShowCrosshair={nvUpdateCrosshair}
@@ -1218,7 +1174,7 @@ export default function NiiVueport(props) {
                 setDragMode={nvSetDragMode}
                 toggleRadiological={nvUpdateRadiological}
                 radiological={radiological}
-                saveROI = {saveROI}
+                saveROI = {saveDrawingLayer}
                 complexMode={complexMode}
                 setComplexMode={nvSetDisplayedVoxels}
                 complexOptions={complexOptions}
@@ -1273,7 +1229,8 @@ export default function NiiVueport(props) {
                 setMax={setMax}
 
                 unzipAndRenderROI={unpackROI}
-                zipAndSendROI={zipAndSendROI}
+                zipAndSendROI={zipAndSendDrawingLayer}
+                setLabelAlias={setLabelAlias}
             />}
             <Box sx={{width: '100%',
                 display:(!verticalLayout)?'none':'flex',
@@ -1298,7 +1255,8 @@ export default function NiiVueport(props) {
                     nv={nv}
                     resampleImage={resampleImage}
                     unpackROI={unpackROI}
-                    zipAndSendROI={zipAndSendROI}
+                    zipAndSendROI={zipAndSendDrawingLayer}
+                    setLabelAlias={setLabelAlias}
                 />
             </Box>
         </Box>

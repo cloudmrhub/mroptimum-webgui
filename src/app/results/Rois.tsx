@@ -10,7 +10,7 @@ import {DATAUPLODAAPI, ROI_UPLOAD} from "../../Variables";
 import {AxiosRequestConfig} from "axios";
 import {useAppDispatch, useAppSelector} from "../../features/hooks";
 import {nv} from "../../common/components/src/Niivue";
-import {GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, MuiEvent} from "@mui/x-data-grid";
+import {GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, GridValueSetterParams, MuiEvent} from "@mui/x-data-grid";
 import axios from "axios";
 import Box from "@mui/material/Box";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -24,6 +24,7 @@ export const ROITable = (props:{pipelineID: string,
     rois:any[], resampleImage:()=>void,
     zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>,
     unpackROI:(url:string)=>Promise<void>,
+    setLabelAlias:(label:number|string,alias:string)=>void,
     style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
     //     return (state.roi.rois[props.pipelineID]==undefined)?[]:state.roi.rois[props.pipelineID];
@@ -64,14 +65,24 @@ export const ROITable = (props:{pipelineID: string,
     const roiColumns=[
         {
             headerName:'ROI Label',
-            field: 'label',
+            field: 'alias',
             flex: 1.5,
             editable:true,
+            valueSetter:(params: GridValueSetterParams)=>{
+                let value = params.value;
+                console.log(params);
+                const newAlias = params.value; // Value entered by the user
+                console.log(newAlias);
+                if(newAlias!=params.row.alias){
+                    props.setLabelAlias(params.row.label, newAlias);
+                }
+                return params.row
+            }
         },
         {
             headerName: 'Color',
             field: 'color',
-            flex: 1,
+            flex: 0.5,
             sortable:false,
             renderCell: (params:{row:any})=>{
                 return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
@@ -138,16 +149,17 @@ export const ROITable = (props:{pipelineID: string,
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);
         }}
-                  onCellEditStop={(params: GridCellEditStopParams, event: any) => {
-                      if(params.field=='label') {
-                          props.nv.relabelROIs(Number(params.value), Number(event.target.value));
-                          props.resampleImage();
-                          // params.id = event.target.3;
-                      }
-            // if (params.reason === GridCellEditStopReasons.cellFocusOut) {
-            //     event.defaultMuiPrevented = true;
-            // }
-        }}
+                // processRowUpdate={(newRow, oldRow) => {
+                //     console.log(newRow);
+                //     console.log(oldRow);
+                //     if(oldRow.alias!=newRow.alias) {
+                //         const newAlias = newRow.alias; // Value entered by the user
+                //         console.log(newAlias);
+                //         const cellLabel = newRow.label; // Assuming the label is stored in params.id
+                //         props.setLabelAlias(cellLabel, newAlias);
+                //     }
+                //     return true;
+                // }}
         />
         <div className="row mt-2">
             <div className="col-6">
