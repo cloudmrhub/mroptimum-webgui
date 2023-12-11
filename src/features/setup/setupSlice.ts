@@ -204,12 +204,20 @@ export const setupSlice = createSlice({
             state.editInProgress=true;
         },
         setSignal(state: SetupState, action: PayloadAction<UploadedFile>) {
+            if(action.payload==undefined){
+                state.activeSetup.options.reconstructor.options.signal = undefined;
+                return;
+            }
             let fr = UFtoFR(action.payload);
             state.activeSetup.options.reconstructor.options.signal = fr;
             fr.options.multiraid = state.activeSetup.options.reconstructor.options.signalMultiRaid;
             state.editInProgress=true;
         },
         setNoise(state: SetupState, action: PayloadAction<UploadedFile>) {
+            if(action.payload==undefined){
+                state.activeSetup.options.reconstructor.options.noise = undefined;
+                return;
+            }
             state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
             console.log(state.activeSetup.options.reconstructor.options.noise);
             state.activeSetup.options.reconstructor.options.signalMultiRaid = false;
@@ -245,6 +253,10 @@ export const setupSlice = createSlice({
             state.editInProgress=true;
         },
         setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile>) {
+            if(action.payload==undefined){
+                state.activeSetup.options.reconstructor.options.correction.faCorrection = undefined;
+                return;
+            }
             state.activeSetup.options.reconstructor.options.correction.faCorrection = UFtoFR(action.payload);
             state.editInProgress=true;
         },

@@ -41,6 +41,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     fileExtension?: string;
     uploadStarted?:()=>void;
     uploadEnded?:()=>void;
+    uploadProgressed?:(progress:number)=>void;
     //Override this to replace the default behavior of uploading
     uploadHandler?:(file:File, fileAlias:string, fileDatabase:string)=>Promise<number>;
 }
@@ -81,6 +82,7 @@ const CmrUpload = (props: CMRUploadProps) => {
                     if(progressEvent.total==undefined)
                         return;
                     let percentage = (progressEvent.loaded * 99) / progressEvent.total;
+                    props.uploadProgressed&&props.uploadProgressed(+percentage.toFixed(2));
                     setProgress(+percentage.toFixed(2));
                 };
                 // console.log(payload.formData)

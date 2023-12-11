@@ -44,30 +44,25 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
     let [open, setOpen] = React.useState(false);
     let [fileIndex, selectFileIndex] = React.useState(-1);
     let [uploading, setUploading] = React.useState(false);
+    const [progress, setProgress] = React.useState(0);
     const handleClickOpen = () => {
         selectFileIndex(-1);
         setOpen(true);
     };
 
     const handleClose = () => {
-        if(!uploading)
-            setOpen(false);
+        setOpen(false);
     };
 
     const handleChange = (event: SelectChangeEvent<number>) => {
         //@ts-ignore
         selectFileIndex(event.target.value);
-
     };
 
     const onSet = ()=>{
-        if(fileIndex==-1){
-            return;
-        }
         props.onSelected(props.fileSelection[fileIndex]);
         setOpen(false);
     }
-
     const selectionDialog =  <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Upload or select</DialogTitle>
         <DialogContent sx={{width: 520}}>
@@ -96,28 +91,35 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     {(!uploading)&&<Button fullWidth variant="contained"  color="success" onClick={onSet}>
                         Select
                     </Button>}
-                    {fileIndex==-1&&
-                        <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
-                            console.log("calling Setup level on uploaded");
-                            console.log(props.onUploaded);
-                            selectFileIndex(props.fileSelection.length);
-                            props.onUploaded(res, file);
-                            setOpen(false);
-                        }} fileExtension = {props.fileExtension}
-                                    uploadStarted={()=>setUploading(true)}
-                                    uploadEnded={()=>setUploading(false)}
-                        ></CMRUpload>}
+                    {fileIndex==-1&& <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
+                        console.log("calling Setup level on uploaded");
+                        console.log(props.onUploaded);
+                        selectFileIndex(props.fileSelection.length);
+                        props.onUploaded(res, file);
+                        setOpen(false);
+                    }} fileExtension = {props.fileExtension}
+                                                 uploadStarted={()=>{
+                                                     setUploading(true);
+                                                     setOpen(false);
+                                                     }}
+                                                 uploadProgressed={(progress)=>{
+                                                     setProgress(progress);
+                                                 }}
+                                                 uploadEnded={()=>setUploading(false)}
+                    ></CMRUpload>}
                     <Button fullWidth variant="outlined"  color="inherit" sx={{color:'#333'}} onClick={handleClose}> Cancel</Button>
                 </DialogActions>
         </DialogContent>
     </Dialog>;
     return <Fragment>
-        <Button variant={(props.chosenFile==undefined)?"contained":"outlined"} color="info" onClick={handleClickOpen} sx={{marginRight:'10pt'}}
-            style={{...props.style, textTransform:'none'}}>
+        {uploading?<Button variant={"contained"} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={uploading}>
+            Uploading {progress}%
+        </Button>:<Button variant={(props.chosenFile==undefined)?"contained":"outlined"} color="info" onClick={handleClickOpen} sx={{marginRight:'10pt'}}
+                          style={{...props.style, textTransform:'none'}}>
             {(props.chosenFile==undefined)?
                 (props.buttonText?props.buttonText:"Choose")
                 :props.chosenFile}
-        </Button>
+        </Button>}
         {selectionDialog}
     </Fragment>;
 };
