@@ -690,9 +690,9 @@ export default function NiiVueport(props) {
             }];
 
         if(verticalLayout){
-            Plotly.newPlot('histoplotv', traces, layout);
+            Plotly.newPlot('histoplotv', traces, layout, {responsive: true});
         }else
-            Plotly.newPlot('histoplot', traces, layout);
+            Plotly.newPlot('histoplot', traces, layout, {responsive: true});
     }
 
     function nvUpdateSelectionBoxColor(rgb01) {
