@@ -74,8 +74,8 @@ export function NiivuePanel (props:NiivuePanelProps) {
     controllerX.setValue(Number(mms[0]).toFixed(3));
     controllerY.setValue(Number(mms[1]).toFixed(3));
     controllerZ.setValue(Number(mms[2]).toFixed(3));
-    controllerMin.setValue(Math.abs(props.min)<0.01?Number(props.min).toExponential(3).toUpperCase():Number(props.min).toFixed(3));
-    controllerMax.setValue(Math.abs(props.max)<0.01?Number(props.min).toExponential(3).toUpperCase():Number(props.max).toFixed(3));
+    controllerMin.setValue(Math.abs(props.min)<0.01&&props.min!=0?Number(props.min).toExponential(3).toUpperCase():Number(props.min).toFixed(3));
+    controllerMax.setValue(Math.abs(props.max)<0.01&&props.max!=0?Number(props.max).toExponential(3).toUpperCase():Number(props.max).toFixed(3));
     controllerX.onChange((val:number)=>{
         console.log(val);
         console.log(props.nv.drawPenLocation);
