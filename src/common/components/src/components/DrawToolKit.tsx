@@ -140,6 +140,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <IconButton aria-label="delete" onClick={()=>{
                 props.nv.closeDrawing();
+                props.nv.setDrawingEnabled(true);
                 props.resampleImage();
             }}>
                 <DeleteIcon  style={{color:'white'}}/>

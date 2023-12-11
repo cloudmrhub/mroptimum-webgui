@@ -763,7 +763,7 @@ export default function NiiVueport(props) {
                     "filename": `${filename}.nii`,
                     "id": 1,
                     "name": filename,
-                    "type": "image",
+                    "type": 'image',
                     // "numpyPixelType": "complex64",
                     // "pixelType": "complex"
                     "labelMapping":{
@@ -783,7 +783,7 @@ export default function NiiVueport(props) {
         // Upload to bucket
         await axios.put(uploadURL, file, {
             headers: {
-                'Content-Type': file.type
+                'Content-Type': "application/octet-stream"
             }
         });
     }
@@ -832,10 +832,15 @@ export default function NiiVueport(props) {
         }
     };
     const selectROI = async (roiIndex) => {
-        console.log(nv.drawBitmap);
+        // console.log(nv.drawBitmap);
         await unzipAndRenderROI(props.rois[roiIndex].link);
         setSelectedROI(roiIndex);
         setDrawingChanged(false);
+    }
+    const unpackROI = async (accessURL)=>{
+        await unzipAndRenderROI(accessURL);
+        setDrawingChanged(false);
+        setSelectedROI(props.rois.length);
     }
     const refreshROI = async () => {
         let roiIndex = selectedROI;
@@ -1256,7 +1261,7 @@ export default function NiiVueport(props) {
                 setMin={setMin}
                 setMax={setMax}
 
-                unzipAndRenderROI={unzipAndRenderROI}
+                unzipAndRenderROI={unpackROI}
                 zipAndSendROI={zipAndSendROI}
             />}
             <Box sx={{width: '100%',
@@ -1281,7 +1286,7 @@ export default function NiiVueport(props) {
                     }}
                     nv={nv}
                     resampleImage={resampleImage}
-                    unzipAndRenderROI={unzipAndRenderROI}
+                    unpackROI={unpackROI}
                     zipAndSendROI={zipAndSendROI}
                 />
             </Box>

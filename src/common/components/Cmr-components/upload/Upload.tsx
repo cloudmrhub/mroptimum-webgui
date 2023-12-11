@@ -42,7 +42,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     uploadStarted?:()=>void;
     uploadEnded?:()=>void;
     //Override this to replace the default behavior of uploading
-    upload?:(file:File,fileAlias:string,fileDatabase:string)=>Promise<number>;
+    uploadHandler?:(file:File, fileAlias:string, fileDatabase:string)=>Promise<number>;
 }
 
 
@@ -56,7 +56,8 @@ const CmrUpload = (props: CMRUploadProps) => {
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
     let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
-    const upload = (props.upload)?props.upload:async (file: File, fileAlias:string, fileDatabase: string)=>{
+
+    const upload = async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
         if(props.uploadStarted)
             props.uploadStarted();
@@ -68,36 +69,36 @@ const CmrUpload = (props: CMRUploadProps) => {
                 setUploading(false);
                 return 200;
             }
-            let payload = await props.createPayload(file, fileAlias, fileDatabase);
-            if(payload==undefined)
-                return 0;
-            payload.config.onUploadProgress = (progressEvent) => {
-                if(progressEvent.total==undefined)
-                    return;
-                let percentage = (progressEvent.loaded * 99) / progressEvent.total;
-                setProgress(+percentage.toFixed(2));
-            };
-            // console.log(payload.formData)
-            const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
-            status = res.status;
-            if(status===200){
-                // file.name = res.data.response.
-                // await axios.post(res.data.upload_url, file)
-                console.log(res.data);
-                await axios.put(res.data.upload_url, file, {
-                    headers: {
-                        'Content-Type': file.type
-                    }
-                })
-                await props.onUploaded(res,file);
-                setUploadedFile(file.name);
+
+            if(props.uploadHandler!=undefined){
+                status = await props.uploadHandler(file,fileAlias,fileDatabase);
+            }else{
+
+                let payload = await props.createPayload(file, fileAlias, fileDatabase);
+                if(payload==undefined)
+                    return 0;
+                payload.config.onUploadProgress = (progressEvent) => {
+                    if(progressEvent.total==undefined)
+                        return;
+                    let percentage = (progressEvent.loaded * 99) / progressEvent.total;
+                    setProgress(+percentage.toFixed(2));
+                };
+                // console.log(payload.formData)
+                const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
+                status = res.status;
+                if(status===200){
+                    // file.name = res.data.response.
+                    // await axios.post(res.data.upload_url, file)
+                    console.log(res.data);
+                    await axios.put(res.data.upload_url, file, {
+                        headers: {
+                            'Content-Type': file.type
+                        }
+                    })
+                    await props.onUploaded(res,file);
+                    setUploadedFile(file.name);
+                }
             }
-        // } catch (err) {
-        //     console.log('Upload mask file error: ', err);
-        //     status = err;
-        //     setOpen(true);
-        //     throw(err);
-        // } finally {
             if(props.uploadEnded)
                 props.uploadEnded();
             setUploading(false);

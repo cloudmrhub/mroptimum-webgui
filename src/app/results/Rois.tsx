@@ -8,7 +8,7 @@ import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
 import {DATAUPLODAAPI, ROI_UPLOAD} from "../../Variables";
 import {AxiosRequestConfig} from "axios";
-import {useAppSelector} from "../../features/hooks";
+import {useAppDispatch, useAppSelector} from "../../features/hooks";
 import {nv} from "../../common/components/src/Niivue";
 import {GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, MuiEvent} from "@mui/x-data-grid";
 import axios from "axios";
@@ -18,11 +18,12 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import IconButton from "@mui/material/IconButton";
 import Checkbox from "@mui/material/Checkbox";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
+import {getPipelineROI} from "../../features/rois/resultActionCreation";
 
 export const ROITable = (props:{pipelineID: string,
     rois:any[], resampleImage:()=>void,
     zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>,
-    unzipAndRenderROI:(url:string)=>Promise<void>,
+    unpackROI:(url:string)=>Promise<void>,
     style?: CSSProperties,nv:any})=>{
     // const rois:ROI[] = useAppSelector(state=>{
     //     return (state.roi.rois[props.pipelineID]==undefined)?[]:state.roi.rois[props.pipelineID];
@@ -30,7 +31,9 @@ export const ROITable = (props:{pipelineID: string,
     // console.log(rois);
     const [uploadKey, setUploadKey] = useState(1);
     const { accessToken } = useAppSelector((state) => state.authenticate);
+    const pipeline = useAppSelector((state)=>state.result.activeJob?.pipeline_id);
     const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
+    const dispatch = useAppDispatch();
     const UploadHeaders: AxiosRequestConfig = {
         headers: {
             'Content-Type': 'application/json',
@@ -173,7 +176,7 @@ export const ROITable = (props:{pipelineID: string,
             <div className="col-4">
                 <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
                 }}
-                    upload={async (file)=>{
+                    uploadHandler={async (file)=>{
                        const config = {
                            headers: {
                                Authorization: `Bearer ${accessToken}`,
@@ -189,8 +192,10 @@ export const ROITable = (props:{pipelineID: string,
                            "contentType": "application/octet-stream"
                        }, config);
                        console.log(response);
-                       props.zipAndSendROI(response.data.upload_url,filename,file).then(async () => {
-                           await props.unzipAndRenderROI(response.data.access_url);
+                       await props.zipAndSendROI(response.data.upload_url,filename,file).then(async () => {
+                           await props.unpackROI(response.data.access_url);
+                           // @ts-ignore
+                           dispatch(getPipelineROI({accessToken,pipeline}));
                        });
                        return 200;
                    }}

@@ -4,6 +4,37 @@
 import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 
+function decodeRLE(rle, decodedlen) {
+    const r = new Uint8Array(rle.buffer)
+    const rI = new Int8Array(r.buffer) // typecast as header can be negative
+    let rp = 0 // input position in rle array
+    // d: output uncompressed data array
+    const d = new Uint8Array(decodedlen)
+    let dp = 0 // output position in decoded array
+    while (rp < r.length) {
+        // read header
+        const hdr = rI[rp]
+        rp++
+        if (hdr < 0) {
+            // write run
+            const v = rI[rp]
+            rp++
+            for (let i = 0; i < 1 - hdr; i++) {
+                d[dp] = v
+                dp++
+            }
+        } else {
+            // write literal
+            for (let i = 0; i < hdr + 1; i++) {
+                d[dp] = rI[rp]
+                rp++
+                dp++
+            }
+        }
+    }
+    return d
+}
+
 const SLICE_TYPE = Object.freeze({
     AXIAL: 0,
     CORONAL: 1,
@@ -25,6 +56,42 @@ const MULTIPLANAR_TYPE = Object.freeze({
     GRID: 2,
     ROW: 3,
 });
+
+const labelVisibility = {};
+// Caches bitmaps by label visibilities
+const bitmapCache = {
+
+};
+Niivue.prototype.getLabelVisibility = function(label){
+    if(labelVisibility[label]===undefined){
+        labelVisibility[label] = true;
+        return true;
+    }
+    else{
+        return labelVisibility[label];
+    }
+}
+
+Niivue.prototype.setLabelVisibility = function(label, visible){
+    labelVisibility[label] = visible;
+    if(!visible){
+        if(bitmapCache[label]===undefined)
+            bitmapCache[label] = []
+        for(let i = 0; i<this.drawBitmap.length; i++){
+            if(this.drawBitmap[i]===label){
+                bitmapCache[label].push(i);
+                this.drawBitmap[i]=0;
+            }
+        }
+    } else{
+        if(bitmapCache[label]!=undefined){
+            let cache = bitmapCache[label];
+            while(cache.length!=0){
+                this.drawBitmap[cache.pop()] = label;
+            }
+        }
+    }
+}
 
 Niivue.prototype.drawSceneCore = function () {
     if (!this.initialized) {
@@ -371,29 +438,29 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
         leftTopWidthHeight[2] = mx;
         leftTopWidthHeight[3] = mx;
     }
-    if (leftTopWidthHeight[2] !== leftTopWidthHeight[3]) {
-        const mx = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);
-        // only one tile: stretch tile to fill whole screen.
-        const pixPerMMw = mx / screen.fovMM[0]
-        const pixPerMMh = mx / screen.fovMM[1]
-        const pixPerMMmin = Math.min(pixPerMMw, pixPerMMh)
-        const zoomW = pixPerMMw / pixPerMMmin
-        const zoomH = pixPerMMh / pixPerMMmin
-        screen.fovMM[0] *= zoomW
-        screen.fovMM[1] *= zoomH
-        let center = (screen.mnMM[0] + screen.mxMM[0]) * 0.5
-        screen.mnMM[0] = center - screen.fovMM[0] * 0.5
-        screen.mxMM[0] = center + screen.fovMM[0] * 0.5
-        center = (screen.mnMM[1] + screen.mxMM[1]) * 0.5
-        screen.mnMM[1] = center - screen.fovMM[1] * 0.5
-        screen.mxMM[1] = center + screen.fovMM[1] * 0.5
-        // screen.mnMM[0] *= zoomW;
-        // screen.mxMM[0] *= zoomW;
-        // screen.mnMM[1] *= zoomH;
-        // screen.mxMM[1] *= zoomH;
-        leftTopWidthHeight[2] = mx;
-        leftTopWidthHeight[3] = mx;
-    }
+    // if (leftTopWidthHeight[2] !== leftTopWidthHeight[3]) {
+    //     const mx = Math.max(leftTopWidthHeight[2],leftTopWidthHeight[3]);
+    //     // only one tile: stretch tile to fill whole screen.
+    //     const pixPerMMw = mx / screen.fovMM[0]
+    //     const pixPerMMh = mx / screen.fovMM[1]
+    //     const pixPerMMmin = Math.min(pixPerMMw, pixPerMMh)
+    //     const zoomW = pixPerMMw / pixPerMMmin
+    //     const zoomH = pixPerMMh / pixPerMMmin
+    //     screen.fovMM[0] *= zoomW
+    //     screen.fovMM[1] *= zoomH
+    //     let center = (screen.mnMM[0] + screen.mxMM[0]) * 0.5
+    //     screen.mnMM[0] = center - screen.fovMM[0] * 0.5
+    //     screen.mxMM[0] = center + screen.fovMM[0] * 0.5
+    //     center = (screen.mnMM[1] + screen.mxMM[1]) * 0.5
+    //     screen.mnMM[1] = center - screen.fovMM[1] * 0.5
+    //     screen.mxMM[1] = center + screen.fovMM[1] * 0.5
+    //     // screen.mnMM[0] *= zoomW;
+    //     // screen.mxMM[0] *= zoomW;
+    //     // screen.mnMM[1] *= zoomH;
+    //     // screen.mxMM[1] *= zoomH;
+    //     leftTopWidthHeight[2] = mx;
+    //     leftTopWidthHeight[3] = mx;
+    // }
     if (isNaN(customMM)) {
         const panXY = this.swizzleVec3MM(this.scene.pan2Dxyzmm, axCorSag)
         const zoom = this.scene.pan2Dxyzmm[3]
@@ -544,6 +611,7 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
     const dx = this.back.dims[1]
     const dy = this.back.dims[2]
     const dz = this.back.dims[3]
+    const penVisible = this.getLabelVisibility(penValue);
     //Sweep through cubic area, filter by radius
     for(let i = x-penBounds; i<=x+penBounds; i++){
         for(let j = y-penBounds; j<=y+penBounds; j++){
@@ -553,11 +621,237 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
                     let xn = Math.min(Math.max(i, 0), dx - 1)
                     let yn = Math.min(Math.max(j, 0), dy - 1)
                     let zn = Math.min(Math.max(k, 0), dz - 1)
-                    this.drawBitmap[xn + yn * dx + zn * dx * dy] = penValue;
+                    if(penVisible){
+                        this.drawBitmap[xn + yn * dx + zn * dx * dy] = penValue;
+                    }else{
+                        bitmapCache[penValue].push(xn + yn * dx + zn * dx * dy);
+                    }
                 }
             }
         }
     }
+}
+
+// not included in public docs
+// given series of line segments, connect first and last
+// voxel and fill the interior of the line segments
+Niivue.prototype.drawPenFilled = function() {
+    const nPts = this.drawPenFillPts.length
+    if (nPts < 2) {
+        // can not fill single line
+        this.drawPenFillPts = []
+        return
+    }
+    // do fill in 2D, based on axial (0), coronal (1) or sagittal drawing (2
+    const axCorSag = this.drawPenAxCorSag
+    // axial is x(0)*y(1) horizontal*vertical
+    let h = 0
+    let v = 1
+    if (axCorSag === 1) {
+        v = 2
+    } // coronal is x(0)*z(0)
+    if (axCorSag === 2) {
+        // sagittal is y(1)*z(2)
+        h = 1
+        v = 2
+    }
+    const penBounds = this.opts.penBounds?this.opts.penBounds:0;
+    const w = penBounds*2+1; // Yuelong: paint fill with thickness
+    const dims3D = [this.back.dims[h + 1], this.back.dims[v + 1], w] // +1: dims indexed from 0!
+    // create bitmap of horizontal*vertical voxels:
+    const img3D = new Uint8Array(dims3D[0] * dims3D[1] * dims3D[2])
+    let pen = 1 // do not use this.opts.penValue, as "erase" is zero
+    function drawPt3D(x,y,penValue){
+        const dx = dims3D[0]
+        const dy = dims3D[1]
+        const dz = w
+        const z = (w-1)/2;
+        //Sweep through cubic area, filter by radius
+        for(let i = x-penBounds; i<=x+penBounds; i++){
+            for(let j = y-penBounds; j<=y+penBounds; j++){
+                for(let k = z-penBounds; k<=z+penBounds; k++){
+                    // (penBounds+1)*(penBounds) as radius filter makes better circles in discrete case
+                    if((i-x)*(i-x)+(j-y)*(j-y)+(k-z)*(k-z)<=(penBounds+1)*(penBounds)){
+                        let xn = Math.min(Math.max(i, 0), dx - 1)
+                        let yn = Math.min(Math.max(j, 0), dy - 1)
+                        let zn = Math.min(Math.max(k, 0), dz - 1)
+                        img3D[xn + yn * dx + zn * dx * dy] = penValue;
+                    }
+                }
+            }
+        }
+    }
+    function drawLine2D(ptA, ptB /* penValue */) {
+        const dx = Math.abs(ptA[0] - ptB[0])
+        const dy = Math.abs(ptA[1] - ptB[1])
+        // img2D[ptA[0] + ptA[1] * dims2D[0]] = pen
+        // img2D[ptB[0] + ptB[1] * dims2D[0]] = pen
+        drawPt3D(ptA[0],ptA[1],pen);
+        drawPt3D(ptB[0],ptB[1],pen);
+        let xs = -1
+        let ys = -1
+        if (ptB[0] > ptA[0]) {
+            xs = 1
+        }
+        if (ptB[1] > ptA[1]) {
+            ys = 1
+        }
+        let x1 = ptA[0]
+        let y1 = ptA[1]
+        const x2 = ptB[0]
+        const y2 = ptB[1]
+        if (dx >= dy) {
+            // Driving axis is X-axis"
+            let p1 = 2 * dy - dx
+            while (x1 !== x2) {
+                x1 += xs
+                if (p1 >= 0) {
+                    y1 += ys
+                    p1 -= 2 * dx
+                }
+                p1 += 2 * dy
+                drawPt3D(x1,y1,pen);
+            }
+        } else {
+            // Driving axis is Y-axis"
+            let p1 = 2 * dx - dy
+            while (y1 !== y2) {
+                y1 += ys
+                if (p1 >= 0) {
+                    x1 += xs
+                    p1 -= 2 * dy
+                }
+                p1 += 2 * dx
+                drawPt3D(x1,y1,pen);
+            }
+        }
+    }
+    const startPt = [this.drawPenFillPts[0][h], this.drawPenFillPts[0][v]]
+    let prevPt = startPt
+    for (let i = 1; i < nPts; i++) {
+        const pt = [this.drawPenFillPts[i][h], this.drawPenFillPts[i][v]]
+        drawLine2D(prevPt, pt)
+        prevPt = pt
+    }
+    drawLine2D(startPt, prevPt) // close drawing
+    // flood fill
+    const seeds = []
+    function setSeed(pt) { // pt 2D -> 3D
+        if (pt[0] < 0 || pt[1] < 0 || pt[2] < 0 || pt[0] >= dims3D[0] || pt[1] >= dims3D[1] || pt[3]>=dims3D[2]) {
+            return
+        }
+        const pxl = pt[0] + pt[1] * dims3D[0] + pt[2] * dims3D[0] * dims3D[1]
+        if (img3D[pxl] !== 0) {
+            return
+        } // not blank
+        seeds.push(pt)
+        img3D[pxl] = 2
+    }
+    // https://en.wikipedia.org/wiki/Flood_fill
+    // first seed all edges
+    // // bottom row
+    // for (let i = 0; i < dims2D[0]; i++) {
+    //     setSeed([i, 0])
+    // }
+    // // top row
+    // for (let i = 0; i < dims2D[0]; i++) {
+    //     setSeed([i, dims2D[1] - 1])
+    // }
+    // // left column
+    // for (let i = 0; i < dims2D[1]; i++) {
+    //     setSeed([0, i])
+    // }
+    // // right columns
+    // for (let i = 0; i < dims2D[1]; i++) {
+    //     setSeed([dims2D[0] - 1, i])
+    // }
+    // Yuelong: Instead of seeding all edges, seed eight corners of the bounding box,
+    setSeed([0,0,0]);
+    setSeed([dims3D[0]-1,0,0]);
+    setSeed([0,dims3D[1]-1,0]);
+    setSeed([dims3D[0]-1,dims3D[1]-1,0]);
+    setSeed([0,0,dims3D[2]-1]);
+    setSeed([dims3D[0]-1,0,dims3D[2]-1]);
+    setSeed([0,dims3D[1]-1,dims3D[2]-1]);
+    setSeed([dims3D[0]-1,dims3D[1]-1,dims3D[2]-1]);
+    // now retire first in first out
+    while (seeds.length > 0) {
+        // always remove one seed, plant 0..4 new ones
+        const seed = seeds.shift()
+        setSeed([seed[0] - 1, seed[1], seed[2]])
+        setSeed([seed[0] + 1, seed[1], seed[2]])
+        setSeed([seed[0], seed[1] - 1, seed[2]])
+        setSeed([seed[0], seed[1] + 1, seed[2]])
+        // Yuelong: flood fill z-axis as well
+        setSeed([seed[0], seed[1], seed[2] + 1])
+        setSeed([seed[0], seed[1], seed[2] - 1])
+    }
+    // all voxels with value of zero have no path to edges
+    // insert surviving pixels from 2D bitmap into 3D bitmap
+    pen = this.opts.penValue
+    const slice = this.drawPenFillPts[0][3 - (h + v)]
+    // if (axCorSag === 0) {
+    //     // axial
+    //     const offset = slice * dims2D[0] * dims2D[1]
+    //     for (let i = 0; i < dims2D[0] * dims2D[1]; i++) {
+    //         if (img2D[i] !== 2) {
+    //             this.drawBitmap[i + offset] = pen
+    //         }
+    //     }
+    // } else {
+    //     let xStride = 1 // coronal: horizontal LR pixels contiguous
+    //     const yStride = this.back.dims[1] * this.back.dims[2] // coronal: vertical is slice
+    //     let zOffset = slice * this.back.dims[1] // coronal: slice is number of columns
+    //     if (axCorSag === 2) {
+    //         // sagittal
+    //         xStride = this.back.dims[1]
+    //         zOffset = slice
+    //     }
+    //     let i = 0
+    //     for (let y = 0; y < dims2D[1]; y++) {
+    //         for (let x = 0; x < dims2D[0]; x++) {
+    //             if (img2D[i] !== 2) {
+    //                 this.drawBitmap[x * xStride + y * yStride + zOffset] = pen
+    //             }
+    //             i++
+    //         }
+    //     }
+    // }
+    // Stride with permutation symmetry
+    let strides = [1, this.back.dims[1],this.back.dims[1] * this.back.dims[2]];
+    // xStride = s0 for axial and coronal, s1 for sagital
+    let xStride = (axCorSag == 2)?strides[1]:strides[0];
+    // yStride = s1 for axial, s2 for coronal and sagital
+    const yStride = (axCorSag == 0)?strides[1]:strides[2];
+    // zStride = s2 for axial, s1 for coronal, s0 for sagital
+    const zStride = strides[2-axCorSag];
+    const zOffset = slice * zStride;
+    let i = 0
+    for(let z = -penBounds; z<=penBounds; z++){
+        for (let y = 0; y < dims3D[1]; y++) {
+            for (let x = 0; x < dims3D[0]; x++) {
+                if (img3D[i] !== 2) {
+                    // Fill by 3D traversal
+                    this.drawBitmap[x * xStride + y * yStride + zOffset + z * zStride] = pen
+                }
+                i++
+            }
+        }
+    }
+    // this.drawUndoBitmaps[this.currentDrawUndoBitmap]
+    if (!this.drawFillOverwrites && this.drawUndoBitmaps[this.currentDrawUndoBitmap].length > 0) {
+        const nv = this.drawBitmap.length
+        const bmp = decodeRLE(this.drawUndoBitmaps[this.currentDrawUndoBitmap], nv)
+        for (let i = 0; i < nv; i++) {
+            if (bmp[i] === 0) {
+                continue
+            }
+            this.drawBitmap[i] = bmp[i]
+        }
+    }
+    this.drawPenFillPts = []
+    this.drawAddUndoBitmap()
+    this.refreshDrawing(false)
 }
 
 /**
@@ -688,6 +982,27 @@ Niivue.prototype.relabelROIs = function(source=0, target = 0){
         }
     }
     this.refreshDrawing(true);
+}
+
+Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
+    if (this.drawBitmap) {
+        console.debug('Overwriting open drawing!')
+    }
+    this.drawClearAllUndoBitmaps()
+    try {
+        // const volume = await NVImage.loadFromUrl()
+        if (base64) {
+            let imageOptions = new NVImageFromUrlOptions(fnm);
+            const drawingBitmap = NVImage.loadFromBase64({name:fnm,base64})
+            if (drawingBitmap) {
+                this.loadDrawing(drawingBitmap)
+            }
+        }
+    } catch (err) {
+        console.error('loadDrawingFromBlob() failed to load ' + fnm)
+        this.drawClearAllUndoBitmaps()
+    }
+    return base64!==undefined;
 }
 
 export {Niivue};

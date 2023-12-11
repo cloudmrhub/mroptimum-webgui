@@ -195,7 +195,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     nv={props.nv}
                     resampleImage={props.resampleImage}
 
-                    unzipAndRenderROI={props.unzipAndRenderROI}
+                    unpackROI={props.unzipAndRenderROI}
                     zipAndSendROI={props.zipAndSendROI}
                 />
             </Box>

@@ -16,6 +16,5 @@ export const JOBS_RETRIEVE_API = 'https://dplk0uo9d0.execute-api.us-east-1.amazo
 export const JOBS_RENAME_API = 'http://localhost:5010/jobs/rename';
 export const JOBS_DELETE_API =  'http://localhost:5010/jobs/delete';
 
-
 export const HOST = 'cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com';
 
