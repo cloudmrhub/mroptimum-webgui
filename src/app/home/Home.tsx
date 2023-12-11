@@ -11,7 +11,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NameDialog from "../../common/components/Cmr-components/rename/edit";
 import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
-import {getUploadedData} from '../../features/data/dataActionCreation';
+import {getUploadedData, renameUploadedData} from '../../features/data/dataActionCreation';
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 import {Button} from "@mui/material";
@@ -72,12 +72,14 @@ const Home = () => {
                             setNameDialogOpen(true);
                             setRenamingCallback(()=>(newName:string)=>{
                                 // In case of working API
-                                // let jobReference = jobsData[renameFileIndex];
-                                // jobReference.alias = newName;
-                                // renameUpstreamJob({accessToken, jobReference});
-
+                                // let dataReference = files[index];
+                                // @ts-ignore
+                                // dispatch(renameUploadedData({accessToken,
+                                //     fileId:dataReference.id,
+                                //     fileName:dataReference.fileName}));
                                 // In case of non-working API, change name locally
-                            dispatch(dataSlice.actions.renameData({index:index,alias:newName}));});
+                                dispatch(dataSlice.actions.renameData({index:index,alias:newName}));
+                            });
                         }}>
                             <EditIcon />
                         </IconButton>

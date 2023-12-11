@@ -6,6 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import CmrButton from "../button/Button";
 
 export default function NameDialog(props: {originalName: string; renamingCallback:(alias:string)=>void, open:boolean, setOpen:(open:boolean)=>void}) {
     let {originalName,open, setOpen} = props;
@@ -79,8 +80,8 @@ export default function NameDialog(props: {originalName: string; renamingCallbac
                     />
                 </DialogContent>
                 <DialogActions>
-                    <button className='btn btn-secondary' onClick={handleClose}>Cancel</button>
-                    <button className='btn btn-primary' onClick={handleConfirm}>Confirm</button>
+                    <CmrButton variant={"outlined"} color={'inherit'} sx={{color:'#333'}} onClick={handleClose}>Cancel</CmrButton>
+                    <CmrButton variant={"contained"} color={'primary'} onClick={handleConfirm}>Confirm</CmrButton>
                 </DialogActions>
             </Dialog>
         </div>

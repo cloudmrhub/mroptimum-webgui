@@ -5,7 +5,7 @@ export const PROFILE = "https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeans
 export const DATAAPI = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/readdata';
 export const UNZIP = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/unzip';
 export const DATAUPLODAAPI = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/uploads';
-export const DATA_RENAME_API = 'https://localhost:5010/data/rename';
+export const DATA_RENAME_API = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/updatedata';
 export const DATA_DELETE_API =  'https://localhost:5010/data/delete';
 //2g05v1o1jj
 export const ROI_GET = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/getrois';

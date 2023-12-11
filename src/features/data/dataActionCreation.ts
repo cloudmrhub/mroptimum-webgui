@@ -23,13 +23,14 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
 
 
 // Here's the corresponding rename function for Data
-export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg:{accessToken: string, dataReference: UploadedFile}) => {
+export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg:{accessToken: string, fileId: number,fileName:string}) => {
     const config = {
         headers: {
             Authorization: `Bearer ${arg.accessToken}`,
         },
     };
-    const response = await axios.post(DATA_RENAME_API, arg.dataReference, config);
+    const response = await axios.post(DATA_RENAME_API, {fileid: arg.fileId,
+        filename:arg.fileName}, config);
     if(response.status === 200)
         getUploadedData(arg.accessToken);
 });
