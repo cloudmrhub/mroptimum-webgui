@@ -26,6 +26,7 @@ interface SNR {
 
 interface SNROptions {
     NR?: number;
+    boxSize?:number;
     reconstructor: Reconstructor;
 }
 
@@ -194,18 +195,23 @@ export const setupSlice = createSlice({
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
             if(state.activeSetup.name!='ac'&&state.activeSetup.name!='mr')
-                state.activeSetup.options.NR = 20;
+                state.activeSetup.options.NR = 2;
             else
                 delete state.activeSetup.options.NR;
+            if(state.activeSetup.name=='cr')
+                state.activeSetup.options.boxSize = 2;
+            else
+                delete state.activeSetup.options.boxSize;
             state.editInProgress=true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options['NR'] = action.payload;
             state.editInProgress=true;
         },
-        setSignal(state: SetupState, action: PayloadAction<UploadedFile>) {
+        setSignal(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
             if(action.payload==undefined){
                 state.activeSetup.options.reconstructor.options.signal = undefined;
+                state.editInProgress = true;
                 return;
             }
             let fr = UFtoFR(action.payload);
@@ -213,9 +219,10 @@ export const setupSlice = createSlice({
             fr.options.multiraid = state.activeSetup.options.reconstructor.options.signalMultiRaid;
             state.editInProgress=true;
         },
-        setNoise(state: SetupState, action: PayloadAction<UploadedFile>) {
+        setNoise(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
             if(action.payload==undefined){
                 state.activeSetup.options.reconstructor.options.noise = undefined;
+                state.editInProgress = true;
                 return;
             }
             state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
@@ -252,7 +259,7 @@ export const setupSlice = createSlice({
             state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
             state.editInProgress=true;
         },
-        setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile>) {
+        setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
             if(action.payload==undefined){
                 state.activeSetup.options.reconstructor.options.correction.faCorrection = undefined;
                 return;
@@ -270,7 +277,12 @@ export const setupSlice = createSlice({
             state.activeSetup.options.reconstructor.options.sensitivityMap.name = action.payload;
             state.editInProgress=true;
         },
-        setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile>) {
+        setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
+            if(action.payload==undefined){
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = undefined;
+                state.editInProgress = true;
+                return;
+            }
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = UFtoFR(action.payload);
             state.editInProgress=true;
         },
@@ -300,6 +312,10 @@ export const setupSlice = createSlice({
         setKernelSize2(state: SetupState, action: PayloadAction<number>) {
             if(state.activeSetup.options.reconstructor.options.kernelSize)
                 state.activeSetup.options.reconstructor.options.kernelSize[1] = action.payload;
+            state.editInProgress=true;
+        },
+        setBoxSize(state: SetupState, action: PayloadAction<number>) {
+            state.activeSetup.options.boxSize = action.payload;
             state.editInProgress=true;
         },
         setDecimateACL(state: SetupState, action: PayloadAction<number>) {
@@ -434,6 +450,10 @@ const SetupGetters = {
 
     getPseudoReplicaCount: (state: RootState): number | undefined => {
         return state.setup.activeSetup?.options['NR'];
+    },
+
+    getBoxSize: (state: RootState): number | undefined => {
+        return state.setup.activeSetup?.options['boxSize'];
     },
 
     getSignal: (state: RootState): FileReference | undefined => {

@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import { getUploadedData } from './dataActionCreation';
+import {deleteUploadedData, getUploadedData, renameUploadedData} from './dataActionCreation';
 
 // {
 //     "type": "s3",
@@ -22,6 +22,8 @@ export interface UploadedFile {
     //One of local or s3
     database: string;
     location: string;
+    renamingPending?: boolean;
+    deletionPending?: boolean;
 }
 
 interface DataState {
@@ -70,13 +72,46 @@ export const dataSlice = createSlice({
                         createdAt: element.created_at,
                         updatedAt: element.updated_at,
                         database: element.database,
-                        location: element.location
+                        location: element.location,
+                        renamingPending: false
                     });
                 });
             }
 
             state.files = data;
             state.loading = false;
-        })
+        }),
+        builder.addCase(renameUploadedData.pending,(state:DataState,action)=>{
+            let id = action.meta.arg.fileId;
+            for(let file of state.files){
+                if(file.id==id){
+                    file.renamingPending=true;
+                }
+            }
+        }),
+            builder.addCase(renameUploadedData.fulfilled,(state:DataState,action)=>{
+                let id = action.meta.arg.fileId;
+                for(let file of state.files){
+                    if(file.id==id){
+                        delete file.renamingPending;
+                    }
+                }
+            }),
+            builder.addCase(deleteUploadedData.pending,(state:DataState,action)=>{
+                let id = action.meta.arg.fileId;
+                for(let file of state.files){
+                    if(file.id==id){
+                        file.deletionPending=true;
+                    }
+                }
+            }),
+            builder.addCase(deleteUploadedData.fulfilled,(state:DataState,action)=>{
+                let id = action.meta.arg.fileId;
+                for(let file of state.files){
+                    if(file.id==id){
+                        delete file.deletionPending;
+                    }
+                }
+            })
     ),
 });

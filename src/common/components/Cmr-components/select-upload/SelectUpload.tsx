@@ -8,13 +8,14 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import CmrTooltip from "../tooltip/Tooltip";
+import Box from "@mui/material/Box";
 
 interface CMRSelectUploadProps extends CMRUploadProps{
     /**
      * A selection of currently uploaded files
      */
     fileSelection: UploadedFile[];
-    onSelected: (file: UploadedFile)=>void;
+    onSelected: (file?: UploadedFile)=>void;
     chosenFile?: string;
     buttonText?: string;
     /**
@@ -87,11 +88,11 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     ))}
                 </Select>
             </DialogContent>
-                <DialogActions sx={{pt:2}}>
-                    {(!uploading)&&<Button fullWidth variant="contained"  color="success" onClick={onSet}>
+                <Box sx={{pt:2, justifyContent:'center',display:'flex', padding:'8px'}}>
+                    {(!uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
                         Select
                     </Button>}
-                    {fileIndex==-1&& <CMRUpload  {...props} color="info"  onUploaded={(res, file)=>{
+                    {fileIndex==-1&& <CMRUpload {...props} color="info"  onUploaded={(res, file)=>{
                         console.log("calling Setup level on uploaded");
                         console.log(props.onUploaded);
                         selectFileIndex(props.fileSelection.length);
@@ -100,15 +101,16 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     }} fileExtension = {props.fileExtension}
                                                  uploadStarted={()=>{
                                                      setUploading(true);
-                                                     setOpen(false);
+                                                     props.onSelected(undefined);
                                                      }}
                                                  uploadProgressed={(progress)=>{
+                                                     setOpen(false);
                                                      setProgress(progress);
                                                  }}
                                                  uploadEnded={()=>setUploading(false)}
                     ></CMRUpload>}
-                    <Button fullWidth variant="outlined"  color="inherit" sx={{color:'#333'}} onClick={handleClose}> Cancel</Button>
-                </DialogActions>
+                    <Button fullWidth variant="outlined"   color="inherit" sx={{color:'#333', marginLeft:'8px'}} onClick={handleClose}> Cancel</Button>
+                </Box>
         </DialogContent>
     </Dialog>;
     return <Fragment>

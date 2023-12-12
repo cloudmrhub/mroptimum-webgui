@@ -87,6 +87,7 @@ const Setup = () => {
     const reconstructionMethod = useAppSelector(setupGetters.getReconstructionMethod);
     const [reconstructionMethodChanged, setReconstructionMethodChanged] = useState(false);
     const pseudoReplicaCount = useAppSelector(setupGetters.getPseudoReplicaCount);
+    const boxSize = useAppSelector(setupGetters.getBoxSize);
     const flipAngleCorrection = useAppSelector(setupGetters.getFlipAngleCorrection);
     const faMap = useAppSelector(setupGetters.getFlipAngleCorrectionFile);
     const loadSensitivity = useAppSelector(setupGetters.getLoadSensitivity);
@@ -125,9 +126,8 @@ const Setup = () => {
     };
     const decimateMapping = [false, false, true, true];
 
-    const uploadResHandlerFactory = (reducer:
-                                         (payload: UploadedFile) => {
-                                             payload: UploadedFile,
+    const uploadResHandlerFactory = (reducer: (payload: UploadedFile) => {
+                                             payload: UploadedFile|undefined,
                                              type: string
                                          }, additionalCallbacks?: () => void) => {
         return (res: AxiosResponse, maskFile: File) => {
@@ -585,7 +585,7 @@ const Setup = () => {
                                         <SelectUpload fileSelection={uploadedData}
                                                       onSelected={(noise) => {
                                                           dispatch(setNoise(noise));
-                                                          setSignalFileUpdated(noise!=undefined);
+                                                          setNoiseFileUpdated(noise!=undefined);
                                                           if (signalFileUpdated&&noiseFileUpdated)
                                                               setTimeout(() => setOpenPanel([2]), 500);
                                                       }} maxCount={1}
@@ -643,9 +643,26 @@ const Setup = () => {
                                             {/*</FormControl>*/}
                                             <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto',color: '#580F8B'}}>Number of Pseudo Replica:</CmrLabel>
                                             <CmrInputNumber value={pseudoReplicaCount}
-                                                            min={20}
+                                                            min={2}
+                                                            max={analysisMethod==2?120:10}
                                                             onChange={(val) => {
                                                                 dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
+                                                            }}></CmrInputNumber>
+                                        </Row>
+                                        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+                                    </Fragment>}
+                                {(analysisMethod == 3) &&
+                                    <Fragment>
+                                        <Row className='mb-3' style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
+                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                                            {/*</FormControl>*/}
+                                            <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto',color: '#580F8B'}}>Box Size:</CmrLabel>
+                                            <CmrInputNumber value={boxSize}
+                                                            min={2}
+                                                            max={20}
+                                                            onChange={(val) => {
+                                                                dispatch(setupSetters.setBoxSize((val == null) ? 0 : val))
                                                             }}></CmrInputNumber>
                                         </Row>
                                         <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>

@@ -11,10 +11,10 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NameDialog from "../../common/components/Cmr-components/rename/edit";
 import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
-import {getUploadedData, renameUploadedData} from '../../features/data/dataActionCreation';
+import {deleteUploadedData, getUploadedData, renameUploadedData} from '../../features/data/dataActionCreation';
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
-import {Button} from "@mui/material";
+import {Button, CircularProgress} from "@mui/material";
 import {GridRowSelectionModel} from "@mui/x-data-grid";
 import CMRUpload, {CMRUploadProps, LambdaFile} from '../../common/components/Cmr-components/upload/Upload';
 import {getFileExtension} from "../../common/utilities";
@@ -70,18 +70,20 @@ const Home = () => {
                         <IconButton onClick={() => {
                             setOriginalName(files[index].fileName);
                             setNameDialogOpen(true);
-                            setRenamingCallback(()=>(newName:string)=>{
+                            setRenamingCallback(()=>async (newName: string) => {
                                 // In case of working API
-                                // let dataReference = files[index];
-                                // @ts-ignore
-                                // dispatch(renameUploadedData({accessToken,
-                                //     fileId:dataReference.id,
-                                //     fileName:dataReference.fileName}));
+                                let dataReference = files[index];
+                                //@ts-ignore
+                                await dispatch(renameUploadedData({
+                                    accessToken,
+                                    fileId: dataReference.id,
+                                    fileName: newName
+                                }));
                                 // In case of non-working API, change name locally
-                                dispatch(dataSlice.actions.renameData({index:index,alias:newName}));
+                                // dispatch(dataSlice.actions.renameData({index:index,alias:newName}));
                             });
                         }}>
-                            <EditIcon />
+                            {params.row.renamingPending?<CircularProgress size={20} />:<EditIcon />}
                         </IconButton>
                         <IconButton onClick={(e) => {/* Download logic here */
                             let url = params.row.link;
@@ -114,12 +116,14 @@ const Home = () => {
                             setMessage(`Please confirm that you are deleting: ${params.row.fileName}.`);
                             setColor('error');
                             setConfirmCallback(()=>()=>{
-                                dispatch(dataSlice.actions.deleteData({index}));
+                                // dispatch(dataSlice.actions.deleteData({index}));
+                                //@ts-ignore
+                                dispatch(deleteUploadedData({accessToken:accessToken,fileId:params.row.id}));
                             })
                             setOpen(true);
                             e.stopPropagation();
                         }}>
-                            <DeleteIcon />
+                            {params.row.deletionPending?<CircularProgress size={20} />:<DeleteIcon />}
                         </IconButton>
                     </div>
                 );
@@ -328,7 +332,9 @@ const Home = () => {
                                setConfirmCallback(()=>()=>{
                                    for(let id of selectedData) {
                                        let index = files.findIndex(row => row.id === id);
-                                       dispatch(jobsSlice.actions.deleteJob({index}));
+                                       // dispatch(jobsSlice.actions.deleteJob({index}));
+                                       // @ts-ignore
+                                       dispatch(deleteUploadedData({accessToken,fileId:id}))
                                    }
                                });
                                setOpen(true);}}>Delete</Button>
