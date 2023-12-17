@@ -459,6 +459,10 @@ const Setup = () => {
                                        setSnrEditWarningCallback(() => {
                                            // dispatch(setupSetters.loadSNRSettings(editedJSON));
                                            setOpenPanel([0, 1, 2]);
+                                           // This line is a bit of an unexplainable magic,
+                                           // this method shouldn't be executed without being
+                                           // passed to Edit Warning Confirmation, yet it does get
+                                           // executed to create the effect of screen previewing and then returning
                                            setAnalysisMethodChanged(true);
                                        });
                                    } else {
@@ -497,7 +501,11 @@ const Setup = () => {
                                   message={snrEditWarning}
                                   name={"Unfinished SNR Edit"}
                                   cancellable={true}
-                                  confirmCallback={snrEditWarningCallback}/>
+                                  confirmCallback={() => {
+                                      // dispatch(setupSetters.loadSNRSettings(editedJSON));
+                                      setOpenPanel([0, 1, 2]);
+                                      setAnalysisMethodChanged(true);
+                                  }}/>
                     <CmrButton sx={{width: '50%', mt: 1}} variant={"contained"}
                                color={'success'} onClick={() => {
                         console.log(jobSelectionModel);
@@ -615,7 +623,7 @@ const Setup = () => {
                             row
                             aria-labelledby="demo-row-radio-buttons-group-label"
                             name="row-radio-buttons-group"
-                            value={analysisMethod}
+                            value={analysisMethod!=undefined?analysisMethod:''}
                             style={{display: 'flex', justifyContent: 'space-between'}}
                         >
                             <FormControlLabel value={0} control={<Radio/>} label="Array Combining"/>

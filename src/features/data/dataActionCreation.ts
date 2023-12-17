@@ -2,9 +2,6 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {DATAAPI, DATA_RENAME_API, DATA_DELETE_API, DATAUPLODAAPI} from "../../Variables";
 import {UploadedFile} from "./dataSlice";
-// const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-
-// axios.defaults.httpsAgent = httpsAgent;
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
     const config = {
