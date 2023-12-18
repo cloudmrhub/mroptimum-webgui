@@ -1,11 +1,12 @@
 import React, {ChangeEvent, Fragment, useState} from 'react'
-import {Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Typography} from "@mui/material"
+import {Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Tooltip, Typography} from "@mui/material"
 import {IconButton,FormControl,Select,MenuItem,InputLabel} from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import {ROI} from "../../../../features/rois/resultSlice";
 import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
 import {getPipelineROI} from "../../../../features/rois/resultActionCreation";
+import HomeIcon from '@mui/icons-material/Home';
 // import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
@@ -112,6 +113,7 @@ export default function Toolbar(props:ToolbarProps) {
                             <MenuItem value={'3d'}>3D</MenuItem>
                         </Select>
                     </FormControl>
+
                     <FormControl
                         size='small'
                         sx={{
@@ -168,6 +170,13 @@ export default function Toolbar(props:ToolbarProps) {
                     }}>
                         Save Drawing Layer
                     </Button>
+                    <Tooltip title={'Reset Views'} placement={'right'}>
+                        <FormControl sx={{m:2}}>
+                            <IconButton onClick={()=>props.nv.resetScene()}>
+                                <HomeIcon/>
+                            </IconButton>
+                        </FormControl>
+                    </Tooltip>
                     <IconButton
                         onClick={props.toggleSettings}
                         style={{marginLeft:'auto'}}

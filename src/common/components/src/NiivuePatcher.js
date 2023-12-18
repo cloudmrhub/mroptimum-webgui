@@ -991,14 +991,10 @@ Niivue.prototype.ungroup = function(){
     this.refreshDrawing(false);
 }
 
-// Niivue.prototype.hideROI = function(label=0){
-//     for (let i = 0; i< this.drawBitmap.length; i++){
-//         if(this.drawBitmap[i] === label){
-//             this.drawBitmap[i] = -label;
-//         }
-//     }
-//     this.refreshDrawing(true);
-// }
+Niivue.prototype.resetScene = function(){
+    this.scene.pan2Dxyzmm = [0, 0, 0, 1]
+    this.drawScene();
+}
 
 Niivue.prototype.relabelROIs = function(source=0, target = 0){
     for (let i = 0; i< this.drawBitmap.length; i++){

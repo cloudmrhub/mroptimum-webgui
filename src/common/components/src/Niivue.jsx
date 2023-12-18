@@ -227,6 +227,7 @@ export default function NiiVueport(props) {
             setDrawingChanged(true);
             // resampleImage();
         }
+        console.log(nv.scene.pan2Dxyzmm);
     }
     nv.onMouseUp =  (data) => {
         if(drawingEnabled){
