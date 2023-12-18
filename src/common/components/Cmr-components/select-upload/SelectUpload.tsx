@@ -9,6 +9,9 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import CmrTooltip from "../tooltip/Tooltip";
 import Box from "@mui/material/Box";
+import {uploadData} from "../../../../features/data/dataActionCreation";
+import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
+import {AxiosResponse} from "axios";
 
 interface CMRSelectUploadProps extends CMRUploadProps{
     /**
@@ -99,22 +102,23 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                         props.onUploaded(res, file);
                         setOpen(false);
                     }} fileExtension = {props.fileExtension}
-                                                 uploadStarted={()=>{
-                                                     setUploading(true);
-                                                     props.onSelected(undefined);
-                                                     }}
-                                                 uploadProgressed={(progress)=>{
-                                                     setOpen(false);
-                                                     setProgress(progress);
-                                                 }}
-                                                 uploadEnded={()=>setUploading(false)}
+                                                uploadHandler={props.uploadHandler}
+                                                uploadStarted={()=>{
+                                                    setUploading(true);
+                                                    props.onSelected(undefined);
+                                                }}
+                                                uploadProgressed={(progress)=>{
+                                                    setOpen(false);
+                                                    setProgress(progress);
+                                                }}
+                                                uploadEnded={()=>setUploading(false)}
                     ></CMRUpload>}
                     <Button fullWidth variant="outlined"   color="inherit" sx={{color:'#333', marginLeft:'8px'}} onClick={handleClose}> Cancel</Button>
                 </Box>
         </DialogContent>
     </Dialog>;
     return <Fragment>
-        {uploading?<Button variant={"contained"} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={uploading}>
+        {uploading?<Button variant={"contained"} style={{...props.style, textTransform:'none'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={uploading}>
             Uploading {progress}%
         </Button>:<Button variant={(props.chosenFile==undefined)?"contained":"outlined"} color="info" onClick={handleClickOpen} sx={{marginRight:'10pt'}}
                           style={{...props.style, textTransform:'none'}}>

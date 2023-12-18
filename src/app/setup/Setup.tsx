@@ -2,7 +2,7 @@ import React, {Fragment, useEffect, useState} from 'react';
 import './Setup.scss';
 import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
 import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
-import {getUploadedData} from '../../features/data/dataActionCreation';
+import {getUploadedData, uploadData} from '../../features/data/dataActionCreation';
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import {useAppDispatch, useAppSelector} from '../../features/hooks';
 import {setupGetters, setupSetters} from '../../features/setup/setupSlice';
@@ -551,28 +551,39 @@ const Setup = () => {
                 </CmrPanel>
                 <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
                     <Row>
-                        <Col span={24}>
+                        <Col>
                             <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
                                 <CmrLabel>Signal File:</CmrLabel>
-                                <SelectUpload fileSelection={uploadedData} onSelected={(signal) => {
-                                    dispatch(setSignal(signal));
-                                    console.log('setting signal:');
-                                    console.log(signal);
-                                    setSignalFileUpdated(signal!=undefined);
-                                    if (signalFileUpdated&&noiseFileUpdated)
-                                        setTimeout(() => setOpenPanel([2]), 500);
-                                }} maxCount={1}
+                                <SelectUpload fileSelection={uploadedData}
+                                              onSelected={(signal) => {
+                                                    dispatch(setSignal(signal));
+                                                    setSignalFileUpdated(signal!=undefined);
+                                                    if (signalFileUpdated&&noiseFileUpdated)
+                                                        setTimeout(() => setOpenPanel([2]), 500);
+                                                }} maxCount={1}
                                               createPayload={createPayload}
                                               onUploaded={uploadResHandlerFactory(setSignal, () => {
                                                   if (noise != undefined && signal != undefined)
                                                       setTimeout(() => setOpenPanel([2]), 500);
                                               })} style={{
-                                    height: 'fit-content',
-                                    marginTop: 'auto',
-                                    marginBottom: 'auto',
-                                    // background:'#580F8B'
-                                }}
-                                              chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}/>
+                                                    height: 'fit-content',
+                                                    marginTop: 'auto',
+                                                    marginBottom: 'auto',
+                                                    // background:'#580F8B'
+                                                }}
+                                              uploadHandler={async (file:File, fileAlias:string,
+                                                                    fileDatabase:string,
+                                                                    onProgress?:(progress:number)=>void,
+                                                                    onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
+                                                  //@ts-ignore
+                                                  await dispatch(uploadData({file:file,fileAlias:fileAlias,
+                                                      fileDatabase:fileDatabase,
+                                                      accessToken:accessToken,
+                                                      onProgress,onUploaded}))
+                                                  return 200;
+                                              }}
+                                              chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
+                                />
                                 <CmrCheckbox onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
@@ -604,6 +615,17 @@ const Setup = () => {
                                                       })}
                                                       style={{height: 'fit-content', marginLeft: '2pt'}}
                                                       chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
+                                                      uploadHandler={async (file:File, fileAlias:string,
+                                                                            fileDatabase:string,
+                                                                            onProgress?:(progress:number)=>void,
+                                                                            onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
+                                                          //@ts-ignore
+                                                          await dispatch(uploadData({file:file,fileAlias:fileAlias,
+                                                              fileDatabase:fileDatabase,
+                                                              accessToken:accessToken,
+                                                              onProgress,onUploaded}))
+                                                          return 200;
+                                                      }}
                                         />
                                     </Row>
                                 </Col>

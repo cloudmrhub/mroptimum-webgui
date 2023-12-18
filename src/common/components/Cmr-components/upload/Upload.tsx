@@ -5,6 +5,8 @@ import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgres
 import UploadWindow from "./UploadWindow";
 import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
 import Typography from "@mui/material/Typography";
+import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
+import {uploadData} from "../../../../features/data/dataActionCreation";
 
 export interface LambdaFile {
     "filename": string;
@@ -43,7 +45,9 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     uploadEnded?:()=>void;
     uploadProgressed?:(progress:number)=>void;
     //Override this to replace the default behavior of uploading
-    uploadHandler?:(file:File, fileAlias:string, fileDatabase:string)=>Promise<number>;
+    uploadHandler?:(file:File, fileAlias:string, fileDatabase:string,
+                    onProgress?:(progress:number)=>void,
+                    onUploaded?:(res:AxiosResponse,file:File)=>void)=>Promise<number>;
 }
 
 
@@ -58,8 +62,13 @@ const CmrUpload = (props: CMRUploadProps) => {
     let [progress, setProgress] = useState(0);
     let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
 
-    const upload = async (file: File, fileAlias:string, fileDatabase: string)=>{
+   const upload = async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
+        const onProgress = (progress:number)=>{
+            let percentage = (progress* 99);
+            props.uploadProgressed&&props.uploadProgressed(+percentage.toFixed(2));
+            setProgress(+percentage.toFixed(2));
+        }
         if(props.uploadStarted)
             props.uploadStarted();
         let status:any = 0;
@@ -72,18 +81,16 @@ const CmrUpload = (props: CMRUploadProps) => {
             }
 
             if(props.uploadHandler!=undefined){
-                status = await props.uploadHandler(file,fileAlias,fileDatabase);
+                status = await props.uploadHandler(file,fileAlias,fileDatabase,onProgress,props.onUploaded);
+                setUploadedFile(file.name);
             }else{
-
                 let payload = await props.createPayload(file, fileAlias, fileDatabase);
                 if(payload==undefined)
                     return 0;
                 payload.config.onUploadProgress = (progressEvent) => {
                     if(progressEvent.total==undefined)
                         return;
-                    let percentage = (progressEvent.loaded * 99) / progressEvent.total;
-                    props.uploadProgressed&&props.uploadProgressed(+percentage.toFixed(2));
-                    setProgress(+percentage.toFixed(2));
+                    onProgress(progressEvent.loaded/progressEvent.total);
                 };
                 // console.log(payload.formData)
                 const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
