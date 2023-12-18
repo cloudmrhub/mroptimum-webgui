@@ -175,6 +175,15 @@ export default function NiiVueport(props) {
             return false;
         }
 
+        let allZero = true;
+        // Test for imaginary nulls
+        for (let i = 0; i < volume.img.length; i++) {
+            if(volume.imaginary[i]!==0){
+                allZero = false;
+                break;
+            }
+        }
+
         // Initialize absolute and phase arrays
         volume.absolute = new Float32Array(volume.img.length);
         volume.phase = new Float32Array(volume.img.length);
@@ -189,7 +198,7 @@ export default function NiiVueport(props) {
             // Calculate the phase (argument)
             volume.phase[i] = Math.atan2(imaginaryPart, realPart);
         }
-        setComplexOptions(['real','imaginary','absolute','phase']);
+        setComplexOptions((allZero)?['real','absolute']:['real','imaginary','absolute','phase']);
         return true;
     }
 
