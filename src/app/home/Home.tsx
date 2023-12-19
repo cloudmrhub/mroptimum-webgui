@@ -11,7 +11,12 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import NameDialog from "../../common/components/Cmr-components/rename/edit";
 import {getUpstreamJobs, renameUpstreamJob} from "../../features/jobs/jobActionCreation";
-import {deleteUploadedData, getUploadedData, renameUploadedData} from '../../features/data/dataActionCreation';
+import {
+    deleteUploadedData,
+    getUploadedData,
+    renameUploadedData,
+    uploadData
+} from '../../features/data/dataActionCreation';
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 import {Button, CircularProgress} from "@mui/material";
@@ -21,6 +26,7 @@ import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import axios, {AxiosRequestConfig} from "axios";
+import {AxiosResponse} from "axios/index";
 const getDataMethod = async (accessToken: string) => {
     const config = {
         headers: {
@@ -349,7 +355,18 @@ const Home = () => {
                                //@ts-ignore
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
-                           }} 
+                           }}
+                                      uploadHandler={async (file:File, fileAlias:string,
+                                                            fileDatabase:string,
+                                                            onProgress?:(progress:number)=>void,
+                                                            onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
+                                          //@ts-ignore
+                                          await dispatch(uploadData({file:file,fileAlias:fileAlias,
+                                              fileDatabase:fileDatabase,
+                                              accessToken:accessToken,
+                                              onProgress,onUploaded}))
+                                          return 200;
+                                      }}
                                        // uploadStarted={()=>setUploading(true)}
                                        // uploadEnded={()=>setUploading(false)}
                             createPayload={createPayload} maxCount={1}></CMRUpload>

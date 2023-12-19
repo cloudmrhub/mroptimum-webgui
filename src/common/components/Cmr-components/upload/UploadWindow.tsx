@@ -132,8 +132,9 @@ export default function UploadWindow({upload, open, setOpen, fileExtension,
         }
         let file = files[0];
         setUploaded([file]);
-        let reader = new FileReader();
-        reader.onload = function(e2) {
+        // let reader = new FileReader();
+        // reader.onload =
+        function readFile(file:File) {
             setFileName(file.name);
             const units = [
                 "B",
@@ -160,7 +161,7 @@ export default function UploadWindow({upload, open, setOpen, fileExtension,
                     }`;
             setFileSize(output);
         }
-        reader.readAsDataURL(file); // start reading the file data.
+        readFile(file); // start reading the file data.
     }
     let initialized = false;
     let fileInput = (inputRef: HTMLElement)=> {

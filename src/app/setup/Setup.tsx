@@ -22,7 +22,7 @@ import {
     RadioGroup,
     Radio,
     InputLabel,
-    Select, MenuItem, Tooltip, Snackbar, Alert, Slide
+    Select, MenuItem, Tooltip, Snackbar, Alert, Slide, Button
 } from "@mui/material";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {
@@ -72,16 +72,16 @@ const Setup = () => {
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
     const newJobId = useAppSelector((state) => state.setup.idGenerator);
     const signal = useAppSelector(setupGetters.getSignal);
-    console.log(signal);
+    // console.log(signal);
     const noise = useAppSelector(setupGetters.getNoise);
     const multiraid = useAppSelector(setupGetters.getMultiRaid);
-    console.log(multiraid);
+    // console.log(multiraid);
     const uploadedData = useAppSelector((state) => state.data.files);
     const setSignal = setupSetters.setSignal;
     const setNoise = setupSetters.setNoise;
     const [breakpoint, setBreakpoint] = useState('');
     const analysisMethod = useAppSelector(setupGetters.getAnalysisMethod);
-    console.log(analysisMethod);
+    // console.log(analysisMethod);
     const [analysisMethodChanged, setAnalysisMethodChanged] = useState(false);
     const analysisMethodName = useAppSelector(setupGetters.getAnalysisMethodName);
     const reconstructionMethod = useAppSelector(setupGetters.getReconstructionMethod);
@@ -102,6 +102,10 @@ const Setup = () => {
     let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
     const [signalFileUpdated, setSignalFileUpdated] = useState(false);
     const [noiseFileUpdated, setNoiseFileUpdated] = useState(false);
+
+    const signalProgress = useAppSelector(state => state.setup.signalUploadProgress);
+    const noiseProgress = useAppSelector(state => state.setup.noiseUploadProgress);
+
     if (analysisMethodChanged) {
         setTimeout(() => {
             window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
@@ -554,7 +558,7 @@ const Setup = () => {
                         <Col>
                             <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
                                 <CmrLabel>Signal File:</CmrLabel>
-                                <SelectUpload fileSelection={uploadedData}
+                                {signalProgress<0?<SelectUpload fileSelection={uploadedData}
                                               onSelected={(signal) => {
                                                     dispatch(setSignal(signal));
                                                     setSignalFileUpdated(signal!=undefined);
@@ -579,11 +583,14 @@ const Setup = () => {
                                                   await dispatch(uploadData({file:file,fileAlias:fileAlias,
                                                       fileDatabase:fileDatabase,
                                                       accessToken:accessToken,
-                                                      onProgress,onUploaded}))
+                                                      onProgress,onUploaded,uploadTarget:'signal'}))
                                                   return 200;
                                               }}
                                               chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
                                 />
+                                :<Button variant={"contained"} size={'medium'} style={{textTransform:'none',height:'fit-content'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
+                                    Uploading {+(signalProgress*99).toFixed(2)}%
+                                </Button>}
                                 <CmrCheckbox onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
@@ -601,7 +608,7 @@ const Setup = () => {
                                 <Col>
                                     <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
                                         <CmrLabel>Noise File:</CmrLabel>
-                                        <SelectUpload fileSelection={uploadedData}
+                                        {noiseProgress<0?<SelectUpload fileSelection={uploadedData}
                                                       onSelected={(noise) => {
                                                           dispatch(setNoise(noise));
                                                           setNoiseFileUpdated(noise!=undefined);
@@ -615,7 +622,8 @@ const Setup = () => {
                                                       })}
                                                       style={{height: 'fit-content', marginLeft: '2pt'}}
                                                       chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
-                                                      uploadHandler={async (file:File, fileAlias:string,
+                                                      uploadHandler={async (file:File,
+                                                                            fileAlias:string,
                                                                             fileDatabase:string,
                                                                             onProgress?:(progress:number)=>void,
                                                                             onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
@@ -623,10 +631,12 @@ const Setup = () => {
                                                           await dispatch(uploadData({file:file,fileAlias:fileAlias,
                                                               fileDatabase:fileDatabase,
                                                               accessToken:accessToken,
-                                                              onProgress,onUploaded}))
+                                                              onProgress,onUploaded,uploadTarget:'noise'}))
                                                           return 200;
                                                       }}
-                                        />
+                                        />:<Button variant={"contained"} size={'medium'} style={{textTransform:'none'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
+                                                Uploading {+(noiseProgress*99).toFixed(2)}%
+                                            </Button>}
                                     </Row>
                                 </Col>
                             </Row>

@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
     DATAAPI,
@@ -13,6 +13,7 @@ import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
 import {AxiosRequestConfig} from "axios/index";
+import {setupSetters, setupSlice} from "../setup/setupSlice";
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
     const config = {
@@ -30,28 +31,31 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
 });
 
 export const uploadData = createAsyncThunk('UploadData', async(
-    {accessToken, file, fileAlias, fileDatabase,onProgress, onUploaded}:
+    {accessToken, file, fileAlias, fileDatabase, onProgress, onUploaded, uploadTarget}:
                                                                    {accessToken:string,file:File,fileAlias:string,fileDatabase:string,
-                                                                   onProgress?:(progress:number)=>void,
-                                                                   onUploaded?:(res:AxiosResponse,file:File)=>void})=>{
-
+                                                                   onProgress?:(progress:number)=>void,uploadTarget?:string,
+                                                                   onUploaded?:(res:AxiosResponse,file:File)=>void},thunkAPI)=>{
     try{
         const FILE_CHUNK_SIZE = 10 * 1024 * 1024; // 5MB chunk size
         let payload = await createPayload(accessToken, file, fileAlias);
         if(payload==undefined)
-            return 0;
+            return {code:403,response:'file not found',file:undefined,uploadTarget:uploadTarget}
+        thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:0}));
         // @ts-ignore
-        async function uploadPartWithRetries(partUrl:string, part:any, cancelTokenSource:any, index:number, retries = 2) {
+        async function uploadPartWithRetries(partUrl:string,
+                                             part:any, cancelTokenSource:any,
+                                             index:number, retries = 2) {
             try {
                 const response = await axios.put(partUrl, part, {
                     headers: {
-                        'Content-Type': payload?.lambdaFile.filetype
+                        'Content-Type': ""
                     },
                     onUploadProgress: progressEvent => {
                         totalUploadedParts[index] = progressEvent.loaded;
                         const totalUploaded = totalUploadedParts.reduce((a, b) => a + b, 0);
                         const totalProgress = totalUploaded / totalSize;
                         onProgress&&onProgress(totalProgress);
+                        thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:totalProgress}));
                     },
                     cancelToken: cancelTokenSource.token
                 });
@@ -107,9 +111,13 @@ export const uploadData = createAsyncThunk('UploadData', async(
         console.log('all uploads completed');
         if(onUploaded)
             await onUploaded(initResponse,file);
-    }catch (e) {
+
+        thunkAPI.dispatch(getUploadedData(accessToken));
+        return {code:200, response: initResponse.data.response, file:payload.lambdaFile,uploadTarget:uploadTarget};
+    }catch (e:any) {
         console.log("Following error encountered during uploading:");
         console.error(e);
+        return {code:500,response: e.response, file:undefined, uploadTarget:uploadTarget}
     }
 });
 
@@ -117,7 +125,7 @@ const createPayload = async (accessToken:string, file: File, fileAlias: string) 
     if (file) {
         const lambdaFile: LambdaFile = {
             "filename": fileAlias,
-            "filetype": "",
+            "filetype": file.type,
             "filesize": `${file.size}`,
             "filemd5": '',
             "file": file

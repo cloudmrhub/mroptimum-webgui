@@ -4,6 +4,8 @@ import {UploadedFile} from "../data/dataSlice";
 import {Job, SetupInterface} from "../jobs/jobsSlice";
 import moment from "moment/moment";
 import {submitJobs} from "./setupActionCreation";
+import {uploadData} from "../data/dataActionCreation";
+import {formatBytes} from "../../common/utilities";
 
 interface SetupState {
     loading: boolean;
@@ -12,6 +14,9 @@ interface SetupState {
     submittedJobs: SNR[];
     queuedJobs: Job[];
     idGenerator: number;
+    signalUploadProgress: number;
+    noiseUploadProgress: number;
+
 }
 
 interface SNR {
@@ -116,7 +121,7 @@ export const defaultSNR: SNR = {
                 gfactor: false
             }
         }
-    }
+    },
 };
 
 const initialState: SetupState = {
@@ -125,7 +130,9 @@ const initialState: SetupState = {
     submittedJobs: [],
     queuedJobs: [],
     idGenerator: 0,
-    editInProgress: false
+    editInProgress: false,
+    signalUploadProgress:-1,
+    noiseUploadProgress:-1,
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
@@ -416,7 +423,15 @@ export const setupSlice = createSlice({
                     state.queuedJobs.splice(i,1);
                 }else i++;
             }
-        }
+        },
+        setUploadProgress(state:SetupState, action:PayloadAction<{ target?:string,progress:number }>){
+            if(action.payload.target=='signal'){
+                state.signalUploadProgress = action.payload.progress;
+            }
+            if(action.payload.target=='noise'){
+                state.noiseUploadProgress = action.payload.progress;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(submitJobs.fulfilled, (state,responses)=>{
@@ -435,6 +450,56 @@ export const setupSlice = createSlice({
                     }
                 }
             }
+        });
+        builder.addCase(uploadData.fulfilled, (state:SetupState, action)=>{
+            let {code,response, file,uploadTarget} = action.payload;
+            console.log(response);
+            if(uploadTarget=='signal'){
+                state.signalUploadProgress = -1;
+                if(code==200&&file){
+                    // const uploadedFile: UploadedFile = {
+                    //     id: response.id,
+                    //     fileName: response.filename,
+                    //     createdAt: response.created_at,
+                    //     updatedAt: response.updated_at,
+                    //     size: file.filesize,
+                    //     link: response.onlineLink,
+                    //     status: response.status,
+                    //     md5: response.md5,
+                    //     database: 's3',
+                    //     location: response.location
+                    // };
+                }
+            }
+            if(uploadTarget=='noise'){
+                state.noiseUploadProgress = -1;
+                if(code==200&&file){
+                    // const uploadedFile: UploadedFile = {
+                    //     id: response.id,
+                    //     fileName: response.filename,
+                    //     createdAt: response.created_at,
+                    //     updatedAt: response.updated_at,
+                    //     size: file.filesize,
+                    //     link: response.onlineLink,
+                    //     status: response.status,
+                    //     md5: response.md5,
+                    //     database: 's3',
+                    //     location: response.location
+                    // };
+                }
+            }
+        });
+        builder.addCase('persist/REHYDRATE', (state, action) => {
+            let setupState = (<PayloadAction<RootState>> action).payload.setup;
+            // When rehydrating, only take the accessToken from the persisted state
+            state.noiseUploadProgress = -1;
+            state.signalUploadProgress = -1;
+            state.activeSetup =setupState.activeSetup;
+            state.editInProgress = setupState.editInProgress;
+            state.idGenerator = setupState.idGenerator;
+            state.queuedJobs = setupState.queuedJobs;
+            state.loading = false;
+            state.submittedJobs = setupState.submittedJobs;
         })
     },
 });
