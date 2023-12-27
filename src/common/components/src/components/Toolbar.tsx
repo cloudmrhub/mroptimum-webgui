@@ -7,6 +7,9 @@ import {ROI} from "../../../../features/rois/resultSlice";
 import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
 import {getPipelineROI} from "../../../../features/rois/resultActionCreation";
 import HomeIcon from '@mui/icons-material/Home';
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
+import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
+import Brightness6Icon from '@mui/icons-material/Brightness6';
 // import {Niivue} from "@niivue/niivue";
 
 interface ToolbarProps {
@@ -138,6 +141,28 @@ export default function Toolbar(props:ToolbarProps) {
                             )}
                         </Select>
                     </FormControl>
+
+                    <FormControl
+                        size='small'
+                        sx={{
+                            m: 2,
+                            minWidth: 120
+                        }}>
+                        <InputLabel id="slice-type-label">Complex Mode</InputLabel>
+                        <Select
+                            labelId="slice-type-label"
+                            id="slice-type"
+                            value={props.complexMode}
+                            label="Opened ROIs"
+                            onChange={(e)=>props.setComplexMode(e.target.value)}
+                        >
+                            {props.complexOptions.map(value=>{
+                                return <MenuItem value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</MenuItem>
+                            })}
+                        </Select>
+                    </FormControl>
+
+
                     <FormControl
                         size='small'
                         sx={{
@@ -170,13 +195,6 @@ export default function Toolbar(props:ToolbarProps) {
                     }}>
                         Save Drawing Layer
                     </Button>
-                    <Tooltip title={'Reset Views'} placement={'right'}>
-                        <FormControl sx={{m:2}}>
-                            <IconButton onClick={()=>props.nv.resetScene()}>
-                                <HomeIcon/>
-                            </IconButton>
-                        </FormControl>
-                    </Tooltip>
                     <IconButton
                         onClick={props.toggleSettings}
                         style={{marginLeft:'auto'}}
@@ -271,25 +289,31 @@ export default function Toolbar(props:ToolbarProps) {
                             onChange={props.toggleColorBar}
                         />
                     </Box>
-                    <FormControl
-                        size='small'
-                        sx={{
-                            m: 2,
-                            minWidth: 120
-                        }}>
-                        <InputLabel id="slice-type-label">Complex Mode</InputLabel>
-                        <Select
-                            labelId="slice-type-label"
-                            id="slice-type"
-                            value={props.complexMode}
-                            label="Opened ROIs"
-                            onChange={(e)=>props.setComplexMode(e.target.value)}
-                        >
-                            {props.complexOptions.map(value=>{
-                                return <MenuItem value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</MenuItem>
-                            })}
-                        </Select>
-                    </FormControl>
+
+                    <Stack flexDirection={'row'} sx={{m:2}}>
+                        <Tooltip title={'Reset Views'} placement={'right'}>
+                            <IconButton onClick={()=>props.nv.resetScene()}>
+                                <HomeIcon/>
+                            </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title={'Recenter Views'} placement={'right'}>
+                            <IconButton onClick={()=>props.nv.recenter()}>
+                                <CenterFocusStrongIcon/>
+                            </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title={'Reset Zooms'} placement={'right'}>
+                            <IconButton onClick={()=>props.nv.resetZoom()}>
+                                <ZoomInMapIcon/>
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title={'Reset Contrast'} placement={'right'}>
+                            <IconButton onClick={()=>props.nv.resetContrast()}>
+                                <Brightness6Icon/>
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>
                 </Box>
             </Fragment>}
         </Box>

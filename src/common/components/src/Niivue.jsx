@@ -92,7 +92,7 @@ export default function NiiVueport(props) {
     const [complexMode, setComplexMode] = useState('real');
     const [complexOptions, setComplexOptions] = useState(['real']);
     const [roiVisible, setROIVisible] = useState(true);
-    const [orgOpacity, setOrgOpacity] = useState(0.8);
+    const [drawingOpacity, setDrawingOpacity] = useState(0.8);
 
     const [min, setMin] = useState(0);
     const [max, setMax] = useState(1);
@@ -304,14 +304,21 @@ export default function NiiVueport(props) {
 
     function toggleROIVisible(){
         if(roiVisible){
-            setOrgOpacity(nv.drawOpacity);
+            setDrawingOpacity(nv.drawOpacity);
             setROIVisible(false);
             nv.setDrawOpacity(0);
             resampleImage();
         }else{
-            nv.setDrawOpacity(orgOpacity);
+            nv.setDrawOpacity(drawingOpacity);
             setROIVisible(true);
             resampleImage();
+        }
+    }
+
+    function nvUpdateDrawingOpacity(opacity){
+        setDrawingOpacity(opacity);
+        if(roiVisible){
+            nv.setDrawOpacity(opacity);
         }
     }
 
@@ -893,7 +900,9 @@ export default function NiiVueport(props) {
         updateBrushSize:nvUpdateBrushSize,
         resampleImage:resampleImage,
         roiVisible,
-        toggleROIVisible
+        toggleROIVisible,
+        drawingOpacity,
+        setDrawingOpacity:nvUpdateDrawingOpacity
     };
     return (
         <Box sx={{

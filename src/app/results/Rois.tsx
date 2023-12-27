@@ -66,7 +66,7 @@ export const ROITable = (props:{pipelineID: string,
         {
             headerName:'ROI Label',
             field: 'alias',
-            flex: 1.5,
+            flex: 1,
             editable:true,
             valueSetter:(params: GridValueSetterParams)=>{
                 let value = params.value;
@@ -84,6 +84,13 @@ export const ROITable = (props:{pipelineID: string,
             field: 'color',
             flex: 0.5,
             sortable:false,
+            renderHeader: (params:any) => {
+                return (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                        {params.colDef.headerName}
+                    </Box>
+                );
+            },
             renderCell: (params:{row:any})=>{
                 return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
                     <div style={{width:'14pt',height:'14pt',
@@ -117,6 +124,13 @@ export const ROITable = (props:{pipelineID: string,
             field: 'visibility',
             flex: 1,
             sortable:false,
+            renderHeader: (params:any) => {
+                return (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                        {params.colDef.headerName}
+                    </Box>
+                );
+            },
             renderCell: (params:{row:any})=>{
                 return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
                     <IconButton onClick={(event)=>{
@@ -144,7 +158,7 @@ export const ROITable = (props:{pipelineID: string,
         setWarningVisible(true);
     }
     return <Box style={props.style}>
-        <CmrTable hideFooter={true} getRowId={(row) => row.label} style={{height:'70%'}} dataSource={props.rois} columns={roiColumns}
+        <CmrTable hideFooter={true} getRowId={(row) => row.label} style={{height:'70%',marginBottom:10}} dataSource={props.rois} columns={roiColumns}
                   columnHeaderHeight={40}
                   rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
             setSelectedData(rowSelectionModel);

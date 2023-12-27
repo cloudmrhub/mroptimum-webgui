@@ -1,4 +1,4 @@
-import {Box, Button, FormControl, IconButton, Stack, SvgIconProps, Tooltip} from "@mui/material";
+import {Box, Button, FormControl, IconButton, Slider, Stack, SvgIconProps, Tooltip, Typography} from "@mui/material";
 import ImagesearchRollerIcon from "@mui/icons-material/ImagesearchRoller";
 import BrushIcon from "@mui/icons-material/Brush";
 import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined";
@@ -15,6 +15,7 @@ import EraserPlatte from "./EraserPlatte";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {VisibilityOff} from "@mui/icons-material";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import OpacityIcon from '@mui/icons-material/Opacity';
 import CmrTooltip from "../../Cmr-components/tooltip/Tooltip";
 
 
@@ -38,11 +39,15 @@ export interface DrawToolkitProps{
     resampleImage:()=>void;
     roiVisible:boolean;
     toggleROIVisible:()=>void;
+
+    drawingOpacity:number;
+    setDrawingOpacity: (opacity:number)=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
     const [expandDrawOptions, setExpandDrawOptions] = React.useState(false);
     const [expandEraseOptions, setExpandEraseOptions] = React.useState(false);
+    const [expandOpacityOptions, setExpandOpacityOptions] = React.useState(false);
     const penColor = ['red','green','blue','yellow','cyan','#e81ce8'][(props.drawPen&7)-1];
     const filled = props.drawPen>7;
     function clickPaintBrush(){
@@ -139,8 +144,9 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         </FormControl>
         <FormControl>
             <IconButton aria-label="delete" onClick={()=>{
-                props.nv.closeDrawing();
-                props.nv.setDrawingEnabled(true);
+                // props.nv.closeDrawing();
+                // props.nv.setDrawingEnabled(true);
+                props.nv.clearDrawing();
                 props.resampleImage();
             }}>
                 <DeleteIcon  style={{color:'white'}}/>
@@ -157,6 +163,20 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                 </IconButton>
             </FormControl>
         </Tooltip>
+        <FormControl style={{flexDirection:'row', alignItems:'center', color:'white'}}>
+            <Tooltip title={'Region of interests opacity'}>
+                <IconButton aria-label="opaque" onClick={()=>{
+                    setExpandOpacityOptions(!expandOpacityOptions);
+                }}>
+                    <OpacityIcon style={{color:'white'}}/>
+                </IconButton>
+
+            </Tooltip>={` ${props.drawingOpacity}`}
+
+            <OpacityPlatte drawingOpacity={props.drawingOpacity}
+                           setDrawingOpacity={props.setDrawingOpacity}
+                           expanded={expandOpacityOptions}/>
+        </FormControl>
     </Box>;
 }
 
@@ -180,3 +200,41 @@ function EraserIcon(props: SvgIconProps) {
         </SvgIcon>
     );
 }
+
+const OpacityPlatte = ({drawingOpacity,setDrawingOpacity,expanded}:{
+    drawingOpacity:number,
+    setDrawingOpacity: (opacity:number)=>void,
+    expanded:boolean}) => {
+
+
+    return (
+        <Stack
+            style={{position: 'absolute',
+                top: '100%', // Position right below the IconButton
+                left: 0,
+                zIndex: 10, // Higher z-index to layer it above
+                border: `${expanded ? '1px' : 0} solid #bbb`,
+                maxWidth: expanded ? 300 : 0,
+                // transition: 'all 0.5s',
+                overflow: 'hidden',
+                borderRadius: '16px',
+                borderTopLeftRadius:'6pt',
+                borderTopRightRadius:'6pt',
+                background:'#333',
+                width: 150
+            }}
+            direction="column"
+        >
+            <Stack sx={{ mb: 1 }} alignItems="center">
+
+                <Typography color={'white'} noWrap gutterBottom width={'100%'} marginLeft={'10pt'}
+                            fontSize={'11pt'} alignItems={'start'}>{`Opacity: ${drawingOpacity}`}</Typography>
+                <Slider
+                    sx={{width:'80%'}} value={drawingOpacity} step={0.01} min={0} max={1}
+                    onChange={(event, value) => {
+                        setDrawingOpacity(value as number);
+                    }}/>
+            </Stack>
+        </Stack>
+    );
+};

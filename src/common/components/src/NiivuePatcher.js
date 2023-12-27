@@ -35,6 +35,13 @@ function decodeRLE(rle, decodedlen) {
     return d
 }
 
+function intensityRaw2Scaled(hdr, raw) {
+    if (hdr.scl_slope === 0) {
+        hdr.scl_slope = 1.0
+    }
+    return raw * hdr.scl_slope + hdr.scl_inter
+}
+
 const SLICE_TYPE = Object.freeze({
     AXIAL: 0,
     CORONAL: 1,
@@ -71,7 +78,7 @@ Niivue.prototype.getLabelVisibility = function(label){
 Niivue.prototype.setLabelVisibility = function(label, visible){
     console.log(label);
     labelVisibility[label] = visible;
-    if(this.hiddenBitmap===undefined)
+    if(this.hiddenBitmap===undefined||this.hiddenBitmap === null||this.hiddenBitmap.length===0)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     if(!visible) {
         for(let i = 0; i<this.drawBitmap.length; i++){
@@ -104,12 +111,28 @@ Niivue.prototype.setLabelVisibility = function(label, visible){
 
 // This patch to closeDrawing clears invisible bitmapCache when applied
 const closeDrawing = Niivue.prototype.closeDrawing;
+/**
+ * This patch to closeDrawing clears invisible bitmapCache when applied
+ */
 Niivue.prototype.closeDrawing = function(){
     if(this.drawBitmap!==undefined&&this.drawBitmap!==null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
      else if(this.hiddenBitmap!==undefined)
          this.hiddenBitmap.length = 0;
     closeDrawing.call(this);
+}
+
+/**
+ * The difference between clear drawing and close drawing is that
+ * clear drawing retains itself in the undo stack.
+ */
+Niivue.prototype.clearDrawing = function(){
+    if(this.drawBitmap!=undefined&&this.drawBitmap!=null){
+        this.drawBitmap = new Uint8Array(this.drawBitmap.length);
+        this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+    }
+    this.drawAddUndoBitmap();
+    this.refreshDrawing(true)
 }
 
 Niivue.prototype.drawSceneCore = function () {
@@ -866,9 +889,7 @@ Niivue.prototype.drawPenFilled = function() {
     }
     this.drawPenFillPts = []
     this.drawAddUndoBitmap()
-    if(this.hiddenBitmap == undefined || this.hiddenBitmap.length!=this.drawBitmap.length){
-        this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    }
+    this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     for(let i = 0; i<this.drawBitmap.length; i++){
         let pen = this.drawBitmap[i];
         if(!this.getLabelVisibility(pen)){
@@ -877,6 +898,41 @@ Niivue.prototype.drawPenFilled = function() {
         }
     }
     this.refreshDrawing(false)
+}
+
+/**
+ * Restore drawing to previous state
+ * @example niivue.drawUndo();
+ * @see {@link https://niivue.github.io/niivue/features/draw.ui.html|live demo usage}
+ * Yuelong: drawundo hides invisible rois in post processing
+ */
+Niivue.prototype.drawUndo = function(){
+    if (this.drawUndoBitmaps.length < 1) {
+        console.debug('undo bitmaps not loaded')
+        return
+    }
+    this.currentDrawUndoBitmap--
+    if (this.currentDrawUndoBitmap < 0) {
+        this.currentDrawUndoBitmap = this.drawUndoBitmaps.length - 1
+    }
+    if (this.currentDrawUndoBitmap >= this.drawUndoBitmaps.length) {
+        this.currentDrawUndoBitmap = 0
+    }
+    if (this.drawUndoBitmaps[this.currentDrawUndoBitmap].length < 2) {
+        console.debug('drawUndo is misbehaving')
+        return
+    }
+    this.drawBitmap = decodeRLE(this.drawUndoBitmaps[this.currentDrawUndoBitmap], this.drawBitmap.length)
+    // Post-processing to hide invisible region
+    this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+    for(let i = 0; i<this.drawBitmap.length; i++){
+        let pen = this.drawBitmap[i];
+        if(!this.getLabelVisibility(pen)){
+            this.hiddenBitmap[i] = this.drawBitmap[i];
+            this.drawBitmap[i]=0;
+        }
+    }
+    this.refreshDrawing(true)
 }
 
 /**
@@ -994,6 +1050,109 @@ Niivue.prototype.ungroup = function(){
 Niivue.prototype.resetScene = function(){
     this.scene.pan2Dxyzmm = [0, 0, 0, 1]
     this.drawScene();
+}
+
+Niivue.prototype.recenter = function(){
+    // this.scene.pan2Dxyzmm[0] = 0;
+    // this.scene.pan2Dxyzmm[1] = 0;
+    // this.scene.pan2Dxyzmm[2] = 0;
+
+    const zoom = this.scene.pan2Dxyzmm[3];
+    this.scene.pan2Dxyzmm = [0,0,0,1];
+    const zoomChange = this.scene.pan2Dxyzmm[3] - zoom
+    this.scene.pan2Dxyzmm[3] = zoom;
+    const mm = this.frac2mm([0.5,0.5,0.5])
+    this.scene.pan2Dxyzmm[0] += zoomChange * mm[0]
+    this.scene.pan2Dxyzmm[1] += zoomChange * mm[1]
+    this.scene.pan2Dxyzmm[2] += zoomChange * mm[2]
+    this.drawScene()
+}
+
+
+Niivue.prototype.resetZoom = function(){
+    // this.scene.pan2Dxyzmm[0] = 0;
+    // this.scene.pan2Dxyzmm[1] = 0;
+    // this.scene.pan2Dxyzmm[2] = 0;
+
+    const zoom = 1;
+
+    const zoomChange = this.scene.pan2Dxyzmm[3] - zoom
+    this.scene.pan2Dxyzmm[3] = zoom;
+    const mm = this.frac2mm(this.scene.crosshairPos)
+    this.scene.pan2Dxyzmm[0] += zoomChange * mm[0]
+    this.scene.pan2Dxyzmm[1] += zoomChange * mm[1]
+    this.scene.pan2Dxyzmm[2] += zoomChange * mm[2]
+    this.drawScene()
+}
+
+Niivue.prototype.resetContrast = function({ volIdx = 0 } = {}){
+    if (this.opts.sliceType === SLICE_TYPE.RENDER && this.sliceMosaicString.length < 1) {
+        return
+    }
+    if (this.uiData.dragStart[0] === this.uiData.dragEnd[0] && this.uiData.dragStart[1] === this.uiData.dragEnd[1]) {
+        return
+    }
+    // calculate our box
+    let frac = [0,0,0]
+    if (frac[0] < 0) {
+        return
+    }
+    const startVox = this.frac2vox(frac, volIdx)
+    frac = [1,1,1]
+    if (frac[0] < 0) {
+        return
+    }
+    const endVox = this.frac2vox(frac, volIdx)
+
+    let hi = -Number.MAX_VALUE
+    let lo = Number.MAX_VALUE
+    const xrange = this.calculateMinMaxVoxIdx([startVox[0], endVox[0]])
+    const yrange = this.calculateMinMaxVoxIdx([startVox[1], endVox[1]])
+    const zrange = this.calculateMinMaxVoxIdx([startVox[2], endVox[2]])
+
+    // for our constant dimension we add one so that the for loop runs at least once
+    if (startVox[0] - endVox[0] === 0) {
+        xrange[1] = startVox[0] + 1
+    } else if (startVox[1] - endVox[1] === 0) {
+        yrange[1] = startVox[1] + 1
+    } else if (startVox[2] - endVox[2] === 0) {
+        zrange[1] = startVox[2] + 1
+    }
+
+    const hdr = this.volumes[volIdx].hdr
+    const img = this.volumes[volIdx].img
+    if (!hdr || !img) {
+        return
+    }
+
+    const xdim = hdr.dims[1]
+    const ydim = hdr.dims[2]
+    for (let z = zrange[0]; z < zrange[1]; z++) {
+        const zi = z * xdim * ydim
+        for (let y = yrange[0]; y < yrange[1]; y++) {
+            const yi = y * xdim
+            for (let x = xrange[0]; x < xrange[1]; x++) {
+                const index = zi + yi + x
+                if (lo > img[index]) {
+                    lo = img[index]
+                }
+                if (hi < img[index]) {
+                    hi = img[index]
+                }
+            }
+        }
+    }
+    if (lo >= hi) {
+        return
+    } // no variability or outside volume
+    const mnScale = intensityRaw2Scaled(hdr, lo)
+    const mxScale = intensityRaw2Scaled(hdr, hi)
+    this.volumes[volIdx].cal_min = mnScale
+    this.volumes[volIdx].cal_max = mxScale
+    console.log('new min max', this.volumes[volIdx].cal_max, this.volumes[volIdx].cal_max)
+    this.onIntensityChange(this.volumes[volIdx])
+    this.refreshLayers(this.volumes[0], 0)
+    this.drawScene()
 }
 
 Niivue.prototype.relabelROIs = function(source=0, target = 0){
