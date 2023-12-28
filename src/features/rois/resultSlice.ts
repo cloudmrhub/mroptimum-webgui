@@ -27,11 +27,21 @@ export interface Volume{
     url:string;
     alias:string;
 }
+
+export interface NiiFile {
+    filename:string;
+    id:number;
+    dim:number;
+    name:string;
+    type:string;
+    link:string;
+}
+
 export interface ROIState{
     rois: {[pipeline_id:string]:ROI[]};
     resultLoading: number;
     loading:boolean;
-    volumes:{[pipeline_id:string]:Volume[]};
+    niis:{[pipeline_id:string]:NiiFile[]};
     activeJob?: Job;
     selectedVolume: number;
     openPanel: number[];
@@ -39,7 +49,7 @@ export interface ROIState{
 
 const initialState: ROIState = {
     rois:{},
-    volumes:{'-1':[]},
+    niis:{'-1':[]},
     resultLoading: -1,
     loading:false,
     activeJob:undefined,
@@ -53,9 +63,6 @@ export const resultSlice = createSlice({
     reducers: {
         setPipelineID(state:ROIState,action:PayloadAction<Job>){
             state.activeJob = action.payload;
-        },
-        setOpenedVolumes(state:ROIState, action:PayloadAction<{pipelineID:string,volumes:Volume[]}>){
-            state.volumes[action.payload.pipelineID] = action.payload.volumes;
         },
         selectVolume(state:ROIState,action:PayloadAction<number>){
             state.selectedVolume = action.payload;
@@ -84,9 +91,10 @@ export const resultSlice = createSlice({
                 // @ts-ignore
                 state.resultLoading = action.meta.jobId;
             }),
-            builder.addCase(loadResult.fulfilled, (state:ROIState,action)=>{
+            builder.addCase(
+                loadResult.fulfilled, (state:ROIState,action)=>{
                 state.activeJob=action.payload.job;
-                state.volumes[state.activeJob.pipeline_id] = action.payload.volumes;
+                state.niis[state.activeJob.pipeline_id] = action.payload.niis;
                 state.selectedVolume = 1;
                 state.resultLoading = -1;
             })

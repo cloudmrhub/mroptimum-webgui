@@ -323,7 +323,7 @@ const Home = () => {
                <CmrPanel key="0" header="Data" className='mb-2'>
                    <CmrTable dataSource={[...files].reverse()} rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
                        setSelectedData(rowSelectionModel);
-                   }} columns={uploadedFilesColumns} />
+                   }} columns={uploadedFilesColumns}/>
                    <div className="row mt-2">
                        <div className="col-4">
                            <Button color={'success'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{

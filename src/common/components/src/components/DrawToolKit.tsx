@@ -42,6 +42,9 @@ export interface DrawToolkitProps{
 
     drawingOpacity:number;
     setDrawingOpacity: (opacity:number)=>void;
+
+    labelsVisible:boolean;
+    toggleLabelsVisible: ()=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{

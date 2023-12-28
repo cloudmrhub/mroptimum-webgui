@@ -20,6 +20,7 @@ import Plotly from "plotly.js-dist-min";
 import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
 import JSZip from "jszip";
+import {NiiFile} from "../../../features/rois/resultSlice";
 
 export const nv = new Niivue({
     loadingText: '',
@@ -96,6 +97,7 @@ export default function NiiVueport(props) {
 
     const [min, setMin] = useState(0);
     const [max, setMax] = useState(1);
+    const [textsVisible, setTextsVisible] = useState(true);
 
     React.useEffect(() => {
         if(props.displayVertical)
@@ -122,6 +124,7 @@ export default function NiiVueport(props) {
             setBoundMins(nv.frac2mm([0,0,0]));
             setBoundMaxs(nv.frac2mm([1,1,1]));
             setMMs(nv.frac2mm([0.5,0.5,0.5]));
+            stylingProxy(props.niis[props.selectedVolume]);
             setTimeout(args => nv.resizeListener(),700);
         }
     },[]);
@@ -257,12 +260,13 @@ export default function NiiVueport(props) {
     // nv.createEmptyDrawing();
 
     // construct an array of <Layer> components. Each layer is a NVImage or NVMesh
-    const layerList = layers.map((layer) => {
-        return (
+    const layerList = layers.map((layer,index) => {
+        return (index===0)?(//Yuelong: we shall expect only one effective layer in this implementation
             <Layer
                 key={layer.name}
                 image={layer}
                 nv={nv}
+                nii={props.niis[props.selectedVolume]}
                 onColorMapChange={nvUpdateColorMap}
                 onRemoveLayer={nvRemoveLayer}
                 onOpacityChange={nvUpdateLayerOpacity}
@@ -271,7 +275,7 @@ export default function NiiVueport(props) {
                     return nv.colormapFromKey(colorMapName)
                 }}
             />
-        )
+        ):undefined;
     });
 
 
@@ -332,6 +336,17 @@ export default function NiiVueport(props) {
         nv.updateGLVolume()
     }
 
+    function nvToggleLabelVisible(){
+        if(textsVisible){
+            nv.hideText = true;
+            nv.drawScene();
+            setTextsVisible(false);
+        }else{
+            nv.hideText = false;
+            nv.drawScene();
+            setTextsVisible(true);
+        }
+    }
 
     const [dragMode, setDragMode] = useState("pan");
     
@@ -668,7 +683,9 @@ export default function NiiVueport(props) {
         nv.setSelectionBoxColor([...rgb01, 0.5])
     }
 
+    const [sliceType, setSliceType] = React.useState('multi')
     function nvUpdateSliceType(newSliceType) {
+        setSliceType(newSliceType);
         if (newSliceType === 'axial') {
             nv.setSliceType(nv.sliceTypeAxial)
         } else if (newSliceType === 'coronal') {
@@ -698,15 +715,33 @@ export default function NiiVueport(props) {
         setLayers([...nv.volumes])
     }
 
+    function stylingProxy(nii){
+        if(nii.dim === 2){
+            nvUpdateSliceType('axial');
+            if(showCrosshair)
+                nvUpdateCrosshair();
+            if(textsVisible)
+                nvToggleLabelVisible();
+        }else{
+            nvUpdateSliceType('multi');
+            if(!showCrosshair)
+                nvUpdateCrosshair();
+            if(!textsVisible)
+                nvToggleLabelVisible();
+        }
+    }
+
     const selectVolume = (volumeIndex) => {
         const openVolume = ()=>{
             nv.closeDrawing();
             if(drawingEnabled)
                 nvUpdateDrawingEnabled();
-            if (props.volumes[selectVolume] !== undefined) {
-                nv.removeVolume(props.volumes[selectedVolume]);
+            if (props.niis[selectVolume] !== undefined) {
+                nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
             }
-            nv.loadVolumes([props.volumes[volumeIndex]]);
+            nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
+            console.log(props.niis[volumeIndex])
+            stylingProxy(props.niis[volumeIndex]);
             setSelectedVolume(volumeIndex);
             setSelectedDrawingLayer('');
         }
@@ -880,7 +915,7 @@ export default function NiiVueport(props) {
     }
 
     const drawToolkitProps ={ nv,
-        volumes:props.volumes,
+        volumes:props.niis.map(niiToVolume),
         selectedVolume,
         setSelectedVolume:selectVolume,
         updateDrawPen:nvUpdateDrawPen,
@@ -1174,9 +1209,11 @@ export default function NiiVueport(props) {
             <Toolbar
                 nv={nv}
                 nvUpdateSliceType={nvUpdateSliceType}
+                sliceType={sliceType}
+
                 toggleSettings={toggleSettings}
                 toggleLayers={toggleLayers}
-                volumes={props.volumes}
+                volumes={props.niis.map(niiToVolume)}
                 selectedVolume={selectedVolume}
                 setSelectedVolume={selectVolume}
                 showColorBar={colorBar}
@@ -1197,6 +1234,9 @@ export default function NiiVueport(props) {
                 complexMode={complexMode}
                 setComplexMode={nvSetDisplayedVoxels}
                 complexOptions={complexOptions}
+
+                labelsVisible={textsVisible}
+                toggleLabelsVisible={nvToggleLabelVisible}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}
@@ -1219,7 +1259,7 @@ export default function NiiVueport(props) {
                     <DrawToolkit {...drawToolkitProps}
                                  style={{height:'30pt'}} />
                 </Box>}
-            {props.volumes[selectedVolume]!=undefined && <NiivuePanel
+            {props.niis[selectedVolume]!=undefined && <NiivuePanel
                 nv={nv}
                 key={`${selectedVolume}`}
                 volumes={layers}
@@ -1280,4 +1320,16 @@ export default function NiiVueport(props) {
             </Box>
         </Box>
     )
+}
+
+
+function niiToVolume(nii){
+    return {
+        //URL is for NiiVue blob loading
+        url: nii.link,
+        //name is for NiiVue name replacer (needs proper extension like .nii)
+        name: (nii.filename.split('/').pop()),
+    //alias is for user selection in toolbar
+    alias: nii.name
+};
 }

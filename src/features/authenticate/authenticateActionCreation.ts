@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import {SIGNOUT, SIGNIN, JOBS_API} from "../../Variables";
+import {SIGNOUT, SIGNIN, JOBS_API, PROFILE} from "../../Variables";
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
 
@@ -9,10 +9,13 @@ export interface SigninDataType {
     password: string;
 }
 
-export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: SigninDataType) => {
+export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: SigninDataType,thunkAPI) => {
     const response = await axios.post(SIGNIN, signinData);
     // console.log(response);
     // console.log(response.data);
+    //@TODO: uncomment this once getProfile handler is spun up
+    // if(response.data.access_token!=undefined)
+    //     thunkAPI.dispatch(getProfile(response.data.access_token));
     return Object.assign(signinData, response.data);
 });
 
@@ -29,6 +32,11 @@ export const webSignin = createAsyncThunk('WEB_SIGN_IN',
     async (accessToken:string, thunkAPI) => {
         //Update upstream jobs right after submission
         thunkAPI.dispatch(getUpstreamJobs(accessToken));
+
+        //@TODO: uncomment this once getProfile handler is spun up
+        // if(accessToken!=undefined)
+        //     thunkAPI.dispatch(getProfile(accessToken));
+
         //Return whether the submission was successful
         return {
             "access_token": accessToken,
@@ -37,3 +45,19 @@ export const webSignin = createAsyncThunk('WEB_SIGN_IN',
         };
     });
 
+export const getProfile =  createAsyncThunk('GET_PROFILE',
+    async (accessToken:string) => {
+        try{
+            const response = await axios.get(PROFILE, {headers:{
+                    Authorization:`Bearer ${accessToken}`
+                }});
+            // console.log(response);
+            // console.log(response.data);
+            if(response.data[0] === '<'){
+                return {error:'user not recognized'}
+            }
+            return response.data;
+        }catch(e){
+            return undefined;
+        }
+    });

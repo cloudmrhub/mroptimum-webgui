@@ -42,7 +42,7 @@ const Results = () => {
     const activeJob = useAppSelector(state=>state.result.activeJob);
     const activeJobAlias = useAppSelector((state)=>state.result.activeJob?.alias);
     const pipelineID = useAppSelector(state => state.result.activeJob?.pipeline_id);
-    const volumes = useAppSelector(state => pipelineID?state.result.volumes[pipelineID]:[]);
+    const niis = useAppSelector(state => pipelineID?state.result.niis[pipelineID]:[]);
     const rois:ROI[] = useAppSelector(state=>{
         return (pipelineID==undefined||state.result.rois[pipelineID]==undefined)?[]:state.result.rois[pipelineID];
     })
@@ -110,9 +110,17 @@ const Results = () => {
                             })).then((value:any) => {
                                 //@ts-ignore
                                 let volumes = value.payload.volumes;
-                                nv.closeDrawing();
-                                nv.loadVolumes([volumes[1]]);
-                                dispatch(resultActions.setOpenPanel([1]));
+                                let niis = value.payload.niis;
+                                for(let i = 0; i<niis.length; i++){
+                                    let nii = niis[i];
+                                    if(nii.name==='SNR'){
+                                        dispatch(resultActions.selectVolume(i));
+                                        nv.loadVolumes([volumes[i]]);
+                                        nv.closeDrawing();
+                                        dispatch(resultActions.setOpenPanel([1]));
+                                        break;
+                                    }
+                                }
                                 setTimeout(args => nv.resizeListener(),700);
                                 //@ts-ignore
                                 dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
@@ -177,7 +185,7 @@ const Results = () => {
                     }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
-                    {activeJob!=undefined&&<NiiVue volumes={volumes} setSelectedVolume={(index:number)=>{
+                    {activeJob!=undefined&&<NiiVue niis={niis} setSelectedVolume={(index:number)=>{
                         dispatch(resultActions.selectVolume(index));
                     }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
                         //@ts-ignore

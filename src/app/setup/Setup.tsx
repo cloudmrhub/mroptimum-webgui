@@ -918,7 +918,7 @@ const Setup = () => {
                                            {
                                                <CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
                                                             checked={true}>
-                                                   Save matlab
+                                                   Save .mat file
                                                </CmrCheckbox>
                                            }
                                            {[1,2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}

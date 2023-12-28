@@ -1,19 +1,12 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {ROI_GET, ROI_UPLOAD, UNZIP} from '../../Variables';
-import {resultActions, ROI, Volume} from "./resultSlice";
+import {NiiFile, resultActions, ROI, Volume} from "./resultSlice";
 import {nv} from "../../common/components/src/Niivue";
 import {Job, sampleJob} from "../jobs/jobsSlice";
 import {defaultSNR} from "../setup/setupSlice";
 
-export interface NiiFile {
-    filename:string;
-    id:number;
-    dim:number;
-    name:string;
-    type:string;
-    link:string;
-}
+
 
 export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pipeline}:{accessToken:string, pipeline:string}) => {
     const config = {
@@ -30,6 +23,17 @@ export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pi
 });
 
 
+export function niiToVolume(nii:NiiFile){
+    return {
+        //URL is for NiiVue blob loading
+        url: nii.link,
+        //name is for NiiVue name replacer (needs proper extension like .nii)
+        name: (nii.filename.split('/').pop() as string),
+        //alias is for user selection in toolbar
+        alias: nii.name
+    };
+}
+
 export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job}:{accessToken:string,job:Job})=>{
     if(job.pipeline_id==sampleJob.pipeline_id){
         return sampleResult;
@@ -42,6 +46,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
             Authorization:`Bearer ${accessToken}`
         }
     })).data;
+    console.log(niis);
     niis.forEach((value)=>{
         volumes.push({
             //URL is for NiiVue blob loading
@@ -52,7 +57,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
             alias: value.name
         });
     });
-    return {pipelineID:job.pipeline_id, job:job,volumes:volumes};
+    return {pipelineID:job.pipeline_id, job:job,volumes, niis};
         // Set pipeline ID
 },{
         // Adding extra information to the meta field
@@ -87,5 +92,23 @@ let sampleResult = {
             name: 'Hippocampus.nii',
             url: './hippo.nii',
             alias: 'Hippocampus',
-        }]
+        }],
+    niis:[
+        {
+            filename: 'Brain.nii',
+            link: './mni.nii',
+            name: 'Brain',
+            dim:3,
+            type:'output',
+            id:1
+
+        },{
+            filename: 'Hippocampus.nii',
+            link: './hippo.nii',
+            name: 'Hippocampus',
+            dim:3,
+            type:'output',
+            id:2
+        }
+    ]
 }

@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import { getUpstreamJobs } from './jobActionCreation';
 import {defaultSNR, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "../data/dataSlice";
+import {convertTimestamp} from "../../common/utilities/CalendarHelper";
 
 export interface SetupInterface{
     version:string,
@@ -111,6 +112,7 @@ export const jobsSlice = createSlice({
                 const payloadData: {jobs:Array<any>} = action.payload;
                 if (payloadData.jobs.length > 0) {
                     payloadData.jobs.forEach((element) => {
+                        element.createdAt = convertTimestamp(element.createdAt);
                         data.push(element);
                     });
                 }

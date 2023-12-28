@@ -1,16 +1,23 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {getAccessToken, signOut, webSignin} from './authenticateActionCreation';
+import {getAccessToken, getProfile, signOut, webSignin} from './authenticateActionCreation';
 import {RootState} from "../store";
 import {getUploadedData} from "../data/dataActionCreation";
 import {UploadedFile} from "../data/dataSlice";
 
 interface AuthenticateState {
+    id?:string;
     email: string;
+    username?:string;
+    status?:string;
+    level?:string;
+
     password: string;
+
     accessToken: string;
     tokenType: string;
     expiresIn: string;
     loading: boolean;
+
 }
 
 const initialState: AuthenticateState = {
@@ -80,6 +87,23 @@ export const authenticateSlice = createSlice({
                     state.password = "";
                     state.tokenType = "";
                     state.loading = false;
+                }
+                state.loading = false;
+            }),
+            builder.addCase(getProfile.fulfilled, (state, action) => {
+                let data: Array<UploadedFile> = [];
+                const payloadData: any = action.payload;
+                if (payloadData == undefined||payloadData.error=='user not recognized') {
+                    state.accessToken = "";
+                    state.expiresIn = "";
+                    state.password = "";
+                    state.tokenType = "";
+                    state.loading = false;
+                }else{
+                    state.email = payloadData.email;
+                    state.level = payloadData.level;
+                    state.status = payloadData.status;
+                    state.username = payloadData.username;
                 }
                 state.loading = false;
             })

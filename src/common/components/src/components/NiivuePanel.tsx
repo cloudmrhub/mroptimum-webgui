@@ -146,7 +146,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
 	return (
 		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
-            <Box sx={{width:'253px',marginRight:'8px'}} style={{display:'flex', flex:1,flexDirection:'column'}}>
+            <Box sx={{marginRight:'8px'}} style={{display:'flex', flex:1, minWidth:'245px',flexDirection:'column'}}>
                 <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
                 <Box style={{height:'70%', marginTop:20}}>
                     {props.layerList}

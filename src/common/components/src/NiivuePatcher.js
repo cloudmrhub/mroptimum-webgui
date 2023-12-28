@@ -1185,4 +1185,28 @@ Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
     return base64!==undefined;
 }
 
+ // not included in public docs
+// show text labels for L/R, A/P, I/S dimensions
+Niivue.prototype.drawSliceOrientationText = function(leftTopWidthHeight, axCorSag) {
+    if(this.hideText){
+        return;
+    }
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height)
+    let topText = 'S'
+    if (axCorSag === SLICE_TYPE.AXIAL) {
+        topText = 'A'
+    }
+    let leftText = this.opts.isRadiologicalConvention ? 'R' : 'L'
+    if (axCorSag === SLICE_TYPE.SAGITTAL) {
+        leftText = this.opts.sagittalNoseLeft ? 'A' : 'P'
+    }
+    if (this.opts.isCornerOrientationText) {
+        this.drawTextRightBelow([leftTopWidthHeight[0], leftTopWidthHeight[1]], leftText + topText)
+        return
+    }
+    this.drawTextBelow([leftTopWidthHeight[0] + leftTopWidthHeight[2] * 0.5, leftTopWidthHeight[1]], topText)
+
+    this.drawTextRight([leftTopWidthHeight[0], leftTopWidthHeight[1] + leftTopWidthHeight[3] * 0.5], leftText)
+}
+
 export {Niivue};

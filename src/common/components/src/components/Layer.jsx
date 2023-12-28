@@ -31,6 +31,7 @@ function makeColorGradients(colorMapValues) {
 
 export default function Layer(props) {
   const image = props.image
+    const nii = props.nii
   const [detailsOpen, setDetailsOpen] = React.useState(true)
   const [color, setColor] = React.useState(image.colormap)
   const [opacity, setOpacity] = React.useState(1.0)
@@ -128,7 +129,7 @@ export default function Layer(props) {
               flexBasis: '75%' // allow for name wrapping for long names and alignment to the button
             }}
           >
-            {image.name}
+            {nii.name}
           </Typography>
 
           <IconButton

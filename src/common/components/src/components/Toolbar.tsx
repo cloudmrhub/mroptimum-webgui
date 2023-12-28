@@ -15,6 +15,8 @@ import Brightness6Icon from '@mui/icons-material/Brightness6';
 interface ToolbarProps {
     nv: any;
     nvUpdateSliceType: any;
+    sliceType: string;
+
     toggleLayers: React.MouseEventHandler<HTMLButtonElement> | undefined;
     toggleSettings: React.MouseEventHandler<HTMLButtonElement> | undefined;
     volumes: {url:string, name:string, alias:string}[];
@@ -38,16 +40,17 @@ interface ToolbarProps {
     complexMode: string;
     setComplexMode:(complexMode:string)=>void;
     complexOptions:string[];
+
+    labelsVisible:boolean;
+    toggleLabelsVisible:()=>void;
 }
 
 export default function Toolbar(props:ToolbarProps) {
-    const [sliceType, setSliceType] = React.useState('multi')
     const [saving,setSaving] = React.useState(false);
     let dispatch = useAppDispatch();
     function handleSliceTypeChange(e: { target: { value: any } }) {
         let newSliceType = e.target.value
         let nvUpdateSliceType = props.nvUpdateSliceType
-        setSliceType(newSliceType)
         nvUpdateSliceType(newSliceType)
     }
 
@@ -105,7 +108,7 @@ export default function Toolbar(props:ToolbarProps) {
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"
-                            value={sliceType}
+                            value={props.sliceType}
                             label="Display mode"
                             onChange={handleSliceTypeChange}
                         >
@@ -287,6 +290,26 @@ export default function Toolbar(props:ToolbarProps) {
                         <Switch
                             checked={props.showColorBar}
                             onChange={props.toggleColorBar}
+                        />
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display:'flex',
+                            alignItems: 'center'
+                        }}
+                        m={1}
+                    >
+                        <Typography
+                            style={{
+                                marginRight: 'auto'
+                            }}
+                        >
+                            Labels Visible
+                        </Typography>
+                        <Switch
+                            checked={props.labelsVisible}
+                            onChange={props.toggleLabelsVisible}
                         />
                     </Box>
 

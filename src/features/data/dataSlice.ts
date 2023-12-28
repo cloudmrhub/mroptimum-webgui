@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {deleteUploadedData, getUploadedData, renameUploadedData} from './dataActionCreation';
+import {convertTimestamp} from "../../common/utilities/CalendarHelper";
 
 // {
 //     "type": "s3",
@@ -69,8 +70,8 @@ export const dataSlice = createSlice({
                         md5: element.md5,
                         size: element.size,
                         status: (element.status=='notavailable')?'not available':element.status,
-                        createdAt: element.created_at,
-                        updatedAt: element.updated_at,
+                        createdAt: convertTimestamp(element.created_at),
+                        updatedAt: convertTimestamp(element.updated_at),
                         database: element.database,
                         location: element.location,
                         renamingPending: false

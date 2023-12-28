@@ -1,7 +1,7 @@
 
 export const SIGNIN = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/login';//'http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login';//'https://cloudmrhub.com/api/auth/login';
 export const SIGNOUT= 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/logout';//https://cloudmrhub.com/api/auth/logout';
-export const PROFILE = "https://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/profile";
+export const PROFILE = "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/profile";
 export const DATAAPI = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/readdata';
 export const UNZIP = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/unzip';
 export const DATAUPLODAAPI = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod/uploads';
