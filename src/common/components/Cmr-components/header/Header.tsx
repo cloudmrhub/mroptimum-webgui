@@ -55,7 +55,15 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
                     <ul className="navbar-nav">
                         {menuList.map((menuItem)=>{
                             return <li className={`nav-item${(menuItem.title==menuSelect)?' active':''}`} key={menuItem.path}>
-                                <a className='nav-link' onClick={(event)=>{
+                                <a className='nav-link' style={{cursor:'pointer'}} onClick={(event)=>{
+                                    switch(menuItem.title) {
+                                        case 'About':
+                                            window.location.href='https://cloudmrhub.com/about';
+                                            return;
+                                        case 'Contact Us':
+                                            window.location.href='https://cloudmrhub.com/contact';
+                                            return;
+                                    }
                                     event.preventDefault();
                                     handleMenuChange(menuItem, navigate)
                                 }} >

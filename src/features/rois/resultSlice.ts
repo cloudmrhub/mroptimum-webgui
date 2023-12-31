@@ -53,7 +53,7 @@ const initialState: ROIState = {
     resultLoading: -1,
     loading:false,
     activeJob:undefined,
-    selectedVolume:1,
+    selectedVolume:2,
     openPanel:[0]
 };
 
@@ -75,29 +75,29 @@ export const resultSlice = createSlice({
         builder.addCase(getPipelineROI.pending, (state, action) => {
             state.loading = true;
         }),
-            builder.addCase(getPipelineROI.fulfilled, (state, action) => {
-                const {rois, pipeline_id}: {rois:ROI[] ,pipeline_id:string}= action.payload;
-                state.rois[pipeline_id] = [];
-                if (rois.length > 0) {
-                    rois.forEach((element) => {
-                        if(state.rois[pipeline_id]==undefined)
-                            state.rois[pipeline_id] = []
-                        state.rois[pipeline_id].push(element);
-                    });
-                }
-                state.loading = false;
-            }),
-            builder.addCase(loadResult.pending,(state:ROIState, action) => {
-                // @ts-ignore
-                state.resultLoading = action.meta.jobId;
-            }),
-            builder.addCase(
-                loadResult.fulfilled, (state:ROIState,action)=>{
-                state.activeJob=action.payload.job;
-                state.niis[state.activeJob.pipeline_id] = action.payload.niis;
-                state.selectedVolume = 1;
-                state.resultLoading = -1;
-            })
+        builder.addCase(getPipelineROI.fulfilled, (state, action) => {
+            const {rois, pipeline_id}: {rois:ROI[] ,pipeline_id:string}= action.payload;
+            state.rois[pipeline_id] = [];
+            if (rois.length > 0) {
+                rois.forEach((element) => {
+                    if(state.rois[pipeline_id]==undefined)
+                        state.rois[pipeline_id] = []
+                    state.rois[pipeline_id].push(element);
+                });
+            }
+            state.loading = false;
+        }),
+        builder.addCase(loadResult.pending,(state:ROIState, action) => {
+            // @ts-ignore
+            state.resultLoading = action.meta.jobId;
+        }),
+        builder.addCase(
+            loadResult.fulfilled, (state:ROIState,action)=>{
+            state.activeJob=action.payload.job;
+            state.niis[state.activeJob.pipeline_id] = action.payload.niis;
+            state.selectedVolume = 1;
+            state.resultLoading = -1;
+        })
     ),
 });
 

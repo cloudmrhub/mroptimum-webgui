@@ -118,7 +118,7 @@ Niivue.prototype.closeDrawing = function(){
     if(this.drawBitmap!==undefined&&this.drawBitmap!==null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
      else if(this.hiddenBitmap!==undefined)
-         this.hiddenBitmap.length = 0;
+         this.hiddenBitmap = [];
     closeDrawing.call(this);
 }
 
@@ -1085,11 +1085,23 @@ Niivue.prototype.resetZoom = function(){
     this.drawScene()
 }
 
+Niivue.prototype.setCenteredZoom = function(zoom){
+    this.scene.pan2Dxyzmm[0] = 0;
+    this.scene.pan2Dxyzmm[1] = 0;
+    this.scene.pan2Dxyzmm[2] = 0;
+
+    const zoomChange = this.scene.pan2Dxyzmm[3] - zoom
+    this.scene.pan2Dxyzmm[3] = zoom;
+    const mm = this.frac2mm(this.scene.crosshairPos)
+    this.scene.pan2Dxyzmm[0] += zoomChange * mm[0]
+    this.scene.pan2Dxyzmm[1] += zoomChange * mm[1]
+    this.scene.pan2Dxyzmm[2] += zoomChange * mm[2]
+    this.drawScene()
+}
+
 Niivue.prototype.resetContrast = function({ volIdx = 0 } = {}){
+    console.log('resetting contrast');
     if (this.opts.sliceType === SLICE_TYPE.RENDER && this.sliceMosaicString.length < 1) {
-        return
-    }
-    if (this.uiData.dragStart[0] === this.uiData.dragEnd[0] && this.uiData.dragStart[1] === this.uiData.dragEnd[1]) {
         return
     }
     // calculate our box

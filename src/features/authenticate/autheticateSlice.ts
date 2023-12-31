@@ -53,6 +53,8 @@ export const authenticateSlice = createSlice({
                 state.accessToken = access_token;
                 state.tokenType = token_type;
                 state.expiresIn = expires_in;
+                //@TODO: remove this line when PROFILE handler is spun up
+                state.level = 'god';
                 state.loading = false;
             }),
             builder.addCase(signOut.pending, (state, action) => {

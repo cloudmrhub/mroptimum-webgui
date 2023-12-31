@@ -45,6 +45,7 @@ window.nv = nv;
 export default function NiiVueport(props) {
     const selectedVolume = props.selectedVolume;
     const setSelectedVolume = props.setSelectedVolume;
+    const {setWarning,setWarningOpen} = props;
     // const nv = props.nv;
     const [openSettings, setOpenSettings] = React.useState(false)
     const [openLayers, setOpenLayers] = React.useState(false)
@@ -124,10 +125,15 @@ export default function NiiVueport(props) {
             setBoundMins(nv.frac2mm([0,0,0]));
             setBoundMaxs(nv.frac2mm([1,1,1]));
             setMMs(nv.frac2mm([0.5,0.5,0.5]));
-            stylingProxy(props.niis[props.selectedVolume]);
             setTimeout(args => nv.resizeListener(),700);
         }
     },[]);
+
+    React.useEffect(()=>{
+        console.log(props.niis[props.selectedVolume]);
+        //Wait for other rendering processes to complete  before applying styles
+        stylingProxy(props.niis[props.selectedVolume]);
+    },[props.selectedVolume,props.niis])
 
     // only run this when the component is mounted on the page
     // or else it will be recursive and continuously add all
@@ -149,6 +155,16 @@ export default function NiiVueport(props) {
     let [boundMaxs, setBoundMaxs] = useState([1,1,1]);
     let [mms, setMMs] = useState([0.5,0.5,0.5]);
     nv.onImageLoaded = () => {
+        if(nv.volumes.length>1){
+            nv.loadVolumes([niiToVolume(props.niis[props.selectedVolume])]);
+            setWarning("Error loading results, please check internet connectivity");
+            setWarningOpen(true);
+            setTimeout(()=>{
+                setWarningOpen(false);
+                setWarning("");
+            },2500)
+            return;
+        }
         setLayers([...nv.volumes]);
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
@@ -157,6 +173,7 @@ export default function NiiVueport(props) {
         let volume = nv.volumes[0];
         setMin(volume.cal_min);
         setMax(volume.cal_max);
+        nv.resetScene();
     }
 
     function verifyComplex(volume){
@@ -544,7 +561,8 @@ export default function NiiVueport(props) {
     }
 
     function nvUpdateCrosshair(){
-        nv.setCrosshairWidth(showCrosshair?0:1);
+        nv.opts.crosshairWidth = showCrosshair?0:1;
+        nv.drawScene();
         setShowCrosshair(!showCrosshair);
     }
 
@@ -718,32 +736,45 @@ export default function NiiVueport(props) {
     function stylingProxy(nii){
         if(nii.dim === 2){
             nvUpdateSliceType('axial');
-            if(showCrosshair)
-                nvUpdateCrosshair();
-            if(textsVisible)
-                nvToggleLabelVisible();
+            setShowCrosshair(false);
+            setTextsVisible(false);
+            nv.opts.crosshairWidth = 0;
+            nv.hideText = true;
+            setTimeout(()=>
+                nv.setCenteredZoom(0.7),300)
+            nv.drawScene();
         }else{
             nvUpdateSliceType('multi');
-            if(!showCrosshair)
-                nvUpdateCrosshair();
-            if(!textsVisible)
-                nvToggleLabelVisible();
+            setShowCrosshair(true);
+            setTextsVisible(true);
+            nv.opts.crosshairWidth = 1;
+            nv.hideText = false;
+            nv.drawScene();
         }
     }
 
-    const selectVolume = (volumeIndex) => {
-        const openVolume = ()=>{
-            nv.closeDrawing();
-            if(drawingEnabled)
-                nvUpdateDrawingEnabled();
-            if (props.niis[selectVolume] !== undefined) {
-                nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
+    const selectVolume = async (volumeIndex) => {
+        const openVolume = async ()=>{
+                nv.closeDrawing();
+                setDrawingChanged(false);
+                if(drawingEnabled)
+                    nvUpdateDrawingEnabled();
+                if (props.niis[selectVolume] !== undefined) {
+                    nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
+                }
+            try{
+                    await nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
+            }catch (e) {
+                setWarning("Error loading results, please check internet connectivity");
+                setWarningOpen(true);
+                setTimeout(()=>{
+                    setWarningOpen(false);
+                    setWarning("");
+                },2500)
+                return;
             }
-            nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
-            console.log(props.niis[volumeIndex])
-            stylingProxy(props.niis[volumeIndex]);
-            setSelectedVolume(volumeIndex);
-            setSelectedDrawingLayer('');
+                setSelectedVolume(volumeIndex);
+                setSelectedDrawingLayer('');
         }
         // In case that changes has been made
         if (drawingChanged) {

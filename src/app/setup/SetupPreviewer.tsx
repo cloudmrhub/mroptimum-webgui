@@ -10,9 +10,9 @@ import TextField from "@mui/material/TextField";
 import {store} from "../../features/store";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
 
-export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job'}:
+export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job',developer}:
                                {previewContent: string, queue: (jobAlias:string)=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,
-                                    editText?:string, queueText?:string
+                                    editText?:string, queueText?:string, developer:boolean
 })=>{
 
     return  <Dialog open={true} onClose={handleClose} fullWidth={true}>
@@ -21,7 +21,7 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
             {/*<DialogContentText color={'#1976d2'}>*/}
             {/*    The SNR JSON that will be submitted:*/}
             {/*</DialogContentText>*/}
-            <TextField
+            {developer&&<TextField
                 multiline
                 label={"The SNR JSON that will be submitted:"}
                 fullWidth
@@ -36,7 +36,7 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
                 InputProps={{
                     disableUnderline: true, // <== added this
                 }}
-            />
+            />}
             <TextField
                 fullWidth
                 required
@@ -51,13 +51,19 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
                 queue(alias);
                 handleClose();
             }}>{queueText}</CmrButton>
+            {!developer&&
+                <CmrButton fullWidth variant={"outlined"} sx={{color:'#1976d2'}} onClick={()=>{
+                    edit();
+                    handleClose();
+                }}>{editText}</CmrButton>}
         </DialogActions>
-        <DialogActions sx={{pt:0,pl:3,pr:3}}>
-            <CmrButton fullWidth variant={"outlined"} sx={{color:'#1976d2'}} onClick={()=>{
-                edit();
-                handleClose();
-            }}>{editText}</CmrButton>
-        </DialogActions>
+        {developer&&
+            <DialogActions sx={{pt:0,pl:3,pr:3}}>
+                <CmrButton fullWidth variant={"outlined"} sx={{color:'#1976d2'}} onClick={()=>{
+                    edit();
+                    handleClose();
+                }}>{editText}</CmrButton>
+            </DialogActions>}
         </Dialog>;
     // return <Dialog
     //     sx={{ '& .MuiDialog-paper': { width: 'fit-content', maxHeight: 435 } }}

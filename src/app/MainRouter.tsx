@@ -36,7 +36,8 @@ const MainRouter = () => {
                 element={debugging||authenticate.accessToken ? (<About/>) : (<Navigate to='/login'/>)}/>
             <Route
                 path="/contact"
-                element={debugging||authenticate.accessToken ? (<ContactUs/>) : (<Navigate to='/login'/>)}/>
+                element={debugging||authenticate.accessToken ? (
+                    <ContactUs/>) : (<Navigate to='/login'/>)}/>
             <Route
                 path="/bug-report"
                 element={debugging||authenticate.accessToken ? (<BugReport/>) : (<Navigate to='/login'/>)}/>

@@ -16,7 +16,12 @@ interface SetupState {
     idGenerator: number;
     signalUploadProgress: number;
     noiseUploadProgress: number;
-
+    outputSettings:  OutputInterface;
+}
+interface OutputInterface{
+    coilsensitivity: boolean,
+    gfactor: boolean,
+    matlab: boolean
 }
 
 interface SNR {
@@ -48,7 +53,7 @@ interface ReconstructorOptions {
     signalMultiRaid?: boolean;
     accelerations?: number[];
     kernelSize?: [number, number];
-    acl?: number[];
+    acl?: (number|null)[];
     sensitivityMap: SensitivityMap;
     correction: CorrectionOptions;
     decimate?: boolean;
@@ -133,6 +138,11 @@ const initialState: SetupState = {
     editInProgress: false,
     signalUploadProgress:-1,
     noiseUploadProgress:-1,
+    outputSettings:{
+        coilsensitivity:false,
+        gfactor:false,
+        matlab:true,
+    }
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
@@ -168,14 +178,10 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
     }
 }
 
-function createSetup(snr:SNR, alias:string):SetupInterface{
+function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gfactor: boolean;matlab: boolean}):SetupInterface{
      return {version: "v0",
         alias: alias,
-        output: {
-        coilsensitivity: snr.options.reconstructor.id==1||snr.options.reconstructor.id==2,
-            gfactor: snr.options.reconstructor.id == 2,
-            matlab: true
-    },
+        output:output,
         task:snr};
 }
 
@@ -187,7 +193,7 @@ function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reco
         createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
         files: [],
         id: setupState.idGenerator++,
-        setup: createSetup(snr,alias),
+        setup: createSetup(snr,alias,setupState.outputSettings),
         status: "not submitted",
         updatedAt: "",
         pipeline_id:""
@@ -256,11 +262,22 @@ export const setupSlice = createSlice({
             if(action.payload==3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined){
                 state.activeSetup.options.reconstructor.options.kernelSize=[3,4];
             }
+            state.outputSettings.coilsensitivity = action.payload == 2 || action.payload == 1;
+            state.outputSettings.gfactor = action.payload == 2;
             if(action.payload == 2 ||action.payload==3){
                 state.activeSetup.options.reconstructor.options.decimate = false;
             }else
                 delete state.activeSetup.options.reconstructor.options.decimate;
             state.editInProgress=true;
+        },
+        setOutputMatlab(state:SetupState, action: PayloadAction<boolean>){
+            state.outputSettings.matlab = action.payload;
+        },
+        setOutputCoilSensitivity(state:SetupState, action: PayloadAction<boolean>){
+            state.outputSettings.coilsensitivity = action.payload;
+        },
+        setOutputGFactor(state:SetupState, action: PayloadAction<boolean>){
+            state.outputSettings.gfactor = action.payload;
         },
         setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
@@ -325,7 +342,7 @@ export const setupSlice = createSlice({
             state.activeSetup.options.boxSize = action.payload;
             state.editInProgress=true;
         },
-        setDecimateACL(state: SetupState, action: PayloadAction<number>) {
+        setDecimateACL(state: SetupState, action: PayloadAction<number|null>) {
             state.activeSetup.options.reconstructor.options.acl = [action.payload,action.payload];
             state.editInProgress=true;
         },
@@ -353,6 +370,7 @@ export const setupSlice = createSlice({
             state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
             state.activeSetup.options.reconstructor.options.signal = signalCache;
             state.activeSetup.options.reconstructor.options.noise = noiseCache;
             state.editInProgress = false;
@@ -378,11 +396,12 @@ export const setupSlice = createSlice({
                     break;
                 }
             }
-            state.queuedJobs[index].setup=createSetup(SNRSpec,action.payload.alias);
+            state.queuedJobs[index].setup=createSetup(SNRSpec,action.payload.alias,state.outputSettings);
             state.queuedJobs[index].alias = action.payload.alias;
             state.queuedJobs[index].status = 'modified';
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
             state.editInProgress = false;
             console.log(state.queuedJobs[index]);
         },
@@ -400,9 +419,9 @@ export const setupSlice = createSlice({
         queueSNRJob(state: SetupState, action: PayloadAction<{ snr: SNR, name: string }>) {
             state.queuedJobs.push(createJob(action.payload.snr, state, action.payload.name));
         },
-        loadSNRSettings(state: SetupState, action: PayloadAction<SNR>) {
-            state.activeSetup = action.payload;
-            let snr = state.activeSetup;
+        loadSNRSettings(state: SetupState, action: PayloadAction<{ SNR:SNR, output: OutputInterface}>) {
+            state.activeSetup = action.payload.SNR;
+            state.outputSettings = action.payload.output;
             // snr.options.reconstructor.options.signalMultiRaid
             //     = !!(snr.options.reconstructor.options.signal?.options.multiraid);
             state.editInProgress = true;
@@ -570,7 +589,7 @@ const SetupGetters = {
         let acc = state.setup.activeSetup?.options.reconstructor?.options.accelerations;
         return (acc)?acc[1]:0;
     },
-    getDecimateACL: (state: RootState): number | undefined => {
+    getDecimateACL: (state: RootState): number | null | undefined => {
         let acl = state.setup.activeSetup?.options.reconstructor?.options.acl;
         return (acl)?acl[0]:0;
     },

@@ -110,7 +110,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
 
         console.log('all uploads completed');
         if(onUploaded)
-            await onUploaded(initResponse,file);
+            onUploaded(initResponse,file);
 
         thunkAPI.dispatch(getUploadedData(accessToken));
         return {code:200, response: initResponse.data.response, file:payload.lambdaFile,uploadTarget:uploadTarget};

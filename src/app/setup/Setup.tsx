@@ -67,7 +67,8 @@ const Setup = () => {
     }, []);
 
     const dispatch = useAppDispatch();
-    const {accessToken} = useAppSelector((state) => state.authenticate);
+    const {accessToken,level} = useAppSelector((state) => state.authenticate);
+    const developer = level!='user';
     const editActive = useAppSelector(state => state.setup.editInProgress);
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
     const newJobId = useAppSelector((state) => state.setup.idGenerator);
@@ -105,6 +106,10 @@ const Setup = () => {
 
     const signalProgress = useAppSelector(state => state.setup.signalUploadProgress);
     const noiseProgress = useAppSelector(state => state.setup.noiseUploadProgress);
+
+    const outputGFactor = useAppSelector(state => state.setup.outputSettings.gfactor);
+    const outputCoilSensitivity = useAppSelector(state => state.setup.outputSettings.coilsensitivity);
+    const outputMatlab = useAppSelector(state => state.setup.outputSettings.matlab);
 
     if (analysisMethodChanged) {
         setTimeout(() => {
@@ -226,9 +231,10 @@ const Setup = () => {
                                             dispatch(setupSetters.setDecimateAccelerations2((val == null) ? 0 : val))
                                         }}></CmrInputNumber>;
                     case 3:
-                        return <CmrInputNumber value={decimateACL}
+                        return <CmrInputNumber value={decimateACL==null?Number.NaN:decimateACL}
                                                style={{width:'100%'}}
                                                min={0}
+                                               disabled={decimateACL==null}
                                                onChange={(val) => {
                                                    dispatch(setupSetters.setDecimateACL((val == null) ? 0 : val))
                                                }}></CmrInputNumber>;
@@ -340,7 +346,7 @@ const Setup = () => {
                             let snrPreview: SetupInterface = params.row.setup;
                             setRowId(params.row.id);
                             setEditContent(JSON.stringify(snrPreview, null, '\t'));
-                            setEditedJSON(snrPreview.task);
+                            setEditedJSON({SNR:snrPreview.task,output:snrPreview.output});
                             setEditAlias(params.row.alias);
                         }}>
                             <EditIcon/>
@@ -911,22 +917,37 @@ const Setup = () => {
 
                                                     }}
                                                 />
+                                                <CmrCheckbox style={{marginLeft:0}} onChange={(e)=>{
+                                                  if(e.target.checked) {
+                                                      dispatch(setupSetters.setDecimateACL(null));
+                                                  }else {
+                                                      dispatch(setupSetters.setDecimateACL(24));
+                                                  }
+                                                }}>
+                                                    Use all autocalibration lines
+                                                </CmrCheckbox>
                                                 <Divider variant="middle" sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
                                             </div>
                                         }
                                        <Row>
                                            {
-                                               <CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
-                                                            checked={true}>
+                                               <CmrCheckbox className='m-1' onChange={(e)=>{
+                                                   dispatch(setupSetters.setOutputMatlab(e.target.checked));
+                                               }}
+                                                            checked={outputMatlab}>
                                                    Save .mat file
                                                </CmrCheckbox>
                                            }
-                                           {[1,2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
-                                                        checked={true}>
+                                           {[1,2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1'  onChange={(e)=>{
+                                               dispatch(setupSetters.setOutputCoilSensitivity(e.target.checked));
+                                           }} defaultChecked={true}
+                                                        checked={outputCoilSensitivity}>
                                                Save coil sensitivities
                                            </CmrCheckbox>}
-                                           {[2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1' onChange={()=>{}} defaultChecked={true}
-                                                                                                 checked={true}>
+                                           {[2].indexOf(reconstructionMethod)>=0&&<CmrCheckbox className='m-1'  onChange={(e)=>{
+                                               dispatch(setupSetters.setOutputGFactor(e.target.checked));
+                                           }} defaultChecked={true}
+                                                                                                 checked={outputGFactor}>
                                                Save gFactor
                                            </CmrCheckbox>}
                                        </Row>
@@ -938,7 +959,7 @@ const Setup = () => {
                                                        let state = store.getState();
                                                        snr = state.setup.activeSetup;
                                                        if (editing != -1) {
-                                                           setEditedJSON(snr);
+                                                           setEditedJSON({SNR:snr,output:state.setup.outputSettings});
                                                            setEditContent(JSON.stringify(snr, undefined, '\t'));
                                                        } else {
                                                            setPreview(JSON.stringify(snr, null, '\t'));
@@ -947,6 +968,7 @@ const Setup = () => {
                                                    }}>{editing != -1 ? 'Complete Editing' : 'Queue Job'}</CmrButton>
                                         {(previewContent) &&
                                             <SNRPreview previewContent={previewContent} alias={jobAlias}
+                                                        developer={developer}
                                                         setAlias={(event) => {
                                                             //@ts-ignore
                                                             setJobAlias(event.target.value)

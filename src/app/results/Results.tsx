@@ -16,7 +16,7 @@ import {ROI_GET, UNZIP} from "../../Variables";
 import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
 import {resultActions, ROI} from "../../features/rois/resultSlice";
 import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
-import {Button} from "@mui/material";
+import {Alert, Button, Slide, Snackbar} from "@mui/material";
 import {store} from "../../features/store";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {Row} from "antd";
@@ -50,6 +50,9 @@ const Results = () => {
     const resultLoading  = useAppSelector(state => state.result.resultLoading);
     const [autoRefresh, setAutoRefresh] = useState(true);
     const openPanel = useAppSelector(state => state.result.openPanel);
+    const [warning, setWarning] = useState("");
+    const [warningOpen, setWarningOpen] = useState(false);
+
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
@@ -102,26 +105,40 @@ const Results = () => {
             renderCell: (params:{row:Job}) => {
                 return (
                     <div>
+
                         <IconButton disabled={params.row.status!='completed'} onClick={() => {
-                            //@ts-ignore
+
+                            if(params.row.pipeline_id==activeJob?.pipeline_id) {
+                                dispatch(resultActions.setOpenPanel([1]));
+                                return;
+                            }
                             dispatch(loadResult({
                                 accessToken,
                                 job:params.row,
-                            })).then((value:any) => {
-                                //@ts-ignore
-                                let volumes = value.payload.volumes;
-                                let niis = value.payload.niis;
-                                for(let i = 0; i<niis.length; i++){
-                                    let nii = niis[i];
-                                    if(nii.name==='SNR'){
-                                        dispatch(resultActions.selectVolume(i));
-                                        nv.loadVolumes([volumes[i]]);
-                                        nv.closeDrawing();
-                                        dispatch(resultActions.setOpenPanel([1]));
-                                        break;
+                            })).then(async (value:any) => {
+                                try{
+                                    //@ts-ignore
+                                    let volumes = value.payload.volumes;
+                                    let niis = value.payload.niis;
+                                    for(let i = 0; i<niis.length; i++){
+                                        let nii = niis[i];
+                                        if(nii.name==='SNR'){
+                                            dispatch(resultActions.selectVolume(i));
+                                            nv.loadVolumes([volumes[i]]);
+                                            dispatch(resultActions.setOpenPanel([1]));
+                                            nv.closeDrawing();
+                                            break;
+                                        }
                                     }
+                                }catch (e) {
+                                    setWarning("Error loading results, please check internet connectivity");
+                                    setWarningOpen(true);
+                                    setTimeout(()=>{
+                                        setWarningOpen(false);
+                                        setWarning("");
+                                    },1000)
                                 }
-                                setTimeout(args => nv.resizeListener(),700);
+                                setTimeout(() => nv.resizeListener(),700);
                                 //@ts-ignore
                                 dispatch(getPipelineROI({pipeline: params.row.pipeline_id,
                                     accessToken:accessToken}));
@@ -168,6 +185,13 @@ const Results = () => {
     ];
     return (
         <Fragment>
+            <Snackbar anchorOrigin={ {vertical: 'top', horizontal: 'left'}}
+                      TransitionComponent={(props)=><Slide {...props} direction="right" />}
+                      open={warningOpen} autoHideDuration={7000} onClose={()=>setWarningOpen(false)}>
+                <Alert onClose={()=>setWarningOpen(false)} severity="error" sx={{ width: '100%' }}>
+                    {warning}
+                </Alert>
+            </Snackbar>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel} onChange={(key: any) => {
                 dispatch(resultActions.setOpenPanel(key));
             }}>
@@ -185,14 +209,18 @@ const Results = () => {
                     }}>Refresh</Button>
                 </CmrPanel>
                 <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
-                    {activeJob!=undefined&&<NiiVue niis={niis} setSelectedVolume={(index:number)=>{
-                        dispatch(resultActions.selectVolume(index));
-                    }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
-                        //@ts-ignore
-                        dispatch(getPipelineROI({pipeline: pipelineID,
-                            accessToken:accessToken}));
-                    }}
-                     accessToken={accessToken}/>}
+                    {activeJob!=undefined&&
+                    <NiiVue niis={niis}
+                        setWarning={setWarning}
+                        setWarningOpen={setWarningOpen}
+                        setSelectedVolume={(index:number)=>{
+                            dispatch(resultActions.selectVolume(index));
+                        }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID} saveROICallback={()=>{
+                            //@ts-ignore
+                            dispatch(getPipelineROI({pipeline: pipelineID,
+                                accessToken:accessToken}));
+                        }}
+                         accessToken={accessToken}/>}
                     {activeJob==undefined&&
                     <Box sx={{display:'flex', justifyContent:'center'}}>
                         No Result Inspections Running

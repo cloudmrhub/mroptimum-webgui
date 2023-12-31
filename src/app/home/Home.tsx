@@ -315,7 +315,6 @@ const Home = () => {
             });
         }
         downloadMultipleFiles(downloadPending);
-
     }
     return (
        <Fragment>
