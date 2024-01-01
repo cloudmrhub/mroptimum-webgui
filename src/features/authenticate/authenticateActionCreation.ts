@@ -13,9 +13,8 @@ export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: Sig
     const response = await axios.post(SIGNIN, signinData);
     // console.log(response);
     // console.log(response.data);
-    //@TODO: uncomment this once getProfile handler is spun up
-    // if(response.data.access_token!=undefined)
-    //     thunkAPI.dispatch(getProfile(response.data.access_token));
+    if(response.data.access_token!=undefined)
+        thunkAPI.dispatch(getProfile(response.data.access_token));
     return Object.assign(signinData, response.data);
 });
 
@@ -33,9 +32,8 @@ export const webSignin = createAsyncThunk('WEB_SIGN_IN',
         //Update upstream jobs right after submission
         thunkAPI.dispatch(getUpstreamJobs(accessToken));
 
-        //@TODO: uncomment this once getProfile handler is spun up
-        // if(accessToken!=undefined)
-        //     thunkAPI.dispatch(getProfile(accessToken));
+        if(accessToken!=undefined)
+            thunkAPI.dispatch(getProfile(accessToken));
 
         //Return whether the submission was successful
         return {

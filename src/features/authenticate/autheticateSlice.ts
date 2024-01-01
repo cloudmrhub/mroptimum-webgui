@@ -47,14 +47,12 @@ export const authenticateSlice = createSlice({
             state.loading = true;
         }),
             builder.addCase(getAccessToken.fulfilled, (state, action) => {
-                const { email, password, access_token, token_type, expires_in } = action.payload;
+                const { email, password, access_token, token_type, expires_in,level } = action.payload;
                 state.email = email;
                 state.password = password;
                 state.accessToken = access_token;
                 state.tokenType = token_type;
                 state.expiresIn = expires_in;
-                //@TODO: remove this line when PROFILE handler is spun up
-                state.level = 'god';
                 state.loading = false;
             }),
             builder.addCase(signOut.pending, (state, action) => {

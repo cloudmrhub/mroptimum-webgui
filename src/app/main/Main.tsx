@@ -16,10 +16,9 @@ const Main = (props: any) => {
     const [focusedTab,setFocusedTab] = useState(1);
     const accessToken = useAppSelector(state => state.authenticate.accessToken);
     const dispatch = useAppDispatch();
-    //@TODO: uncomment this once PROFILE server is spun up
-    // useEffect(() => {
-    //     dispatch(getProfile(accessToken));
-    // }, [accessToken]);
+    useEffect(() => {
+        dispatch(getProfile(accessToken));
+    }, [accessToken]);
     return (
         <div className={`${focusedTab==2?'container-fluid':'container'} mt-4`} style={{maxWidth:focusedTab==2?'90%':undefined,transition: 'all 0.3s'}}>
             <CmrTabs tabList={tabData} onTabSelected={tabIndex => {
