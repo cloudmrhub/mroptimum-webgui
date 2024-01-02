@@ -1099,70 +1099,10 @@ Niivue.prototype.setCenteredZoom = function(zoom){
     this.drawScene()
 }
 
-Niivue.prototype.resetContrast = function({ volIdx = 0 } = {}){
-    console.log('resetting contrast');
-    if (this.opts.sliceType === SLICE_TYPE.RENDER && this.sliceMosaicString.length < 1) {
-        return
-    }
-    // calculate our box
-    let frac = [0,0,0]
-    if (frac[0] < 0) {
-        return
-    }
-    const startVox = this.frac2vox(frac, volIdx)
-    frac = [1,1,1]
-    if (frac[0] < 0) {
-        return
-    }
-    const endVox = this.frac2vox(frac, volIdx)
-
-    let hi = -Number.MAX_VALUE
-    let lo = Number.MAX_VALUE
-    const xrange = this.calculateMinMaxVoxIdx([startVox[0], endVox[0]])
-    const yrange = this.calculateMinMaxVoxIdx([startVox[1], endVox[1]])
-    const zrange = this.calculateMinMaxVoxIdx([startVox[2], endVox[2]])
-
-    // for our constant dimension we add one so that the for loop runs at least once
-    if (startVox[0] - endVox[0] === 0) {
-        xrange[1] = startVox[0] + 1
-    } else if (startVox[1] - endVox[1] === 0) {
-        yrange[1] = startVox[1] + 1
-    } else if (startVox[2] - endVox[2] === 0) {
-        zrange[1] = startVox[2] + 1
-    }
-
-    const hdr = this.volumes[volIdx].hdr
-    const img = this.volumes[volIdx].img
-    if (!hdr || !img) {
-        return
-    }
-
-    const xdim = hdr.dims[1]
-    const ydim = hdr.dims[2]
-    for (let z = zrange[0]; z < zrange[1]; z++) {
-        const zi = z * xdim * ydim
-        for (let y = yrange[0]; y < yrange[1]; y++) {
-            const yi = y * xdim
-            for (let x = xrange[0]; x < xrange[1]; x++) {
-                const index = zi + yi + x
-                if (lo > img[index]) {
-                    lo = img[index]
-                }
-                if (hi < img[index]) {
-                    hi = img[index]
-                }
-            }
-        }
-    }
-    if (lo >= hi) {
-        return
-    } // no variability or outside volume
-    const mnScale = intensityRaw2Scaled(hdr, lo)
-    const mxScale = intensityRaw2Scaled(hdr, hi)
-    this.volumes[volIdx].cal_min = mnScale
-    this.volumes[volIdx].cal_max = mxScale
-    console.log('new min max', this.volumes[volIdx].cal_max, this.volumes[volIdx].cal_max)
-    this.onIntensityChange(this.volumes[volIdx])
+Niivue.prototype.resetContrast = function(){
+    this.volumes[0].cal_min = this.volumes[0].robust_min
+    this.volumes[0].cal_max = this.volumes[0].robust_max
+    this.onIntensityChange(this.volumes[0])
     this.refreshLayers(this.volumes[0], 0)
     this.drawScene()
 }

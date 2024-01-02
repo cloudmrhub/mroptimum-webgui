@@ -68,7 +68,7 @@ const Setup = () => {
 
     const dispatch = useAppDispatch();
     const {accessToken,level} = useAppSelector((state) => state.authenticate);
-    const developer = level!='user';
+    const developer = level!='standard'&&level!='pro';
     const editActive = useAppSelector(state => state.setup.editInProgress);
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
     const newJobId = useAppSelector((state) => state.setup.idGenerator);

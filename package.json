@@ -26,6 +26,7 @@
     "https-browserify": "^1.0.0",
     "jszip": "^3.10.1",
     "lil-gui": "^0.19.1",
+    "mathjax": "^3.2.2",
     "mathjs": "^11.9.1",
     "moment": "^2.29.4",
     "plotly.js-dist-min": "^2.27.0",
