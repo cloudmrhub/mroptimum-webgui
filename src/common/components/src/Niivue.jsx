@@ -740,16 +740,15 @@ export default function NiiVueport(props) {
             setTextsVisible(false);
             nv.opts.crosshairWidth = 0;
             nv.hideText = true;
-            setTimeout(()=>
-                nv.setCenteredZoom(0.7),300)
-            nv.drawScene();
+            setTimeout(()=>{
+                nv.setCenteredZoom(0.7)
+            },300)
         }else{
             nvUpdateSliceType('multi');
             setShowCrosshair(true);
             setTextsVisible(true);
             nv.opts.crosshairWidth = 1;
             nv.hideText = false;
-            nv.drawScene();
         }
     }
 

@@ -1,3 +1,5 @@
+@import url(https://fonts.googleapis.com/css?family=Nunito);
+
 :root {
   --bs-dark-rgb: 0, 0, 0; /* change these values to your preferred RGB color */
 }
@@ -10,4 +12,9 @@
 .navbar-nav > .active > a {
   color: white;
   font-weight: 500;
+}
+
+.navbar-brand {
+  font-family: 'Nunito', sans-serif;
+
 }
