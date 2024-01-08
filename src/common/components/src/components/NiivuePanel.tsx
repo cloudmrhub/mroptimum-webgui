@@ -55,7 +55,16 @@ export function NiivuePanel (props:NiivuePanelProps) {
         props.nv.setMultiplanarLayout(2);
         props.nv.setMultiplanarPadPixels(10);
         props.resampleImage();
-    }, [props.displayVertical]);
+    }, [props.displayVertical,window.innerWidth,window.innerHeight]);
+
+    React.useEffect(()=>{
+        setTimeout(()=>{
+            props.nv.resizeListener();
+            props.nv.setMultiplanarLayout(2);
+            props.nv.setMultiplanarPadPixels(10);
+            props.resampleImage();
+        },300)
+    },[])
 
     React.useEffect(() => {
         if(!props.displayVertical)
@@ -63,9 +72,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
         // histogram.current?.addEventListener('resize',()=>props.resampleImage());
     }, [histogram]);
 
-    React.useEffect(()=>{
-
-    },[])
 
     const [pause, pauseUpdate] = React.useState(false);
     controllerX.min(mins[0]).max(maxs[0]).step(0.01);
@@ -169,7 +175,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     showDistribution={props.displayVertical}
                     style={{width:'100%',height:'20pt', color:'white'}}
                 />
-                <canvas id={'niiCanvas'} ref={canvas} height={height} width={'100%'} />
+                <canvas id={'niiCanvas'} ref={canvas} height={'100%'} width={'100%'} />
             </Box>
             <Box sx={{width: '40%',
                 display:(props.displayVertical)?'none':'flex',

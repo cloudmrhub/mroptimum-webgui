@@ -1161,4 +1161,84 @@ Niivue.prototype.drawSliceOrientationText = function(leftTopWidthHeight, axCorSa
     this.drawTextRight([leftTopWidthHeight[0], leftTopWidthHeight[1] + leftTopWidthHeight[3] * 0.5], leftText)
 }
 
+// not included in public docs
+// draw line (can be diagonal)
+// unless Alpha is > 0, default color is opts.crosshairColor
+Niivue.prototype.drawLine = function(startXYendXY, thickness = 1, lineColor = [1, 0, 0, -1]) {
+    console.log(startXYendXY);
+    this.gl.bindVertexArray(this.genericVAO)
+    if (!this.lineShader) {
+        throw new Error('lineShader undefined')
+    }
+    this.lineShader.use(this.gl)
+    if (lineColor[3] < 0) {
+        lineColor = this.opts.crosshairColor
+    }
+    this.gl.uniform4fv(this.lineShader.uniforms.lineColor, lineColor)
+    this.gl.uniform2fv(this.lineShader.uniforms.canvasWidthHeight, [this.gl.canvas.width, this.gl.canvas.height])
+    // draw Line
+    this.gl.uniform1f(this.lineShader.uniforms.thickness, thickness)
+    this.gl.uniform4fv(this.lineShader.uniforms.startXYendXY, startXYendXY)
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
+    this.gl.bindVertexArray(this.unusedVAO) // set vertex attributes
+}
+
+Niivue.prototype.drawCrossLines = function (sliceIndex, axCorSag, axiMM, corMM, sagMM) {
+    console.log('hi');
+    if (sliceIndex < 0 || this.screenSlices.length <= sliceIndex) {
+        return
+    }
+    if (this.opts.isSliceMM) {
+        return this.drawCrossLinesMM(sliceIndex, axCorSag, axiMM, corMM, sagMM)
+    }
+    if (this.screenSlices[sliceIndex].sliceFrac === Infinity) {
+        // render views always world space
+        return this.drawCrossLinesMM(sliceIndex, axCorSag, axiMM, corMM, sagMM)
+    }
+    const tile = this.screenSlices[sliceIndex]
+    let linesH = corMM.slice()
+    let linesV = sagMM.slice()
+
+    if (axCorSag === SLICE_TYPE.CORONAL) {
+        linesH = axiMM.slice()
+    }
+    if (axCorSag === SLICE_TYPE.SAGITTAL) {
+        linesH = axiMM.slice()
+        linesV = corMM.slice()
+    }
+    if (linesH.length > 0) {
+        // draw horizontal lines
+        const LTWH = tile.leftTopWidthHeight.slice()
+        let sliceDim = 2 // vertical axis is Zmm
+        if (axCorSag === SLICE_TYPE.AXIAL) {
+            sliceDim = 1
+        } // vertical axis is Ymm
+        const mm = this.frac2mm([0.5, 0.5, 0.5])
+        for (let i = 0; i < linesH.length; i++) {
+            mm[sliceDim] = linesH[i]
+            const frac = this.mm2frac(mm)
+            this.drawRect([LTWH[0], LTWH[1] + LTWH[3] - frac[sliceDim] * LTWH[3], LTWH[2], 1])
+        }
+    }
+    if (linesV.length > 0) {
+        // draw vertical lines
+        const LTWH = tile.leftTopWidthHeight.slice()
+        const isRadiolgical = tile.fovMM[0] < 0
+        let sliceDim = 0 // vertical lines on axial/coronal are L/R axis
+        if (axCorSag === SLICE_TYPE.SAGITTAL) {
+            sliceDim = 1
+        } // vertical lines on sagittal are A/P
+        const mm = this.frac2mm([0.5, 0.5, 0.5])
+        for (let i = 0; i < linesV.length; i++) {
+            mm[sliceDim] = linesV[i]
+            const frac = this.mm2frac(mm)
+            if (isRadiolgical) {
+                this.drawRect([LTWH[0] + (LTWH[2] - frac[sliceDim] * LTWH[2]), LTWH[1], 1, LTWH[3]])
+            } else {
+                this.drawRect([LTWH[0] + frac[sliceDim] * LTWH[2], LTWH[1], 1, LTWH[3]])
+            }
+        }
+    }
+}
+
 export {Niivue};
