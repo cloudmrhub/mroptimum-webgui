@@ -422,13 +422,13 @@ const Setup = () => {
     // Validates the SNR before submitting to upstream
     const preflightValidation = ()=>{
         if(signal==undefined){
-            setSDWarningHeader("Preflight validation failed");
+            setSDWarningHeader("Setup validation failed");
             setSDWarning("No signal file defined, please make sure signal file has been successfully uploaded.");
             setSDOpen(true);
             return false;
         }
         if(noise==undefined&&signal.options.multiraid==false){
-            setSDWarningHeader("Preflight validation failed");
+            setSDWarningHeader("Setup validation failed");
             setSDWarning("No noise file defined and signal file is not multi-raid," +
                 " please make sure noise file has been successfully uploaded.");
             setSDOpen(true);

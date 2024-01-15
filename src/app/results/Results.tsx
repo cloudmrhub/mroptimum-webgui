@@ -222,7 +222,7 @@ const Results = () => {
                         }}
                          accessToken={accessToken}/>}
                     {activeJob==undefined&&
-                    <Box sx={{display:'flex', justifyContent:'center'}}>
+                    <Box sx={{display:'flex', justifyContent:'center', color:'rgba(0,0,0,0.4)'}}>
                         No Result Inspections Running
                     </Box>}
                 </CmrPanel>
