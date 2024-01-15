@@ -11,7 +11,6 @@ interface SetupState {
     loading: boolean;
     activeSetup: SNR;
     editInProgress: boolean;
-    submittedJobs: SNR[];
     queuedJobs: Job[];
     idGenerator: number;
     signalUploadProgress: number;
@@ -132,7 +131,6 @@ export const defaultSNR: SNR = {
 const initialState: SetupState = {
     activeSetup: <SNR>JSON.parse(JSON.stringify(defaultSNR)),
     loading: false,
-    submittedJobs: [],
     queuedJobs: [],
     idGenerator: 0,
     editInProgress: false,
@@ -510,7 +508,7 @@ export const setupSlice = createSlice({
         });
         builder.addCase('persist/REHYDRATE', (state, action) => {
             let setupState = (<PayloadAction<RootState>> action).payload.setup;
-            // When rehydrating, only take the accessToken from the persisted state
+            // When rehydrating, reset the file uploading progresses
             state.noiseUploadProgress = -1;
             state.signalUploadProgress = -1;
             state.activeSetup =setupState.activeSetup;
@@ -518,7 +516,6 @@ export const setupSlice = createSlice({
             state.idGenerator = setupState.idGenerator;
             state.queuedJobs = setupState.queuedJobs;
             state.loading = false;
-            state.submittedJobs = setupState.submittedJobs;
         })
     },
 });

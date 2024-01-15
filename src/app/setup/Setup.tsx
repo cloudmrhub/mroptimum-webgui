@@ -141,6 +141,7 @@ const Setup = () => {
                                          }, additionalCallbacks?: () => void) => {
         return (res: AxiosResponse, maskFile: File) => {
             const submittedDatTime = moment().format('YYYY-MM-DD HH:mm:ss');
+            console.log(res.data);
             const uploadedFile: UploadedFile = {
                 id: res.data.response.id,
                 fileName: res.data.response.filename,

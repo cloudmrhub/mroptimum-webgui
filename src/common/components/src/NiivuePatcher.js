@@ -3,6 +3,48 @@
  */
 import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
+    this.BLEND = 1;
+    this.CULL_FACE = 2;
+    this.CULL_FRONT = 4;
+    this.CULL_BACK = 8;
+    this.ENABLE_DEPTH_TEST = 16;
+    this.sphereIdx = [];
+    this.sphereVtx = [];
+    this.renderShaders = [];
+    this.isVisible = true;
+    this.isPickable = true;
+    this.vertexBuffer = vertexBuffer;
+    this.indexCount = indexCount;
+    this.indexBuffer = indexBuffer;
+    this.vao = vao;
+    this.mode = mode;
+    this.glFlags = 0;
+    this.id = id;
+    this.colorId = [
+        (id >> 0 & 255) / 255,
+        (id >> 8 & 255) / 255,
+        (id >> 16 & 255) / 255,
+        (id >> 24 & 255) / 255
+    ];
+    this.modelMatrix = create2();
+    this.scale = [1, 1, 1];
+    this.position = [0, 0, 0];
+    this.rotation = [0, 0, 0];
+    this.rotationRadians = 0;
+    this.extentsMin = [];
+    this.extentsMax = [];
+};
+
+
+function create2() {
+    var out = new Float32Array(16);
+    out[0] = 1;
+    out[5] = 1;
+    out[10] = 1;
+    out[15] = 1;
+    return out;
+}
 
 function decodeRLE(rle, decodedlen) {
     const r = new Uint8Array(rle.buffer)
@@ -1183,62 +1225,215 @@ Niivue.prototype.drawLine = function(startXYendXY, thickness = 1, lineColor = [1
     this.gl.bindVertexArray(this.unusedVAO) // set vertex attributes
 }
 
-Niivue.prototype.drawCrossLines = function (sliceIndex, axCorSag, axiMM, corMM, sagMM) {
-    console.log('hi');
-    if (sliceIndex < 0 || this.screenSlices.length <= sliceIndex) {
-        return
-    }
-    if (this.opts.isSliceMM) {
-        return this.drawCrossLinesMM(sliceIndex, axCorSag, axiMM, corMM, sagMM)
-    }
-    if (this.screenSlices[sliceIndex].sliceFrac === Infinity) {
-        // render views always world space
-        return this.drawCrossLinesMM(sliceIndex, axCorSag, axiMM, corMM, sagMM)
-    }
-    const tile = this.screenSlices[sliceIndex]
-    let linesH = corMM.slice()
-    let linesV = sagMM.slice()
 
+function create3() {
+    var out = new Float32Array();
+    // if (ARRAY_TYPE != Float32Array) {
+    //     out[0] = 0;
+    //     out[1] = 0;
+    //     out[2] = 0;
+    // }
+    return out;
+}
+
+function swizzleVec3(vec, order = [0, 1, 2]) {
+    const vout = create3();
+    vout[0] = vec[order[0]];
+    vout[1] = vec[order[1]];
+    vout[2] = vec[order[2]];
+    return vout;
+}
+
+Niivue.prototype.drawCrossLinesMM=function(sliceIndex, axCorSag, axiMM, corMM, sagMM) {
+    console.log('method called');
+    if (sliceIndex < 0 || this.screenSlices.length <= sliceIndex) {
+        return;
+    }
+    const tile = this.screenSlices[sliceIndex];
+    let sliceFrac = tile.sliceFrac;
+    const isRender = sliceFrac === Infinity;
+    if (isRender) {
+        console.warn("Rendering approximate cross lines in world view mode");
+    }
+    if (sliceFrac === Infinity) {
+        sliceFrac = 0.5;
+    }
+    let linesH = corMM.slice();
+    let linesV = sagMM.slice();
+    const thick = Math.max(7, this.opts.crosshairWidth);
     if (axCorSag === SLICE_TYPE.CORONAL) {
-        linesH = axiMM.slice()
+        linesH = axiMM.slice();
     }
     if (axCorSag === SLICE_TYPE.SAGITTAL) {
-        linesH = axiMM.slice()
-        linesV = corMM.slice()
+        linesH = axiMM.slice();
+        linesV = corMM.slice();
     }
-    if (linesH.length > 0) {
-        // draw horizontal lines
-        const LTWH = tile.leftTopWidthHeight.slice()
-        let sliceDim = 2 // vertical axis is Zmm
-        if (axCorSag === SLICE_TYPE.AXIAL) {
-            sliceDim = 1
-        } // vertical axis is Ymm
-        const mm = this.frac2mm([0.5, 0.5, 0.5])
-        for (let i = 0; i < linesH.length; i++) {
-            mm[sliceDim] = linesH[i]
-            const frac = this.mm2frac(mm)
-            this.drawRect([LTWH[0], LTWH[1] + LTWH[3] - frac[sliceDim] * LTWH[3], LTWH[2], 1])
+    function mm2screen(mm) {
+        const screenXY = [0, 0];
+        screenXY[0] = tile.leftTopWidthHeight[0] + (mm[0] - tile.leftTopMM[0]) / tile.fovMM[0] * tile.leftTopWidthHeight[2];
+        screenXY[1] = tile.leftTopWidthHeight[1] + tile.leftTopWidthHeight[3] - (mm[1] - tile.leftTopMM[1]) / tile.fovMM[1] * tile.leftTopWidthHeight[3];
+        return screenXY;
+    }
+    if (linesH.length > 0 && axCorSag === 0) {
+        const fracZ = sliceFrac;
+        const dimV = 1;
+        for (let i2 = 0; i2 < linesH.length; i2++) {
+            const mmV = this.frac2mm([0.5, 0.5, 0.5]);
+            mmV[dimV] = linesH[i2];
+            let fracY = this.mm2frac(mmV);
+            fracY = fracY[dimV];
+            let left = this.frac2mm([0, fracY, fracZ]);
+            left = swizzleVec3(left, [0, 1, 2]);
+            let right = this.frac2mm([1, fracY, fracZ]);
+            right = swizzleVec3(right, [0, 1, 2]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
         }
     }
-    if (linesV.length > 0) {
-        // draw vertical lines
-        const LTWH = tile.leftTopWidthHeight.slice()
-        const isRadiolgical = tile.fovMM[0] < 0
-        let sliceDim = 0 // vertical lines on axial/coronal are L/R axis
-        if (axCorSag === SLICE_TYPE.SAGITTAL) {
-            sliceDim = 1
-        } // vertical lines on sagittal are A/P
-        const mm = this.frac2mm([0.5, 0.5, 0.5])
-        for (let i = 0; i < linesV.length; i++) {
-            mm[sliceDim] = linesV[i]
-            const frac = this.mm2frac(mm)
-            if (isRadiolgical) {
-                this.drawRect([LTWH[0] + (LTWH[2] - frac[sliceDim] * LTWH[2]), LTWH[1], 1, LTWH[3]])
-            } else {
-                this.drawRect([LTWH[0] + frac[sliceDim] * LTWH[2], LTWH[1], 1, LTWH[3]])
-            }
+    if (linesH.length > 0 && axCorSag === 1) {
+        const fracH = sliceFrac;
+        const dimV = 2;
+        for (let i2 = 0; i2 < linesH.length; i2++) {
+            const mmV = this.frac2mm([0.5, 0.5, 0.5]);
+            mmV[dimV] = linesH[i2];
+            let fracV = this.mm2frac(mmV);
+            fracV = fracV[dimV];
+            let left = this.frac2mm([0, fracH, fracV]);
+            left = swizzleVec3(left, [0, 2, 1]);
+            let right = this.frac2mm([1, fracH, fracV]);
+            right = swizzleVec3(right, [0, 2, 1]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
+        }
+    }
+    if (linesH.length > 0 && axCorSag === 2) {
+        const fracX = sliceFrac;
+        const dimV = 2;
+        for (let i2 = 0; i2 < linesH.length; i2++) {
+            const mmV = this.frac2mm([0.5, 0.5, 0.5]);
+            mmV[dimV] = linesH[i2];
+            let fracZ = this.mm2frac(mmV);
+            fracZ = fracZ[dimV];
+            let left = this.frac2mm([fracX, 0, fracZ]);
+            left = swizzleVec3(left, [1, 2, 0]);
+            let right = this.frac2mm([fracX, 1, fracZ]);
+            right = swizzleVec3(right, [1, 2, 0]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
+        }
+    }
+    if (linesV.length > 0 && axCorSag === 0) {
+        const fracZ = sliceFrac;
+        const dimH = 0;
+        for (let i2 = 0; i2 < linesV.length; i2++) {
+            const mm = this.frac2mm([0.5, 0.5, 0.5]);
+            mm[dimH] = linesV[i2];
+            let frac = this.mm2frac(mm);
+            frac = frac[dimH];
+            let left = this.frac2mm([frac, 0, fracZ]);
+            left = swizzleVec3(left, [0, 1, 2]);
+            let right = this.frac2mm([frac, 1, fracZ]);
+            right = swizzleVec3(right, [0, 1, 2]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
+        }
+    }
+    if (linesV.length > 0 && axCorSag === 1) {
+        const fracY = sliceFrac;
+        const dimH = 0;
+        for (let i2 = 0; i2 < linesV.length; i2++) {
+            const mm = this.frac2mm([0.5, 0.5, 0.5]);
+            mm[dimH] = linesV[i2];
+            let frac = this.mm2frac(mm);
+            frac = frac[dimH];
+            let left = this.frac2mm([frac, fracY, 0]);
+            left = swizzleVec3(left, [0, 2, 1]);
+            let right = this.frac2mm([frac, fracY, 1]);
+            right = swizzleVec3(right, [0, 2, 1]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
+        }
+    }
+    if (linesV.length > 0 && axCorSag === 2) {
+        const fracX = sliceFrac;
+        const dimH = 1;
+        for (let i2 = 0; i2 < linesV.length; i2++) {
+            const mm = this.frac2mm([0.5, 0.5, 0.5]);
+            mm[dimH] = linesV[i2];
+            let frac = this.mm2frac(mm);
+            frac = frac[dimH];
+            let left = this.frac2mm([fracX, frac, 0]);
+            left = swizzleVec3(left, [1, 2, 0]);
+            let right = this.frac2mm([fracX, frac, 1]);
+            right = swizzleVec3(right, [1, 2, 0]);
+            left = mm2screen(left);
+            right = mm2screen(right);
+            this.drawLine([left[0], left[1], right[0], right[1]], thick);
         }
     }
 }
 
+
+// not included in public docs
+// Niivue.prototype.drawCrosshairs3D=function(isDepthTest = true, alpha = 1, mvpMtx = null, is2DView = false, isSliceMM = true) {
+//     console.log('method called');
+//     if (!this.opts.show3Dcrosshair && !is2DView) {
+//         return;
+//     }
+//     if (this.opts.crosshairWidth <= 0 && is2DView) {
+//         return;
+//     }
+//     const gl = this.gl;
+//     const mm = this.frac2mm(this.scene.crosshairPos, 0, isSliceMM);
+//     if (this.crosshairs3D === null || this.crosshairs3D.mm[0] !== mm[0] || this.crosshairs3D.mm[1] !== mm[1] || this.crosshairs3D.mm[2] !== mm[2]) {
+//         if (this.crosshairs3D !== null) {
+//             gl.deleteBuffer(this.crosshairs3D.indexBuffer);
+//             gl.deleteBuffer(this.crosshairs3D.vertexBuffer);
+//         }
+//         const [mn, mx, range] = this.sceneExtentsMinMax(isSliceMM);
+//         let radius = 1;
+//         if (this.volumes.length > 0) {
+//             radius = 0.5 * Math.min(Math.min(this.back.pixDims[1], this.back.pixDims[2]), this.back.pixDims[3]);
+//         } else if (range[0] < 50 || range[0] > 1e3) {
+//             radius = range[0] * 0.02;
+//         }
+//         radius *= this.opts.crosshairWidth;
+//         this.crosshairs3D = NiivueObject3D.generateCrosshairs(this.gl, 1, mm, mn, mx, radius);
+//         this.crosshairs3D.mm = mm;
+//     }
+//     const crosshairsShader = this.surfaceShader;
+//     crosshairsShader.use(this.gl);
+//     if (mvpMtx == null) {
+//         ;
+//         [mvpMtx] = this.calculateMvpMatrix(this.crosshairs3D, this.scene.renderAzimuth, this.scene.renderElevation);
+//     }
+//     gl.uniformMatrix4fv(crosshairsShader.mvpLoc, false, mvpMtx);
+//     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.crosshairs3D.indexBuffer);
+//     gl.enable(gl.DEPTH_TEST);
+//     const color = [...this.opts.crosshairColor];
+//     if (isDepthTest) {
+//         gl.disable(gl.BLEND);
+//         gl.depthFunc(gl.GREATER);
+//     } else {
+//         gl.enable(gl.BLEND);
+//         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+//         gl.depthFunc(gl.ALWAYS);
+//     }
+//     color[3] = alpha;
+//     gl.uniform4fv(crosshairsShader.colorLoc, color);
+//     gl.bindVertexArray(this.crosshairs3D.vao);
+//     gl.drawElements(
+//         gl.TRIANGLES,
+//         this.crosshairs3D.indexCount,
+//         gl.UNSIGNED_INT,
+//         // gl.UNSIGNED_SHORT,
+//         0
+//     );
+//     gl.bindVertexArray(this.unusedVAO);
+// }
 export {Niivue};

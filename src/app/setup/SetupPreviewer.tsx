@@ -25,7 +25,7 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
                 multiline
                 label={"The SNR JSON that will be submitted:"}
                 fullWidth
-                maxRows={20} // Adjust as needed
+                maxRows={15} // Adjust as needed
                 // sx={{height:'60vh'}}
                 style={{
                     overflowY: 'auto',
