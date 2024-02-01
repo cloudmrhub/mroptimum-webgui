@@ -40,13 +40,14 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
     }
     let volumes:Volume[] = [];
     let file = job.files[0];
-    console.log(file);
-    let niis = <NiiFile[]> (await axios.post(UNZIP, JSON.parse(file.location),{
+    // console.log(file);
+    let result = (await axios.post(UNZIP, JSON.parse(file.location),{
         headers: {
             Authorization:`Bearer ${accessToken}`
         }
     })).data;
-    console.log(niis);
+    console.log(result);
+    let niis = <NiiFile[]> result.data;
     niis.forEach((value)=>{
         volumes.push({
             //URL is for NiiVue blob loading
@@ -57,7 +58,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
             alias: value.name
         });
     });
-    return {pipelineID:job.pipeline_id, job:job,volumes, niis};
+    return {pipelineID:job.pipeline_id, job:job,volumes,niis,result};
         // Set pipeline ID
 },{
         // Adding extra information to the meta field

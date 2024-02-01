@@ -31,6 +31,7 @@ interface SNR {
     name: string;
     id?: number;
     options: SNROptions;
+    files: string[];
 }
 
 interface SNROptions {
@@ -126,6 +127,7 @@ export const defaultSNR: SNR = {
             }
         }
     },
+    files: []
 };
 
 const initialState: SetupState = {
@@ -177,6 +179,7 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
 }
 
 function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gfactor: boolean;matlab: boolean}):SetupInterface{
+    getFiles(snr);
      return {version: "v0",
         alias: alias,
         output:output,
@@ -185,7 +188,6 @@ function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gf
 
 
 function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`): Job {
-
     return {
         alias: alias,
         createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -507,6 +509,8 @@ export const setupSlice = createSlice({
             }
         });
         builder.addCase('persist/REHYDRATE', (state, action) => {
+            if((<PayloadAction<RootState>> action).payload==undefined)
+                return;
             let setupState = (<PayloadAction<RootState>> action).payload.setup;
             // When rehydrating, reset the file uploading progresses
             state.noiseUploadProgress = -1;
@@ -605,6 +609,25 @@ const SetupGetters = {
         return state.setup.editInProgress;
     }
 };
+
+export function getFiles(snr: SNR): void {
+    // List of all possible FileReference fields in TE
+    let files = [];
+    if(snr.options.reconstructor.options.signal!==undefined){
+        files.push('signal');
+    }
+    if(snr.options.reconstructor.options.noise!==undefined&&!snr.options.reconstructor.options.signal?.options.multiraid){
+        files.push('noise');
+    }
+    if(snr.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource){
+        files.push('sensitivityMap');
+    }
+    if(snr.options.reconstructor.options.correction.faCorrection){
+        files.push('faCorrection');
+    }
+    snr.files = files;
+}
+
 
 export type {SNR, FileReference, FileOptions};
 export const setupSetters = setupSlice.actions;

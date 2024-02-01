@@ -17,12 +17,16 @@ import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
 import {resultActions, ROI} from "../../features/rois/resultSlice";
 import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
 import {Alert, Button, Slide, Snackbar} from "@mui/material";
-import {store} from "../../features/store";
+import {RootState, store} from "../../features/store";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {Row} from "antd";
 import {ROITable} from "./Rois";
 import {createTheme} from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import {SetupInspection} from "./SetupInspection";
+import {FileReference} from "../../features/setup/setupSlice";
+import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
+import {Logs} from "./Logs";
 
 export interface NiiFile {
     filename:string;
@@ -52,6 +56,8 @@ const Results = () => {
     const openPanel = useAppSelector(state => state.result.openPanel);
     const [warning, setWarning] = useState("");
     const [warningOpen, setWarningOpen] = useState(false);
+
+    const [showingLogs, setShowingLogs] = useState(false);
 
     useEffect(() => {
         //@ts-ignore
@@ -106,10 +112,10 @@ const Results = () => {
                 return (
                     <div>
 
-                        <IconButton disabled={params.row.status!='completed'} onClick={() => {
-
+                        <IconButton disabled={params.row.status!='completed'} onClick={(event) => {
+                            event.stopPropagation();
                             if(params.row.pipeline_id==activeJob?.pipeline_id) {
-                                dispatch(resultActions.setOpenPanel([1]));
+                                dispatch(resultActions.setOpenPanel([1,2]));
                                 return;
                             }
                             dispatch(loadResult({
@@ -125,7 +131,7 @@ const Results = () => {
                                         if(nii.name==='SNR'){
                                             dispatch(resultActions.selectVolume(i));
                                             nv.loadVolumes([volumes[i]]);
-                                            dispatch(resultActions.setOpenPanel([1]));
+                                            dispatch(resultActions.setOpenPanel([1,2]));
                                             nv.closeDrawing();
                                             break;
                                         }
@@ -178,6 +184,42 @@ const Results = () => {
                         }}>
                             <GetAppIcon/>
                         </IconButton>
+                        <IconButton onClick={(event)=>{
+                            event.stopPropagation();
+                            if(params.row.pipeline_id==activeJob?.pipeline_id) {
+                                setShowingLogs(!showingLogs);
+                                return;
+                            }
+                            dispatch(loadResult({
+                                accessToken,
+                                job:params.row,
+                            })).then((value:any)=> {
+                                setShowingLogs(true);
+                                try {
+                                    //@ts-ignore
+                                    let volumes = value.payload.volumes;
+                                    let niis = value.payload.niis;
+                                    for (let i = 0; i < niis.length; i++) {
+                                        let nii = niis[i];
+                                        if (nii.name === 'SNR') {
+                                            dispatch(resultActions.selectVolume(i));
+                                            nv.loadVolumes([volumes[i]]);
+                                            nv.closeDrawing();
+                                            break;
+                                        }
+                                    }
+                                } catch (e) {
+                                    setWarning("Error loading logs, please wait till the task is complete");
+                                    setWarningOpen(true);
+                                    setTimeout(() => {
+                                        setWarningOpen(false);
+                                        setWarning("");
+                                    }, 1000)
+                                }
+                            });
+                        }}>
+                            <TerminalOutlinedIcon/>
+                        </IconButton>
                     </div>
                 );
             },
@@ -207,8 +249,10 @@ const Results = () => {
                         //@ts-ignore
                         dispatch(getUpstreamJobs(accessToken));
                     }}>Refresh</Button>
+
+                    {showingLogs&&<Logs/>}
                 </CmrPanel>
-                <CmrPanel header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
+                <CmrPanel className={'mb-2'} header={activeJobAlias!=undefined?`Inspecting ${activeJobAlias}`:'Inspection'} key={'1'}>
                     {activeJob!=undefined&&
                     <NiiVue niis={niis}
                         setWarning={setWarning}
@@ -225,6 +269,15 @@ const Results = () => {
                     <Box sx={{display:'flex', justifyContent:'center', color:'rgba(0,0,0,0.4)'}}>
                         No Result Inspections Running
                     </Box>}
+                </CmrPanel>
+                <CmrPanel header={'Settings Inspection'} key={'1'}>
+
+                    {activeJob==undefined?
+                        <Box sx={{display:'flex', justifyContent:'center', color:'rgba(0,0,0,0.4)'}}>
+                            No Setup Inspections Running
+                        </Box>:
+                        <SetupInspection/>
+                    }
                 </CmrPanel>
             </CmrCollapse>
             <div style={{height:'69px'}}></div>

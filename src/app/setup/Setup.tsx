@@ -5,7 +5,7 @@ import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import {getUploadedData, uploadData} from '../../features/data/dataActionCreation';
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import {useAppDispatch, useAppSelector} from '../../features/hooks';
-import {setupGetters, setupSetters} from '../../features/setup/setupSlice';
+import {getFiles, setupGetters, setupSetters} from '../../features/setup/setupSlice';
 import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
 import CmrLabel from "../../common/components/Cmr-components/label/Label";
 import {Col, Row} from "antd";
@@ -918,7 +918,7 @@ const Setup = () => {
 
                                                     }}
                                                 />
-                                                <CmrCheckbox style={{marginLeft:0}} onChange={(e)=>{
+                                                <CmrCheckbox checked={decimateACL==null} style={{marginLeft:0}} onChange={(e)=>{
                                                   if(e.target.checked) {
                                                       dispatch(setupSetters.setDecimateACL(null));
                                                   }else {
@@ -958,7 +958,8 @@ const Setup = () => {
                                                        if(!preflightValidation())
                                                            return;
                                                        let state = store.getState();
-                                                       snr = state.setup.activeSetup;
+                                                       snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+                                                       getFiles(snr);
                                                        if (editing != -1) {
                                                            setEditedJSON({SNR:snr,output:state.setup.outputSettings});
                                                            setEditContent(JSON.stringify(snr, undefined, '\t'));

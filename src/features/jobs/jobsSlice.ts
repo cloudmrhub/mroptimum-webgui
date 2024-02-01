@@ -24,6 +24,13 @@ export interface Job {
     updatedAt: string;
     setup: SetupInterface;
     files: UploadedFile[];
+    logs?: LogItem[];
+}
+
+interface LogItem{
+    type: string;
+    when: string;
+    what: string;
 }
 
 interface JobsState {
