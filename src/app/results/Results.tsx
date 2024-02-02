@@ -142,7 +142,7 @@ const Results = () => {
                                     setTimeout(()=>{
                                         setWarningOpen(false);
                                         setWarning("");
-                                    },1000)
+                                    },2000)
                                 }
                                 setTimeout(() => nv.resizeListener(),700);
                                 //@ts-ignore
@@ -162,6 +162,7 @@ const Results = () => {
                             }
                         </IconButton>
                         <IconButton onClick={(e) => {
+                            e.stopPropagation();
                             params.row.files.forEach(file => {
                                 let url = file.link;
                                 if(url=="unknown")
@@ -209,12 +210,13 @@ const Results = () => {
                                         }
                                     }
                                 } catch (e) {
+                                    console.log(e);
                                     setWarning("Error loading logs, please wait till the task is complete");
                                     setWarningOpen(true);
                                     setTimeout(() => {
                                         setWarningOpen(false);
                                         setWarning("");
-                                    }, 1000)
+                                    }, 2000)
                                 }
                             });
                         }}>
