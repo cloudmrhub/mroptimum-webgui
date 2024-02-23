@@ -4,6 +4,7 @@ import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import {TabInfo} from "./tab.model";
+import {cloneElement} from "react";
 
 interface CmrTabsProps {
     tabList: TabInfo[];
@@ -27,11 +28,9 @@ function CustomTabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            {value === index && (
-                <Box sx={{ p: 0}}>
-                    <Typography>{children}</Typography>
-                </Box>
-            )}
+            <Box sx={{ p: 0}} style={{display:(value === index?undefined:'none')}}>
+                <Typography>{children}</Typography>
+            </Box>
         </div>
     );
 }
@@ -70,7 +69,9 @@ export default function CmrTabs(props: CmrTabsProps) {
             </Box>
             {props.tabList.map((tab, index)=>
                 <CustomTabPanel value={value} index={index}>
-                    {tab.children}
+                    {cloneElement(tab.children,{
+                        visible:value==index
+                    })}
                 </CustomTabPanel>
             )}
         </Box>

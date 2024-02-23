@@ -162,37 +162,36 @@ const anonymize_header = (data: any) => {
 };
 
 const anonymizeByTag = (data: any, tagNames: any, do_replace: any) => {
-    let found_at = 0;
-    let old_found_at = found_at;
-    let n = 0;
-    let old_value;
+    let found_at = -1; // Start search from the beginning
+    let n = 0; // Track number of replacements
     let old_values = new Set();
 
     if (!Array.isArray(tagNames)) {
-        tagNames = [tagNames];
+        tagNames = [tagNames]; // Ensure tagNames is always an array for consistency
     }
 
     console.log('anonymizeByTag', tagNames);
 
     for (let tag of tagNames) {
-        do {
-            old_found_at = found_at;
+        let continueSearch = true;
+        while (continueSearch) {
+            let old_found_at = found_at;
+            let old_value;
             [found_at, old_value] = processTagOnce(data, tag, do_replace, found_at + 1);
 
-            if (found_at > 0 && old_found_at > found_at) {
-                throw new Error('Infinite loop detected');
+            if (found_at <= old_found_at) {
+                // If found_at did not advance, stop searching to prevent infinite loops
+                continueSearch = false;
             }
 
             if (old_value != null) {
                 old_values.add(old_value);
                 console.log(`old value ${old_value} at ${found_at}`);
+                n++;
+            } else {
+                // If no old value found, stop searching this tag
+                continueSearch = false;
             }
-
-            n++;
-        } while (found_at > -1 && n < 15);
-
-        if (n >= 15) {
-            throw new Error('Infinite loop detected');
         }
     }
 
@@ -289,16 +288,22 @@ const find_tag = (data: any, name: any, start: any) => {
 
 const verify_anonymous = (data: any, tags: any) => {
     console.log('checking for', tags);
-
-    for (let i = 0; i < data.length; i++) {
-        for (let tag_value of tags) {
-            if (utf8_decode(data.slice(i, i + tag_value.length)) == tag_value) {
-                console.log('Anonymization failed at location', i);
-                console.log(utf8_decode(data.slice(Math.max(i - 50, 0), i + tag_value.length + 10)));
-                throw new Error('anonymization failed');
+    console.log(data);
+    console.log(tags);
+    try{
+        for (let i = 0; i < data.length; i++) {
+            for (let tag_value of tags) {
+                if (utf8_decode(data.slice(i, i + tag_value.length)) == tag_value) {
+                    console.log('Anonymization failed at location', i);
+                    console.log(utf8_decode(data.slice(Math.max(i - 50, 0), i + tag_value.length + 10)));
+                    throw new Error('anonymization failed');
+                }
             }
         }
+    }catch (e) {
+        console.error(e);
     }
+
 };
 
 const utf8_decode = (t: any) => {

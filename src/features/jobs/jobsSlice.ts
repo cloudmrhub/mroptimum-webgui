@@ -25,6 +25,7 @@ export interface Job {
     setup: SetupInterface;
     files: UploadedFile[];
     logs?: LogItem[];
+    slices?:number;
 }
 
 interface LogItem{

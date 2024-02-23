@@ -8,7 +8,6 @@ import {
     DATAUPLOADINIT,
     DATAUPLOADFINALIZE
 } from "../../Variables";
-import {UploadedFile} from "./dataSlice";
 import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";

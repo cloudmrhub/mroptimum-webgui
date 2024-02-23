@@ -100,6 +100,8 @@ export default function NiiVueport(props) {
     const [max, setMax] = useState(1);
     const [textsVisible, setTextsVisible] = useState(true);
 
+    const [transformFactors, setTransformFactors] = useState({a: 1, b:0});
+
     React.useEffect(() => {
         if(props.displayVertical)
             resampleImage();
@@ -169,16 +171,59 @@ export default function NiiVueport(props) {
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
         setMMs(nv.frac2mm([0.5,0.5,0.5]));
-        verifyComplex(nv.volumes[0]);
+        if(verifyComplex(nv.volumes[0]))//Check if there are complex components
+            nvSetDisplayedVoxels('absolute')
+        else nvSetDisplayedVoxels('real');
         let volume = nv.volumes[0];
-        setMin(volume.cal_min);
-        setMax(volume.cal_max);
+        // The following actions are performed inside nvSetDisplayedVoxels,
+        // along with resizing
+        // volume.calMinMax()
+        // setMin(volume.cal_min);
+        // setMax(volume.cal_max);
         nv.resetScene();
     }
 
+
+    function checkRange(numbers) {
+        const range_min = Math.min(...numbers);
+        const range_max = Math.max(...numbers);
+
+        const range = range_max - range_min;
+
+        if (range < 1e-2) {
+            // Find a suitable 'a' that is a whole power of 10
+            // Here, we want 'a' to scale the range to fit within [1, 10)
+            let a = 1;
+            let power = 0;
+            while ((range * a) < 1) {
+                a *= 10;
+                power += 1;
+            }
+
+            // Calculate 'b' such that the minimum transformed value is 1 (x = 1)
+            let b = Math.floor(a*range_min-a * range_min%10)/a;
+            console.log(b);
+
+            // Apply the transformation ax + b
+            const transformed = numbers.map(y => a * y - a*b);
+            setTransformFactors({a, b});
+            nv.transformA = a;
+            nv.transformB = b;
+            nv.power = power;
+            return transformed;
+        } else {
+            // If range is not smaller than 10E-2, return the original array
+            setTransformFactors({a:1, b:0});
+            nv.transformA = 1;
+            nv.transformB = 0;
+            nv.power = undefined;
+            return numbers;
+        }
+    }
+
+
     function verifyComplex(volume){
         volume.real = new Float32Array(volume.img);
-
         setComplexMode('real');
         // Ensure volume.imaginary is defined and has the same length as volume.img
         if (!volume.imaginary || volume.imaginary.length !== volume.img.length) {
@@ -219,7 +264,7 @@ export default function NiiVueport(props) {
             volume.phase[i] = Math.atan2(imaginaryPart, realPart);
         }
         setComplexOptions((allZero)?['real','absolute']:['real','imaginary','absolute','phase']);
-        return true;
+        return !allZero;
     }
 
     function nvSetDisplayedVoxels(voxelType){
@@ -227,16 +272,16 @@ export default function NiiVueport(props) {
         let volume = nv.volumes[0];
         switch (voxelType){
             case 'phase':
-                volume.img = volume.phase;
+                volume.img = checkRange(volume.phase);
                 break;
             case 'absolute':
-                volume.img = volume.absolute;
+                volume.img = checkRange(volume.absolute);
                 break;
             case 'real':
-                volume.img = volume.real;
+                volume.img = checkRange(volume.real);
                 break;
             case 'imaginary':
-                volume.img = volume.imaginary;
+                volume.img = checkRange(volume.imaginary);
                 break;
         }
         volume.calMinMax();
@@ -249,9 +294,14 @@ export default function NiiVueport(props) {
 
 
     nv.onLocationChange = (data) => {
-        setLocationData(data.values);
-        if(data.values[0])
+        if(data.values[0]) {
             setMMs(data.values[0].mm);
+
+            data.values[0].transformA = nv.transformA;
+            data.values[0].transformB = nv.transformB;
+            data.values[0].power = nv.power;
+        }
+        setLocationData(data.values);
         if(drawingEnabled){
             setDrawingChanged(true);
             // resampleImage();
@@ -620,7 +670,7 @@ export default function NiiVueport(props) {
             },
             yaxis: {
                 autoscale: true,
-                title: 'Bin size',
+                title: 'Bin frequency',
                 showgrid: true
                 // other y-axis properties
             },

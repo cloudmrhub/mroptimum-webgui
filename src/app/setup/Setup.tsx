@@ -22,7 +22,7 @@ import {
     RadioGroup,
     Radio,
     InputLabel,
-    Select, MenuItem, Tooltip, Snackbar, Alert, Slide, Button
+    Select, MenuItem, Tooltip, Snackbar, Alert, Slide, Button, Box
 } from "@mui/material";
 import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
 import {
@@ -110,6 +110,9 @@ const Setup = () => {
     const outputGFactor = useAppSelector(state => state.setup.outputSettings.gfactor);
     const outputCoilSensitivity = useAppSelector(state => state.setup.outputSettings.coilsensitivity);
     const outputMatlab = useAppSelector(state => state.setup.outputSettings.matlab);
+
+    const maskThreshold = useAppSelector(state => state.setup.maskThresholdStore);
+    const {cStore,kStore,rStore,tStore} = useAppSelector(state => state.setup);
 
     if (analysisMethodChanged) {
         setTimeout(() => {
@@ -219,25 +222,25 @@ const Setup = () => {
                 switch(params.id){
                     case 1:
                         return <CmrInputNumber value={decimateAcceleration1}
-                                               min={0}
+                                               min={1}
                                                style={{width:'100%'}}
                                                onChange={(val) => {
-                                                   dispatch(setupSetters.setDecimateAccelerations1((val == null) ? 0 : val))
+                                                   dispatch(setupSetters.setDecimateAccelerations1((val == null) ? 1 : val))
                                                }}></CmrInputNumber>;
                     case 2:
                         return <CmrInputNumber value={decimateAcceleration2}
-                                        min={0}
+                                        min={1}
                                         style={{width:'100%'}}
                                         onChange={(val) => {
-                                            dispatch(setupSetters.setDecimateAccelerations2((val == null) ? 0 : val))
+                                            dispatch(setupSetters.setDecimateAccelerations2((val == null) ? 1 : val))
                                         }}></CmrInputNumber>;
                     case 3:
                         return <CmrInputNumber value={decimateACL==null?Number.NaN:decimateACL}
                                                style={{width:'100%'}}
-                                               min={0}
+                                               min={2}
                                                disabled={decimateACL==null}
                                                onChange={(val) => {
-                                                   dispatch(setupSetters.setDecimateACL((val == null) ? 0 : val))
+                                                   dispatch(setupSetters.setDecimateACL((val == null) ? 1 : val))
                                                }}></CmrInputNumber>;
                 }
             }
@@ -829,6 +832,56 @@ const Setup = () => {
                                                 </FormControl>
                                                 <Divider variant="middle"
                                                          sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
+
+                                                <FormControl>
+                                                    <FormLabel id="demo-radio-buttons-group-label">Masking Options</FormLabel>
+                                                    <RadioGroup
+                                                        aria-labelledby="demo-radio-buttons-group-label"
+                                                        defaultValue="0"
+                                                        name="radio-buttons-group"
+                                                        onChange={(event, value)=>{
+                                                            dispatch(setupSetters.setMaskOption(Number(value)));
+                                                        }}
+                                                    >
+                                                        <FormControlLabel value="0" control={<Radio />} label="No coil sensitivity mask" />
+                                                        <FormControlLabel value="1" control={<Radio />}
+                                                                          label={<Box style={{flexDirection:'row', display:'flex', alignItems:'center'}}>
+                                                                              Use Percent Threshold
+                                                                              <CmrInputNumber value={maskThreshold}
+                                                                                 min={1}
+                                                                                 style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
+                                                                                 onChange={(val) => {
+                                                                                     dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                 }}/>%
+                                                                            </Box>} />
+                                                        <FormControlLabel value="2" control={<Radio />} label="Inner reference" />
+                                                        <FormControlLabel value="3" control={<Radio />} label={<Box style={{flexDirection:'row', display:'flex', alignItems:'center'}}>
+                                                            ESPIRIT &nbsp;&nbsp;  k:
+                                                            <CmrInputNumber value={kStore}
+                                                                            style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
+                                                                            onChange={(val) => {
+                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                            }}/> r:
+                                                            <CmrInputNumber value={rStore}
+                                                                            style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
+                                                                            onChange={(val) => {
+                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                            }}/> t:
+                                                            <CmrInputNumber value={tStore}
+                                                                            style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
+                                                                            onChange={(val) => {
+                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                            }}/> c:
+                                                            <CmrInputNumber value={cStore}
+                                                                            style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
+                                                                            onChange={(val) => {
+                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                            }}/>
+                                                            </Box>} />
+                                                    </RadioGroup>
+                                                </FormControl>
+                                                <Divider variant="middle"
+                                                         sx={{marginTop: '15pt', marginBottom: '15pt', color: 'gray'}}/>
                                             </Fragment>}
                                         {(reconstructionMethod==3) &&
                                             <React.Fragment>
@@ -959,6 +1012,9 @@ const Setup = () => {
                                                            return;
                                                        let state = store.getState();
                                                        snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+                                                       if(snr.options.reconstructor.options.sensitivityMap.options.mask.method == 'no'){
+                                                           snr.options.reconstructor.options.sensitivityMap.options.mask = 'no';
+                                                       }
                                                        getFiles(snr);
                                                        if (editing != -1) {
                                                            setEditedJSON({SNR:snr,output:state.setup.outputSettings});

@@ -1,10 +1,11 @@
-import React from "react"
+import React, {useState} from "react"
 import {Box} from "@mui/material"
 import LocationTable from "./LocationTable";
 import {ROITable} from "../../../../app/results/Rois";
 import {DrawToolkit, DrawToolkitProps} from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
+import {DualSlider} from "../../Cmr-components/double-slider/DualSlider";
 
 
 interface NiivuePanelProps{
@@ -41,7 +42,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 	const canvas = React.useRef(null)
     const histogram = React.useRef<HTMLElement>(null);
     const {mins,maxs,mms} = props;
-    const {gui,controllerX,controllerY,controllerZ,controllerMin,controllerMax} = createGUI();
+    const {gui,controllerX,controllerY,controllerZ} = createGUI(props.nv);
 
     let height = window.innerHeight*0.75;
     // This hook is for initialization, called only once
@@ -80,8 +81,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
     controllerX.setValue(Number(mms[0]).toFixed(3));
     controllerY.setValue(Number(mms[1]).toFixed(3));
     controllerZ.setValue(Number(mms[2]).toFixed(3));
-    controllerMin.setValue(Math.abs(props.min)<0.01&&props.min!=0?Number(props.min).toExponential(3).toUpperCase():Number(props.min).toFixed(3));
-    controllerMax.setValue(Math.abs(props.max)<0.01&&props.max!=0?Number(props.max).toExponential(3).toUpperCase():Number(props.max).toFixed(3));
     controllerX.onChange((val:number)=>{
         console.log(val);
         console.log(props.nv.drawPenLocation);
@@ -121,25 +120,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
     controllerZ.onFinishChange(()=>{
         props.nv.createOnLocationChange();
     });
-
-    controllerMin.onFinishChange((val:number)=>{
-        // Source: niivue.js 1236
-        let volume = props.nv.volumes[0];
-        volume.cal_min = val;
-        console.log(val);
-        props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
-        console.log(val);
-        props.nv.drawScene()
-        props.setMin(val)
-    })
-
-    controllerMax.onFinishChange((val:number)=>{
-        let volume = props.nv.volumes[0];
-        volume.cal_max = val;
-        props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
-        props.nv.drawScene()
-        props.setMax(val)
-    })
     React.useEffect(()=>{
         document.getElementById('controlDock')?.appendChild(gui.domElement);
     },[sliceControl]);
@@ -150,10 +130,35 @@ export function NiivuePanel (props:NiivuePanelProps) {
     //     controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
     // },[mins,maxs,props.locationData])
 
+    const [rangeMin,setRangeMin] = useState( undefined);
+    const [rangeMax,setRangemax] = useState( undefined);
+
 	return (
 		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
             <Box sx={{marginRight:'8px'}} style={{display:'flex', flex:1, minWidth:'245px',flexDirection:'column'}}>
                 <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
+                <DualSlider name={'range'} max={props.nv.volumes[0]?props.nv.volumes[0].robust_max:1} min={props.nv.volumes[0]?props.nv.volumes[0].robust_min:0}
+                            setMin={(min)=>{
+                                let volume = props.nv.volumes[0];
+                                if(volume == undefined){
+                                    return;
+                                }
+                                volume.cal_min = min;
+                                props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
+                                props.nv.drawScene()
+                                props.setMin(min)
+                            }}
+                            setMax={(max)=>{
+                                let volume = props.nv.volumes[0];
+                                if(volume == undefined){
+                                    return;
+                                }
+                                volume.cal_max = max;
+                                props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
+                                props.nv.drawScene()
+                                props.setMax(max)
+                            }}
+                />
                 <Box style={{height:'70%', marginTop:20}}>
                     {props.layerList}
                 </Box>
@@ -214,7 +219,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 }
 
 
-function createGUI(){
+function createGUI(nv:any){
     const element = document.getElementById('controlDock');
     if (element?.firstChild) {
         element.innerHTML='';
@@ -231,8 +236,6 @@ function createGUI(){
     let controllerX= gui.add( myObject, 'xSlice', 0, 1);   // Number Field
     let controllerY= gui.add( myObject, 'ySlice', 0, 1);   // Number Field
     let controllerZ= gui.add( myObject, 'zSlice', 0, 1);   // Number Field
-    let controllerMin= gui.add( myObject, 'min');   // Number Field
-    let controllerMax= gui.add( myObject, 'max');   // Number Field
-    return {gui,controllerX,controllerY,controllerZ,controllerMin,controllerMax};
+    return {gui,controllerX,controllerY,controllerZ};
 }
 

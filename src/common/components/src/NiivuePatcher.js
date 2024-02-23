@@ -3,6 +3,8 @@
  */
 import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import {tickSpacing} from "./util";
+
 var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
     this.BLEND = 1;
     this.CULL_FACE = 2;
@@ -447,6 +449,104 @@ Niivue.prototype.drawSceneCore = function () {
     this.sync();
     return posString;
 }; // drawSceneCore()
+
+Niivue.prototype.drawColorbarCore=function(layer = 0,
+    leftTopWidthHeight = [0, 0, 0, 0],
+    isNegativeColor = false,
+    min = 0,
+    max = 1,
+    isAlphaThreshold
+) {
+    if (leftTopWidthHeight[2] <= 0 || leftTopWidthHeight[3] <= 0) {
+        return
+    }
+    let txtHt = Math.max(this.opts.textHeight, 0.01)
+    txtHt = txtHt * Math.min(this.gl.canvas.height, this.gl.canvas.width)
+    let margin = txtHt
+    const fullHt = 3 * txtHt
+    let barHt = txtHt
+    if (leftTopWidthHeight[3] < fullHt) {
+        // no space for text
+        if (leftTopWidthHeight[3] < 3) {
+            return
+        }
+        margin = 1
+        barHt = leftTopWidthHeight[3] - 2
+    }
+    this.gl.disable(this.gl.DEPTH_TEST)
+    this.colorbarHeight = leftTopWidthHeight[3] + 1
+    const barLTWH = [leftTopWidthHeight[0] + margin, leftTopWidthHeight[1], leftTopWidthHeight[2] - 2 * margin, barHt]
+    const rimLTWH = [barLTWH[0] - 1, barLTWH[1] - 1, barLTWH[2] + 2, barLTWH[3] + 2]
+    this.drawRect(rimLTWH, this.opts.crosshairColor)
+
+    if (!this.colorbarShader) {
+        throw new Error('colorbarShader undefined')
+    }
+
+    this.colorbarShader.use(this.gl)
+    this.gl.activeTexture(this.gl.TEXTURE1)
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.colormapTexture)
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST)
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST)
+    const lx = layer
+    this.gl.uniform1f(this.colorbarShader.uniforms.layer, lx)
+    this.gl.uniform2fv(this.colorbarShader.uniforms.canvasWidthHeight, [this.gl.canvas.width, this.gl.canvas.height])
+    this.gl.disable(this.gl.CULL_FACE)
+    if (isNegativeColor) {
+        const flip = [barLTWH[0] + barLTWH[2], barLTWH[1], -barLTWH[2], barLTWH[3]]
+        this.gl.uniform4fv(this.colorbarShader.uniforms.leftTopWidthHeight, flip)
+    } else {
+        this.gl.uniform4fv(this.colorbarShader.uniforms.leftTopWidthHeight, barLTWH)
+    }
+    this.gl.bindVertexArray(this.genericVAO)
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
+    this.gl.bindVertexArray(this.unusedVAO) // switch off to avoid tampering with settings
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR)
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR)
+    let thresholdTic = 0.0 // only show threshold tickmark in alphaThreshold mode
+    if (isAlphaThreshold && max < 0.0 && isNegativeColor) {
+        thresholdTic = max
+        max = 0.0
+    } else if (isAlphaThreshold && min > 0.0) {
+        thresholdTic = min
+        min = 0.0
+    }
+    if (min === max || txtHt < 1) {
+        return
+    }
+    const range = Math.abs(max - min)
+    let [spacing, ticMin] = tickSpacing(min, max)
+    if (ticMin < min) {
+        ticMin += spacing
+    }
+    // determine font size
+    function humanize(x) {
+        // drop trailing zeros from numerical string
+        return x.toFixed(6).replace(/\.?0*$/, '')
+    }
+    let tic = ticMin
+    const ticLTWH = [0, barLTWH[1] + barLTWH[3] - txtHt * 0.5, 2, txtHt * 0.75]
+    const txtTop = ticLTWH[1] + ticLTWH[3]
+    const isNeg = 1
+    while (tic <= max) {
+        ticLTWH[0] = barLTWH[0] + ((tic - min) / range) * barLTWH[2]
+        this.drawRect(ticLTWH)
+        const str = humanize(isNeg * tic)+(this.power?`E-${this.power}`+((this.transformB&&this.transformB!==0)?`+${this.transformB}`:''):'');
+        // if (fntSize > 0)
+        this.drawTextBelow([ticLTWH[0], txtTop], str)
+        // this.drawTextRight([plotLTWH[0], y], str, fntScale)
+        tic += spacing
+    }
+    if (thresholdTic !== 0) {
+        const tticLTWH = [
+            barLTWH[0] + ((thresholdTic - min) / range) * barLTWH[2],
+            barLTWH[1] - barLTWH[3] * 0.25,
+            2,
+            barLTWH[3] * 1.5
+        ]
+        this.drawRect(tticLTWH)
+    }
+}
 
 Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN) {
     let frac2mmTexture = this.volumes[0].frac2mm.slice()
@@ -1225,6 +1325,76 @@ Niivue.prototype.drawLine = function(startXYendXY, thickness = 1, lineColor = [1
     this.gl.bindVertexArray(this.unusedVAO) // set vertex attributes
 }
 
+// not included in public docs
+// note: no test yet
+Niivue.prototype.calculateNewRange = function({ volIdx = 0 } = {}) {
+    if (this.opts.sliceType === SLICE_TYPE.RENDER && this.sliceMosaicString.length < 1) {
+        return
+    }
+    if (this.uiData.dragStart[0] === this.uiData.dragEnd[0] && this.uiData.dragStart[1] === this.uiData.dragEnd[1]) {
+        return
+    }
+    // calculate our box
+    let frac = this.canvasPos2frac([this.uiData.dragStart[0], this.uiData.dragStart[1]])
+    if (frac[0] < 0) {
+        return
+    }
+    const startVox = this.frac2vox(frac, volIdx)
+    frac = this.canvasPos2frac([this.uiData.dragEnd[0], this.uiData.dragEnd[1]])
+    if (frac[0] < 0) {
+        return
+    }
+    const endVox = this.frac2vox(frac, volIdx)
+
+    let hi = -Number.MAX_VALUE
+    let lo = Number.MAX_VALUE
+    const xrange = this.calculateMinMaxVoxIdx([startVox[0], endVox[0]])
+    const yrange = this.calculateMinMaxVoxIdx([startVox[1], endVox[1]])
+    const zrange = this.calculateMinMaxVoxIdx([startVox[2], endVox[2]])
+
+    // for our constant dimension we add one so that the for loop runs at least once
+    if (startVox[0] - endVox[0] === 0) {
+        xrange[1] = startVox[0] + 1
+    } else if (startVox[1] - endVox[1] === 0) {
+        yrange[1] = startVox[1] + 1
+    } else if (startVox[2] - endVox[2] === 0) {
+        zrange[1] = startVox[2] + 1
+    }
+
+    const hdr = this.volumes[volIdx].hdr
+    const img = this.volumes[volIdx].img
+    if (!hdr || !img) {
+        return
+    }
+
+    const xdim = hdr.dims[1]
+    const ydim = hdr.dims[2]
+    for (let z = zrange[0]; z < zrange[1]; z++) {
+        const zi = z * xdim * ydim
+        for (let y = yrange[0]; y < yrange[1]; y++) {
+            const yi = y * xdim
+            for (let x = xrange[0]; x < xrange[1]; x++) {
+                const index = zi + yi + x
+                if (lo > img[index]) {
+                    lo = img[index]
+                }
+                if (hi < img[index]) {
+                    hi = img[index]
+                }
+            }
+        }
+    }
+    if (lo >= hi) {
+        return
+    } // no variability or outside volume
+    const mnScale = intensityRaw2Scaled(hdr, lo)
+    const mxScale = intensityRaw2Scaled(hdr, hi)
+    this.volumes[volIdx].cal_min = mnScale
+    this.volumes[volIdx].cal_max = mxScale
+    console.log(mnScale);
+    console.log(mxScale);
+    this.onIntensityChange(this.volumes[volIdx])
+}
 
 function create3() {
     var out = new Float32Array();

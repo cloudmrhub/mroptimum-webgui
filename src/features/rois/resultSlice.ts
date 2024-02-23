@@ -101,6 +101,8 @@ export const resultSlice = createSlice({
             state.activeJob.setup.task = action.payload.result.headers.options;
             //@ts-ignore
             state.activeJob.logs = action.payload.result.headers.log;
+            //@ts-ignore
+            state.activeJob.slices = action.payload.result.info?.slices;
             state.niis[state.activeJob.pipeline_id] = action.payload.niis;
             state.selectedVolume = 1;
             state.resultLoading = -1;

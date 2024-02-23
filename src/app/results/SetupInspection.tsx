@@ -37,6 +37,7 @@ export const SetupInspection = ()=>{
     const loadSensitivity = useAppSelector(resultGetters.getLoadSensitivity);
     const sensitivityMapSource = useAppSelector(resultGetters.getSensitivityMapSource);
     const sensitivityMapMethod = useAppSelector(resultGetters.getSensitivityMapMethod);
+    const slices = useAppSelector(state => state.result.activeJob?.slices);
     const analysisMethodMapping = [
         "Array Combining",
         "Multiple Replica",
@@ -132,177 +133,123 @@ export const SetupInspection = ()=>{
             }
         }]
     return <Box>
-        <Box style={{width: '100%'}}>
-            <span>{`SNR Analysis Method: `}</span>
-            <span style={{color:'#580F8B'}}>
-                {analysisMethodMapping[Number(analysisMethod)]}
+        <Box className={'setting-box'}>
+            <span>
+                {'Number of slices: '}
             </span>
+            <SettingsText>
+                {slices}
+            </SettingsText>.
         </Box>
         <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+        <Box className={'setting-box'}>
+            <span>{`SNR Analysis Method: `}</span>
+            <SettingsText>
+                {analysisMethodMapping[Number(analysisMethod)]}
+            </SettingsText>.
+        </Box>
+        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'darkgray'}}/>
         {(analysisMethod != undefined) &&
-            <Box>
+            <>
                     {(analysisMethod == 2 || analysisMethod == 3) &&
-                        <Fragment>
-                            <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
-                                {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                                {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                                {/*</FormControl>*/}
-                                <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto', color:'#000000'}}>Number of Pseudo Replica:</CmrLabel>
-                                <CmrInputNumber value={pseudoReplicaCount}
-                                                ></CmrInputNumber>
-                            </Row>
-                            <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
-                        </Fragment>}
+                        <SettingsBox>
+                            <span>{'Number of Pseudo Replica: '}</span>
+                            <SettingsText>{pseudoReplicaCount}</SettingsText>.
+                        </SettingsBox>}
                     {(analysisMethod == 3) &&
-                        <Fragment>
-                            <Row style={{fontFamily: 'Roboto, Helvetica, Arial, sans-serif'}}>
-                                {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                                {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                                {/*</FormControl>*/}
-                                <CmrLabel style={{height: '100%', marginTop:'auto',marginBottom:'auto', color:'#000000'}}>Box Size:</CmrLabel>
-                                <CmrInputNumber value={boxSize}
-                                                min={2}
-                                                max={20}></CmrInputNumber>
-                            </Row>
-                            <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
-                        </Fragment>}
-                    <div>
-                        <span style={{color: '#000000'}}>{`Image Reconstruction Method: `}</span>
-                        <span style={{color:'#580F8B'}}>
-                            {idToSecondaryOptions[Number(reconstructionMethod)]}
-                        </span>
-                    </div>
-                <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+                        <SettingsBox>
+                            <span>{'Box Size: '}</span>
+                            <SettingsText>{boxSize}</SettingsText>.
+                        </SettingsBox>}
+                <SettingsBox>
+                    <span>{'Image Reconstruction Method: '}</span>
+                    <SettingsText>{idToSecondaryOptions[Number(reconstructionMethod)]}</SettingsText>.
+                </SettingsBox>
                     {(reconstructionMethod != undefined) &&
                         <Box>
-                            <CmrCheckbox className='me-2 ms-1' checked={!flipAngleCorrection}
-                                         defaultChecked={!flipAngleCorrection}>
-                                No Flip Angle Correction
-                            </CmrCheckbox>
-                            {(flipAngleCorrection) &&
-                                <Button variant={"outlined"} color="info" sx={{marginRight:'10pt'}}
-                                        style={{textTransform:'none'}}>
-                                    {flipAngleCorrectionFile?.options.filename}
-                                </Button>
-                            }
-                            <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+                           <SettingsBox>
+                               <SettingsText>
+                                   {(flipAngleCorrection)?'Using ':'Not Using '}
+                               </SettingsText>
+                               <span>
+                                   {(flipAngleCorrection)?'Flip Angle Correction,':'Flip Angle Correction.'}
+                               </span>
+                               {(flipAngleCorrection) &&
+                                   <>
+                                       Flip Angle Correction File:
+                                       <SettingsText>
+                                           {flipAngleCorrectionFile?.options.filename}
+                                       </SettingsText>.
+                                   </>
+                               }
+                           </SettingsBox>
+
                             {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
-                                <Box>
-                                    <FormControl>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={loadSensitivity}
-                                        >
-                                            <FormControlLabel value={true} disabled={true} control={<Radio/>}
-                                                              label="Load Coil Sensitivities"/>
-                                            <FormControlLabel value={false} control={<Radio/>}
-                                                              label="Calculate Coil Sensitivities"/>
-                                            {(loadSensitivity) ?
-                                                <Button variant={"outlined"} color="info" sx={{marginRight:'10pt'}}
-                                                        style={{textTransform:'none'}}>
-                                                    {sensitivityMapSource?.options.filename}
-                                                </Button> : <FormControl className='m-3'
-                                                                         onChange={(event) => {
-                                                                             //@ts-ignore
-                                                                             dispatch(setupSetters.setSensitivityMapMethod(event.target.value))
-                                                                         }}>
-                                                    <InputLabel id="css-label">Coil sensitivities
-                                                        calculation method</InputLabel>
-                                                    <Select
-                                                        labelId="css-label"
-                                                        value={sensitivityMapMethod}
-                                                        label="Coil sensitivities calculation method"
-                                                        id="demo-simple-select"
-                                                        sx={{width: '300pt'}}
-                                                    >
-                                                        {['inner', 'innerACL'].map((value, index) => {
-                                                            return (secondaryToCoilMethodMaps[reconstructionMethod].indexOf(value) >= 0) ?
-                                                                <MenuItem
-                                                                    value={value}>{coilOptionAlias[value]}</MenuItem>
-                                                                : undefined;
-                                                        })}
-                                                    </Select>
-                                                </FormControl>}
-                                            {/*<InputLabel id="css-label">Age</InputLabel>*/}
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <Divider variant="middle"
-                                             sx={{color: 'gray'}}/>
-                                </Box>}
+                                <SettingsBox
+                                >
+                                    <span>
+                                        Using
+                                    <SettingsText>
+                                        {loadSensitivity?' Loaded ':' Calculated '}
+                                    </SettingsText>
+                                        {'Coil Sensitivities; '}
+                                    </span>
+                                    {(loadSensitivity) ?
+                                        <span>
+                                                    Coil Sensitvitiy File <SettingsText>{sensitivityMapSource?.options.filename}</SettingsText>
+                                                </span> : <span>
+                                                    Coil Sensitivities Calculation Method: <SettingsText>
+                                                    {sensitivityMapMethod?coilOptionAlias[sensitivityMapMethod]:'undefined'}
+                                                </SettingsText>
+                                                </span>}
+                                    {/*<InputLabel id="css-label">Age</InputLabel>*/}
+                                </SettingsBox>}
                             {(reconstructionMethod==3) &&
-                                <Box>
-                                    <CmrLabel style={{marginLeft:'3pt', marginBottom:'15pt'}}>Kernel Size</CmrLabel>
-                                    <div className='ms-3' style={{
-                                        height: 'fit-content',
-                                        marginRight: 'auto',
-                                        marginTop: '5pt',
-                                        width: '362px'
-                                    }}>
-                                        <DataGrid
-                                            rows={kernelSizeRows}
-                                            slots={{
-                                                columnHeaders: () => null,
-                                            }}
-                                            autoHeight
-                                            hideFooterPagination
-                                            hideFooterSelectedRowCount
-                                            hideFooter={true}
-                                            columns={kernelSizeColumns}
-                                            sx={{
-                                                '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {display: 'none'}
-                                            }}
-                                            onCellEditStop={(params: GridCellEditStopParams, event) => {
-                                                // console.log(params)
-                                                // console.log(event)
-                                                // return;
-                                                //@ts-ignore
-                                                if (event.target == undefined || !isNaN(event.target.value))
-                                                    return;
-                                            }}
-                                        />
-                                    </div>
-                                    <Divider variant="middle" sx={{color: 'gray'}}/>
-                                </Box>
+                                <SettingsBox>
+                                    <p style={{marginBottom:'5pt'}}>
+                                        Kernel Size 1: <SettingsText>{kernelSize1}</SettingsText>
+                                    </p>
+                                    <p>
+                                        Kernel Size 2: <SettingsText>{kernelSize2}</SettingsText>
+                                    </p>
+                                </SettingsBox>
                             }
                             {(decimateMapping[reconstructionMethod]) &&
-                                <Fragment>
-                                    <CmrCheckbox defaultChecked={decimateData}
-                                                 checked={decimateData}>
-                                        Decimate Data
-                                    </CmrCheckbox>
-
-                                    <Divider variant="middle"
-                                             sx={{marginBottom: '15pt', color: 'gray'}}/>
-                                </Fragment>}
+                                <SettingsBox>
+                                    Decimate Data:
+                                    <SettingsText>
+                                        {decimateData?' true.':' false.'}
+                                    </SettingsText>
+                                </SettingsBox>}
                             {(decimateMapping[reconstructionMethod] && decimateData) &&
-                                <div className='ms-3' style={{
-                                    height: 'fit-content',
-                                    marginRight: 'auto',
-                                    marginTop: '5pt',
-                                    width: '362px'
-                                }}>
-                                    <DataGrid
-                                        rows={rows}
-                                        slots={{
-                                            columnHeaders: () => null,
-                                        }}
-                                        autoHeight
-                                        hideFooterPagination
-                                        hideFooterSelectedRowCount
-                                        hideFooter={true}
-                                        columns={columns}
-                                        sx={{
-                                            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': {display: 'none'}
-                                        }}
-                                    />
-                                    <CmrCheckbox checked={decimateACL==null} style={{marginLeft:0}}>
-                                        Use all autocalibration lines
-                                    </CmrCheckbox>
-                                </div>
+                                <SettingsBox>
+                                    <p style={{marginBottom:'5pt'}}>
+                                        Acceleration Factor 1: <SettingsText>{decimateAcceleration1}</SettingsText>
+                                        , Acceleration Factor 2: <SettingsText>{decimateAcceleration2}</SettingsText>.
+                                    </p>
+                                    <p>
+                                        Use{decimateACL == null?
+                                        <SettingsText>
+                                            {' All '}
+                                        </SettingsText>
+                                        :<SettingsText>
+                                            {decimateACL}
+                                        </SettingsText>}Autocalibration Lines.
+                                    </p>
+                                </SettingsBox>
                             }
                         </Box>}
-                </Box>}
+                </>}
     </Box>
+}
+
+const SettingsText = (props:any)=>{
+    return <span style={{color:'#580F8B'}} {...props}/>
+}
+
+const SettingsBox = (props:any)=>{
+    return <>
+        <Box className={'setting-box'} {...props}/>
+        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+    </>
 }
