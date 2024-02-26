@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
-import { Stack, IconButton, Slider, Typography} from '@mui/material';
+import {Stack, IconButton, Slider, Typography, Box} from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import FiberManualRecordOutlinedIcon from '@mui/icons-material/FiberManualRecordOutlined';
+import {DualSlider} from "../../Cmr-components/double-slider/DualSlider";
+import {InvertibleDualSlider} from "../../Cmr-components/double-slider/InvertibleDualSlider";
 
 interface MaskPlatteProps {
     expanded:boolean
@@ -32,7 +34,7 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded }) => {
                 left: 0,
                 zIndex: 10, // Higher z-index to layer it above
                 border: `${expanded ? '1px' : 0} solid #bbb`,
-                maxWidth: expanded ? 300 : 0,
+                maxWidth: expanded ? 500 : 0,
                 // transition: 'all 0.5s',
                 overflow: 'hidden',
                 borderRadius: '16px',
@@ -45,12 +47,10 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded }) => {
             <Stack sx={{ mb: 1 }} alignItems="center">
 
                 <Typography color={'white'} gutterBottom width={'100%'} marginLeft={'10pt'}
-                            fontSize={'11pt'} alignItems={'start'}>{'Masking:'}</Typography>
-                <Slider value={0}
-                sx={{width:'80%'}} step={2} min={1} max={15} marks={true}
-                    onChange={(event, value) => {
-                        // updateBrushSize(value as number);
-                    }}/>
+                            fontSize={'11pt'} alignItems={'start'}>{'Mask range: (overrides existing roi)'}</Typography>
+               <Box width={400} style={{paddingLeft:'10px',paddingRight:'10px'}}>
+                   <InvertibleDualSlider name={'range'} min={0} max={1}/>
+               </Box>
             </Stack>
             {/*<Stack*/}
             {/*    // style={{*/}
