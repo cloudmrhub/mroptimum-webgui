@@ -931,10 +931,15 @@ export default function NiiVueport(props) {
             return null;
         }
     };
+    // This is a small fix that prevents the selected roi index from jumping to
+    // the newest saved roi after user has performed a roi reselection during
+    // roi saving
+    const [selectedDuringSaving, setSelectedDuringSaving]= useState(false);
     const selectDrawingLayer = async (roiIndex) => {
         // console.log(nv.drawBitmap);
         await unzipAndRenderDrawingLayer(props.rois[roiIndex].link);
         setSelectedDrawingLayer(roiIndex);
+        setSelectedDuringSaving(true);
         setDrawingChanged(false);
     }
     const unpackROI = async (accessURL)=>{
@@ -978,13 +983,16 @@ export default function NiiVueport(props) {
             const originalCreateObjectURL = URL.createObjectURL;
             // Redefine the method
             URL.createObjectURL = function (blob) {
-                zipAndSendDrawingLayer(response.data.upload_url,filename, blob).then(()=>{
+                setSelectedDuringSaving(false);
+                zipAndSendDrawingLayer(response.data.upload_url,filename, blob).then(async ()=>{
                     // Update available rois with this callback
                     // props.saveROICallback();
                     setDrawingChanged(false);
-                    setSelectedDrawingLayer(props.rois.length);
                     if (afterSaveCallback instanceof Function)
-                        afterSaveCallback();
+                        await afterSaveCallback();
+                    if(!selectedDuringSaving)//Only switch to the newest roi when user hasn't performed reselection
+                        // during the period
+                        setSelectedDrawingLayer(props.rois.length);
                 });
                 // Call the original method and return its result
                 return 'javascript:void(0);';

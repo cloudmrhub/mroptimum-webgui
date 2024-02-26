@@ -188,9 +188,11 @@ export default function Toolbar(props:ToolbarProps) {
                     <Button variant={'contained'}
                             endIcon={saving && <CircularProgress sx={{color:'white'}} size={20} />}
                             onClick={()=>{
-                        props.saveROI(()=>{
-                            //@ts-ignore
-                            dispatch(getPipelineROI({accessToken,pipeline}));
+                                if(saving)
+                                    return;
+                        props.saveROI(async ()=>{
+                            if(pipeline)
+                                await dispatch(getPipelineROI({accessToken,pipeline}));
                             setSaving(false);
                         },()=>{
                             setSaving(true);
