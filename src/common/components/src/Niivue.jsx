@@ -896,7 +896,8 @@ export default function NiiVueport(props) {
 
         // Check if the request was successful
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            props.warn('Failed to load the requested ROI Layer (was not properly saved)')
+            return;
         }
         // Convert the response to a Blob
         const blob = await response.blob();

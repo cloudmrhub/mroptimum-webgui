@@ -72,6 +72,15 @@ const Results = ({visible}:{visible?:boolean}) => {
     }, [visible]);
 
     const [lastUpdated, setLastUpdated] = useState(Date.now());
+    const warn=(message:string)=>{
+
+        setWarning(message);
+        setWarningOpen(true);
+        setTimeout(() => {
+            setWarningOpen(false);
+            setWarning("");
+        }, 5000)
+    }
 
     const completedJobsColumns = [
         {
@@ -133,12 +142,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                         }
                                     }
                                 } catch (e) {
-                                    setWarning("Error loading results, please check internet connectivity");
-                                    setWarningOpen(true);
-                                    setTimeout(() => {
-                                        setWarningOpen(false);
-                                        setWarning("");
-                                    }, 2000)
+                                    warn("Error loading results, please check internet connectivity");
                                 }
                                 setTimeout(() => nv.resizeListener(), 700);
                                 //@ts-ignore
@@ -215,7 +219,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     setTimeout(() => {
                                         setWarningOpen(false);
                                         setWarning("");
-                                    }, 2000)
+                                    }, 5000)
                                 }
                             });
                         }}>
@@ -259,6 +263,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                           key={'1'}>
                     {activeJob != undefined &&
                         <NiiVue niis={niis}
+                                warn={warn}
                                 setWarning={setWarning}
                                 setWarningOpen={setWarningOpen}
                                 setSelectedVolume={(index: number) => {
