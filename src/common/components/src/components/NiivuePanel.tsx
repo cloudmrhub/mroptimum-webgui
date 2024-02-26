@@ -133,11 +133,19 @@ export function NiivuePanel (props:NiivuePanelProps) {
     const [rangeMin,setRangeMin] = useState( undefined);
     const [rangeMax,setRangemax] = useState( undefined);
 
+
+    const [rangeKey, setRangeKey] = useState(0);
+    props.nv.onResetContrast = ()=>{
+        setRangeKey(rangeKey+1);
+    }
+
 	return (
 		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
             <Box sx={{marginRight:'8px'}} style={{display:'flex', flex:1, minWidth:'245px',flexDirection:'column'}}>
                 <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
-                <DualSlider name={'range'} max={props.nv.volumes[0]?props.nv.volumes[0].robust_max:1} min={props.nv.volumes[0]?props.nv.volumes[0].robust_min:0}
+                <DualSlider name={'range'}
+                            max={props.nv.volumes[0]?props.nv.volumes[0].robust_max:1}
+                            min={props.nv.volumes[0]?props.nv.volumes[0].robust_min:0}
                             setMin={(min)=>{
                                 let volume = props.nv.volumes[0];
                                 if(volume == undefined){
@@ -148,6 +156,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                                 props.nv.drawScene()
                                 props.setMin(min)
                             }}
+                            key={rangeKey}
                             setMax={(max)=>{
                                 let volume = props.nv.volumes[0];
                                 if(volume == undefined){
@@ -208,7 +217,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     }}
                     nv={props.nv}
                     resampleImage={props.resampleImage}
-
                     unpackROI={props.unzipAndRenderROI}
                     zipAndSendROI={props.zipAndSendROI}
                     setLabelAlias={props.setLabelAlias}

@@ -167,6 +167,7 @@ export default function NiiVueport(props) {
             },2500)
             return;
         }
+        console.log(nv.volumes);
         setLayers([...nv.volumes]);
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
@@ -189,6 +190,9 @@ export default function NiiVueport(props) {
         const range_max = Math.max(...numbers);
 
         const range = range_max - range_min;
+        if(range == 0){
+            return numbers;
+        }
 
         if (range < 1e-2) {
             // Find a suitable 'a' that is a whole power of 10
@@ -223,14 +227,13 @@ export default function NiiVueport(props) {
 
 
     function verifyComplex(volume){
-        volume.real = new Float32Array(volume.img);
+        volume.real = volume.img;
         setComplexMode('real');
         // Ensure volume.imaginary is defined and has the same length as volume.img
         if (!volume.imaginary || volume.imaginary.length !== volume.img.length) {
             setComplexOptions(['real','absolute']);
-
             // Initialize absolute and phase arrays
-            volume.absolute = new Float32Array(volume.img.length);
+            volume.absolute = new volume.img.constructor(volume.img.length);
             // Calculate absolute and phase values
             for (let i = 0; i < volume.img.length; i++) {
                 const realPart = volume.real[i];

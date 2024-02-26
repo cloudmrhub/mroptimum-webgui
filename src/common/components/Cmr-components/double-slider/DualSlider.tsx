@@ -6,7 +6,6 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
     const [leftSliderPosition, setLeftSliderPosition] = useState(0); // Initial percentage for the left slider
     const [rightSliderPosition, setRightSliderPosition] = useState(100); // Initial percentage for the right slider
     const [isHovering, setIsHovering] = useState(false);
-    const [isControlling, setIsControlling] = useState(false);
     const [leftEditing, setLeftEditing] = useState(false);
 
     const [minOverride, setMinOverride] = useState<any>(undefined);
@@ -90,7 +89,6 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
 
     // Logic to handle right value box editing...
     const rightText = Math.abs(right) < 0.01 && right != 0 ? Number(right).toExponential(3).toUpperCase() : Number(right).toFixed(3);
-
 
     return <Box sx={{display:'flex',flexDirection:'row', paddingLeft:'4px',paddingRight:'4px'}} height={20}>
         <Box flex={0.322} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
