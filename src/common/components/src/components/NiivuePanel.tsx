@@ -30,6 +30,8 @@ interface NiivuePanelProps{
     zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>;
     unzipAndRenderROI:(url:string)=>Promise<void>;
     setLabelAlias:(label:string|number,alias:string)=>void;
+
+    transformFactors: {a:number,b:number};
 }
 
 
@@ -138,7 +140,8 @@ export function NiivuePanel (props:NiivuePanelProps) {
     props.nv.onResetContrast = ()=>{
         setRangeKey(rangeKey+1);
     }
-
+    //Transform factors are applied when scientific notation for voxel values become necessary
+    const {a,b} = props.transformFactors;
 	return (
 		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
             <Box sx={{marginRight:'8px'}} style={{display:'flex', flex:1, minWidth:'245px',flexDirection:'column'}}>
@@ -167,6 +170,8 @@ export function NiivuePanel (props:NiivuePanelProps) {
                                 props.nv.drawScene()
                                 props.setMax(max)
                             }}
+                            transform={x => x/a + b}
+                            inverse={y => a * y - a*b}
                 />
                 <Box style={{height:'70%', marginTop:20}}>
                     {props.layerList}

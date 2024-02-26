@@ -1357,6 +1357,7 @@ export default function NiiVueport(props) {
                 volumes={layers}
                 colorBarEnabled={colorBar}
                 displayVertical={verticalLayout}
+                transformFactors={transformFactors}
 
                 decimalPrecision={decimalPrecision}
                 locationData={locationData}

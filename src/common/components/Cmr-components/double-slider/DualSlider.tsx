@@ -1,8 +1,23 @@
 import {Box} from "@mui/material";
 import {useRef, useState} from "react";
 
-export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,max:number,
-    setMin?:(min:number)=>void, setMax?:(max:number)=>void})=>{
+/**
+ * This dual slider (lil-gui styled) allows users to control the max and min of an interval simultaneously.
+ * The rendered interval (and number control) can be masked by a transformation - inverse pair.
+ * @param name
+ * @param min
+ * @param max
+ * @param setMin
+ * @param setMax
+ * @param transform transform and inverse are a pair that masks the rendered values and rendered inputs by a transformation
+ * @param inverse transform and inverse are a pair that masks the rendered values and rendered inputs by a transformation
+ * @constructor
+ */
+export const DualSlider = ({name,min,max,setMin,setMax,
+                               transform=x=>x,inverse=x=>x}:
+                               {name:string,min:number,max:number, setMin?:(min:number)=>void,
+                                   setMax?:(max:number)=>void,transform?:(x:number)=>number,
+                                   inverse?:(x:number)=>number})=>{
     const [leftSliderPosition, setLeftSliderPosition] = useState(0); // Initial percentage for the left slider
     const [rightSliderPosition, setRightSliderPosition] = useState(100); // Initial percentage for the right slider
     const [isHovering, setIsHovering] = useState(false);
@@ -16,8 +31,8 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
     if(maxOverride)
         max = maxOverride;
 
-    const a = (max-min)*leftSliderPosition/100+min;
-    const b = (max-min)*rightSliderPosition/100+min;
+    const a = transform((max-min)*leftSliderPosition/100+min);
+    const b = transform((max-min)*rightSliderPosition/100+min);
     const left = Math.min(a,b);
     const right = Math.max(a,b);
 
@@ -57,7 +72,6 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
 
             } else if (slider === 'right') {
                 setRightSliderPosition(clampedPosition);
-
                 const a = (max-min)*leftSliderPosition/100+min;
                 const b = (max-min)*clampedPosition/100+min;
                 setMin&&setMin(Math.min(a,b));
@@ -111,7 +125,7 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
                 setLeftIsNaN(isNaN(Number(event.target.value)));
                 setLeftEditedText(event.target.value);
             }} onBlur={(e)=>{
-                    let val = Number(leftEditedText);
+                    let val = inverse(Number(leftEditedText));
                     if(isNaN(val)) {
                         return e.preventDefault();
                     }
@@ -164,7 +178,7 @@ export const DualSlider = ({name,min,max,setMin,setMax}:{name:string,min:number,
                      setRightEditedText(event.target.value);
                  }}
                  onBlur={(e) => {
-                     let val = Number(rightEditedText);
+                     let val = inverse(Number(rightEditedText));
                      if (isNaN(val)) {
                          return e.preventDefault();
                      }

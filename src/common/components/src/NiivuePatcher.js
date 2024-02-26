@@ -1,5 +1,5 @@
 /**
- * This method patches the original NiiVue library to produce customized behaviors and effects.
+ * This file patches the original NiiVue library to produce customized behaviors and effects.
  */
 import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'

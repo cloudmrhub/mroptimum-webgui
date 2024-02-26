@@ -4,11 +4,12 @@ import BrushIcon from "@mui/icons-material/Brush";
 import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined";
 import ReplyIcon from "@mui/icons-material/Reply";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import React, {CSSProperties} from "react";
+import React, {CSSProperties, useState} from "react";
 import {ROI} from "../../../../features/rois/resultSlice";
 import SvgIcon from "@mui/material/SvgIcon";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import FiberManualRecordOutlinedIcon from "@mui/icons-material/FiberManualRecordOutlined";
+import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import DrawPlatte from './DrawPlatte'; // Adjust the path as per your folder structure
 import DeleteIcon from '@mui/icons-material/Delete';
 import EraserPlatte from "./EraserPlatte";
@@ -17,6 +18,7 @@ import {VisibilityOff} from "@mui/icons-material";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpacityIcon from '@mui/icons-material/Opacity';
 import CmrTooltip from "../../Cmr-components/tooltip/Tooltip";
+import MaskPlatte from "./MaskPlatte";
 
 
 export interface DrawToolkitProps{
@@ -48,28 +50,37 @@ export interface DrawToolkitProps{
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
-    const [expandDrawOptions, setExpandDrawOptions] = React.useState(false);
-    const [expandEraseOptions, setExpandEraseOptions] = React.useState(false);
+    const [expandedOption, setExpandedOption] = useState('none');
     const [expandOpacityOptions, setExpandOpacityOptions] = React.useState(false);
     const penColor = ['red','green','blue','yellow','cyan','#e81ce8'][(props.drawPen&7)-1];
     const filled = props.drawPen>7;
     function clickPaintBrush(){
-        let expand = !expandDrawOptions;
-        if(expand){
-            setExpandEraseOptions(false);
+        if(expandedOption=='draw'){
+            setExpandedOption('none');
+        }else{
+            setExpandedOption('draw');
         }
-        props.setDrawingEnabled(expand||expandEraseOptions);
-        setExpandDrawOptions(expand);
+        props.setDrawingEnabled(expandedOption!='draw');
     }
     function clickEraser(){
-        let expand = !expandEraseOptions;
-        if(expand){
+        if(expandedOption =='erase'){
             props.updateDrawPen({target:{value:8}});
-            setExpandDrawOptions(false);
+            setExpandedOption('none');
+        }else{
+            setExpandedOption('erase');
         }
-        props.setDrawingEnabled(expand||expandDrawOptions);
-        setExpandEraseOptions(expand);
+        props.setDrawingEnabled(expandedOption!='erase');
     }
+
+    function clickMask(){
+        if(expandedOption =='mask'){
+            props.updateDrawPen({target:{value:8}});
+            setExpandedOption('none');
+        }else{
+            setExpandedOption('mask');
+        }
+    }
+
 
     let options = [
         <FiberManualRecordOutlinedIcon sx={{color:'red'}}/>,
@@ -100,13 +111,22 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         {/*        Save ROI*/}
         {/*    </Button>*/}
         {/*</FormControl>*/}
+
+        <FormControl>
+            <Stack direction="row">
+                <IconButton aria-label="fill" onClick={clickMask}>
+                    <FormatColorFillIcon style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>
+                </IconButton>
+            </Stack>
+            <MaskPlatte expanded={expandedOption=='mask'}/>
+        </FormControl>
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
                      <BrushIcon  style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>
                 </IconButton>
                 <DrawPlatte
-                    expandDrawOptions={expandDrawOptions}
+                    expandDrawOptions={expandedOption=='draw'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
@@ -118,12 +138,12 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="erase" onClick={clickEraser}>
-                    {(filled||!expandEraseOptions)?
+                    {(filled||!(expandedOption=='erase'))?
                         <EraserIcon style={{color:'#ddd'}}/>
                         :<AutoFixNormalOutlinedIcon style={{color:'white'}}/>}
                 </IconButton>
                 <EraserPlatte
-                    expandEraseOptions={expandEraseOptions}
+                    expandEraseOptions={expandedOption=='erase'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
