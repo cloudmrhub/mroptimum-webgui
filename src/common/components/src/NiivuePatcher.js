@@ -4,6 +4,7 @@
 import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {tickSpacing} from "./util";
+import {nv} from "./Niivue";
 
 var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
     this.BLEND = 1;
@@ -1030,7 +1031,16 @@ Niivue.prototype.drawPenFilled = function() {
         }
     }
     this.drawPenFillPts = []
+    // First imprint all hiddenBitmaps into the draw bitmap,
+    // visible voxels take precedence
+    if(this.hiddenBitmap)
+        this.hiddenBitmap.map((value,index)=>{
+            if(value!==0&&this.drawBitmap[index]===0){
+                this.drawBitmap[index] = value;
+            }
+        })
     this.drawAddUndoBitmap()
+    // Post-processing to hide hidden voxels
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     for(let i = 0; i<this.drawBitmap.length; i++){
         let pen = this.drawBitmap[i];
@@ -1040,6 +1050,35 @@ Niivue.prototype.drawPenFilled = function() {
         }
     }
     this.refreshDrawing(false)
+}
+
+Niivue.prototype.fillRange=function(min,max,penValue,inverted=false){
+    let volume = this.volumes[0];
+    if(volume==undefined){
+        return;
+    }
+    let visible = this.getLabelVisibility(penValue);
+    //First clean the existing bitmaps of matched color
+    for(let i = 0; i<this.drawBitmap.length; i++){
+        if(visible){
+            if(this.drawBitmap[i]===penValue){
+                this.drawBitmap[i]=0;
+            }
+        }else{
+            if(this.hiddenBitmap[i]===penValue){
+                this.hiddenBitmap[i]=0;
+            }
+        }
+    }
+    for(let i = 0; i<this.drawBitmap.length; i++){
+        if(inverted!==(min<=volume.img[i]&&max>=volume.img[i])){
+            if(visible){
+                this.drawBitmap[i]=penValue;
+            }else{
+                // this.
+            }
+        }
+    }
 }
 
 /**
@@ -1065,7 +1104,7 @@ Niivue.prototype.drawUndo = function(){
         return
     }
     this.drawBitmap = decodeRLE(this.drawUndoBitmaps[this.currentDrawUndoBitmap], this.drawBitmap.length)
-    // Post-processing to hide invisible region
+    // Post-processing to hide invisible region and reveal hidden ones
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     for(let i = 0; i<this.drawBitmap.length; i++){
         let pen = this.drawBitmap[i];
