@@ -32,6 +32,7 @@ interface NiivuePanelProps{
     setLabelAlias:(label:string|number,alias:string)=>void;
 
     transformFactors: {a:number,b:number};
+    rangeKey: number;
 }
 
 
@@ -136,10 +137,6 @@ export function NiivuePanel (props:NiivuePanelProps) {
     const [rangeMax,setRangemax] = useState( undefined);
 
 
-    const [rangeKey, setRangeKey] = useState(0);
-    props.nv.onResetContrast = ()=>{
-        setRangeKey(rangeKey+1);
-    }
     //Transform factors are applied when scientific notation for voxel values become necessary
     const {a,b} = props.transformFactors;
 	return (
@@ -159,7 +156,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                                 props.nv.drawScene()
                                 props.setMin(min)
                             }}
-                            key={rangeKey}
+                            key={props.rangeKey}
                             setMax={(max)=>{
                                 let volume = props.nv.volumes[0];
                                 if(volume == undefined){

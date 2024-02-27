@@ -1057,28 +1057,54 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false){
     if(volume==undefined){
         return;
     }
-    let visible = this.getLabelVisibility(penValue);
-    //First clean the existing bitmaps of matched color
+    if (!this.drawBitmap) {
+        this.createEmptyDrawing();
+    }
+    // First clean the existing bitmaps of matched color
     for(let i = 0; i<this.drawBitmap.length; i++){
-        if(visible){
-            if(this.drawBitmap[i]===penValue){
-                this.drawBitmap[i]=0;
-            }
-        }else{
-            if(this.hiddenBitmap[i]===penValue){
-                this.hiddenBitmap[i]=0;
-            }
+        if(this.drawBitmap[i]===penValue){
+            this.drawBitmap[i]=0;
+        }
+        if(this.hiddenBitmap&&this.hiddenBitmap[i]===penValue){
+            this.hiddenBitmap[i]=0;
         }
     }
+    // Next write into the drawbitmap where voxel value are within range,
+    // no need to write into hidden bitmap specifically due to the post-processing
+    // step, where draw bitmap values will be hidden accordingly
     for(let i = 0; i<this.drawBitmap.length; i++){
-        if(inverted!==(min<=volume.img[i]&&max>=volume.img[i])){
-            if(visible){
-                this.drawBitmap[i]=penValue;
-            }else{
-                // this.
-            }
+        if((!inverted&&(min<=volume.img[i]&&max>=volume.img[i]))||
+            //Note here that e-4 is not a trivial value,
+            // we can do this here because ranges beneath e-4 will be rescaled inside
+            // the checkRange function inside Niivue.jsx. It is still not entirely safe
+            // but a necessary step for inclusive range checking under float inprecisions
+            (inverted&&(min*1.0001>=volume.img[i]&&max*0.9999<=volume.img[i]))){
+            // console.log('filling');
+            this.drawBitmap[i]=penValue;
         }
     }
+    // Next update drawUndoBitmaps pipeline
+    // First imprint all hiddenBitmaps into the draw bitmap,
+    // visible voxels take precedence
+    if(this.hiddenBitmap)
+        this.hiddenBitmap.map((value,index)=>{
+            if(value!==0&&this.drawBitmap[index]===0){
+                this.drawBitmap[index] = value;
+            }
+        })
+    this.drawAddUndoBitmap()
+    // Post-processing to hide invisible voxels
+    this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
+    for(let i = 0; i<this.drawBitmap.length; i++){
+        let pen = this.drawBitmap[i];
+        if(!this.getLabelVisibility(pen)){
+            this.hiddenBitmap[i] = this.drawBitmap[i];
+            this.drawBitmap[i]=0;
+        }
+    }
+    this.refreshDrawing(true)
+
+    // props.nv.drawScene()
 }
 
 /**

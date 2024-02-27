@@ -153,6 +153,11 @@ export default function NiiVueport(props) {
     //   setLayers([...nv.volumes])
     // }, [])
 
+    const [rangeKey, setRangeKey] = useState(0);
+    nv.onResetContrast = ()=>{
+        setRangeKey(rangeKey+1);
+    }
+
     let [boundMins,setBoundMins] = useState([0,0,0]);
     let [boundMaxs, setBoundMaxs] = useState([1,1,1]);
     let [mms, setMMs] = useState([0.5,0.5,0.5]);
@@ -1379,6 +1384,7 @@ export default function NiiVueport(props) {
                 max={max}
                 setMin={setMin}
                 setMax={setMax}
+                rangeKey={rangeKey}
 
                 unzipAndRenderROI={unpackROI}
                 zipAndSendROI={zipAndSendDrawingLayer}

@@ -1,5 +1,5 @@
 import {Box} from "@mui/material";
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 /**
  * This dual slider (lil-gui styled) allows users to control the max and min of an interval simultaneously.
@@ -21,6 +21,12 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
                                    inverse?:(x:number)=>number})=>{
     const [leftSliderPosition, setLeftSliderPosition] = useState(0); // Initial percentage for the left slider
     const [rightSliderPosition, setRightSliderPosition] = useState(100); // Initial percentage for the right slider
+    useEffect(() => {//Initialize parent min/max values upon initialization
+        setMin&&setMin(min);
+        setMax&&setMax(max);
+        setLeftSliderPosition(0);
+        setRightSliderPosition(100);
+    }, [min,max]);
     const [isHovering, setIsHovering] = useState(false);
     const [leftEditing, setLeftEditing] = useState(false);
 
@@ -62,7 +68,6 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
 
             // Prevent the slider from going outside the parent box
             const clampedPosition = Math.min(100, Math.max(0, newPosition));
-
             // Update the position of the slider
             if (slider === 'left') {
                 setLeftSliderPosition(clampedPosition);
@@ -105,11 +110,11 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
     // Logic to handle right value box editing...
     const rightText = Math.abs(right) < 0.01 && right != 0 ? Number(right).toExponential(3).toUpperCase() : Number(right).toFixed(3);
 
-    return <Box sx={{display:'flex',flexDirection:'row', paddingLeft:'4px',paddingRight:'4px'}} height={30}>
-        <Box fontSize={16} marginRight={'5pt'} color={'white'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
-             fontFamily={'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'}>
+    return <Box sx={{display:'flex',flexDirection:'row', paddingLeft:'4px',paddingRight:'4px'}} height={27}>
+        {name!=''&&<Box fontSize={16} marginRight={'5pt'} color={'white'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
+                        fontFamily={'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'}>
             {name}
-        </Box>
+        </Box>}
         <Box sx={{display:'flex',flexDirection:'row'}} flex={1}>
             <input ref={leftRef} style={{backgroundColor:'#ffffff',width:'45px', borderRadius:'2px', outline:"none",borderStyle:'none',paddingLeft:'3px',paddingRight:'3px', lineHeight:'20px',
                 whiteSpace:'nowrap',fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',fontSize:'11px',color:leftIsNaN?'red':'black'}} value={

@@ -50,35 +50,37 @@ export interface DrawToolkitProps{
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
-    const [expandedOption, setExpandedOption] = useState('none');
+    const [expandedOption, setExpandedOption] = useState('n');
     const [expandOpacityOptions, setExpandOpacityOptions] = React.useState(false);
     const penColor = ['red','green','blue','yellow','cyan','#e81ce8'][(props.drawPen&7)-1];
     const filled = props.drawPen>7;
     function clickPaintBrush(){
-        if(expandedOption=='draw'){
-            setExpandedOption('none');
+        if(expandedOption=='d'){
+            setExpandedOption('n');
         }else{
-            setExpandedOption('draw');
+            setExpandedOption('d');
         }
-        props.setDrawingEnabled(expandedOption!='draw');
+        props.setDrawingEnabled(expandedOption!='d');
     }
     function clickEraser(){
-        if(expandedOption =='erase'){
-            props.updateDrawPen({target:{value:8}});
-            setExpandedOption('none');
+        if(expandedOption =='e'){
+            setExpandedOption('n');
         }else{
-            setExpandedOption('erase');
+            props.updateDrawPen({target:{value:8}});
+            setExpandedOption('e');
         }
-        props.setDrawingEnabled(expandedOption!='erase');
+        props.setDrawingEnabled(expandedOption!='e');
     }
 
+    const [maskColor,setMaskColor] = useState<string|undefined>(undefined);
+
     function clickMask(){
-        if(expandedOption =='mask'){
-            props.updateDrawPen({target:{value:8}});
-            setExpandedOption('none');
+        if(expandedOption =='m'){
+            setExpandedOption('n');
         }else{
-            setExpandedOption('mask');
+            setExpandedOption('m');
         }
+        props.setDrawingEnabled(false);
     }
 
 
@@ -115,18 +117,18 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row">
                 <IconButton aria-label="fill" onClick={clickMask}>
-                    <FormatColorFillIcon style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>
+                    <FormatColorFillIcon style={{color:(expandedOption=='m'&&maskColor!=undefined)?maskColor:'white'}}/>
                 </IconButton>
             </Stack>
-            <MaskPlatte expanded={expandedOption=='mask'}/>
+            <MaskPlatte expanded={expandedOption=='m'} nv={props.nv}  setMaskColor={setMaskColor}/>
         </FormControl>
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
-                     <BrushIcon  style={{color:(props.drawingEnabled&&penColor!=undefined)?penColor:'white'}}/>
+                     <BrushIcon  style={{color:(expandedOption=='d'&&penColor!=undefined)?penColor:'white'}}/>
                 </IconButton>
                 <DrawPlatte
-                    expandDrawOptions={expandedOption=='draw'}
+                    expandDrawOptions={expandedOption=='d'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
@@ -138,12 +140,12 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="erase" onClick={clickEraser}>
-                    {(filled||!(expandedOption=='erase'))?
+                    {(filled||!(expandedOption=='e'))?
                         <EraserIcon style={{color:'#ddd'}}/>
                         :<AutoFixNormalOutlinedIcon style={{color:'white'}}/>}
                 </IconButton>
                 <EraserPlatte
-                    expandEraseOptions={expandedOption=='erase'}
+                    expandEraseOptions={expandedOption=='e'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
