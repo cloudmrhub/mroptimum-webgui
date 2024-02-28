@@ -22,6 +22,7 @@ interface SetupState {
     rStore: number;
     cStore: number;
     tStore: number;
+    maskFileStore?: FileReference;
 }
 interface OutputInterface{
     coilsensitivity: boolean,
@@ -100,6 +101,7 @@ interface SensitivityMapOptions {
         r?:number;
         t?:number;
         c?:number;
+        file?:FileReference;
     }
 }
 
@@ -165,7 +167,8 @@ const initialState: SetupState = {
     kStore: 8,
     rStore: 24,
     tStore: 0.01,
-    cStore: 0.995
+    cStore: 0.995,
+    maskFileStore:undefined
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
@@ -372,14 +375,16 @@ export const setupSlice = createSlice({
                     = state.maskThresholdStore;
             }
         },
-
+        setMaskStore(state: SetupState, action: PayloadAction<UploadedFile|undefined>){
+            state.maskFileStore = action.payload?UFtoFR(action.payload):undefined;
+        },
         setMaskOption(state: SetupState, action: PayloadAction<number>){
             state.maskOptionStore = action.payload;
             if(state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask==undefined){
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask = {method:'no'};
             }
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.method =
-                                ['no', 'percentage', 'reference','espirit'][action.payload];
+                                ['no', 'percentage', 'reference','espirit','upload'][action.payload];
             if(action.payload == 1)
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
                     = state.maskThresholdStore;
@@ -398,6 +403,12 @@ export const setupSlice = createSlice({
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.r = undefined;
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.t = undefined;
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.c = undefined;
+            }
+
+            if(action.payload == 4){
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=state.maskFileStore;
+            }else{
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=undefined;
             }
         },
         setBoxSize(state: SetupState, action: PayloadAction<number>) {

@@ -5,7 +5,7 @@ import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import {getUploadedData, uploadData} from '../../features/data/dataActionCreation';
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import {useAppDispatch, useAppSelector} from '../../features/hooks';
-import {getFiles, setupGetters, setupSetters} from '../../features/setup/setupSlice';
+import {FileReference, getFiles, setupGetters, setupSetters} from '../../features/setup/setupSlice';
 import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
 import CmrLabel from "../../common/components/Cmr-components/label/Label";
 import {Col, Row} from "antd";
@@ -113,6 +113,7 @@ const Setup = () => {
 
     const maskThreshold = useAppSelector(state => state.setup.maskThresholdStore);
     const {cStore,kStore,rStore,tStore} = useAppSelector(state => state.setup);
+    const maskFile = useAppSelector(state => state.setup.maskFileStore);
 
     if (analysisMethodChanged) {
         setTimeout(() => {
@@ -158,7 +159,6 @@ const Setup = () => {
                 location: res.data.response.location
             };
             dispatch(reducer(uploadedFile));
-            // @ts-ignore
             dispatch(getUploadedData(accessToken));
             (additionalCallbacks) &&
             additionalCallbacks();
@@ -878,6 +878,24 @@ const Setup = () => {
                                                                                 // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
                                                                             }}/>
                                                             </Box>} />
+                                                        <FormControlLabel value="4" control={<Radio />} label={<Box flexDirection={'row'}>
+                                                            Use Uploaded Mask
+                                                            <SelectUpload fileSelection={uploadedData} onSelected={(file) => {
+                                                                dispatch(setupSetters.setMaskStore(file));
+                                                            }} maxCount={1}
+                                                                          createPayload={createPayload}
+                                                                          onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
+                                                                          style={{
+                                                                              height: 'fit-content',
+                                                                              marginTop: 'auto',
+                                                                              marginBottom: 'auto',
+                                                                              marginLeft:'5pt'
+                                                                          }}
+                                                                          buttonText='Choose or Upload Mask'
+                                                                          chosenFile={maskFile?.options.filename}
+                                                            />
+
+                                                        </Box>} />
                                                     </RadioGroup>
                                                 </FormControl>
                                                 <Divider variant="middle"
