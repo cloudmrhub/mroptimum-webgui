@@ -7,17 +7,22 @@ import CloseIcon from '@mui/icons-material/Close';
 import {DualSlider} from "../../Cmr-components/double-slider/DualSlider";
 import {InvertibleDualSlider} from "../../Cmr-components/double-slider/InvertibleDualSlider";
 import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
+import {nv} from "../Niivue";
 
 interface MaskPlatteProps {
     expanded:boolean,
     nv: any,
     setMaskColor:(color:string|undefined)=>void,
+    resampleImage:()=>void,
+    unfocus:()=>void
 }
 
-const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
-    const [colorIndex, storeColorIndex] = useState(-1);
-    const [maskColor,storeMaskColor] = useState<string|undefined>(undefined);
+const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor,resampleImage,unfocus}) => {
+    const [colorIndex, storeColorIndex] = useState(0);
+    const [maskColor,storeMaskColor] = useState<string>('red');
     const [checked,setChecked] = useState(false);
+    const [original, setOriginal] = useState<any[]|undefined>(undefined);
+
     let colors = ['red','green','blue','yellow','cyan','#e81ce8'];
     let filledOptions = colors.map(color=><FiberManualRecordIcon sx={{ color: color }} />);
     if(expanded){
@@ -25,12 +30,32 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
     }else{
         setMaskColor(undefined);
     }
-    const [min, setMin] = useState(nv.volumes[0]?nv.volumes[0].robust_min:0)
-    const [max, setMax] = useState(nv.volumes[0]?nv.volumes[0].robust_max:1)
+    const [min, setMin] = useState(nv.volumes[0]?nv.volumes[0].vox_min:0)
+    const [max, setMax] = useState(nv.volumes[0]?nv.volumes[0].vox_max:1)
+    const cancelMask = ()=>{
+        if(original)
+            nv.drawBitmap = new Uint8Array(original);
+        else
+            return;
+        nv.refreshDrawing(true);
+        resampleImage();
+        setOriginal(undefined);
+    };
+
     useEffect(() => {
-        if(colorIndex!=-1)
-            nv.fillRange(min,max,colorIndex+1,checked);
-    }, [min,max]);
+        if(!expanded){
+            cancelMask();
+        }else{
+            if(colorIndex!=-1)
+                nv.fillRange(min,max,colorIndex+1,checked,original, setOriginal);
+            resampleImage();
+        }
+    }, [expanded]);
+
+    useEffect(() => {
+        if(colorIndex!=-1&&expanded)
+            nv.fillRange(min,max,colorIndex+1,checked,original, setOriginal);
+    }, [min,max,checked]);
     return (
         <Stack
             style={{position: 'absolute',
@@ -90,7 +115,7 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
                             storeColorIndex(index);
                             storeMaskColor(colors[index]);
                             setMaskColor(colors[index]);
-                            nv.fillRange(min,max,index+1,checked);
+                            nv.fillRange(min,max,index+1,checked,original,setOriginal);
                         }}
                     >
                         {value}
@@ -98,7 +123,8 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
                 ))}
                 <CmrCheckbox style={{color:'white'}} onChange={(e)=>{
                     e.stopPropagation();
-                    setChecked(e.target.checked)
+                    setChecked(e.target.checked);
+                    resampleImage();
                 }}>
                     Inverted
                 </CmrCheckbox>
@@ -106,12 +132,12 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
 
             <Stack direction={'row'}  sx={{mb:1}}>
                 <Box width={400} style={{paddingLeft:'10px',paddingRight:'10px'}}>
-                    <InvertibleDualSlider name={''} min={nv.volumes[0]?nv.volumes[0].robust_min:0}
-                                          max={nv.volumes[0]?nv.volumes[0].robust_max:1} reverse={checked}
-
+                    <InvertibleDualSlider name={''} min={nv.volumes[0]?nv.volumes[0].vox_min:0}
+                                          max={nv.volumes[0]?nv.volumes[0].vox_max:1} reverse={checked}
                                           setMin={setMin}
-
-                                          setMax={setMax}/>
+                                          setMax={setMax} onFinalize={()=>{
+                                              resampleImage();
+                    }}/>
                 </Box>
             </Stack>
 
@@ -125,11 +151,18 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor }) => {
                 // }}
                 direction="row" flexDirection={'row'} justifyContent={'center'}
             >
-                <IconButton>
+                <IconButton onClick={()=>{
+                    setOriginal(undefined);
+                    nv.drawAddUndoBitmapWithHiddenVoxels();
+                    unfocus();
+                }}>
                     <CheckIcon style={{color:'green'}}/>
                 </IconButton>
 
-                <IconButton>
+                <IconButton onClick={()=>{
+                    cancelMask();
+                    unfocus();
+                }}>
                     <CloseIcon style={{color:'red'}}/>
                 </IconButton>
             </Stack>

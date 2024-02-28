@@ -120,7 +120,13 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                     <FormatColorFillIcon style={{color:(expandedOption=='m'&&maskColor!=undefined)?maskColor:'white'}}/>
                 </IconButton>
             </Stack>
-            <MaskPlatte expanded={expandedOption=='m'} nv={props.nv}  setMaskColor={setMaskColor}/>
+            <MaskPlatte
+                resampleImage={props.resampleImage}
+                expanded={expandedOption=='m'}
+                nv={props.nv}
+                setMaskColor={setMaskColor}
+                unfocus={()=>{setExpandedOption('n')}}
+            />
         </FormControl>
         <FormControl>
             <Stack direction="row" >

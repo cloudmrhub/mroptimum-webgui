@@ -295,6 +295,8 @@ export default function NiiVueport(props) {
         volume.calMinMax();
         setMin(volume.cal_min);
         setMax(volume.cal_max);
+        volume.vox_min = Math.min(...volume.img);
+        volume.vox_max = Math.max(...volume.img);
         nv.setVolume(volume);
         nv.drawScene();
         resampleImage();

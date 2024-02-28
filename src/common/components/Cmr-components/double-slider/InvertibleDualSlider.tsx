@@ -15,10 +15,10 @@ import {useEffect, useRef, useState} from "react";
  * @constructor
  */
 export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
-                               transform=x=>x,inverse=x=>x}:
+                               transform=x=>x,inverse=x=>x,onFinalize}:
                                {name:string,min:number,max:number, setMin?:(min:number)=>void,
                                    setMax?:(max:number)=>void,reverse?:boolean,transform?:(x:number)=>number,
-                                   inverse?:(x:number)=>number})=>{
+                                   inverse?:(x:number)=>number,onFinalize?: ()=>void} )=>{
     const [leftSliderPosition, setLeftSliderPosition] = useState(0); // Initial percentage for the left slider
     const [rightSliderPosition, setRightSliderPosition] = useState(100); // Initial percentage for the right slider
     useEffect(() => {//Initialize parent min/max values upon initialization
@@ -90,6 +90,7 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
             // Remove event listeners once dragging is complete
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            onFinalize&&onFinalize();
         };
 
         // Add mouse move and mouse up listeners to document to handle drag
@@ -144,6 +145,7 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
                     }
                     let leftPosition = (val-newMin)/(max-newMin)*100;
                     setLeftSliderPosition(leftPosition);
+                    onFinalize&&onFinalize();
             }}/>
 
             <Box sx={{ backgroundColor: '#ffffff', flex: 1, marginLeft: '4px', marginRight: '4px', borderRadius: '2px', position: 'relative',
@@ -214,6 +216,7 @@ export const InvertibleDualSlider = ({name,min,max,setMin,setMax, reverse=false,
                      }
                      let rightPosition = (val - min) / (newMax - min) * 100;
                      setRightSliderPosition(rightPosition);
+                     onFinalize&&onFinalize();
                  }}
             />
         </Box>
