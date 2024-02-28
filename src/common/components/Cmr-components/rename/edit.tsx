@@ -7,8 +7,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import CmrButton from "../button/Button";
+import {useEffect} from "react";
 
-export default function NameDialog(props: {originalName: string; renamingCallback:(alias:string)=>void, open:boolean, setOpen:(open:boolean)=>void}) {
+export default function NameDialog(props: {originalName: string; renamingCallback:(alias:string)=>Promise<boolean>, open:boolean, setOpen:(open:boolean)=>void}) {
     let {originalName,open, setOpen} = props;
     const [helperText, setHelperText] = React.useState('');
     const [text, setText] = React.useState(originalName);
@@ -20,10 +21,14 @@ export default function NameDialog(props: {originalName: string; renamingCallbac
         setOpen(false);
     };
 
-    const handleConfirm = () => {
+    useEffect(() => {
+        checkError(originalName);
+    }, [originalName]);
+
+    const handleConfirm = async () => {
         // if(!error)
-        renamingCallback(text);
-        handleClose();
+        if(await renamingCallback(text))
+            handleClose();
     };
 
     const handleTextFieldChange=(e: { target: { value: string; }; })=>{

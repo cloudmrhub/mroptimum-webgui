@@ -42,6 +42,39 @@ const getDataMethod = async (accessToken: string) => {
 };
 
 const Home = () => {
+
+    const renamingProxy=(newName:string,proxyCallback:()=>void)=>{
+        return new Promise<boolean>(resolve => {
+            let originalExt = originalName.split('.').pop();
+            if(newName.split('.').length==1){
+                setMessage(`Missing file extension in '${newName}'.`);
+                setColor('error');
+                setConfirmCallback(()=>()=>{
+                    resolve(false);
+                });
+                setCancelCallback(()=>()=>{
+                    resolve(false);
+                })
+                setOpen(true);
+            } else if(newName.split('.').pop()!=originalExt){
+                let newExt = newName.split('.').pop();
+                let orgExt = originalExt??'?';
+                setMessage(`Changing file extension from ${orgExt} to ${newExt}.`);
+                setColor('primary');
+                setConfirmCallback(()=>()=>{
+                    proxyCallback();
+                    resolve(true);
+                });
+                setCancelCallback(()=>()=>{
+                    resolve(false);
+                })
+                setOpen(true);
+            }else{
+                proxyCallback();
+                resolve(true);
+            }
+        })
+    }
     const uploadedFilesColumns = [
 
         {
@@ -76,15 +109,17 @@ const Home = () => {
                         <IconButton onClick={() => {
                             setOriginalName(files[index].fileName);
                             setNameDialogOpen(true);
-                            setRenamingCallback(()=>async (newName: string) => {
-                                // In case of working API
-                                let dataReference = files[index];
-                                //@ts-ignore
-                                await dispatch(renameUploadedData({
-                                    accessToken,
-                                    fileId: dataReference.id,
-                                    fileName: newName
-                                }));
+                            setRenamingCallback(()=>(newName: string) => {
+                                return renamingProxy(newName, ()=>{
+                                    // In case of working API
+                                    let dataReference = files[index];
+                                    //@ts-ignore
+                                    dispatch(renameUploadedData({
+                                        accessToken,
+                                        fileId: dataReference.id,
+                                        fileName: newName
+                                    }));
+                                });
                                 // In case of non-working API, change name locally
                                 // dispatch(dataSlice.actions.renameData({index:index,alias:newName}));
                             });
@@ -126,6 +161,7 @@ const Home = () => {
                                 //@ts-ignore
                                 dispatch(deleteUploadedData({accessToken:accessToken,fileId:params.row.id}));
                             })
+                            setCancelCallback(()=>{});
                             setOpen(true);
                             e.stopPropagation();
                         }}>
@@ -175,7 +211,7 @@ const Home = () => {
                         <IconButton onClick={() => {
                             setOriginalName(jobsData[index].alias);
                             setNameDialogOpen(true);
-                            setRenamingCallback(()=>(newName:string)=>{
+                            setRenamingCallback(()=>async(newName:string)=>{
                                 // In case of working API
                                 // let jobReference = jobsData[renameFileIndex];
                                 // jobReference.alias = newName;
@@ -183,6 +219,7 @@ const Home = () => {
 
                                 // In case of non-working API, change name locally
                                 dispatch(jobsSlice.actions.renameJob({index:index,alias:newName}));
+                                return true;
                             });
                         }}>
                             <EditIcon />
@@ -221,6 +258,7 @@ const Home = () => {
                             setConfirmCallback(()=>()=>{
                                 dispatch(jobsSlice.actions.deleteJob({index}));
                             });
+                            setCancelCallback(()=>{});
                             setOpen(true);
                         }}>
                             <DeleteIcon />
@@ -236,7 +274,7 @@ const Home = () => {
     const { files } = useAppSelector((state) => state.data);
     const jobsData = useAppSelector((state)=>state.jobs.jobs);
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
-    const [renamingCallback, setRenamingCallback]=useState<(alias:string)=>void>(()=>{});
+    const [renamingCallback, setRenamingCallback]=useState<(alias:string)=>Promise<boolean>>(async ()=>true);
     const [originalName, setOriginalName]=useState('');
 
     const [name, setName] = useState<string | undefined>(undefined);
@@ -244,6 +282,7 @@ const Home = () => {
     const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
     const [open, setOpen] = useState<boolean>(false);
     const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
+    const [cancelCallback, setCancelCallback] = useState<() => void>(() => {});
 
     const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
 
@@ -384,7 +423,9 @@ const Home = () => {
                    open={open}
                    setOpen={setOpen}
                    confirmCallback={confirmCallback}
+                   cancelCallback={cancelCallback}
                    cancellable={true}
+                   width={450}
                />
            </CmrCollapse>
            <div style={{height:'69px'}}></div>
