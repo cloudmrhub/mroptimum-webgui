@@ -133,7 +133,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     let niis = value.payload.niis;
                                     for (let i = 0; i < niis.length; i++) {
                                         let nii = niis[i];
-                                        if (nii.name === 'SNR') {
+                                        if (nii.id === 0) {
                                             dispatch(resultActions.selectVolume(i));
                                             nv.loadVolumes([volumes[i]]);
                                             dispatch(resultActions.setOpenPanel([1, 2]));
