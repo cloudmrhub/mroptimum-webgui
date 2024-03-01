@@ -440,7 +440,7 @@ export default function NiiVueport(props) {
                 nv.opts.dragMode = nv.dragModes.measurement;
                 break;
             case "pan":
-                nv.opts.dragMode = nv.dragModes.pan;
+                nv.opts.dragMode = 3;
                 break;
         }
         // nv.drawScene();

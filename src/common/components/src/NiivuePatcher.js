@@ -1,10 +1,11 @@
 /**
  * This file patches the original NiiVue library to produce customized behaviors and effects.
  */
-import {Niivue,NVImageFromUrlOptions,NVImage} from "@niivue/niivue";
+import {Niivue,NVImage,NVImageFromUrlOptions} from "@niivue/niivue";
 import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import {tickSpacing} from "./util";
 import {nv} from "./Niivue";
+
 
 var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
     this.BLEND = 1;
@@ -647,7 +648,8 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
     //     leftTopWidthHeight[3] = mx;
     // }
     if (isNaN(customMM)) {
-        const panXY = this.swizzleVec3MM(this.scene.pan2Dxyzmm, axCorSag)
+        const pan = this.scene.pan2Dxyzmm
+        const panXY = this.swizzleVec3MM(vec3.fromValues(pan[0], pan[1], pan[2]), axCorSag)
         const zoom = this.scene.pan2Dxyzmm[3]
         screen.mnMM[0] -= panXY[0]
         screen.mxMM[0] -= panXY[0]
@@ -714,22 +716,22 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
     gl.depthFunc(gl.GREATER)
     gl.disable(gl.CULL_FACE) // show front and back faces
     this.sliceMMShader.use(this.gl)
-    gl.uniform1f(this.sliceMMShader.overlayOutlineWidthLoc, this.overlayOutlineWidth)
-    gl.uniform1f(this.sliceMMShader.overlayAlphaShaderLoc, this.overlayAlphaShader)
-    gl.uniform1i(this.sliceMMShader.isAlphaClipDarkLoc, this.isAlphaClipDark)
-    gl.uniform1i(this.sliceMMShader.backgroundMasksOverlaysLoc, this.backgroundMasksOverlays)
-    gl.uniform1f(this.sliceMMShader.drawOpacityLoc, this.drawOpacity)
+    gl.uniform1f(this.sliceMMShader.uniforms.overlayOutlineWidth, this.overlayOutlineWidth)
+    gl.uniform1f(this.sliceMMShader.uniforms.overlayAlphaShader, this.overlayAlphaShader)
+    gl.uniform1i(this.sliceMMShader.uniforms.isAlphaClipDark, this.isAlphaClipDark ? 1 : 0)
+    gl.uniform1i(this.sliceMMShader.uniforms.backgroundMasksOverlays, this.backgroundMasksOverlays)
+    gl.uniform1f(this.sliceMMShader.uniforms.drawOpacity, this.drawOpacity)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-    gl.uniform1f(this.sliceMMShader.opacityLoc, this.volumes[0].opacity)
-    gl.uniform1i(this.sliceMMShader.axCorSagLoc, axCorSag)
-    gl.uniform1f(this.sliceMMShader.sliceLoc, sliceFrac)
+    gl.uniform1f(this.sliceMMShader.uniforms.opacity, this.volumes[0].opacity)
+    gl.uniform1i(this.sliceMMShader.uniforms.axCorSag, axCorSag)
+    gl.uniform1f(this.sliceMMShader.uniforms.slice, sliceFrac)
     gl.uniformMatrix4fv(
-        this.sliceMMShader.frac2mmLoc,
+        this.sliceMMShader.uniforms.frac2mm,
         false,
         frac2mmTexture // this.volumes[0].frac2mm
     )
-    gl.uniformMatrix4fv(this.sliceMMShader.mvpLoc, false, obj.modelViewProjectionMatrix.slice())
+    gl.uniformMatrix4fv(this.sliceMMShader.uniforms.mvpMtx, false, obj.modelViewProjectionMatrix.slice())
     gl.bindVertexArray(this.genericVAO) // set vertex attributes
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     gl.bindVertexArray(this.unusedVAO) // set vertex attributes
@@ -1351,13 +1353,14 @@ Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
     try {
         // const volume = await NVImage.loadFromUrl()
         if (base64) {
-            let imageOptions = new NVImageFromUrlOptions(fnm);
+            let imageOptions = NVImageFromUrlOptions(fnm);
             const drawingBitmap = NVImage.loadFromBase64({name:fnm,base64})
             if (drawingBitmap) {
                 this.loadDrawing(drawingBitmap)
             }
         }
     } catch (err) {
+        console.error(err);
         console.error('loadDrawingFromBlob() failed to load ' + fnm)
         this.drawClearAllUndoBitmaps()
     }
