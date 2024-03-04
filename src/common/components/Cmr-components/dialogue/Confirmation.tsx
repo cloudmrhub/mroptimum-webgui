@@ -9,9 +9,9 @@ import CmrButton from '../button/Button';
 import {StyledComponentProps} from "@mui/material";
 
 export default function Confirmation({ name,message,cancelText='Cancel',
-    color, open, setOpen, confirmCallback=()=>{}, cancellable=false, cancelCallback=()=>{}, width}: { name: string | undefined; cancelText?:string; message:string|undefined;
+    color, open, setOpen, confirmCallback=()=>{},confirmText='Confirm', cancellable=false, cancelCallback=()=>{}, width}: { name: string | undefined; cancelText?:string; message:string|undefined;
     color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined, open:boolean, setOpen:(open:boolean)=>void, confirmCallback?:()=>void,
-    cancellable?:boolean, cancelCallback?:()=>void, width?:number}) {
+    cancellable?:boolean, cancelCallback?:()=>void, width?:number, confirmText?:string}) {
     const [text, setText] = React.useState('');
 
     const handleClose = () => {
@@ -40,7 +40,7 @@ export default function Confirmation({ name,message,cancelText='Cancel',
                     {cancellable&&
                         <CmrButton variant={"outlined"} color={'inherit'} sx={{color:'#333'}} onClick={handleCancel}>{cancelText}</CmrButton>
                     }
-                    <CmrButton variant={"contained"} color={color} onClick={handleConfirm}>Confirm</CmrButton>
+                    <CmrButton variant={"contained"} color={color} onClick={handleConfirm}>{confirmText}</CmrButton>
                 </DialogActions>
             </DialogContent>
         </Dialog>

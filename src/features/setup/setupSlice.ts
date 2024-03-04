@@ -206,10 +206,6 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
 
 function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gfactor: boolean;matlab: boolean}):SetupInterface{
     getFiles(snr);
-    if(snr.options.reconstructor.options.sensitivityMap.options.mask.method == 'no'){
-        //@ts-ignore
-        snr.options.reconstructor.options.sensitivityMap.options.mask = 'no';
-    }
      return {version: "v0",
         alias: alias,
         output:output,
@@ -492,9 +488,31 @@ export const setupSlice = createSlice({
         queueSNRJob(state: SetupState, action: PayloadAction<{ snr: SNR, name: string }>) {
             state.queuedJobs.push(createJob(action.payload.snr, state, action.payload.name));
         },
+        discardSNRSettings(state: SetupState){
+            let SNRSpec = state.activeSetup;
+            let signalCache = SNRSpec.options.reconstructor.options.signal;
+            let noiseCache = SNRSpec.options.reconstructor.options.noise;
+            state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
+            state.activeSetup.options.reconstructor.options.signal = signalCache;
+            state.activeSetup.options.reconstructor.options.noise = noiseCache;
+            state.editInProgress = false;
+        },
         loadSNRSettings(state: SetupState, action: PayloadAction<{ SNR:SNR, output: OutputInterface}>) {
             state.activeSetup = action.payload.SNR;
             state.outputSettings = action.payload.output;
+
+            if(state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask!=undefined){
+                let mask = state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask;
+                //Also load mask stores if mask is specified
+                state.kStore = mask.k??8;
+                state.cStore = mask.c??0.995;
+                state.tStore = mask.t??0.01;
+                state.rStore = mask.r??24;
+                state.maskOptionStore =  ['no', 'percentage', 'reference','espirit','upload'].indexOf(mask.method);
+                state.maskThresholdStore = mask.value??30;
+                state.maskFileStore = mask.file;
+            }
             // snr.options.reconstructor.options.signalMultiRaid
             //     = !!(snr.options.reconstructor.options.signal?.options.multiraid);
             state.editInProgress = true;
@@ -697,6 +715,9 @@ export function getFiles(snr: SNR): void {
     }
     if(snr.options.reconstructor.options.correction.faCorrection){
         files.push('faCorrection');
+    }
+    if(snr.options.reconstructor.options.sensitivityMap.options.mask.file){
+        files.push('mask');
     }
     snr.files = files;
 }

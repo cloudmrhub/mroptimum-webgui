@@ -111,6 +111,7 @@ const Setup = () => {
     const outputCoilSensitivity = useAppSelector(state => state.setup.outputSettings.coilsensitivity);
     const outputMatlab = useAppSelector(state => state.setup.outputSettings.matlab);
 
+    const maskMethod = useAppSelector(state => state.setup.maskOptionStore);
     const maskThreshold = useAppSelector(state => state.setup.maskThresholdStore);
     const {cStore,kStore,rStore,tStore} = useAppSelector(state => state.setup);
     const maskFile = useAppSelector(state => state.setup.maskFileStore);
@@ -437,6 +438,14 @@ const Setup = () => {
             setSDOpen(true);
             return false;
         }
+        if(maskFile==undefined&&maskMethod==4 && reconstructionMethod &&
+            secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0){
+            setSDWarningHeader("Setup validation failed");
+            setSDWarning("No mask file defined yet upload mask option was selected" +
+                " please make sure it has been successfully uploaded.");
+            setSDOpen(true);
+            return false;
+        }
         return true;
     }
     return (
@@ -515,8 +524,10 @@ const Setup = () => {
                                   message={snrEditWarning}
                                   name={"Unfinished SNR Edit"}
                                   cancellable={true}
+                                  color={'error'}
+                                  confirmText={'Discard Current Edit'}
                                   confirmCallback={() => {
-                                      // dispatch(setupSetters.loadSNRSettings(editedJSON));
+                                      dispatch(setupSetters.loadSNRSettings(editedJSON));
                                       setOpenPanel([0, 1, 2]);
                                       setAnalysisMethodChanged(true);
                                   }}/>
@@ -837,7 +848,7 @@ const Setup = () => {
                                                     <FormLabel id="demo-radio-buttons-group-label">Masking Options</FormLabel>
                                                     <RadioGroup
                                                         aria-labelledby="demo-radio-buttons-group-label"
-                                                        defaultValue="0"
+                                                        value={maskMethod}
                                                         name="radio-buttons-group"
                                                         onChange={(event, value)=>{
                                                             dispatch(setupSetters.setMaskOption(Number(value)));
@@ -1030,9 +1041,10 @@ const Setup = () => {
                                                            return;
                                                        let state = store.getState();
                                                        snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
-                                                       if(snr.options.reconstructor.options.sensitivityMap.options.mask.method == 'no'){
-                                                           snr.options.reconstructor.options.sensitivityMap.options.mask = 'no';
-                                                       }
+                                                       // Following check is no longer needed with updated backend
+                                                       // if(snr.options.reconstructor.options.sensitivityMap.options.mask.method == 'no'){
+                                                       //     snr.options.reconstructor.options.sensitivityMap.options.mask = 'no';
+                                                       // }
                                                        getFiles(snr);
                                                        if (editing != -1) {
                                                            setEditedJSON({SNR:snr,output:state.setup.outputSettings});
