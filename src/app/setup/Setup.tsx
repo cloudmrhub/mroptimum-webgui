@@ -441,7 +441,7 @@ const Setup = () => {
         if(maskFile==undefined&&maskMethod==4 && reconstructionMethod &&
             secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0){
             setSDWarningHeader("Setup validation failed");
-            setSDWarning("No mask file defined yet upload mask option was selected" +
+            setSDWarning("No mask file defined yet upload mask option was selected," +
                 " please make sure it has been successfully uploaded.");
             setSDOpen(true);
             return false;
