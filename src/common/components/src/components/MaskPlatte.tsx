@@ -116,6 +116,7 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor,resampl
                             storeMaskColor(colors[index]);
                             setMaskColor(colors[index]);
                             nv.fillRange(min,max,index+1,checked,original,setOriginal);
+                            resampleImage();
                         }}
                     >
                         {value}

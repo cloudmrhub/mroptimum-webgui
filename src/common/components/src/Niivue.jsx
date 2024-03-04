@@ -306,16 +306,15 @@ export default function NiiVueport(props) {
     nv.onLocationChange = (data) => {
         if(data.values[0]) {
             setMMs(data.values[0].mm);
-
             data.values[0].transformA = nv.transformA;
             data.values[0].transformB = nv.transformB;
             data.values[0].power = nv.power;
         }
         setLocationData(data.values);
-        if(drawingEnabled){
-            setDrawingChanged(true);
-            // resampleImage();
-        }
+        // if(drawingEnabled){
+        //     setDrawingChanged(true);
+        //     // resampleImage();
+        // }
         // console.log(nv.scene.pan2Dxyzmm);
     }
     nv.onMouseUp =  (data) => {
@@ -696,6 +695,8 @@ export default function NiiVueport(props) {
             return;
         }//If ROI (drawing) is not inside the stack
 
+        let min = image.robust_min;
+        let max = image.robust_max;
         // find and collect in an array all the cvalues in data.img euqual to 1
         // indexed by roi value
         let samples = {1:[],2:[],3:[],4:[],5:[],6:[],7:[]};
@@ -746,6 +747,12 @@ export default function NiiVueport(props) {
                     opacity: roi.visibility?0.5:0.1,
                     marker: {
                         color: roi.color,
+                    },
+                    autobinx:false,
+                    xbins: {
+                        // end: max,
+                        size:  (max-min)/100,
+                        // start: min
                     }
                 });
             // }

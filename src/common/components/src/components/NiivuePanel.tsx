@@ -6,6 +6,8 @@ import {DrawToolkit, DrawToolkitProps} from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
 import {DualSlider} from "../../Cmr-components/double-slider/DualSlider";
+import {Slider} from "../../Cmr-components/gui-slider/Slider";
+import {ControlledSlider} from "../../Cmr-components/gui-slider/ControlledSlider";
 
 
 interface NiivuePanelProps{
@@ -45,7 +47,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
 	const canvas = React.useRef(null)
     const histogram = React.useRef<HTMLElement>(null);
     const {mins,maxs,mms} = props;
-    const {gui,controllerX,controllerY,controllerZ} = createGUI(props.nv);
+    // const {gui} = createGUI(props.nv);
 
     let height = window.innerHeight*0.75;
     // This hook is for initialization, called only once
@@ -78,54 +80,9 @@ export function NiivuePanel (props:NiivuePanelProps) {
 
 
     const [pause, pauseUpdate] = React.useState(false);
-    controllerX.min(mins[0]).max(maxs[0]).step(0.01);
-    controllerY.min(mins[1]).max(maxs[1]).step(0.01);
-    controllerZ.min(mins[2]).max(maxs[2]).step(0.01);
-    controllerX.setValue(Number(mms[0]).toFixed(3));
-    controllerY.setValue(Number(mms[1]).toFixed(3));
-    controllerZ.setValue(Number(mms[2]).toFixed(3));
-    controllerX.onChange((val:number)=>{
-        console.log(val);
-        console.log(props.nv.drawPenLocation);
-        props.nv.scene.crosshairPos = [toRatio(val, mins[0], maxs[0]),
-            toRatio(mms[1], mins[1], maxs[1]),
-            toRatio(mms[2], mins[2], maxs[2])];
-        // The following code are taken from Niivue source to change
-        // crosshair location imperatively, in the future shall be replaced with Niivue
-        // official API if otherwise supported
-        props.nv.drawScene();
-    });
-
-    controllerY.onChange((val:number)=>{
-        props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
-            toRatio(val, mins[1], maxs[1]),
-            toRatio(mms[2], mins[2], maxs[2])];
-        props.nv.drawScene();
-    });
-    controllerZ.onChange((val:number)=>{
-        console.log(val);
-        console.log(props.nv.drawPenLocation);
-        props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
-            toRatio(mms[1], mins[1], maxs[1]),
-            toRatio(val, mins[2], maxs[2])];
-        // The following code are taken from Niivue source to change
-        // crosshair location imperatively, in the future shall be replaced with Niivue
-        // official API if otherwise supported
-        props.nv.drawScene();
-        // props.nv.createOnLocationChange();
-    });
-    controllerX.onFinishChange(()=>{
-        props.nv.createOnLocationChange();
-    });
-    controllerY.onFinishChange(()=>{
-        props.nv.createOnLocationChange();
-    });
-    controllerZ.onFinishChange(()=>{
-        props.nv.createOnLocationChange();
-    });
-    React.useEffect(()=>{
-        document.getElementById('controlDock')?.appendChild(gui.domElement);
-    },[sliceControl]);
+    // React.useEffect(()=>{
+    //     document.getElementById('controlDock')?.appendChild(gui.domElement);
+    // },[sliceControl]);
 
     // React.useEffect(()=>{
     //     controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
@@ -142,7 +99,36 @@ export function NiivuePanel (props:NiivuePanelProps) {
 	return (
 		<Box style={{width:'100%',height:props.displayVertical?undefined:height+1,display:'flex',flexDirection:'row', justifyContent:"flex-end"}}>
             <Box sx={{marginRight:'8px'}} style={{display:'flex', flex:1, minWidth:'245px',flexDirection:'column'}}>
-                <Box id={"controlDock"} style={{width:'100%'}}  ref={sliceControl}/>
+                <Box id={"controlDock"} className={'title'} style={{width:'100%'}}  ref={sliceControl}>
+                    Controls
+                </Box>
+                <Slider name={'xSlice'} min={mins[0]} max={maxs[0]} value={mms[0]} setValue={(val:number)=>{
+                    props.nv.scene.crosshairPos = [toRatio(val, mins[0], maxs[0]),
+                        toRatio(mms[1], mins[1], maxs[1]),
+                        toRatio(mms[2], mins[2], maxs[2])];
+                    // The following code are taken from Niivue source to change
+                    // crosshair location imperatively, in the future shall be replaced with Niivue
+                    // official API if otherwise supported
+                    props.nv.drawScene();
+                }}/>
+                <Slider name={'ySlice'} min={mins[1]} max={maxs[1]} value={mms[1]} setValue={(val:number)=>{
+                    props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
+                        toRatio(val, mins[1], maxs[1]),
+                        toRatio(mms[2], mins[2], maxs[2])];
+                    // The following code are taken from Niivue source to change
+                    // crosshair location imperatively, in the future shall be replaced with Niivue
+                    // official API if otherwise supported
+                    props.nv.drawScene();
+                }}/>
+                <Slider name={'zSlice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val:number)=>{
+                    props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
+                        toRatio(mms[1], mins[1], maxs[1]),
+                        toRatio(val, mins[2], maxs[2])];
+                    // The following code are taken from Niivue source to change
+                    // crosshair location imperatively, in the future shall be replaced with Niivue
+                    // official API if otherwise supported
+                    props.nv.drawScene();
+                }}/>
                 <DualSlider name={'range'}
                             max={props.nv.volumes[0]?props.nv.volumes[0].robust_max:1}
                             min={props.nv.volumes[0]?props.nv.volumes[0].robust_min:0}
@@ -243,9 +229,6 @@ function createGUI(nv:any){
         min: 0,
         max: 1
     };
-    let controllerX= gui.add( myObject, 'xSlice', 0, 1);   // Number Field
-    let controllerY= gui.add( myObject, 'ySlice', 0, 1);   // Number Field
-    let controllerZ= gui.add( myObject, 'zSlice', 0, 1);   // Number Field
-    return {gui,controllerX,controllerY,controllerZ};
+    return {gui};
 }
 
