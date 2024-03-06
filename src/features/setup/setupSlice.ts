@@ -204,6 +204,38 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
     }
 }
 
+function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
+    const regex = /\.(nii(\.gz)?|mha|mhd|nrrd)$/i;
+    try{
+        let {Bucket, Key} = JSON.parse(uploadedFile.location);
+        return {
+            type: 'file',
+            id: uploadedFile.id,
+            options: {
+                type: uploadedFile.database,
+                filename: uploadedFile.fileName,
+                options: {},
+                bucket: Bucket,
+                key: Key,
+                vendor: regex.test(uploadedFile.fileName)?'ITK':'',
+            }
+        };
+    }catch(e){
+        return {
+            type: 'file',
+            id: uploadedFile.id,
+            options: {
+                type: uploadedFile.database,
+                filename: uploadedFile.fileName,
+                options: {},
+                bucket: 'unknown',
+                key: 'unknown',
+                vendor: regex.test(uploadedFile.fileName)?'ITK':'',
+            }
+        };
+    }
+}
+
 function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gfactor: boolean;matlab: boolean}):SetupInterface{
     getFiles(snr);
      return {version: "v0",
@@ -372,7 +404,31 @@ export const setupSlice = createSlice({
             }
         },
         setMaskStore(state: SetupState, action: PayloadAction<UploadedFile|undefined>){
-            state.maskFileStore = action.payload?UFtoFR(action.payload):undefined;
+            state.maskFileStore = action.payload?UFtoMaskFR(action.payload):undefined;
+            if(state.maskOptionStore == 4){
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=state.maskFileStore;
+            }
+        },
+        setMaskESPIRIT(state:SetupState, action: PayloadAction<{k?:number,c?:number,r?:number,t?:number}>){
+            if(action.payload.k){
+                state.kStore = action.payload.k;
+            }
+            if(action.payload.c){
+                state.cStore = action.payload.c;
+            }
+            if(action.payload.r){
+                state.rStore = action.payload.r;
+            }
+            if(action.payload.t){
+                state.tStore = action.payload.t;
+            }
+            if(state.maskOptionStore==3){
+                const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
+                mask.k = state.kStore;
+                mask.r = state.rStore;
+                mask.t = state.tStore;
+                mask.c = state.cStore;
+            }
         },
         setMaskOption(state: SetupState, action: PayloadAction<number>){
             state.maskOptionStore = action.payload;
@@ -419,23 +475,7 @@ export const setupSlice = createSlice({
             let SNRSpec = state.activeSetup;
             let signalCache = SNRSpec.options.reconstructor.options.signal;
             let noiseCache = SNRSpec.options.reconstructor.options.noise;
-            // Remove noise reference
-            if (SNRSpec.options.reconstructor.options.signalMultiRaid)
-                delete SNRSpec.options.reconstructor.options.noise;
-            if (!SNRSpec.options.reconstructor.options.decimate){
-                delete SNRSpec.options.reconstructor.options.acl;
-                delete SNRSpec.options.reconstructor.options.accelerations;
-            }
-            // Remove multi-raid tag
-            delete SNRSpec.options.reconstructor.options.signalMultiRaid;
-            // Remove non-existent decimate data for Grappa and Sense
-            if (SNRSpec.options.reconstructor.name != 'grappa' && SNRSpec.options.reconstructor.name != 'sense') {
-                delete SNRSpec.options.reconstructor.options.decimate;
-                delete SNRSpec.options.reconstructor.options.accelerations;
-            }
-            if(SNRSpec.options.reconstructor.name != 'grappa'){
-                delete SNRSpec.options.reconstructor.options.kernelSize;
-            }
+            postProcessSNR(SNRSpec);
             state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
@@ -446,18 +486,7 @@ export const setupSlice = createSlice({
         },
         completeSNREditing(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
             let SNRSpec = state.activeSetup;
-            // Remove noise reference
-            if (SNRSpec.options.reconstructor.options.signalMultiRaid)
-                delete SNRSpec.options.reconstructor.options.noise;
-            if (!SNRSpec.options.reconstructor.options.decimate)
-                delete SNRSpec.options.reconstructor.options.accelerations;
-            // Remove multi-raid tag
-            delete SNRSpec.options.reconstructor.options.signalMultiRaid;
-            // Remove non-existent decimate data for Grappa and Sense
-            if (SNRSpec.options.reconstructor.name != 'grappa' && SNRSpec.options.reconstructor.name != 'sense') {
-                delete SNRSpec.options.reconstructor.options.decimate;
-                delete SNRSpec.options.reconstructor.options.accelerations;
-            }
+            postProcessSNR(SNRSpec);
             let index = -1;
             for (let i in state.queuedJobs) {
                 if (state.queuedJobs[i].id == action.payload.id) {
@@ -701,6 +730,26 @@ const SetupGetters = {
     }
 };
 
+function postProcessSNR(SNRSpec: SNR){
+    // Remove noise reference
+    if (SNRSpec.options.reconstructor.options.signalMultiRaid)
+        delete SNRSpec.options.reconstructor.options.noise;
+    if (!SNRSpec.options.reconstructor.options.decimate){
+        delete SNRSpec.options.reconstructor.options.acl;
+        delete SNRSpec.options.reconstructor.options.accelerations;
+    }
+    // Remove multi-raid tag
+    delete SNRSpec.options.reconstructor.options.signalMultiRaid;
+    // Remove non-existent decimate data for Grappa and Sense
+    if (SNRSpec.options.reconstructor.name != 'grappa' && SNRSpec.options.reconstructor.name != 'sense') {
+        delete SNRSpec.options.reconstructor.options.decimate;
+        delete SNRSpec.options.reconstructor.options.accelerations;
+    }
+    if(SNRSpec.options.reconstructor.name != 'grappa'){
+        delete SNRSpec.options.reconstructor.options.kernelSize;
+    }
+}
+
 export function getFiles(snr: SNR): void {
     // List of all possible FileReference fields in TE
     let files = [];
@@ -716,7 +765,7 @@ export function getFiles(snr: SNR): void {
     if(snr.options.reconstructor.options.correction.faCorrection){
         files.push('faCorrection');
     }
-    if(snr.options.reconstructor.options.sensitivityMap.options.mask.file){
+    if(snr.options.reconstructor.options.sensitivityMap.options.mask?.file){
         files.push('mask');
     }
     snr.files = files;

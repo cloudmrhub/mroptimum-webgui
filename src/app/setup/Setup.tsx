@@ -441,7 +441,7 @@ const Setup = () => {
         if(maskFile==undefined&&maskMethod==4 && reconstructionMethod &&
             secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0){
             setSDWarningHeader("Setup validation failed");
-            setSDWarning("No mask file defined yet upload mask option was selected" +
+            setSDWarning("No mask file defined yet upload mask option was selected," +
                 " please make sure it has been successfully uploaded.");
             setSDOpen(true);
             return false;
@@ -866,27 +866,33 @@ const Setup = () => {
                                                                                  }}/>%
                                                                             </Box>} />
                                                         <FormControlLabel value="2" control={<Radio />} label="Inner reference" />
-                                                        <FormControlLabel value="3" control={<Radio />} label={<Box style={{flexDirection:'row', display:'flex', alignItems:'center'}}>
+                                                        <FormControlLabel value="3"
+                                                                          control={<Radio />}
+                                                                          label={<Box style={{flexDirection:'row', display:'flex', alignItems:'center'}}>
                                                             ESPIRIT &nbsp;&nbsp;  k:
                                                             <CmrInputNumber value={kStore}
                                                                             style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
                                                                             onChange={(val) => {
-                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                if(val!=null)
+                                                                                    dispatch(setupSetters.setMaskESPIRIT({k:val}));
                                                                             }}/> r:
                                                             <CmrInputNumber value={rStore}
                                                                             style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
                                                                             onChange={(val) => {
-                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                if(val!=null)
+                                                                                    dispatch(setupSetters.setMaskESPIRIT({r:val}));
                                                                             }}/> t:
                                                             <CmrInputNumber value={tStore}
                                                                             style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
                                                                             onChange={(val) => {
-                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                if(val!=null)
+                                                                                    dispatch(setupSetters.setMaskESPIRIT({t:val}));
                                                                             }}/> c:
                                                             <CmrInputNumber value={cStore}
                                                                             style={{flex:1, marginLeft:'5pt', marginRight: '5pt'}}
                                                                             onChange={(val) => {
-                                                                                // dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                if(val!=null)
+                                                                                    dispatch(setupSetters.setMaskESPIRIT({c:val}));
                                                                             }}/>
                                                             </Box>} />
                                                         <FormControlLabel value="4" control={<Radio />} label={<Box flexDirection={'row'}>
