@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  MROFrontend:
+    Type: AWS::Amplify::App
+    Properties:
+      AccessToken: "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"
+      AutoBranchCreationConfig:
+        EnableAutoBranchCreation: true
+        EnableAutoBuild: true
+        AutoBranchCreationPatterns:
+          - "publish"
+      CustomRules:
+        - Source: "/websignin/"
+          Status: "200"
+          Target: "/index.html"
+        - Source: "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|webp)$)([^.]+$)/>"
+          Status: "200"
+          Target: "/index.html"
+      Description: "Your App Description Here"
+      EnableBranchAutoDeletion: false
+      EnvironmentVariables:
+        - Name: "API_ROOT"
+          Value: "https://domain.com"
+      Name: "NYUMROptimumFrontend"
+      Platform: "WEB"
+      Repository: "https://github.com/YuelongLi/MROptimum-frontend"
+      Tags:
+        - Key: "Project"
+          Value: "MROptimum"
+        - Key: "Environment"
+          Value: "Production"
+
+  PublishBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt MROFrontend.AppId
+      BranchName: "publish"
+      EnableAutoBuild: true
+      BuildSpec: |
+        version: 1
+        frontend:
+          phases:
+            preBuild:
+              commands:
+                - yarn install
+            build:
+              commands:
+                - yarn build
+          artifacts:
+            baseDirectory: build
+            files:
+              - '**/*'
+          cache:
+            paths:
+              - node_modules/**/*
+      Framework: "WEB"
+      Stage: "PRODUCTION"
+      EnvironmentVariables:
+        - Name: "API_ROOT"
+          Value: "https://domain.com"
