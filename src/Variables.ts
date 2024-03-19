@@ -16,8 +16,8 @@ export const ROI_UPLOAD = `${CLOUDMR_SERVER}/uploads`;
 
 export const JOBS_API = `${MRO_SERVER}/pipeline`;
 export const JOBS_RETRIEVE_API = `${MRO_SERVER}/downloads`;
-// export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
-// export const JOBS_DELETE_API =  `http://localhost:5010/jobs/delete`;
+export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
+export const JOBS_DELETE_API =  `http://localhost:5010/jobs/delete`;
 
 // export const HOST = `cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com`;
 

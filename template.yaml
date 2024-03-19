@@ -4,7 +4,7 @@ Resources:
   MROFrontend:
     Type: AWS::Amplify::App
     Properties:
-      AccessToken: "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"
+      AccessToken: "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"
       AutoBranchCreationConfig:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
