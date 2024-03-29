@@ -4,7 +4,7 @@ Resources:
   MROFrontend:
     Type: AWS::Amplify::App
     Properties:
-      AccessToken: "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"
+      AccessToken: "{{AccessTokenToGithub}}"
       AutoBranchCreationConfig:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
@@ -25,7 +25,7 @@ Resources:
         - Name: "MRO_SERVER"
           Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
         - Name: "PROFILE_SERVER"
-          Value: "https://qluq4mscci.execute-api.us-east-1.amazonaws.com/Prod"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
       Name: "NYUMROptimumFrontend"
       Platform: "WEB"
       Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
