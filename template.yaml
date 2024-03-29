@@ -74,5 +74,9 @@ Resources:
       Framework: "WEB"
       Stage: "PRODUCTION"
       EnvironmentVariables:
-        - Name: "API_ROOT"
-          Value: "https://domain.com"
+        - Name: "CLOUDMR_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+        - Name: "MRO_SERVER"
+          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
+        - Name: "PROFILE_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
