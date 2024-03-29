@@ -3,4 +3,4 @@ export const CLOUDMR_SERVER = 'https://ewjjq013u0.execute-api.us-east-1.amazonaw
 export const MRO_SERVER = 'https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod';
 
 //To be merged into CloudMR Server
-export const PROFILE_SERVER = 'https://qluq4mscci.execute-api.us-east-1.amazonaws.com/Prod';
+export const PROFILE_SERVER = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
