@@ -1,10 +1,38 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Parameters:
+  GithubToken: 
+    Type: String
+    Description: access token to github
+    Default: xxxx # should be read from the main stack template parameter
+
 Resources:
+  AmplifyConsoleServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - amplify.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AmplifyConsoleServicePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:StartBuild'
+                  - 'codebuild:BatchGetBuilds'
+                Resource: '*'
   MROFrontend:
     Type: AWS::Amplify::App
     Properties:
-      AccessToken: "{{AccessTokenToGithub}}"
+      AccessToken: !Ref GithubToken
       AutoBranchCreationConfig:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
@@ -21,19 +49,19 @@ Resources:
       EnableBranchAutoDeletion: false
       EnvironmentVariables:
         - Name: "CLOUDMR_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"  #read from cmr outputs
         - Name: "MRO_SERVER"
-          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
+          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"  #read from mrotimum-backend outputs
         - Name: "PROFILE_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
-      Name: "NYUMROptimumFrontend"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"  #read from cmr outputs
+      Name: "MROptimum-Frontend"
       Platform: "WEB"
       Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
       Tags:
         - Key: "owner"
           Value: "cloudmrhub"
         - Key: "maintainer"
-          Value: "yuelong"
+          Value: "YL6709"
         - Key: "project"
           Value: "mroptimum-v1"
         - Key: "team"
@@ -75,8 +103,12 @@ Resources:
       Stage: "PRODUCTION"
       EnvironmentVariables:
         - Name: "CLOUDMR_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com" #read from cmr outputs
         - Name: "MRO_SERVER"
-          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
+          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod" #read from mroptimumbackend
         - Name: "PROFILE_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com" #read from cmr output
+
+Outputs:
+  AmplifyAppDomain:
+    Value: !Sub "${PublishBranch.BranchName}.${MROFrontend.DefaultDomain}"
