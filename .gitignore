@@ -45,3 +45,5 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+samconfig.toml
+.aws-sam/build.toml
