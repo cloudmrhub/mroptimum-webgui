@@ -2,7 +2,7 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
-import {HOST, JOBS_API, JOBS_RETRIEVE_API} from "../../Variables";
+import {JOBS_API, JOBS_RETRIEVE_API} from "../../Variables";
 
 export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
     async ({accessToken,jobQueue}:{accessToken:string, jobQueue:Job[]}, thunkAPI) => {

@@ -217,7 +217,7 @@ function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
                 options: {},
                 bucket: Bucket,
                 key: Key,
-                vendor: regex.test(uploadedFile.fileName)?'ITK':'',
+                vendor: regex.test(uploadedFile.fileName)?'ITK':'unknown',
             }
         };
     }catch(e){
@@ -230,7 +230,7 @@ function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
                 options: {},
                 bucket: 'unknown',
                 key: 'unknown',
-                vendor: regex.test(uploadedFile.fileName)?'ITK':'',
+                vendor: regex.test(uploadedFile.fileName)?'ITK':'unknown',
             }
         };
     }

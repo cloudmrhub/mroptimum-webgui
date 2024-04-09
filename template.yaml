@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  GithubToken:
+    Type: String
+    Description: access token to github
+    Default: xxxx # should be read from the main stack template parameter
+
+Resources:
+  AmplifyConsoleServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - amplify.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AmplifyConsoleServicePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:StartBuild'
+                  - 'codebuild:BatchGetBuilds'
+                Resource: '*'
+  MROFrontend:
+    Type: AWS::Amplify::App
+    Properties:
+      AccessToken: !Ref GithubToken
+      AutoBranchCreationConfig:
+        EnableAutoBranchCreation: true
+        EnableAutoBuild: true
+        AutoBranchCreationPatterns:
+          - "publish"
+      CustomRules:
+        - Source: "/websignin/"
+          Status: "200"
+          Target: "/index.html"
+        - Source: "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|webp)$)([^.]+$)/>"
+          Status: "200"
+          Target: "/index.html"
+      Description: "Your App Description Here"
+      EnableBranchAutoDeletion: false
+      Name: "MROptimum-Frontend"
+      Platform: "WEB"
+      Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
+      Tags:
+        - Key: "owner"
+          Value: "cloudmrhub"
+        - Key: "maintainer"
+          Value: "YL6709"
+        - Key: "project"
+          Value: "mroptimum-v1"
+        - Key: "team"
+          Value: "cloudmrhub"
+        - Key: "status"
+          Value: "prod"
+        - Key: "deletable"
+          Value: "check"
+
+  PublishBranch:
+    Type: AWS::Amplify::Branch
+    Properties:
+      AppId: !GetAtt MROFrontend.AppId
+      BranchName: "publish"
+      EnableAutoBuild: true
+      BuildSpec: |
+        version: 1
+        frontend:
+          phases:
+            preBuild:
+              commands:
+                - yarn install
+            build:
+              commands:
+                - cat << EOF > src/env.ts
+                - export const CLOUDMR_SERVER = '$CLOUDMR_SERVER';
+                - export const MRO_SERVER = '$MRO_SERVER';
+                - export const PROFILE_SERVER = '$PROFILE_SERVER';
+                - export const PROFILE_SERVER = '$TOKEN_SERVER';
+                - EOF
+                - yarn build
+          artifacts:
+            baseDirectory: build
+            files:
+              - '**/*'
+          cache:
+            paths:
+              - node_modules/**/*
+      Framework: "WEB"
+      Stage: "PRODUCTION"
+      EnvironmentVariables:
+        - Name: "CLOUDMR_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com" #read from cmr outputs
+        - Name: "MRO_SERVER"
+          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod" #read from mroptimumbackend
+        - Name: "PROFILE_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+        - Name: "TOKEN_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/api-token"
+
+Outputs:
+  AmplifyAppDomain:
+    Value: !Sub "${PublishBranch.BranchName}.${MROFrontend.DefaultDomain}"
