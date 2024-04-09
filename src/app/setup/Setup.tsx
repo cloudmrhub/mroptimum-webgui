@@ -67,7 +67,7 @@ const Setup = () => {
     }, []);
 
     const dispatch = useAppDispatch();
-    const {accessToken,level} = useAppSelector((state) => state.authenticate);
+    const {accessToken,level, uploadToken, queueToken} = useAppSelector((state) => state.authenticate);
     const developer = level!='standard'&&level!='pro';
     const editActive = useAppSelector(state => state.setup.editInProgress);
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
@@ -170,6 +170,7 @@ const Setup = () => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
+            'X-Api-Key': uploadToken
         },
     };
     const createPayload = async (file: File, fileAlias: string) => {
@@ -550,7 +551,7 @@ const Setup = () => {
                             dispatch(jobActions.resetSubmissionState());
                             console.log(selectedJobs);
                             // @ts-ignore
-                            dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
+                            dispatch(submitJobs({accessToken,queueToken, jobQueue: selectedJobs}));
                             setSnackOpen(true);
                         }
                     }}>Submit Jobs</CmrButton>
@@ -602,7 +603,7 @@ const Setup = () => {
                                                                     onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
                                                   //@ts-ignore
                                                   await dispatch(uploadData({file:file,fileAlias:fileAlias,
-                                                      fileDatabase:fileDatabase,
+                                                      fileDatabase:fileDatabase, uploadToken,
                                                       accessToken:accessToken,
                                                       onProgress,onUploaded,uploadTarget:'signal'}))
                                                   return 200;
@@ -650,7 +651,7 @@ const Setup = () => {
                                                                             onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
                                                           //@ts-ignore
                                                           await dispatch(uploadData({file:file,fileAlias:fileAlias,
-                                                              fileDatabase:fileDatabase,
+                                                              fileDatabase:fileDatabase, uploadToken,
                                                               accessToken:accessToken,
                                                               onProgress,onUploaded,uploadTarget:'noise'}))
                                                           return 200;

@@ -270,7 +270,7 @@ const Home = () => {
     ];
 
     const dispatch = useAppDispatch();
-    const { accessToken } = useAppSelector((state) => state.authenticate);
+    const { accessToken, uploadToken } = useAppSelector((state) => state.authenticate);
     const { files } = useAppSelector((state) => state.data);
     const jobsData = useAppSelector((state)=>state.jobs.jobs);
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
@@ -402,6 +402,7 @@ const Home = () => {
                                           await dispatch(uploadData({file:file,fileAlias:fileAlias,
                                               fileDatabase:fileDatabase,
                                               accessToken:accessToken,
+                                              uploadToken,
                                               onProgress,onUploaded}))
                                           return 200;
                                       }}

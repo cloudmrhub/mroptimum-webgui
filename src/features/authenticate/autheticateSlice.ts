@@ -1,8 +1,10 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {getAccessToken, getProfile, signOut, webSignin} from './authenticateActionCreation';
+import {getAccessToken, getFineGrainToken, getProfile, signOut, webSignin} from './authenticateActionCreation';
 import {RootState} from "../store";
 import {getUploadedData} from "../data/dataActionCreation";
 import {UploadedFile} from "../data/dataSlice";
+import {DEFAULT_FINE_GRAINED_TOKEN} from "../../env";
+
 
 interface AuthenticateState {
     id?:string;
@@ -18,6 +20,9 @@ interface AuthenticateState {
     expiresIn: string;
     loading: boolean;
 
+    // Tokens providing fine-grained access
+    uploadToken: string;
+    queueToken: string;
 }
 
 const initialState: AuthenticateState = {
@@ -27,6 +32,8 @@ const initialState: AuthenticateState = {
     tokenType: '',
     expiresIn: '',
     loading: true,
+    uploadToken: DEFAULT_FINE_GRAINED_TOKEN,
+    queueToken: DEFAULT_FINE_GRAINED_TOKEN,
 };
 
 export const authenticateSlice = createSlice({
@@ -46,66 +53,73 @@ export const authenticateSlice = createSlice({
         builder.addCase(getAccessToken.pending, (state, action) => {
             state.loading = true;
         }),
-            builder.addCase(getAccessToken.fulfilled, (state, action) => {
-                const { email, password, access_token, token_type, expires_in,level } = action.payload;
-                state.email = email;
-                state.password = password;
-                state.accessToken = access_token;
-                state.tokenType = token_type;
-                state.expiresIn = expires_in;
+        builder.addCase(getAccessToken.fulfilled, (state, action) => {
+            const { email, password, access_token, token_type, expires_in,level } = action.payload;
+            state.email = email;
+            state.password = password;
+            state.accessToken = access_token;
+            state.tokenType = token_type;
+            state.expiresIn = expires_in;
+            state.loading = false;
+        }),
+        builder.addCase(getFineGrainToken.fulfilled, (state,action)=>{
+           const {queue, upload} = action.payload;
+           state.queueToken = queue;
+           state.uploadToken = upload;
+        }),
+        builder.addCase(signOut.pending, (state, action) => {
+            state.loading = true;
+        }),
+        builder.addCase(signOut.fulfilled, (state, action) => {
+            const { message } = action.payload;
+            if (message === "Successfully logged out") {
+                state.accessToken = "";
+                state.email = "";
+                state.expiresIn = "";
+                state.password = "";
+                state.tokenType = "";
                 state.loading = false;
-            }),
-            builder.addCase(signOut.pending, (state, action) => {
-                state.loading = true;
-            }),
-            builder.addCase(signOut.fulfilled, (state, action) => {
-                const { message } = action.payload;
-                if (message === "Successfully logged out") {
-                    state.accessToken = "";
-                    state.email = "";
-                    state.expiresIn = "";
-                    state.password = "";
-                    state.tokenType = "";
-                    state.loading = false;
-                }
-            }),
-            builder.addCase(webSignin.pending,(state, action) => {
-                state.loading = true;
-            }),
-            builder.addCase(webSignin.fulfilled,(state, action) => {
-                state.accessToken = action.payload.access_token;
-            }),
-            builder.addCase(getUploadedData.pending, (state, action) => {
-                state.loading = true;
-            }),
-            builder.addCase(getUploadedData.fulfilled, (state, action) => {
-                let data: Array<UploadedFile> = [];
-                const payloadData: any = action.payload;
-                if (payloadData == undefined||payloadData.error=='user not recognized') {
-                    state.accessToken = "";
-                    state.expiresIn = "";
-                    state.password = "";
-                    state.tokenType = "";
-                    state.loading = false;
-                }
+            }
+        }),
+        builder.addCase(webSignin.pending,(state, action) => {
+            state.loading = true;
+        }),
+        builder.addCase(webSignin.fulfilled,(state, action) => {
+            state.accessToken = action.payload.access_token;
+        }),
+        builder.addCase(getUploadedData.pending, (state, action) => {
+            state.loading = true;
+        }),
+        builder.addCase(getUploadedData.fulfilled, (state, action) => {
+            let data: Array<UploadedFile> = [];
+            const payloadData: any = action.payload;
+            if (payloadData == undefined||payloadData.error=='user not recognized') {
+                state.accessToken = "";
+                state.expiresIn = "";
+                state.password = "";
+                state.tokenType = "";
                 state.loading = false;
-            }),
-            builder.addCase(getProfile.fulfilled, (state, action) => {
-                let data: Array<UploadedFile> = [];
-                const payloadData: any = action.payload;
-                if (payloadData == undefined||payloadData.error=='user not recognized') {
-                    state.accessToken = "";
-                    state.expiresIn = "";
-                    state.password = "";
-                    state.tokenType = "";
-                    state.loading = false;
-                }else{
-                    state.email = payloadData.email;
-                    state.level = payloadData.level;
-                    state.status = payloadData.status;
-                    state.username = payloadData.username;
-                }
+            }
+            state.loading = false;
+        }),
+        builder.addCase(getProfile.fulfilled, (state, action) => {
+            let data: Array<UploadedFile> = [];
+            const payloadData: any = action.payload;
+            if (payloadData == undefined||payloadData.error=='user not recognized') {
+                state.accessToken = "";
+                state.expiresIn = "";
+                state.password = "";
+                state.tokenType = "";
                 state.loading = false;
-            })
+                state.uploadToken = DEFAULT_FINE_GRAINED_TOKEN;
+                state.queueToken = DEFAULT_FINE_GRAINED_TOKEN;
+            }else{
+                state.email = payloadData.email;
+                state.level = payloadData.level;
+                state.status = payloadData.status;
+                state.username = payloadData.username;
+            }
+            state.loading = false;
+        })
     ),
 });
