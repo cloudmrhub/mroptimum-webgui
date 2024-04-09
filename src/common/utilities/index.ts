@@ -114,3 +114,27 @@ export const formatBytes = (bytes: number, decimals = 2) => {
 export const getFileExtension = (fileName: string) => {
     return fileName.slice(((fileName.lastIndexOf('.') - 1) >>> 0) + 2);
 };
+
+
+/**
+ * Use get max and get min on voxels instead of using
+ * spread operators to prevent call stack exceptions
+ * @param array
+ */
+export function getMax(array:number[]):number{
+    let max = array.length>0?array[0]:0;
+    for(let element of array){
+        if(element>max)
+            max = element;
+    }
+    return max;
+}
+
+export function getMin(array:number[]):number{
+    let min = array.length>0?array[0]:0;
+    for(let element of array){
+        if(element<min)
+            min = element;
+    }
+    return min;
+}

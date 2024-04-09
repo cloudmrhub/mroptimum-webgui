@@ -21,6 +21,7 @@ import {ROITable} from "../../../app/results/Rois";
 import {calculateMean, calculateStandardDeviation} from "./components/stats";
 import JSZip from "jszip";
 import {NiiFile} from "../../../features/rois/resultSlice";
+import {getMax, getMin} from "../../utilities";
 
 export const nv = new Niivue({
     loadingText: '',
@@ -191,8 +192,9 @@ export default function NiiVueport(props) {
 
 
     function checkRange(numbers) {
-        const range_min = Math.min(...numbers);
-        const range_max = Math.max(...numbers);
+        console.log(numbers);
+        const range_min = getMin(numbers);
+        const range_max = getMax(numbers);
 
         const range = range_max - range_min;
         if(range == 0){
@@ -295,8 +297,8 @@ export default function NiiVueport(props) {
         volume.calMinMax();
         setMin(volume.cal_min);
         setMax(volume.cal_max);
-        volume.vox_min = Math.min(...volume.img);
-        volume.vox_max = Math.max(...volume.img);
+        volume.vox_min = getMin(volume.img);
+        volume.vox_max = getMax(volume.img);
         nv.setVolume(volume);
         nv.drawScene();
         resampleImage();

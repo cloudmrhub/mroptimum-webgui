@@ -62,6 +62,7 @@ Resources:
                 - export const CLOUDMR_SERVER = '$CLOUDMR_SERVER';
                 - export const MRO_SERVER = '$MRO_SERVER';
                 - export const PROFILE_SERVER = '$PROFILE_SERVER';
+                - export const PROFILE_SERVER = '$TOKEN_SERVER';
                 - EOF
                 - yarn build
           artifacts:
@@ -80,3 +81,5 @@ Resources:
           Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
         - Name: "PROFILE_SERVER"
           Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
+        - Name: "TOKEN_SERVER"
+          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/api-token"
