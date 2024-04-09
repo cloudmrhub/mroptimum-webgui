@@ -47,14 +47,6 @@ Resources:
           Target: "/index.html"
       Description: "Your App Description Here"
       EnableBranchAutoDeletion: false
-      Name: "NYUMROptimumFrontend"
-      EnvironmentVariables:
-        - Name: "CLOUDMR_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"  #read from cmr outputs
-        - Name: "MRO_SERVER"
-          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"  #read from mrotimum-backend outputs
-        - Name: "PROFILE_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"  #read from cmr outputs
       Name: "MROptimum-Frontend"
       Platform: "WEB"
       Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
@@ -112,7 +104,6 @@ Resources:
           Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
         - Name: "TOKEN_SERVER"
           Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/api-token"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com" #read from cmr output
 
 Outputs:
   AmplifyAppDomain:
