@@ -30,8 +30,8 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
 });
 
 export const uploadData = createAsyncThunk('UploadData', async(
-    {accessToken, uploadToken, file, fileAlias, fileDatabase, onProgress, onUploaded, uploadTarget}:
-                                                                   {accessToken:string,uploadToken:string,file:File,fileAlias:string,fileDatabase:string,
+    {accessToken, uploadToken, file, fileAlias, onProgress, onUploaded, uploadTarget}:
+                                                                   {accessToken:string,uploadToken:string,file:File,fileAlias:string,
                                                                    onProgress?:(progress:number)=>void,uploadTarget?:string,
                                                                    onUploaded?:(res:AxiosResponse,file:File)=>void},thunkAPI)=>{
     try{

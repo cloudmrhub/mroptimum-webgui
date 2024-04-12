@@ -9,6 +9,8 @@ export const UNZIP = `${MRO_SERVER}/unzip`;
 export const DATAUPLODAAPI = `${MRO_SERVER}/uploads`;
 export const DATAUPLOADINIT = `${MRO_SERVER}/uploadinitiate`;
 export const DATAUPLOADFINALIZE = `${MRO_SERVER}/uploadfinalize`;
+export const JOBUPLOADINIT = `${MRO_SERVER}/jobinitialize`;
+export const JOBUPLOADFINALIZE = `${MRO_SERVER}/jobfinalize`;
 export const DATA_RENAME_API = `${MRO_SERVER}/updatedata`;
 export const DATA_DELETE_API =  `${MRO_SERVER}/deletedata`;
 //2g05v1o1jj
@@ -19,6 +21,11 @@ export const JOBS_API = `${MRO_SERVER}/pipeline`;
 export const JOBS_RETRIEVE_API = `${MRO_SERVER}/downloads`;
 export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
 export const JOBS_DELETE_API =  `http://localhost:5010/jobs/delete`;
+
+/**
+ * Unit in bytes, 10 MB file size yields a chunk
+ */
+export const UPLOAD_FILE_CHUNK = 10 * 1024 * 1024;
 
 // export const HOST = `cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com`;
 

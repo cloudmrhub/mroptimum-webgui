@@ -95,7 +95,7 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     {(!uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
                         Select
                     </Button>}
-                    {fileIndex==-1&& <CMRUpload {...props} color="info"  onUploaded={(res, file)=>{
+                    {fileIndex==-1&& <CMRUpload {...props} color="info" fullWidth onUploaded={(res, file)=>{
                         console.log("calling Setup level on uploaded");
                         console.log(props.onUploaded);
                         selectFileIndex(props.fileSelection.length);

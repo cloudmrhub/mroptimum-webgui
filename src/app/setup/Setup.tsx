@@ -58,6 +58,7 @@ import downloadStringAsFile from "../../common/utilities/DownloadFromText";
 import {SNREditor} from './SetupEditor';
 import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {createTheme} from "@mui/material/styles";
+import {uploadHandlerFactory} from "../../features/SystemUtilities";
 
 
 const Setup = () => {
@@ -187,9 +188,15 @@ const Setup = () => {
             formData.append("file", file);
             const fileExtension = getFileExtension(file.name);
 
-            if (fileExtension == 'dat') {
-                const transformedFile = await anonymizeTWIX(file);
-                file = transformedFile;
+            try{
+                if (fileExtension == 'dat') {
+                    const transformedFile = await anonymizeTWIX(file);
+                    file = transformedFile;
+                }
+            }catch (e) {
+                setSDWarningHeader(`Failed to anonymize ${file.name}`);
+                setSDWarning(`Problems were encountered when anonymizing ${file.name}, consider using dedicated anonymization tools or otherwise proceed.`);
+                setSDOpen(true);
             }
             return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
         }
@@ -597,17 +604,7 @@ const Setup = () => {
                                                     marginBottom: 'auto',
                                                     // background:'#580F8B'
                                                 }}
-                                              uploadHandler={async (file:File, fileAlias:string,
-                                                                    fileDatabase:string,
-                                                                    onProgress?:(progress:number)=>void,
-                                                                    onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
-                                                  //@ts-ignore
-                                                  await dispatch(uploadData({file:file,fileAlias:fileAlias,
-                                                      fileDatabase:fileDatabase, uploadToken,
-                                                      accessToken:accessToken,
-                                                      onProgress,onUploaded,uploadTarget:'signal'}))
-                                                  return 200;
-                                              }}
+                                              uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData,'signal')}
                                               chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
                                 />
                                 :<Button variant={"contained"} size={'medium'} style={{textTransform:'none',height:'fit-content'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
@@ -644,18 +641,7 @@ const Setup = () => {
                                                       })}
                                                       style={{height: 'fit-content', marginLeft: '2pt'}}
                                                       chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
-                                                      uploadHandler={async (file:File,
-                                                                            fileAlias:string,
-                                                                            fileDatabase:string,
-                                                                            onProgress?:(progress:number)=>void,
-                                                                            onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
-                                                          //@ts-ignore
-                                                          await dispatch(uploadData({file:file,fileAlias:fileAlias,
-                                                              fileDatabase:fileDatabase, uploadToken,
-                                                              accessToken:accessToken,
-                                                              onProgress,onUploaded,uploadTarget:'noise'}))
-                                                          return 200;
-                                                      }}
+                                                      uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData,'noise')}
                                         />:<Button variant={"contained"} size={'medium'} style={{textTransform:'none'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
                                                 Uploading {+(noiseProgress*99).toFixed(2)}%
                                             </Button>}

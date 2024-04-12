@@ -11,7 +11,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, {nv} from "../../common/components/src/Niivue";
 import {Job} from "../../features/jobs/jobsSlice";
-import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
+import {getUpstreamJobs, uploadJob} from "../../features/jobs/jobActionCreation";
 import {resultActions, ROI} from "../../features/rois/resultSlice";
 import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
 import {Alert, Button, CircularProgress, Slide, Snackbar} from "@mui/material";
@@ -21,6 +21,11 @@ import Box from "@mui/material/Box";
 import {SetupInspection} from "./SetupInspection";
 import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
 import {Logs} from "./Logs";
+import CmrUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
+import {AxiosRequestConfig} from "axios";
+import {DATAUPLODAAPI} from "../../Variables";
+import {processJobZip} from "./PreprocessJob";
+import {uploadHandlerFactory} from "../../features/SystemUtilities";
 
 export interface NiiFile {
     filename: string;
@@ -33,7 +38,7 @@ export interface NiiFile {
 
 const Results = ({visible}:{visible?:boolean}) => {
     const dispatch = useAppDispatch();
-    const {accessToken} = useAppSelector((state) => state.authenticate);
+    const {accessToken, queueToken} = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state) =>
         state.jobs.jobs);
     const jobsLoading = useAppSelector(state => state.jobs.loading);
@@ -230,6 +235,33 @@ const Results = ({visible}:{visible?:boolean}) => {
             },
         }
     ];
+    const UploadHeaders: AxiosRequestConfig = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'X-Api-Key': queueToken
+        },
+    };
+
+    const createPayload = async (file: File, fileAlias: string) => {
+        // let fileAlias = await getAlias(fileAlias);
+        let processed = await processJobZip(file, fileAlias, accessToken);
+        if(processed==undefined){
+            return undefined;
+        }
+        if (processed) {
+            const lambdaFile: LambdaFile = {
+                "filename": fileAlias,
+                "filetype": processed.type,
+                "filesize": `${processed.size}`,
+                "filemd5": '',
+                "file": processed
+            }
+            return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: processed, config: UploadHeaders};
+        }
+    };
+
+    const [uploaderKey, setUploaderKey] = useState(0);
     return (
         <Fragment>
             <Snackbar anchorOrigin={{vertical: 'top', horizontal: 'left'}}
@@ -246,8 +278,23 @@ const Results = ({visible}:{visible?:boolean}) => {
                 dispatch(resultActions.setOpenPanel(key));
             }}>
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
-                    <Row>
-                        <CmrCheckbox style={{marginLeft: 'auto'}} defaultChecked={true} onChange={(e) => {
+                    <Row style={{alignItems:'center'}}>
+                        <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
+                                   createPayload={createPayload}
+                                   uploadButtonName={'Upload Job'}
+                                   maxCount={1}
+                                   key={uploaderKey}
+                                   uploadFailed={()=>{
+                                        warn('There was a problem with the job file provided');
+                                        setUploaderKey(uploaderKey+1);
+                                    }}
+                                   onUploaded={()=>{//Refresh job list after successful upload
+                                        dispatch(getUpstreamJobs(accessToken));
+                                        setUploaderKey(uploaderKey+1);
+                                   }}
+                                   uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
+                        >Upload Job Zip </CmrUpload>
+                        <CmrCheckbox defaultChecked={true} onChange={(e) => {
                             //@ts-ignore
                             setAutoRefresh(e.target.value);
                         }}>Auto Refreshing</CmrCheckbox>
