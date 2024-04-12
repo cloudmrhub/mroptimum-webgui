@@ -242,6 +242,9 @@ const Results = ({visible}:{visible?:boolean}) => {
             'X-Api-Key': queueToken
         },
     };
+    async function getAlias(){
+        return 'alias';
+    }
 
     const [uploaderKey, setUploaderKey] = useState(0);
     return (
@@ -253,7 +256,8 @@ const Results = ({visible}:{visible?:boolean}) => {
                     {warning}
                 </Alert>
             </Snackbar>
-            <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel} onChange={(key: any) => {
+            <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
+                         onChange={(key: any) => {
                 if(openPanel.indexOf(0)<0&&key.indexOf(0)>=0) {
                     dispatch(getUpstreamJobs(accessToken));
                 }
@@ -262,11 +266,15 @@ const Results = ({visible}:{visible?:boolean}) => {
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
                     <Row style={{alignItems:'center'}}>
                         <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
-                                   uploadButtonName={'Upload Job'}
+                                   uploadButtonName={'Upload Result'}
                                    maxCount={1}
                                    key={uploaderKey}
+                                   preprocess={async (file)=>{
+                                       let alias = await getAlias();
+                                       return processJobZip(file,alias,accessToken);
+                                   }}
                                    uploadFailed={()=>{
-                                        warn('There was a problem with the job file provided');
+                                        warn('There was a problem with the result file provided.');
                                         setUploaderKey(uploaderKey+1);
                                     }}
                                    onUploaded={()=>{//Refresh job list after successful upload

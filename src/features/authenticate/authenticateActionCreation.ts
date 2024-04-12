@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import {SIGNOUT, SIGNIN, JOBS_API, PROFILE} from "../../Variables";
+import {SIGNOUT, SIGNIN, JOBS_API, PROFILE, APP_NAME} from "../../Variables";
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
-import {TOKEN_SERVER} from "../../env";
+import {TOKEN_URL} from "../../env";
 
 export interface SigninDataType {
     email: string;
@@ -21,8 +21,14 @@ export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: Sig
     return Object.assign(signinData, response.data);
 });
 
-export const getFineGrainToken = createAsyncThunk('FINE_GRAIN', async ({accessToken, categories=['queue','upload']}:{accessToken:string, categories?: string[]}, ) => {
-    const response = await axios.post(TOKEN_SERVER, categories, {headers:{
+export const getFineGrainToken = createAsyncThunk('FINE_GRAIN',
+    async ({accessToken, categories={app: APP_NAME, activities:['queue','upload']}}:{accessToken:string, categories?: {
+            app: string,
+            activities: string[]
+        }}, ) => {
+    if(TOKEN_URL == null)
+        return;
+    const response = await axios.post(TOKEN_URL, categories, {headers:{
             Authorization:`Bearer ${accessToken}`
         }});
     return response.data;

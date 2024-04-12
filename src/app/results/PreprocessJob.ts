@@ -1,16 +1,14 @@
 import JSZip from "jszip";
-import axios from "axios";
 import {SNR} from "../../features/setup/setupSlice";
 import {LogItem} from "../../features/jobs/jobsSlice";
-
-
 
 interface InfoInterface{
     headers:{
         calculation_time:number;
         options: SNR & {
             token: string,
-            pipelineid?: string;
+            pipelineid: string|null;
+            alias: string
         };
         logs: LogItem[],
     },
@@ -21,7 +19,7 @@ interface InfoInterface{
     }
 }
 
-export async function processJobZip(file:File,fileName:string, token:string){
+export async function processJobZip(file:File,fileAlias:string, token:string){
     let jszip = new JSZip();
     // Create a new JSZip instance for the output zip
     let outputZip = new JSZip();
@@ -37,8 +35,9 @@ export async function processJobZip(file:File,fileName:string, token:string){
                 const fileContent = await zipEntry.async('string');
                 let infoJSON = <InfoInterface>JSON.parse(fileContent);
                 if (!infoJSON.headers) return undefined;
-                delete infoJSON.headers.options.pipelineid;
+                infoJSON.headers.options.pipelineid = null;
                 infoJSON.headers.options.token = `Bearer ${token}`;
+                infoJSON.headers.options.alias = fileAlias;
                 console.log(infoJSON);
                 // Add modified info.json to outputZip
                 outputZip.file(filename, JSON.stringify(infoJSON, null, 2));
@@ -46,7 +45,7 @@ export async function processJobZip(file:File,fileName:string, token:string){
             } else {
                 // Add unmodified files to outputZip
                 const blobContent = await zipEntry.async('blob');
-                outputZip.file(filename, blobContent);
+                outputZip.file(file.name, blobContent);
             }
         }
 
@@ -55,7 +54,7 @@ export async function processJobZip(file:File,fileName:string, token:string){
         // Generate the updated zip as a Blob
         const content = await outputZip.generateAsync({type: "blob"},);
         console.log(content.type);
-        return  new File([content], fileName,{
+        return  new File([content], file.name,{
             type: content.type,
             lastModified: Date.now()
         }); // This Blob can be used for downloading or further processing

@@ -3,7 +3,7 @@ import {getAccessToken, getFineGrainToken, getProfile, signOut, webSignin} from 
 import {RootState} from "../store";
 import {getUploadedData} from "../data/dataActionCreation";
 import {UploadedFile} from "../data/dataSlice";
-import {DEFAULT_FINE_GRAINED_TOKEN} from "../../env";
+import {API_TOKEN} from "../../env";
 
 
 interface AuthenticateState {
@@ -32,8 +32,8 @@ const initialState: AuthenticateState = {
     tokenType: '',
     expiresIn: '',
     loading: true,
-    uploadToken: DEFAULT_FINE_GRAINED_TOKEN,
-    queueToken: DEFAULT_FINE_GRAINED_TOKEN,
+    uploadToken: API_TOKEN,
+    queueToken: API_TOKEN,
 };
 
 export const authenticateSlice = createSlice({
@@ -63,7 +63,9 @@ export const authenticateSlice = createSlice({
             state.loading = false;
         }),
         builder.addCase(getFineGrainToken.fulfilled, (state,action)=>{
-           const {queue, upload} = action.payload;
+            if(action.payload==undefined)
+               return;
+           const [queue, upload] = action.payload.activities;
            state.queueToken = queue;
            state.uploadToken = upload;
         }),
@@ -111,8 +113,8 @@ export const authenticateSlice = createSlice({
                 state.password = "";
                 state.tokenType = "";
                 state.loading = false;
-                state.uploadToken = DEFAULT_FINE_GRAINED_TOKEN;
-                state.queueToken = DEFAULT_FINE_GRAINED_TOKEN;
+                state.uploadToken = API_TOKEN;
+                state.queueToken = API_TOKEN;
             }else{
                 state.email = payloadData.email;
                 state.level = payloadData.level;

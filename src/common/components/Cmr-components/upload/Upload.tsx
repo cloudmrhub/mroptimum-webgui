@@ -66,6 +66,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      */
     reusable?: boolean;
     uploadButtonName?:string;
+    preprocess?:(file:File)=>Promise<File|undefined>;
 }
 
 
@@ -97,7 +98,12 @@ const CmrUpload = (props: CMRUploadProps) => {
                 setUploading(false);
                 return 200;
             }
-
+            if(props.preprocess){
+                let processed = await props.preprocess(file);
+                if(processed==undefined)
+                    return failUpload();
+                file = processed;
+            }
             if(props.uploadHandler!=undefined){
                 status = await props.uploadHandler(file,fileAlias,fileDatabase,onProgress,props.onUploaded);
                 setUploadedFile(props.reusable?undefined:file.name);
