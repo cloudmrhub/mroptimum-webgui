@@ -243,24 +243,6 @@ const Results = ({visible}:{visible?:boolean}) => {
         },
     };
 
-    const createPayload = async (file: File, fileAlias: string) => {
-        // let fileAlias = await getAlias(fileAlias);
-        let processed = await processJobZip(file, fileAlias, accessToken);
-        if(processed==undefined){
-            return undefined;
-        }
-        if (processed) {
-            const lambdaFile: LambdaFile = {
-                "filename": fileAlias,
-                "filetype": processed.type,
-                "filesize": `${processed.size}`,
-                "filemd5": '',
-                "file": processed
-            }
-            return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: processed, config: UploadHeaders};
-        }
-    };
-
     const [uploaderKey, setUploaderKey] = useState(0);
     return (
         <Fragment>
@@ -280,7 +262,6 @@ const Results = ({visible}:{visible?:boolean}) => {
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
                     <Row style={{alignItems:'center'}}>
                         <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
-                                   createPayload={createPayload}
                                    uploadButtonName={'Upload Job'}
                                    maxCount={1}
                                    key={uploaderKey}

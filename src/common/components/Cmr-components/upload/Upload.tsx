@@ -30,7 +30,13 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      * @param file
      */
     beforeUpload?: (file:File)=>Promise<boolean>;
-    createPayload: (file: File,fileAlias:string, fileDatabase: string)=>
+    /**
+     * This or uploadHandler must be specified
+     * @param file
+     * @param fileAlias
+     * @param fileDatabase
+     */
+    createPayload?: (file: File,fileAlias:string, fileDatabase: string)=>
         (Promise<{destination: string, lambdaFile:LambdaFile, file:File, config: AxiosRequestConfig}|undefined>);
     onUploadProgressUpdate?:(loaded: number, total: number)=>void|undefined;
     onUploaded: (res: AxiosResponse, file: File)=>Promise<void>|void;
@@ -41,7 +47,14 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     uploadEnded?:()=>void;
     uploadFailed?:()=>void;
     uploadProgressed?:(progress:number)=>void;
-    //Override this to replace the default behavior of uploading
+    /**
+     * Override this to replace the default behavior of uploading
+     * @param file
+     * @param fileAlias
+     * @param fileDatabase
+     * @param onProgress
+     * @param onUploaded
+     */
     uploadHandler?:(file:File, fileAlias:string, fileDatabase:string,
                     onProgress?:(progress:number)=>void,
                     onUploaded?:(res:AxiosResponse,file:File)=>void)=>Promise<number>;
@@ -88,14 +101,10 @@ const CmrUpload = (props: CMRUploadProps) => {
             if(props.uploadHandler!=undefined){
                 status = await props.uploadHandler(file,fileAlias,fileDatabase,onProgress,props.onUploaded);
                 setUploadedFile(props.reusable?undefined:file.name);
-            }else{
+            }else if(props.createPayload){
                 let payload = await props.createPayload(file, fileAlias, fileDatabase);
                 if(payload==undefined){
-                    setUploading(false);
-                    setProgress(0);
-                    if(props.uploadFailed)
-                        return props.uploadFailed();
-                    return 0;
+                    return failUpload();
                 }
                 payload.config.onUploadProgress = (progressEvent) => {
                     if(progressEvent.total==undefined)
@@ -117,6 +126,8 @@ const CmrUpload = (props: CMRUploadProps) => {
                     await props.onUploaded(res,payload.file);
                     setUploadedFile(props.reusable?undefined:payload.file.name);
                 }
+            }else{
+                return failUpload();
             }
             if(props.uploadEnded)
                 props.uploadEnded();
@@ -125,6 +136,14 @@ const CmrUpload = (props: CMRUploadProps) => {
         // }
         return status;
     };
+
+    function failUpload(){
+        setUploading(false);
+        setProgress(0);
+        if(props.uploadFailed)
+            return props.uploadFailed();
+        return 0;
+    }
 
     return (
         <React.Fragment>
