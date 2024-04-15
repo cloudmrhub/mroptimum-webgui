@@ -5,7 +5,6 @@ import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
 import CmrTable from '../../common/components/CmrTable/CmrTable';
 import {getUploadedData} from '../../features/data/dataActionCreation';
 import {useAppDispatch, useAppSelector} from '../../features/hooks';
-import {UploadedFile} from '../../features/data/dataSlice';
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -26,6 +25,9 @@ import {AxiosRequestConfig} from "axios";
 import {DATAUPLODAAPI} from "../../Variables";
 import {processJobZip} from "./PreprocessJob";
 import {uploadHandlerFactory} from "../../features/SystemUtilities";
+import CmrInput from "../../common/components/Cmr-components/input/Input";
+import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
+import EditConfirmation from "../../common/components/Cmr-components/dialogue/EditConfirmation";
 
 export interface NiiFile {
     filename: string;
@@ -87,6 +89,23 @@ const Results = ({visible}:{visible?:boolean}) => {
         }, 5000)
     }
 
+    const getAlias = async(alias: string)=>{
+        setOriginalName(alias);
+        setNameDialogOpen(true);
+        return new Promise<string>( (resolve, reject) => {
+            const callback = async (value:string)=>{
+                resolve(value);
+                return true;
+            }
+            const cancelCallback = async (_:string) => {
+                reject(alias);
+                return true;
+            }
+            setRenamingCallback(()=>callback);
+            setCancelCallback(()=>cancelCallback);
+        });
+    }
+
     const completedJobsColumns = [
         {
             headerName: 'Job ID',
@@ -121,7 +140,6 @@ const Results = ({visible}:{visible?:boolean}) => {
             renderCell: (params: { row: Job }) => {
                 return (
                     <div>
-
                         <IconButton disabled={params.row.status != 'completed'} onClick={(event) => {
                             event.stopPropagation();
                             if (params.row.pipeline_id == activeJob?.pipeline_id) {
@@ -242,11 +260,15 @@ const Results = ({visible}:{visible?:boolean}) => {
             'X-Api-Key': queueToken
         },
     };
-    async function getAlias(){
-        return 'alias';
-    }
 
     const [uploaderKey, setUploaderKey] = useState(0);
+    const [nameDialogOpen, setNameDialogOpen] = useState(false);
+    const [originalName, setOriginalName] = useState('');
+    const [renamingCallback, setRenamingCallback] =
+        useState(()=>(async (val:string)=>true));
+    const [cancelCallback, setCancelCallback] =
+        useState(()=>(async (val:string)=>true));
+
     return (
         <Fragment>
             <Snackbar anchorOrigin={{vertical: 'top', horizontal: 'left'}}
@@ -256,6 +278,13 @@ const Results = ({visible}:{visible?:boolean}) => {
                     {warning}
                 </Alert>
             </Snackbar>
+            <EditConfirmation  open={nameDialogOpen} setOpen = {setNameDialogOpen}
+                               cancelCallback={cancelCallback}
+                               cancellable={true}
+                               defaultText={originalName}
+                               message={'Change the alias associated with the result file.'}
+                               name={'Job alias'}
+                               confirmCallback={renamingCallback}/>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
                          onChange={(key: any) => {
                 if(openPanel.indexOf(0)<0&&key.indexOf(0)>=0) {
@@ -270,8 +299,12 @@ const Results = ({visible}:{visible?:boolean}) => {
                                    maxCount={1}
                                    key={uploaderKey}
                                    preprocess={async (file)=>{
-                                       let alias = await getAlias();
-                                       return processJobZip(file,alias,accessToken);
+                                       try {
+                                           let alias = await getAlias(file.name);
+                                           return processJobZip(file,alias,accessToken);
+                                       }catch {
+                                           return 400;
+                                       }
                                    }}
                                    uploadFailed={()=>{
                                         warn('There was a problem with the result file provided.');
@@ -279,6 +312,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     }}
                                    onUploaded={()=>{//Refresh job list after successful upload
                                         dispatch(getUpstreamJobs(accessToken));
+                                        console.log(uploaderKey);
                                         setUploaderKey(uploaderKey+1);
                                    }}
                                    uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}

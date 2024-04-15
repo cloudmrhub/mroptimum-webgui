@@ -7,4 +7,4 @@ export const PROFILE_SERVER = 'https://ewjjq013u0.execute-api.us-east-1.amazonaw
 
 export const TOKEN_URL = 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/api-token';
 
-export const API_TOKEN = '';
+export const API_TOKEN = 'mrotpimum--';

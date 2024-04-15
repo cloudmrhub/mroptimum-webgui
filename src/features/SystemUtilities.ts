@@ -6,9 +6,10 @@ export const uploadHandlerFactory = (accessToken:string, uploadToken:string,disp
            fileDatabase:string,
            onProgress?:(progress:number)=>void,
            onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
-        await dispatch(uploader({file:file,fileAlias:fileAlias, uploadToken,
+        let result = await dispatch(uploader({file:file,fileAlias:fileAlias, uploadToken,
             accessToken:accessToken,
             onProgress,onUploaded,uploadTarget}))
-        return 200;
+        // console.log(result);
+        return result.payload.code;
     }
 }

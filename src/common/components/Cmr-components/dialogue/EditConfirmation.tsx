@@ -40,7 +40,7 @@ export default function EditConfirmation({ name,message, defaultText='',
 
 
     return (
-        <Dialog maxWidth="xs" fullWidth={true} open={open} onClose={handleClose}>
+        <Dialog maxWidth="xs" fullWidth={true} open={open} onClose={handleCancel}>
             <DialogTitle>{name?name:'Confirmation'}</DialogTitle>
             <DialogContent>
                 <DialogContentText alignContent={'center'}>
@@ -53,7 +53,7 @@ export default function EditConfirmation({ name,message, defaultText='',
                                        <InputAdornment position="end"  sx={{ whiteSpace: 'nowrap' }}>{suffix}</InputAdornment>
                                    ),
                                }}
-                               value={`${text}`} onChange={(e)=>setText(e.target.value)}/>
+                               defaultValue={defaultText} onChange={(e)=>setText(e.target.value)}/>
                 </DialogActions>
                 <DialogActions>
                     {cancellable&&

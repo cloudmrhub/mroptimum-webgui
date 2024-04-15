@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import CmrButton from "../button/Button";
 import {useEffect} from "react";
 
-export default function NameDialog(props: {originalName: string; renamingCallback:(alias:string)=>Promise<boolean>, open:boolean, setOpen:(open:boolean)=>void}) {
+export default function CmrNameDialog(props: {originalName: string; renamingCallback:(alias:string)=>Promise<boolean>, open:boolean, setOpen:(open:boolean)=>void}) {
     let {originalName,open, setOpen} = props;
     const [helperText, setHelperText] = React.useState('');
     const [text, setText] = React.useState(originalName);

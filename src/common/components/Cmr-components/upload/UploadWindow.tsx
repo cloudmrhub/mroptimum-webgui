@@ -93,6 +93,24 @@ export default function UploadWindow({
                         setUpBtnDisabled(false);
                         setUpBtnText('Upload');
                     }, 2000);
+                } else if (response === 500) {
+                    setInfoStyle('error');
+                    setWarningText("Internal server error");
+                    setTimeout(() => {
+                        setInfoOpen(false);
+                        setUpBtnDisabled(false);
+                        setUpBtnText('Upload');
+                    }, 1500);
+                    setOpen(true);
+                } else if (response === 400) {
+                    setInfoStyle('warning');
+                    setWarningText("File upload cancelled");
+                    setTimeout(() => {
+                        setInfoOpen(false);
+                        setUpBtnDisabled(false);
+                        setUpBtnText('Upload');
+                    }, 1000);
+                    setOpen(true);
                 } else {
                     setInfoStyle('warning');
                     setWarningText("Unknown status");
@@ -101,6 +119,7 @@ export default function UploadWindow({
                         setUpBtnDisabled(false);
                         setUpBtnText('Upload');
                     }, 2000);
+                    setOpen(true);
                 }
             }
         }).catch((error) => {
@@ -122,6 +141,13 @@ export default function UploadWindow({
     }
 
     function loadFiles(files: File[]) {
+        if (files.length==0){
+            setInfoOpen(true);
+            setInfoStyle('warning');
+            setWarningText('No file selected');
+            setTimeout(() => setInfoOpen(false), 2500);
+            return;
+        }
         if (files.length > 1) {
             setInfoOpen(true);
             setInfoStyle('warning');
@@ -161,7 +187,6 @@ export default function UploadWindow({
                     }`;
             setFileSize(output);
         }
-
         readFile(file); // start reading the file data.
     }
 
@@ -311,7 +336,7 @@ export default function UploadWindow({
                                 )}
                                 <Collapse in={infoOpen}>
                                     <Alert severity={infoStyle} sx={{m: 1}}>
-                                        <AlertTitle>{warningText}</AlertTitle>
+                                        {warningText}
                                     </Alert>
                                 </Collapse>
                             </div>
