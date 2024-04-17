@@ -217,7 +217,7 @@ export const ROITable = (props:{pipelineID: string,
             </div>
             <div className="col-4">
                 <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
-                }}
+                }}  fullWidth
                     uploadHandler={async (file)=>{
                        const config = {
                            headers: {

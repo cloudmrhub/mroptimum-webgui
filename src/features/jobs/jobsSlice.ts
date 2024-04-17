@@ -28,7 +28,7 @@ export interface Job {
     slices?:number;
 }
 
-interface LogItem{
+export interface LogItem{
     type: string;
     when: string;
     what: string;

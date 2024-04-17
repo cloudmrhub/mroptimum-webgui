@@ -9,7 +9,7 @@
     "@mui/icons-material": "^5.14.1",
     "@mui/material": "^5.14.2",
     "@mui/x-data-grid": "^6.10.1",
-    "@niivue/niivue": "^0.38.0",
+    "@niivue/niivue": "^0.39.0",
     "@reduxjs/toolkit": "^1.9.5",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",

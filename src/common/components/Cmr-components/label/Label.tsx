@@ -10,7 +10,7 @@ const CmrLabel = (props: CmrLabelProps) => {
     const { children, required = false } = props;
 
     return (
-        <label className="cmr-label" style={props.style}>
+        <label className="cmr-label" style={{fontSize:'16px', ...props.style}}>
             {children}
             {required && <span className="asterik">*</span>}
         </label>

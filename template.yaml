@@ -1,10 +1,56 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+
+Parameters:
+  GithubToken:
+    Type: String
+    Description: access token to github
+    Default: xxxx # should be read from the main stack template parameter
+  CloudmrServer:
+    Type: String
+    Description: "CLOUDMR_SERVER"
+  MroServer:
+    Type: String
+    Description: "MRO_SERVER"
+  ProfileServer:
+    Type: String
+    Description: "PROFILE_SERVER"
+  TokenUrl:
+    Type: String
+    Description: "TOKEN_URL"
+  ApiToken:
+    Type: String
+    Description: "API-TOKEN"
+
+
+
 Resources:
+  AmplifyConsoleServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - amplify.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AmplifyConsoleServicePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'codebuild:StartBuild'
+                  - 'codebuild:BatchGetBuilds'
+                Resource: '*'
   MROFrontend:
     Type: AWS::Amplify::App
     Properties:
-      AccessToken: "{{AccessTokenToGithub}}"
+      AccessToken: !Ref GithubToken
       AutoBranchCreationConfig:
         EnableAutoBranchCreation: true
         EnableAutoBuild: true
@@ -19,21 +65,14 @@ Resources:
           Target: "/index.html"
       Description: "Your App Description Here"
       EnableBranchAutoDeletion: false
-      EnvironmentVariables:
-        - Name: "CLOUDMR_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
-        - Name: "MRO_SERVER"
-          Value: "https://dplk0uo9d0.execute-api.us-east-1.amazonaws.com/Prod"
-        - Name: "PROFILE_SERVER"
-          Value: "https://ewjjq013u0.execute-api.us-east-1.amazonaws.com"
-      Name: "NYUMROptimumFrontend"
+      Name: "MROptimum-Frontend-$RANDOM"
       Platform: "WEB"
       Repository: "https://github.com/cloudmrhub-com/MROptimum-frontend"
       Tags:
         - Key: "owner"
           Value: "cloudmrhub"
         - Key: "maintainer"
-          Value: "yuelong"
+          Value: "YL6709"
         - Key: "project"
           Value: "mroptimum-v1"
         - Key: "team"
@@ -43,12 +82,15 @@ Resources:
         - Key: "deletable"
           Value: "check"
 
+
   PublishBranch:
     Type: AWS::Amplify::Branch
     Properties:
       AppId: !GetAtt MROFrontend.AppId
       BranchName: "publish"
       EnableAutoBuild: true
+      EnablePullRequestPreview: true
+
       BuildSpec: |
         version: 1
         frontend:
@@ -62,6 +104,8 @@ Resources:
                 - export const CLOUDMR_SERVER = '$CLOUDMR_SERVER';
                 - export const MRO_SERVER = '$MRO_SERVER';
                 - export const PROFILE_SERVER = '$PROFILE_SERVER';
+                - export const API_TOKEN = '$API_TOKEN';
+                - export const TOKEN_URL = '$TOKEN_URL';
                 - EOF
                 - yarn build
           artifacts:
@@ -74,5 +118,18 @@ Resources:
       Framework: "WEB"
       Stage: "PRODUCTION"
       EnvironmentVariables:
-        - Name: "API_ROOT"
-          Value: "https://domain.com"
+        - Name: "CLOUDMR_SERVER"
+          Value: !Ref CloudmrServer
+        - Name: "MRO_SERVER"
+          Value: !Ref MroServer
+        - Name: "PROFILE_SERVER"
+          Value: !Ref ProfileServer
+        - Name: "TOKEN_URL"
+          Value: !Ref TokenUrl # REQUEST, POST {"type": (array or string)["mr optimum","upload",'tess'],"token":""}, RESULTS {"api-token":"dedddd"} you want to check if if the results
+        - Name: "API_TOKEN"
+          Value: !Ref ApiToken
+
+
+Outputs:
+  AmplifyAppDomain:
+    Value: !Sub "${PublishBranch.BranchName}.${MROFrontend.DefaultDomain}"

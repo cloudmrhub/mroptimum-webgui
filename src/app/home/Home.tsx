@@ -27,6 +27,7 @@ import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymiz
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import axios, {AxiosRequestConfig} from "axios";
 import {AxiosResponse} from "axios/index";
+import {uploadHandlerFactory} from "../../features/SystemUtilities";
 const getDataMethod = async (accessToken: string) => {
     const config = {
         headers: {
@@ -270,7 +271,7 @@ const Home = () => {
     ];
 
     const dispatch = useAppDispatch();
-    const { accessToken } = useAppSelector((state) => state.authenticate);
+    const { accessToken, uploadToken } = useAppSelector((state) => state.authenticate);
     const { files } = useAppSelector((state) => state.data);
     const jobsData = useAppSelector((state)=>state.jobs.jobs);
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
@@ -384,29 +385,11 @@ const Home = () => {
                                setOpen(true);}}>Delete</Button>
                        </div>
                        <div className="col-4">
-                           <CMRUpload color="info" key={uploadKey} onUploaded={(res, file)=>{
-                               // console.log("calling Setup level on uploaded");
-                               // console.log(props.onUploaded);
-                               // selectFileIndex(props.fileSelection.length);
-                               // props.onUploaded(res, file);
-                               // setOpen(false);
-                               //@ts-ignore
+                           <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }}
-                                      uploadHandler={async (file:File, fileAlias:string,
-                                                            fileDatabase:string,
-                                                            onProgress?:(progress:number)=>void,
-                                                            onUploaded?:(res:AxiosResponse,file:File)=>void)=>{
-                                          //@ts-ignore
-                                          await dispatch(uploadData({file:file,fileAlias:fileAlias,
-                                              fileDatabase:fileDatabase,
-                                              accessToken:accessToken,
-                                              onProgress,onUploaded}))
-                                          return 200;
-                                      }}
-                                       // uploadStarted={()=>setUploading(true)}
-                                       // uploadEnded={()=>setUploading(false)}
+                                      uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData)}
                             createPayload={createPayload} maxCount={1}></CMRUpload>
                        </div>
                     </div>
