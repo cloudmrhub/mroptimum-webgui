@@ -28,10 +28,14 @@ export const getFineGrainToken = createAsyncThunk('FINE_GRAIN',
         }}, ) => {
     if(TOKEN_URL == null)
         return;
-    const response = await axios.post(TOKEN_URL, categories, {headers:{
-            Authorization:`Bearer ${accessToken}`
-        }});
-    return response.data;
+    try{
+        const response = await axios.post(TOKEN_URL, categories, {headers:{
+                Authorization:`Bearer ${accessToken}`
+            }});
+        return response.data;
+    }catch (e) {
+        return undefined;
+    }
 });
 
 export const signOut = createAsyncThunk('SIGN_OUT', async (accessToken: string) => {
