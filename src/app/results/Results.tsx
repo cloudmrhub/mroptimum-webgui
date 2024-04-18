@@ -282,7 +282,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                cancelCallback={cancelCallback}
                                cancellable={true}
                                defaultText={originalName}
-                               message={'Change the alias associated with the result file.'}
+                               message={'Provide the alias associated with the result file.'}
                                name={'Job alias'}
                                confirmCallback={renamingCallback}/>
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
