@@ -45,7 +45,7 @@ export async function processJobZip(file:File,fileAlias:string, token:string){
             } else {
                 // Add unmodified files to outputZip
                 const blobContent = await zipEntry.async('blob');
-                outputZip.file(file.name, blobContent);
+                outputZip.file(filename, blobContent);
             }
         }
 

@@ -449,7 +449,10 @@ export default function NiiVueport(props) {
     }
 
     function nvSaveImage() {
-        nv.saveImage('roi.nii', true);
+        nv.saveImage({
+                filename:'roi.nii',
+                isSaveDrawing: true,
+            });
     }
 
     function nvUpdateDrawingEnabled() {
@@ -994,12 +997,14 @@ export default function NiiVueport(props) {
                 "type": "image",
                 "contentType": "application/octet-stream"
             }, config);
-            // console.log(response.data);
+            console.log(response.data);
             // Monkey patch object URL creation
             // Store the original URL.createObjectURL method
             const originalCreateObjectURL = URL.createObjectURL;
             // Redefine the method
             URL.createObjectURL = function (blob) {
+                console.log('saving blob');
+                console.log(blob);
                 setSelectedDuringSaving(false);
                 zipAndSendDrawingLayer(response.data.upload_url,filename, blob).then(async ()=>{
                     // Update available rois with this callback
@@ -1016,7 +1021,10 @@ export default function NiiVueport(props) {
             };
 
             // False if nothing has been drawn on canvas
-            let successful = await nv.saveImage(filename, true);
+            let successful = nv.saveImage({
+                filename,
+                isSaveDrawing: true,
+            });
             // De-patch
             URL.createObjectURL = originalCreateObjectURL;
         }));
