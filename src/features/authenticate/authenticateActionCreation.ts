@@ -3,7 +3,6 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import {SIGNOUT, SIGNIN, JOBS_API, PROFILE, APP_NAME} from "../../Variables";
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
-import {TOKEN_URL} from "../../env";
 
 export interface SigninDataType {
     email: string;
