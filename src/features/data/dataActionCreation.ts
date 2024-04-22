@@ -30,13 +30,13 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
 });
 
 export const uploadData = createAsyncThunk('UploadData', async(
-    {accessToken, uploadToken, file, fileAlias, onProgress, onUploaded, uploadTarget}:
-                                                                   {accessToken:string,uploadToken:string,file:File,fileAlias:string,
+    {accessToken, file, fileAlias, onProgress, onUploaded, uploadTarget}:
+                                                                   {accessToken:string,file:File,fileAlias:string,
                                                                    onProgress?:(progress:number)=>void,uploadTarget?:string,
                                                                    onUploaded?:(res:AxiosResponse,file:File)=>void},thunkAPI)=>{
     try{
         const FILE_CHUNK_SIZE = 10 * 1024 * 1024; // 5MB chunk size
-        let payload = await createPayload(accessToken, uploadToken, file, fileAlias);
+        let payload = await createPayload(accessToken, file, fileAlias);
         if(payload==undefined)
             return {code:403,response:'file not found',file:undefined,uploadTarget:uploadTarget}
         thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:0}));
@@ -120,7 +120,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
     }
 });
 
-const createPayload = async (accessToken:string, uploadToken:string, file: File, fileAlias: string) => {
+const createPayload = async (accessToken:string, file: File, fileAlias: string) => {
     if (file) {
         const lambdaFile: LambdaFile = {
             "filename": fileAlias,
@@ -139,8 +139,7 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
         const UploadHeaders: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                'X-Api-Key':uploadToken
+                'Authorization': `Bearer ${accessToken}`
             },
         };
         return {destination: DATAUPLOADINIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders};

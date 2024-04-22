@@ -10,7 +10,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, {nv} from "../../common/components/src/Niivue";
 import {Job} from "../../features/jobs/jobsSlice";
-import {getUpstreamJobs, uploadJob} from "../../features/jobs/jobActionCreation";
+import {getUpstreamJobs} from "../../features/jobs/jobActionCreation";
 import {resultActions, ROI} from "../../features/rois/resultSlice";
 import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
 import {Alert, Button, CircularProgress, Slide, Snackbar} from "@mui/material";
@@ -40,7 +40,7 @@ export interface NiiFile {
 
 const Results = ({visible}:{visible?:boolean}) => {
     const dispatch = useAppDispatch();
-    const {accessToken, queueToken} = useAppSelector((state) => state.authenticate);
+    const {accessToken} = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state) =>
         state.jobs.jobs);
     const jobsLoading = useAppSelector(state => state.jobs.loading);
@@ -253,15 +253,6 @@ const Results = ({visible}:{visible?:boolean}) => {
             },
         }
     ];
-    const UploadHeaders: AxiosRequestConfig = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'X-Api-Key': queueToken
-        },
-    };
-
-    const [uploaderKey, setUploaderKey] = useState(0);
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
     const [originalName, setOriginalName] = useState('');
     const [renamingCallback, setRenamingCallback] =
@@ -294,29 +285,6 @@ const Results = ({visible}:{visible?:boolean}) => {
             }}>
                 <CmrPanel header='Results' className={'mb-2'} key={'0'}>
                     <Row style={{alignItems:'center'}}>
-                        <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
-                                   uploadButtonName={'Upload Result'}
-                                   maxCount={1}
-                                   key={uploaderKey}
-                                   preprocess={async (file)=>{
-                                       try {
-                                           let alias = await getAlias(file.name);
-                                           return processJobZip(file,alias,accessToken);
-                                       }catch {
-                                           return 400;
-                                       }
-                                   }}
-                                   uploadFailed={()=>{
-                                        warn('There was a problem with the result file provided.');
-                                        setUploaderKey(uploaderKey+1);
-                                    }}
-                                   onUploaded={()=>{//Refresh job list after successful upload
-                                        dispatch(getUpstreamJobs(accessToken));
-                                        console.log(uploaderKey);
-                                        setUploaderKey(uploaderKey+1);
-                                   }}
-                                   uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
-                        >Upload Job Zip </CmrUpload>
                         <CmrCheckbox defaultChecked={true} onChange={(e) => {
                             //@ts-ignore
                             setAutoRefresh(e.target.value);

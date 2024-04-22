@@ -1,9 +1,8 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {getAccessToken, getFineGrainToken, getProfile, signOut, webSignin} from './authenticateActionCreation';
+import {getAccessToken, getProfile, signOut, webSignin} from './authenticateActionCreation';
 import {RootState} from "../store";
 import {getUploadedData} from "../data/dataActionCreation";
 import {UploadedFile} from "../data/dataSlice";
-import {API_TOKEN} from "../../env";
 
 
 interface AuthenticateState {
@@ -19,10 +18,6 @@ interface AuthenticateState {
     tokenType: string;
     expiresIn: string;
     loading: boolean;
-
-    // Tokens providing fine-grained access
-    uploadToken: string;
-    queueToken: string;
 }
 
 const initialState: AuthenticateState = {
@@ -32,8 +27,6 @@ const initialState: AuthenticateState = {
     tokenType: '',
     expiresIn: '',
     loading: true,
-    uploadToken: API_TOKEN,
-    queueToken: API_TOKEN,
 };
 
 export const authenticateSlice = createSlice({
@@ -61,13 +54,6 @@ export const authenticateSlice = createSlice({
             state.tokenType = token_type;
             state.expiresIn = expires_in;
             state.loading = false;
-        }),
-        builder.addCase(getFineGrainToken.fulfilled, (state,action)=>{
-            if(action.payload==undefined)
-               return;
-           const [queue, upload] = action.payload.activities;
-           state.queueToken = queue;
-           state.uploadToken = upload;
         }),
         builder.addCase(signOut.pending, (state, action) => {
             state.loading = true;
@@ -113,8 +99,6 @@ export const authenticateSlice = createSlice({
                 state.password = "";
                 state.tokenType = "";
                 state.loading = false;
-                state.uploadToken = API_TOKEN;
-                state.queueToken = API_TOKEN;
             }else{
                 state.email = payloadData.email;
                 state.level = payloadData.level;

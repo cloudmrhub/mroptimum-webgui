@@ -16,26 +16,7 @@ export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: Sig
     // console.log(response.data);
     if(response.data.access_token!=undefined)
         thunkAPI.dispatch(getProfile(response.data.access_token));
-    if(response.data.access_token!=undefined)
-        thunkAPI.dispatch(getFineGrainToken({accessToken:response.data.access_token}))
     return Object.assign(signinData, response.data);
-});
-
-export const getFineGrainToken = createAsyncThunk('FINE_GRAIN',
-    async ({accessToken, categories={app: APP_NAME, activities:['queue','upload']}}:{accessToken:string, categories?: {
-            app: string,
-            activities: string[]
-        }}, ) => {
-    if(TOKEN_URL == null)
-        return;
-    try{
-        const response = await axios.post(TOKEN_URL, categories, {headers:{
-                Authorization:`Bearer ${accessToken}`
-            }});
-        return response.data;
-    }catch (e) {
-        return undefined;
-    }
 });
 
 export const signOut = createAsyncThunk('SIGN_OUT', async (accessToken: string) => {
