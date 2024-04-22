@@ -1,4 +1,4 @@
-import { Box, Divider, MenuItem } from "@mui/material";
+import {Box, Divider, MenuItem, Slider} from "@mui/material";
 import { Typography } from "@mui/material";
 import { Button } from "@mui/material";
 import { Select } from "@mui/material";
@@ -182,15 +182,15 @@ export default function Layer(props) {
               width: '100%',
             }}
           >
-            <NumberPicker
-              value={opacity}
-              onChange={handleOpacityChanged}
-              title={'Opacity'}
-              min={0}
-              max={1}
-              step={0.01}
-            >
-            </NumberPicker>
+              <Typography marginLeft={2}>
+                  Opacity: {opacity.toFixed(2)}
+              </Typography>
+
+              <Slider
+                  sx={{width:'80%', alignSelf:'center', marginY:2}} value={opacity} step={0.01} min={0} max={1}
+                  onChange={(event, value) => {
+                      handleOpacityChanged(value);
+                  }}/>
           </Box>
           <Box
             sx={{
@@ -199,7 +199,7 @@ export default function Layer(props) {
               justifyContent: 'space-between',
               width: '100%'
             }}
-            m={1}
+            m={2}
           >
             <FormControl>
               <InputLabel>Color</InputLabel>

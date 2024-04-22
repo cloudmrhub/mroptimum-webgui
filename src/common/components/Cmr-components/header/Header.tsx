@@ -57,11 +57,9 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
                             return <li className={`nav-item${(menuItem.title==menuSelect)?' active':''}`} key={menuItem.path}>
                                 <a className='nav-link' style={{cursor:'pointer'}} onClick={(event)=>{
                                     switch(menuItem.title) {
-                                        case 'About':
-                                            window.location.href='https://cloudmrhub.com/about';
-                                            return;
-                                        case 'Contact Us':
-                                            window.location.href='https://cloudmrhub.com/contact';
+                                        case 'Bug Report':
+                                            window.open('https://github.com/cloudmrhub-com/mroptimum/issues')
+                                            // window.location.href='https://github.com/cloudmrhub-com/mroptimum/issues';
                                             return;
                                     }
                                     event.preventDefault();
