@@ -1,5 +1,6 @@
 import "./MROptimum.scss";
 import React from 'react';
+import 'bootstrap';
 import MainRouter from './MainRouter';
 import {Provider} from "react-redux";
 import {store,persistor} from "../features/store";
