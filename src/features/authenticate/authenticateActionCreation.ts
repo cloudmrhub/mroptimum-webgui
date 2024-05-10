@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import {SIGNOUT, SIGNIN, JOBS_API, PROFILE, APP_NAME} from "../../Variables";
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
-import {TOKEN_URL} from "../../env";
+import {API_URL} from "../../env";
 
 export interface SigninDataType {
     email: string;
@@ -26,10 +26,10 @@ export const getFineGrainToken = createAsyncThunk('FINE_GRAIN',
             app: string,
             activities: string[]
         }}, ) => {
-    if(TOKEN_URL == null)
+    if(API_URL == null)
         return;
     try{
-        const response = await axios.post(TOKEN_URL, categories, {headers:{
+        const response = await axios.post(API_URL, categories, {headers:{
                 Authorization:`Bearer ${accessToken}`
             }});
         return response.data;
