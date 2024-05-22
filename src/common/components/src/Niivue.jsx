@@ -22,6 +22,8 @@ import {calculateMean, calculateStandardDeviation} from "./components/stats";
 import JSZip from "jszip";
 import {NiiFile} from "../../../features/rois/resultSlice";
 import {getMax, getMin} from "../../utilities";
+import {getPipelineROI} from "../../../features/rois/resultActionCreation";
+import {useAppDispatch, useAppSelector} from "../../../features/hooks";
 
 export const nv = new Niivue({
     loadingText: '',
@@ -102,6 +104,8 @@ export default function NiiVueport(props) {
     const [textsVisible, setTextsVisible] = useState(true);
 
     const [transformFactors, setTransformFactors] = useState({a: 1, b:0});
+
+    const [saving, setSaving] = useState(false);
 
     React.useEffect(() => {
         if(props.displayVertical)
@@ -824,6 +828,10 @@ export default function NiiVueport(props) {
         }
     }
 
+    let dispatch = useAppDispatch();
+    let accessToken = useAppSelector(state => state.authenticate.accessToken);
+    let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
+
     const selectVolume = async (volumeIndex) => {
         const openVolume = async ()=>{
             nv.closeDrawing();
@@ -850,8 +858,13 @@ export default function NiiVueport(props) {
         // In case that changes has been made
         if (drawingChanged) {
             setWarningConfirmationCallback(()=>(()=>{
-                saveDrawingLayer(() => {
+                saveDrawingLayer(async ()=>{
+                    if(pipeline)
+                        await dispatch(getPipelineROI({accessToken,pipeline}));
+                    setSaving(false);
                     openVolume();
+                },()=>{
+                    setSaving(true);
                 });
             }));
             setWarningCancelCallback(()=>(()=>{
@@ -957,6 +970,7 @@ export default function NiiVueport(props) {
     const [selectedDuringSaving, setSelectedDuringSaving]= useState(false);
     const selectDrawingLayer = async (roiIndex) => {
         // console.log(nv.drawBitmap);
+        console.log(props.rois[roiIndex].link);
         await unzipAndRenderDrawingLayer(props.rois[roiIndex].link);
         setSelectedDrawingLayer(roiIndex);
         setSelectedDuringSaving(true);
@@ -1053,7 +1067,8 @@ export default function NiiVueport(props) {
         roiVisible,
         toggleROIVisible,
         drawingOpacity,
-        setDrawingOpacity:nvUpdateDrawingOpacity
+        setDrawingOpacity:nvUpdateDrawingOpacity,
+        setDrawingChanged
     };
     return (
         <Box sx={{
@@ -1353,6 +1368,9 @@ export default function NiiVueport(props) {
 
                 labelsVisible={textsVisible}
                 toggleLabelsVisible={nvToggleLabelVisible}
+
+                saving={saving}
+                setSaving = {setSaving}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}
