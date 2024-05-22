@@ -163,8 +163,8 @@ const closeDrawing = Niivue.prototype.closeDrawing;
 Niivue.prototype.closeDrawing = function(){
     if(this.drawBitmap!==undefined&&this.drawBitmap!==null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-     else if(this.hiddenBitmap!==undefined)
-         this.hiddenBitmap = [];
+    else if(this.hiddenBitmap!==undefined)
+        this.hiddenBitmap = [];
     closeDrawing.call(this);
 }
 
@@ -453,11 +453,11 @@ Niivue.prototype.drawSceneCore = function () {
 }; // drawSceneCore()
 
 Niivue.prototype.drawColorbarCore=function(layer = 0,
-    leftTopWidthHeight = [0, 0, 0, 0],
-    isNegativeColor = false,
-    min = 0,
-    max = 1,
-    isAlphaThreshold
+                                           leftTopWidthHeight = [0, 0, 0, 0],
+                                           isNegativeColor = false,
+                                           min = 0,
+                                           max = 1,
+                                           isAlphaThreshold
 ) {
     if (leftTopWidthHeight[2] <= 0 || leftTopWidthHeight[3] <= 0) {
         return
@@ -1056,6 +1056,7 @@ Niivue.prototype.drawPenFilled = function() {
 
 Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
                                     original=undefined,setOriginal=(original)=>{}){
+    console.log(this.volumes);
     let volume = this.volumes[0];
     if(volume==undefined){
         return;
@@ -1069,20 +1070,30 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
     }else{
         this.drawBitmap = new Uint8Array(original);
     }
+    console.log(volume.img.length);
+    console.log(this.drawBitmap.length);
     // Next write into the drawbitmap where voxel value are within range,
     // no need to write into hidden bitmap specifically due to the post-processing
     // step, where draw bitmap values will be hidden accordingly
-    for(let i = 0; i<this.drawBitmap.length; i++){
-        if((!inverted&&(min<=volume.img[i]&&max>=volume.img[i]))||
-            //Note here that e-4 is not a trivial value,
-            // we can do this here because ranges beneath e-4 will be rescaled inside
-            // the checkRange function inside Niivue.jsx. It is still not entirely safe
-            // but a necessary step for inclusive range checking under float inprecisions
-            (inverted&&(min>=volume.img[i]||max<=volume.img[i]))){
-            // console.log('filling');
-            this.drawBitmap[i]=penValue;
-        }
-    }
+
+    const dx = this.back.dims[1]
+    const dy = this.back.dims[2]
+    const dz = this.back.dims[3]
+    for(let x = 0; x<dx; x++)
+        for(let y = 0; y<dy; y++)
+            for(let z = 0; z<dz; z++){
+                let i = x + y*dx + z*dx*dy;
+                let val = volume.getValue(x,y,z);
+                if((!inverted&&(min<=val&&max>=val))||
+                    //Note here that e-4 is not a trivial value,
+                    // we can do this here because ranges beneath e-4 will be rescaled inside
+                    // the checkRange function inside Niivue.jsx. It is still not entirely safe
+                    // but a necessary step for inclusive range checking under float inprecisions
+                    (inverted&&(min>=val||max<val))){
+                    // console.log('filling');
+                    this.drawBitmap[i]=penValue;
+                }
+            }
     // Next update drawUndoBitmaps pipeline
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
@@ -1367,7 +1378,7 @@ Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
     return base64!==undefined;
 }
 
- // not included in public docs
+// not included in public docs
 // show text labels for L/R, A/P, I/S dimensions
 Niivue.prototype.drawSliceOrientationText = function(leftTopWidthHeight, axCorSag) {
     if(this.hideText){
