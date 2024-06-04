@@ -68,7 +68,7 @@ const Setup = () => {
     }, []);
 
     const dispatch = useAppDispatch();
-    const {accessToken,level, uploadToken, queueToken} = useAppSelector((state) => state.authenticate);
+    const {accessToken,level} = useAppSelector((state) => state.authenticate);
     const developer = level!='standard'&&level!='pro';
     const editActive = useAppSelector(state => state.setup.editInProgress);
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
@@ -170,8 +170,7 @@ const Setup = () => {
     const UploadHeaders: AxiosRequestConfig = {
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'X-Api-Key': uploadToken
+            'Authorization': `Bearer ${accessToken}`
         },
     };
     const createPayload = async (file: File, fileAlias: string) => {
@@ -558,7 +557,7 @@ const Setup = () => {
                             dispatch(jobActions.resetSubmissionState());
                             console.log(selectedJobs);
                             // @ts-ignore
-                            dispatch(submitJobs({accessToken,queueToken, jobQueue: selectedJobs}));
+                            dispatch(submitJobs({accessToken, jobQueue: selectedJobs}));
                             setSnackOpen(true);
                         }
                     }}>Submit Jobs</CmrButton>
@@ -604,7 +603,7 @@ const Setup = () => {
                                                     marginBottom: 'auto',
                                                     // background:'#580F8B'
                                                 }}
-                                              uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData,'signal')}
+                                              uploadHandler={uploadHandlerFactory(accessToken,dispatch,uploadData,'signal')}
                                               chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
                                 />
                                 :<Button variant={"contained"} size={'medium'} style={{textTransform:'none',height:'fit-content'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
@@ -641,7 +640,7 @@ const Setup = () => {
                                                       })}
                                                       style={{height: 'fit-content', marginLeft: '2pt'}}
                                                       chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
-                                                      uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData,'noise')}
+                                                      uploadHandler={uploadHandlerFactory(accessToken,dispatch,uploadData,'noise')}
                                         />:<Button variant={"contained"} size={'medium'} style={{textTransform:'none'}} sx={{overflowWrap:'inherit'}} color={'primary'} disabled={true}>
                                                 Uploading {+(noiseProgress*99).toFixed(2)}%
                                             </Button>}

@@ -2,6 +2,7 @@ import {CLOUDMR_SERVER, PROFILE_SERVER, MRO_SERVER, API_URL} from "./env";
 
 export const SIGNIN = `${CLOUDMR_SERVER}/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
 export const FINEGRAIN = `${API_URL}/auth`;
+
 export const SIGNOUT= `${CLOUDMR_SERVER}/logout`;//https://cloudmrhub.com/api/auth/logout`;
 export const PROFILE = `${PROFILE_SERVER}/profile`;
 export const DATAAPI = `${MRO_SERVER}/readdata`;

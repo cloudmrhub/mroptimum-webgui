@@ -26,7 +26,6 @@ import {getFileExtension} from "../../common/utilities";
 import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import axios, {AxiosRequestConfig} from "axios";
-import {AxiosResponse} from "axios/index";
 import {uploadHandlerFactory} from "../../features/SystemUtilities";
 const getDataMethod = async (accessToken: string) => {
     const config = {
@@ -271,7 +270,7 @@ const Home = () => {
     ];
 
     const dispatch = useAppDispatch();
-    const { accessToken, uploadToken } = useAppSelector((state) => state.authenticate);
+    const { accessToken } = useAppSelector((state) => state.authenticate);
     const { files } = useAppSelector((state) => state.data);
     const jobsData = useAppSelector((state)=>state.jobs.jobs);
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
@@ -389,7 +388,7 @@ const Home = () => {
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }}
-                                      uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData)}
+                                      uploadHandler={uploadHandlerFactory(accessToken,dispatch,uploadData)}
                             createPayload={createPayload} maxCount={1}></CMRUpload>
                        </div>
                     </div>
