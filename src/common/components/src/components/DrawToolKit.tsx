@@ -47,6 +47,7 @@ export interface DrawToolkitProps{
 
     labelsVisible:boolean;
     toggleLabelsVisible: ()=>void;
+    setDrawingChanged: (changed:boolean)=>void;
 }
 
 export const DrawToolkit = (props:DrawToolkitProps)=>{
@@ -121,7 +122,10 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                 </IconButton>
             </Stack>
             <MaskPlatte
-                resampleImage={props.resampleImage}
+                resampleImage={()=>{
+                    props.resampleImage();
+                    props.setDrawingChanged(true);
+                }}
                 expanded={expandedOption=='m'}
                 nv={props.nv}
                 setMaskColor={setMaskColor}

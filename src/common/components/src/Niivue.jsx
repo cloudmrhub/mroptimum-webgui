@@ -22,6 +22,8 @@ import {calculateMean, calculateStandardDeviation} from "./components/stats";
 import JSZip from "jszip";
 import {NiiFile} from "../../../features/rois/resultSlice";
 import {getMax, getMin} from "../../utilities";
+import {getPipelineROI} from "../../../features/rois/resultActionCreation";
+import {useAppDispatch, useAppSelector} from "../../../features/hooks";
 
 export const nv = new Niivue({
     loadingText: '',
@@ -102,6 +104,8 @@ export default function NiiVueport(props) {
     const [textsVisible, setTextsVisible] = useState(true);
 
     const [transformFactors, setTransformFactors] = useState({a: 1, b:0});
+
+    const [saving, setSaving] = useState(false);
 
     React.useEffect(() => {
         if(props.displayVertical)
@@ -427,7 +431,7 @@ export default function NiiVueport(props) {
     }
 
     const [dragMode, setDragMode] = useState("pan");
-    
+
     function nvSetDragMode(dragMode){
         switch (dragMode) {
             case "none":
@@ -450,9 +454,9 @@ export default function NiiVueport(props) {
 
     function nvSaveImage() {
         nv.saveImage({
-                filename:'roi.nii',
-                isSaveDrawing: true,
-            });
+            filename:'roi.nii',
+            isSaveDrawing: true,
+        });
     }
 
     function nvUpdateDrawingEnabled() {
@@ -745,21 +749,21 @@ export default function NiiVueport(props) {
         let traces = [];
         for(let roi of rois){
             // if(roi.visibility){
-                traces.push({
-                    x: roi.sample,
-                    type: "histogram",
-                    name: roi.alias,
-                    opacity: roi.visibility?0.5:0.1,
-                    marker: {
-                        color: roi.color,
-                    },
-                    autobinx:false,
-                    xbins: {
-                        // end: max,
-                        size:  (max-min)/100,
-                        // start: min
-                    }
-                });
+            traces.push({
+                x: roi.sample,
+                type: "histogram",
+                name: roi.alias,
+                opacity: roi.visibility?0.5:0.1,
+                marker: {
+                    color: roi.color,
+                },
+                autobinx:false,
+                xbins: {
+                    // end: max,
+                    size:  (max-min)/100,
+                    // start: min
+                }
+            });
             // }
         }
         if(verticalLayout){
@@ -824,17 +828,21 @@ export default function NiiVueport(props) {
         }
     }
 
+    let dispatch = useAppDispatch();
+    let accessToken = useAppSelector(state => state.authenticate.accessToken);
+    let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
+
     const selectVolume = async (volumeIndex) => {
         const openVolume = async ()=>{
-                nv.closeDrawing();
-                setDrawingChanged(false);
-                if(drawingEnabled)
-                    nvUpdateDrawingEnabled();
-                if (props.niis[selectVolume] !== undefined) {
-                    nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
-                }
+            nv.closeDrawing();
+            setDrawingChanged(false);
+            if(drawingEnabled)
+                nvUpdateDrawingEnabled();
+            if (props.niis[selectVolume] !== undefined) {
+                nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
+            }
             try{
-                    await nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
+                await nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
             }catch (e) {
                 setWarning("Error loading results, please check internet connectivity");
                 setWarningOpen(true);
@@ -844,14 +852,19 @@ export default function NiiVueport(props) {
                 },2500)
                 return;
             }
-                setSelectedVolume(volumeIndex);
-                setSelectedDrawingLayer('');
+            setSelectedVolume(volumeIndex);
+            setSelectedDrawingLayer('');
         }
         // In case that changes has been made
         if (drawingChanged) {
             setWarningConfirmationCallback(()=>(()=>{
-                saveDrawingLayer(() => {
+                saveDrawingLayer(async ()=>{
+                    if(pipeline)
+                        await dispatch(getPipelineROI({accessToken,pipeline}));
+                    setSaving(false);
                     openVolume();
+                },()=>{
+                    setSaving(true);
                 });
             }));
             setWarningCancelCallback(()=>(()=>{
@@ -957,6 +970,7 @@ export default function NiiVueport(props) {
     const [selectedDuringSaving, setSelectedDuringSaving]= useState(false);
     const selectDrawingLayer = async (roiIndex) => {
         // console.log(nv.drawBitmap);
+        console.log(props.rois[roiIndex].link);
         await unzipAndRenderDrawingLayer(props.rois[roiIndex].link);
         setSelectedDrawingLayer(roiIndex);
         setSelectedDuringSaving(true);
@@ -1053,7 +1067,8 @@ export default function NiiVueport(props) {
         roiVisible,
         toggleROIVisible,
         drawingOpacity,
-        setDrawingOpacity:nvUpdateDrawingOpacity
+        setDrawingOpacity:nvUpdateDrawingOpacity,
+        setDrawingChanged
     };
     return (
         <Box sx={{
@@ -1353,6 +1368,9 @@ export default function NiiVueport(props) {
 
                 labelsVisible={textsVisible}
                 toggleLabelsVisible={nvToggleLabelVisible}
+
+                saving={saving}
+                setSaving = {setSaving}
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                           open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}
@@ -1366,7 +1384,7 @@ export default function NiiVueport(props) {
                               cancellable={true}
                               cancelCallback={() => {
                               }}
-                              // suffix={'.zip'}
+                // suffix={'.zip'}
                               defaultText={(props.rois[selectedROI] !== undefined ?
                                   props.rois[selectedROI].filename : undefined)}
             />
@@ -1447,7 +1465,7 @@ function niiToVolume(nii){
         url: nii.link,
         //name is for NiiVue name replacer (needs proper extension like .nii)
         name: (nii.filename.split('/').pop()),
-    //alias is for user selection in toolbar
-    alias: nii.name
-};
+        //alias is for user selection in toolbar
+        alias: nii.name
+    };
 }

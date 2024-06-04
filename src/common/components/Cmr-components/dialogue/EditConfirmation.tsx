@@ -7,6 +7,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import CmrButton from '../button/Button';
 import { InputAdornment } from '@mui/material';
+import {useEffect} from "react";
 
 export interface EditConfirmationProps{
     name?: string; // Equivalent to string | undefined
@@ -24,6 +25,10 @@ export interface EditConfirmationProps{
 export default function EditConfirmation({ name,message, defaultText='',
     color, open, setOpen, confirmCallback=()=>{}, cancellable=false, cancelCallback=()=>{},suffix=''}:EditConfirmationProps) {
     const [text, setText] = React.useState(defaultText);
+    useEffect(() => {
+        if(open)
+            setText(defaultText);
+    }, [open]);
     const handleClose = () => {
         setOpen(false);
     };
@@ -53,7 +58,7 @@ export default function EditConfirmation({ name,message, defaultText='',
                                        <InputAdornment position="end"  sx={{ whiteSpace: 'nowrap' }}>{suffix}</InputAdornment>
                                    ),
                                }}
-                               defaultValue={defaultText} onChange={(e)=>setText(e.target.value)}/>
+                               defaultValue={text} onChange={(e)=>setText(e.target.value)}/>
                 </DialogActions>
                 <DialogActions>
                     {cancellable&&

@@ -43,10 +43,13 @@ interface ToolbarProps {
 
     labelsVisible:boolean;
     toggleLabelsVisible:()=>void;
+
+    saving: boolean;
+    setSaving: (saving:boolean)=>void;
 }
 
 export default function Toolbar(props:ToolbarProps) {
-    const [saving,setSaving] = React.useState(false);
+    const {saving, setSaving} = props;
     let dispatch = useAppDispatch();
     function handleSliceTypeChange(e: { target: { value: any } }) {
         let newSliceType = e.target.value

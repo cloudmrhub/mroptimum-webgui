@@ -40,7 +40,8 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
 
     return (
         <nav className="navbar navbar-expand-md navbar-dark bg-dark shadow-sm" style={{background: '#000000'}}>
-            <div className="container-xl small-margin">
+            {/*add small-margin to className to align header content to the ends*/}
+            <div className="container-xl">
                 <Link to="/" className="navbar-brand">
                     {siteTitle}
                 </Link>
@@ -57,11 +58,9 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
                             return <li className={`nav-item${(menuItem.title==menuSelect)?' active':''}`} key={menuItem.path}>
                                 <a className='nav-link' style={{cursor:'pointer'}} onClick={(event)=>{
                                     switch(menuItem.title) {
-                                        case 'About':
-                                            window.location.href='https://cloudmrhub.com/about';
-                                            return;
-                                        case 'Contact Us':
-                                            window.location.href='https://cloudmrhub.com/contact';
+                                        case 'Bug Report':
+                                            window.open('https://github.com/cloudmrhub-com/mroptimum/issues')
+                                            // window.location.href='https://github.com/cloudmrhub-com/mroptimum/issues';
                                             return;
                                     }
                                     event.preventDefault();

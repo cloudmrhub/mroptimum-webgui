@@ -591,8 +591,8 @@ export const setupSlice = createSlice({
             }
         });
         builder.addCase(uploadData.fulfilled, (state:SetupState, action)=>{
-            let {code,response, file,uploadTarget} = action.payload;
-            console.log(response);
+            let {code, file,uploadTarget} = action.payload;
+            // console.log(response);
             if(uploadTarget=='signal'){
                 state.signalUploadProgress = -1;
                 if(code==200&&file){
