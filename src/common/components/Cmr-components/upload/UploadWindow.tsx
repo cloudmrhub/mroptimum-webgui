@@ -273,13 +273,20 @@ export default function UploadWindow({
                             <Typography component="div" style={{height: '100%'}}>
                                 <Box style={{
                                     display: 'flex',
+                                    flexDirection: 'column',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     height: '100%'
                                 }}
                                      onClick={fileInputClick}
                                      ref={fileInput}>
-                                    {uploadBoxWarning != undefined ? uploadBoxWarning : 'Drag & Drop or Click to Upload Your File Here'}
+        <Typography variant="body1" align="center" style={{marginTop: 'auto'}}>
+            Drag & Drop or Click to Upload Your File Here <sup>*</sup>
+        </Typography>
+        <Typography variant="body2" align="center" style={{marginTop: 'auto',fontSize: '0.8rem', fontStyle:'italic'}}>
+            * Only files without protected health information (PHI) can be uploaded
+        </Typography>
+                                    
                                 </Box>
                             </Typography>
                         </Box>
