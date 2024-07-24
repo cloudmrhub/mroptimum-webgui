@@ -650,7 +650,7 @@ const Setup = () => {
                             </Row>
                         </Fragment>}
                 </CmrPanel>
-                <CmrPanel key="2" header={editing == -1 ? "SNR Setup" : `Editing Job ${editing}`} className='mb-2'>
+                <CmrPanel key="2" header={editing == -1 ? "SNR Analysis Method" : `Editing Job ${editing}`} className='mb-2'>
                     <FormControl style={{width: '100%'}} className={'mb-3'} onChange={(event) => {
                         //@ts-ignore
                         if (event.target.value != analysisMethod)
@@ -658,7 +658,7 @@ const Setup = () => {
                         //@ts-ignore
                         dispatch(setupSetters.setAnalysisMethod(event.target.value));
                     }}>
-                        <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel>
+                        {/* <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel> */}
                         <RadioGroup
                             row
                             aria-labelledby="demo-row-radio-buttons-group-label"
@@ -666,7 +666,7 @@ const Setup = () => {
                             value={analysisMethod!=undefined?analysisMethod:''}
                             style={{display: 'flex', justifyContent: 'space-between'}}
                         >
-                            <FormControlLabel value={0} control={<Radio/>} label="Array Combining"/>
+                            <FormControlLabel value={0} control={<Radio/>} label="Analytic Method"/>
                             <FormControlLabel value={1} control={<Radio/>} label="Multiple Replica"/>
                             <FormControlLabel value={2} control={<Radio/>} label="Pseudo Multiple Replica"/>
                             <FormControlLabel value={3} control={<Radio/>} label="Pseudo Multiple Replica Wein"/>

@@ -19,7 +19,7 @@ export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleCl
         setSNRAlias( e.target.value);
     }
     return  <Dialog open={snrContent!=undefined} onClose={handleClose} fullWidth={true}>
-        <DialogTitle  sx={{ml:2,mt:2,mr:2, p:1}}>Edit SNR Setup</DialogTitle>
+        <DialogTitle  sx={{ml:2,mt:2,mr:2, p:1}}>Edit SNR Set Up</DialogTitle>
         <DialogContent sx={{m:2, mt:0, mb:0, p:1}} dividers>
             <TextField
                 multiline
