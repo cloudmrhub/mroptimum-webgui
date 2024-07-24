@@ -43,8 +43,17 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
             {/*add small-margin to className to align header content to the ends*/}
             <div className="container-xl">
                 <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
-<div style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', display: 'inline-block' }}>
-    <img src={process.env.PUBLIC_URL + '/mroptimum.png'} alt="Logo" style={{height: '40px', width: '40px'}} /> {/* adjust height and width as needed */}
+{/* <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', display: 'inline-block' }}> */}
+<div style={{ 
+        backgroundColor: 'white', 
+        borderRadius: '30%', 
+        width: '50px', 
+        height: '50px', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    }}>
+    <img src={process.env.PUBLIC_URL + '/mroptimum_logo.png'} alt="Logo" style={{height: '40px', width: '40px'}} /> {/* adjust height and width as needed */}
 </div>                    {/* {siteTitle} */}
                 </Link>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse"

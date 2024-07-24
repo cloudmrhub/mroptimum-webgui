@@ -10,7 +10,7 @@ import {getProfile} from "../../features/authenticate/authenticateActionCreation
 const Main = (props: any) => {
     const tabData = [
         { id: 1, text: 'Home', children: <Home {...props}/>},
-        { id: 2, text: 'Set up', children: <Setup {...props}/>},
+        { id: 2, text: 'Set Up', children: <Setup {...props}/>},
         { id: 3, text: 'Results', children: <Results {...props}/>},
     ];
     const [focusedTab,setFocusedTab] = useState(1);

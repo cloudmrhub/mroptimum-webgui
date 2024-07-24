@@ -201,7 +201,7 @@ const Home = () => {
         },
         {
             field: 'options',
-            headerName: 'Options',
+            headerName: 'Actions',
             sortable: false,
             width: 160,
             disableClickEventBubbling: true,

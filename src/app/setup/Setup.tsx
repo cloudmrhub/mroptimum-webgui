@@ -329,7 +329,7 @@ const Setup = () => {
         },
         {
             field: 'options',
-            headerName: 'Options',
+            headerName: 'Actions',
             sortable: false,
             width: 160,
             disableColumnMenu: true,
