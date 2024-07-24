@@ -1,16 +1,16 @@
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import Select from "@mui/material/Select";
-import {Button, MenuItem} from "@mui/material";
+// import DialogContentText from "@mui/material/DialogContentText";
+// import Select from "@mui/material/Select";
+// import {Button, MenuItem} from "@mui/material";
 import DialogActions from "@mui/material/DialogActions";
 import React, {ChangeEvent, useState} from "react";
 import TextField from "@mui/material/TextField";
-import {store} from "../../features/store";
+// import {store} from "../../features/store";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
 
-export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleClose,editText='Edit JSON',queueText='Finish Editing'}:
+export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleClose,editText='Edit Set Up',queueText='Cancel'}:
                                {snrAlias:string,setSNRAlias:(alias:string)=>void, snrContent: string|undefined, confirm: ()=>void, edit: ()=>void, handleClose: ()=>void,
                                     editText?:string, queueText?:string
 })=>{
@@ -24,7 +24,7 @@ export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleCl
             <TextField
                 multiline
                 fullWidth
-                label="Current SNR JSON:"
+                // label="Current SNR JSON:"
                 maxRows={15} // Adjust as needed
                 // sx={{height:'60vh'}}
                 style={{
