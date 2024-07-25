@@ -38,13 +38,13 @@ const CmrPanel = function(props:CmrPanelProps){
         {
             (!expanded)?
                 <div className={`card-body m-0 ${props.cardProps?.className}`} style={
-                    {maxHeight:'0',padding:'0', opacity:'0',overflow:'hidden',
+                    {maxHeight:'0',padding:0, opacity:'0',overflow:'hidden',
                         visibility:'collapse',transition:'all 0.5s'}}>
                     {props.children}
                 </div>
                 :
                 <div className={`card-body m-5 ${props.cardProps?.className}`} style={
-                    {maxHeight:undefined,padding:undefined, opacity:'1',
+                    {maxHeight:undefined,padding:0, opacity:'1',
                         visibility:'visible',transition:'all 0.5s'}}>
                     {props.children}
                 </div>}
