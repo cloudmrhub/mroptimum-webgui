@@ -28,11 +28,11 @@ function AboutPage() {
                             {funding}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">References</p>
+                            <p className="cmTitle">References </p>
                             {refs}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">Publications using MR Optimum</p>
+                            <p className="cmTitle">Publications citing MR Optimum</p>
                             {publications}
                         </div>
                     </div>
@@ -75,11 +75,7 @@ const funding = (
                 MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number R01 EB024536. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
             </div>
         </div>
-        <div>
-    <img src={nibib} style={{ width: '200px', marginTop: "5pt", marginBottom: "5pt" }}/>
-    <img src={CBILogo} style={{ width: '200px', marginTop: "5pt", marginBottom: "5pt" }}/>
-    <img src={CAI} style={{ width: '200px', marginTop: "5pt", marginBottom: "5pt" }}/>
-</div>
+
     </div>
 );
 

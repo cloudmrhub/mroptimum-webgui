@@ -164,14 +164,14 @@ export default function UploadWindow({
             setFileAlias(file.name);
             const units = [
                 "B",
-                "KiB",
-                "MiB",
-                "GiB",
-                "TiB",
-                "PiB",
-                "EiB",
-                "ZiB",
-                "YiB",
+                "KB",
+                "MB",
+                "GB",
+                "TB",
+                "PB",
+                "EB",
+                "ZB",
+                "YB",
             ];
             let numberOfBytes = file.size;
             const exponent = Math.min(

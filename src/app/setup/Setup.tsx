@@ -844,7 +844,7 @@ const Setup = () => {
                                                         <FormControlLabel value="0" control={<Radio />} label="Do Not Mask Coil Sensitivities Maps" />
                                                         <FormControlLabel value="1" control={<Radio />}
                                                             label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                Use Percent Threshold
+                                                                Use Percent Threshold of the Max Value
                                                                 {maskMethod === 1 && (
                                                                 <>
                                                                 <CmrInputNumber value={maskThreshold}

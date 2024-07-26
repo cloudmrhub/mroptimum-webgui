@@ -129,7 +129,7 @@ export default function Toolbar(props:ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="drag-mode-label">Drag mode</InputLabel>
+                        <InputLabel id="drag-mode-label">Right Button</InputLabel>
                         <Select
                             labelId="drag-mode-label"
                             id="drag-mode"
