@@ -5,7 +5,6 @@ import {Job, SetupInterface} from "../jobs/jobsSlice";
 import moment from "moment/moment";
 import {submitJobs} from "./setupActionCreation";
 import {uploadData} from "../data/dataActionCreation";
-import {formatBytes} from "../../common/utilities";
 
 interface SetupState {
     loading: boolean;
