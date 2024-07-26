@@ -9,10 +9,10 @@ import nibib from '../../assets/about-us/nibib_logo.png';
 
 function AboutPage() {
     return (
-        <div className="m-4 row" id={'about-root'} style={{justifyContent: 'center', display: 'flex', fontSize:'11pt'}}>
+        <div className="m-4 row" id={'about-root'} style={{justifyContent: 'center', display: 'flex'}}>
             <div className="col-md-6">
                 <div className="card">
-                    <div className="card-header">About</div>
+                    <div className="card-header p-2">About</div>
 
                     <div className="m-5">
                         <div className="container py-1">
@@ -32,7 +32,7 @@ function AboutPage() {
                             {refs}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">Publications using Cloud MR</p>
+                            <p className="cmTitle">Publications using MR Optimum</p>
                             {publications}
                         </div>
                     </div>
@@ -48,10 +48,12 @@ const description = (
             MR Optimum is a web-based application for the evaluation of MR image quality in terms of signal-to-noise ratio (SNR). It provides standardized access to the most common methods for SNR calculation.
             <ul style={{ marginBottom: "0px" }}>
                 <li><b>Developers</b>:
-                    <a href="https://med.nyu.edu/faculty/riccardo-lattanzi" target="_blank">Riccardo Lattanzi, PhD</a>,
-                    <a href="https://github.com/erosmontin" target="_blank">Eros Montin, PhD</a>,
-                    Roy Wiggins,
-                    Yuelong Li
+                <ul style={{ marginBottom: "0px" }}>
+                    <li><a href="https://med.nyu.edu/faculty/riccardo-lattanzi" target="_blank">Riccardo Lattanzi, PhD</a></li>
+                    <li><a href="https://github.com/erosmontin" target="_blank">Eros Montin, PhD</a></li>
+                    <li><a href="https://cai2r.net/about/team/#roy-wiggins" target="_blank">Roy Wiggins</a></li>
+                    <li><a href="https://https://github.com/YuelongLi" target="_blank">Yuelong Li</a></li>
+                </ul>
                 </li>
             </ul>
         </div>
