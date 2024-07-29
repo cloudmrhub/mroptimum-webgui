@@ -349,14 +349,14 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 accessToken={accessToken}/>}
                     {activeJob == undefined &&
                         <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-                            Please Slect a Job Result
+                            Please Select a Job Result
                         </Box>}
                 </CmrPanel>
                 <CmrPanel header={'Current Job Settings'} key={'2'}>
 
                     {activeJob == undefined ?
                         <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-                            Please Slect a Job Result
+                            Please Select a Job Result
                         </Box> :
                         <SetupInspection/>
                     }

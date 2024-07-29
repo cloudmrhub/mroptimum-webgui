@@ -42,7 +42,7 @@ export const SetupInspection = ()=>{
         "Array Combining",
         "Multiple Replica",
         "Pseudo Multiple Replica",
-        "Pseudo Multiple Replica Wiens"
+        "Generalized Pseudo-Replica"
     ];
 
     const idToSecondaryOptions = ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA'];
@@ -244,7 +244,7 @@ export const SetupInspection = ()=>{
 }
 
 const SettingsText = (props:any)=>{
-    return <span style={{color:'#580F8B'}} {...props}/>
+    return <span  {...props}/>
 }
 
 const SettingsBox = (props:any)=>{

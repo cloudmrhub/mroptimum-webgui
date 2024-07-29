@@ -669,7 +669,7 @@ const Setup = () => {
                             <FormControlLabel value={0} control={<Radio />} label="Analytic Method" />
                             <FormControlLabel value={1} control={<Radio />} label="Multiple Replica" />
                             <FormControlLabel value={2} control={<Radio />} label="Pseudo Multiple Replica" />
-                            <FormControlLabel value={3} control={<Radio />} label="Pseudo Multiple Replica Wiens" />
+                            <FormControlLabel value={3} control={<Radio />} label="Generalized Pseudo-Replica" />
                         </RadioGroup>
                     </FormControl>
 

@@ -57,16 +57,14 @@ const description = (
     <div className="cmParagraph">
         <div className="cmText">
             MR Optimum is a web-based application for the evaluation of MR image quality in terms of signal-to-noise ratio (SNR). It provides standardized access to the most common methods for SNR calculation.
-            <ul style={{ marginBottom: "0px" }}>
-                <li><b>Developers</b>:
+            
                 <ul style={{ marginBottom: "0px" }}>
                     <li><a href="https://med.nyu.edu/faculty/riccardo-lattanzi" target="_blank">Riccardo Lattanzi, PhD</a></li>
                     <li><a href="https://github.com/erosmontin" target="_blank">Eros Montin, PhD</a></li>
                     <li><a href="https://cai2r.net/about/team/#roy-wiggins" target="_blank">Roy Wiggins</a></li>
                     <li><a href="https://https://github.com/YuelongLi" target="_blank">Yuelong Li</a></li>
                 </ul>
-                </li>
-            </ul>
+                
         </div>
     </div>
 );
