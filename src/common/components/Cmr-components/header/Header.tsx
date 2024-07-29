@@ -45,7 +45,7 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
                 <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
 {/* <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', display: 'inline-block' }}> */}
 <div style={{ 
-        backgroundColor: 'white', 
+        // backgroundColor: 'white', 
         borderRadius: '30%', 
         width: '50px', 
         height: '50px', 
@@ -53,7 +53,7 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
         justifyContent: 'center', 
         alignItems: 'center' 
     }}>
-    <img src={process.env.PUBLIC_URL + '/mroptimum_logo.png'} alt="Logo" style={{height: '40px', width: '40px'}} /> {/* adjust height and width as needed */}
+    <img src={process.env.PUBLIC_URL + '/MR Optimum_final_white.png'} alt="Logo" style={{height: '40px', width: '40px'}} /> {/* adjust height and width as needed */}
 </div>                    {/* {siteTitle} */}
                 </Link>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse"

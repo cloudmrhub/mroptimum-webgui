@@ -60,6 +60,9 @@ export default function Toolbar(props:ToolbarProps) {
     let dragModes = ["Pan","Measurement","Contrast",'None'];
     let accessToken = useAppSelector(state => state.authenticate.accessToken);
     let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
+
+    
+
     return (
         <Box  sx={{display:'flex', flexDirection:'column',width:'100%'}}>
             {props.volumes[props.selectedVolume]!=undefined&&<Fragment>
@@ -88,12 +91,12 @@ export default function Toolbar(props:ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="slice-type-label">Opened Volume</InputLabel>
+                        <InputLabel id="slice-type-label">Current Plot</InputLabel>
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"
                             value={props.selectedVolume}
-                            label="Opened Volume"
+                            label="Current Plot"
                             onChange={(e)=>props.setSelectedVolume(Number(e.target.value))}
                         >
                             {props.volumes.map((value,index)=>{
@@ -112,7 +115,7 @@ export default function Toolbar(props:ToolbarProps) {
                             labelId="slice-type-label"
                             id="slice-type"
                             value={props.sliceType}
-                            label="Display mode"
+                            label="Display Mode"
                             onChange={handleSliceTypeChange}
                         >
                             <MenuItem value={'axial'}>Axial</MenuItem>
@@ -154,7 +157,7 @@ export default function Toolbar(props:ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="slice-type-label">Complex Mode</InputLabel>
+                        <InputLabel id="slice-type-label">Pixel Type</InputLabel>
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"

@@ -8,6 +8,9 @@ import CAI from '../../assets/about-us/CAI2R_PURPLE_RGB.png';
 import nibib from '../../assets/about-us/nibib_logo.png';
 
 function AboutPage() {
+    const imageUrl = `${process.env.PUBLIC_URL}/MR Optimum_final_purple.png`;
+    const cbiUrl = `${process.env.PUBLIC_URL}/CBI_crop.png`;
+
     return (
         <div className="m-4 row" id={'about-root'} style={{justifyContent: 'center', display: 'flex'}}>
             <div className="col-md-6">
@@ -15,6 +18,8 @@ function AboutPage() {
                     <div className="card-header p-2">About</div>
 
                     <div className="m-5">
+                    <img src={imageUrl} alt="MR Optimum" style={{marginBottom: '20px', height: '60px'}} />
+
                         <div className="container py-1">
                             <p className="cmTitle">MR Optimum</p>
                             {description}
@@ -24,17 +29,23 @@ function AboutPage() {
                             {doc}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">Acknowledgement of Funding Support</p>
+                            <p className="cmTitle">Funding Support</p>
                             {funding}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">References </p>
+                            <p className="cmTitle">Please cite the following publications if you usr MR Optimum </p>
                             {refs}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">Publications citing MR Optimum</p>
+                            <p className="cmTitle">Other works citing MR Optimum</p>
                             {publications}
                         </div>
+                        <div className="container py-1">
+                            <p className='cmTitle'>Acknowledgment</p>
+                            We are grateful to AWS for providing cloud technical support and promotional credits.
+                        </div>
+                        <img src={cbiUrl} alt="CBI" style={{marginBottom: '20px', height: '60px'}} />
+
                     </div>
                 </div>
             </div>
@@ -72,7 +83,7 @@ const funding = (
     <div>
         <div className="cmParagraph">
             <div className="cmText">
-                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number R01 EB024536. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
+                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number <span style={{fontWeight: 'bold'}}>R01 EB024536</span>. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
             </div>
         </div>
 
@@ -84,6 +95,9 @@ const refs = (
             <li className="cmReference">
         Montin E and Lattanzi R <em>Seeking a widely adoptable practical standard to estimate signal-to-noise ratio in magnetic resonance imaging for multiple-coil reconstructions</em>; Journal of Magnetic Resonance Imaging, vol 54(6), 2021, p. 1952-1964. <a href="https://doi.org/10.1002/jmri.27816">DOI: 10.1002/jmri.27816</a>
     </li>
+    <li>
+    Montin E, Wiggins R, Block KT, L. R. <em> MR optimum - A web-based application for signal-to-noise ratio evaluation.</em>  27th Scientific Meeting of the International Society for Magnetic Resonance in Medicine (ISMRM). Montreal (Canada), 11-16 May 2019, 4617. <a href="https://cds.ismrm.org/protected/19MProceedings/PDFfiles/4617.html">   abstract</a>
+    </li>
     </ul>
 );
 
@@ -91,7 +105,7 @@ const publications = (
     <ul style={{ marginBottom: "0pt", listStyleType: "none" }}>
 
     <li className="cmReference">
-        Zubkov, M. (2021). <em>Editorial for “Seeking a Widely Adoptable Practical Standard to Estimate Signal‐to‐Noise Ratio in Magnetic Resonance Imaging for Multiple‐Coil Reconstructions.”</em> In Journal of Magnetic Resonance Imaging (Vol. 54, Issue 6, pp. 1965–1966). Wiley. <a href="https://doi.org/10.1002/jmri.27819">DOI: 10.1002/jmri.27819</a>
+        Zubkov, M. (2021). <em>Editorial for “Seeking a Widely Adoptable Practical Standard to Estimate Signal‐to‐Noise Ratio in Magnetic Resonance Imaging for Multiple‐Coil Reconstructions.”</em> In Journal of Magnetic Resonance Imaging (Vol. 54, Issue 6, pp. 1965-1966). Wiley. <a href="https://doi.org/10.1002/jmri.27819">DOI: 10.1002/jmri.27819</a>
     </li>
     <li className="cmReference">
         Testagrossa, B., Ruello, E., Gurgone, S. et al. (2021). <em>Radio Frequency MRI coils and safety: how infrared thermography can support quality assurance.</em> Egypt J Radiol Nucl Med 52, 277. <a href="https://doi.org/10.1186/s43055-021-00659-y">DOI: 10.1186/s43055-021-00659-y</a>
@@ -103,7 +117,7 @@ const publications = (
         Berkarda, Z., Wiedemann, S., Wilpert, C., Strecker, R., Koerzdoerfer, G., Nickel, D., Bamberg, F., Benndorf, M., Mayrhofer, T., Frederik Russe, M., Weiss, J., & Diallo, T. D. (2024). <em>Deep learning reconstructed T2-weighted Dixon imaging of the spine: Impact on acquisition time and image quality.</em> In European Journal of Radiology (p. 111633). Elsevier BV. <a href="https://doi.org/10.1016/j.ejrad.2024.111633">DOI: 10.1016/j.ejrad.2024.111633</a>
     </li>
     <li className="cmReference">
-        Obermann, M., Nohava, L., Frass-Kriegl, R., Soanca, O., Ginefri, J. C., Felblinger, J., Clauser, P., Baltzer, P. A. T., & Laistler, E. (2023). <em>Panoramic Magnetic Resonance Imaging of the Breast With a Wearable Coil Vest.</em> Investigative radiology, 58(11), 799–810. <a href="https://doi.org/10.1097/RLI.0000000000000991">DOI: 10.1097/RLI.0000000000000991</a>
+        Obermann, M., Nohava, L., Frass-Kriegl, R., Soanca, O., Ginefri, J. C., Felblinger, J., Clauser, P., Baltzer, P. A. T., & Laistler, E. (2023). <em>Panoramic Magnetic Resonance Imaging of the Breast With a Wearable Coil Vest.</em> Investigative radiology, 58(11), 799-810. <a href="https://doi.org/10.1097/RLI.0000000000000991">DOI: 10.1097/RLI.0000000000000991</a>
     </li>
     <li className="cmReference">
         Wang, B., Siddiq, S.S., Walczyk, J. et al. (2022). <em>A flexible MRI coil based on a cable conductor and applied to knee imaging.</em> Sci Rep 12, 15010. <a href="https://doi.org/10.1038/s41598-022-19282-6">DOI: 10.1038/s41598-022-19282-6</a>
