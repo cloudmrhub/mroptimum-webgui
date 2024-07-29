@@ -18,7 +18,7 @@ function AboutPage() {
                     <div className="card-header p-2">About</div>
 
                     <div className="m-5">
-                    <img src={imageUrl} alt="MR Optimum" style={{marginBottom: '20px', height: '60px'}} />
+                    <img src={imageUrl} alt="MR Optimum" style={{marginBottom: '20px', height: '60px',margin:'0pt'}} />
 
                         <div className="container py-1">
                             <p className="cmTitle">MR Optimum</p>
@@ -44,7 +44,7 @@ function AboutPage() {
                             <p className='cmTitle'>Acknowledgment</p>
                             We are grateful to AWS for providing cloud technical support and promotional credits.
                         </div>
-                        <img src={cbiUrl} alt="CBI" style={{marginBottom: '20px', height: '60px'}} />
+                        <img src={cbiUrl} alt="CBI" style={{marginBottom: '20px', height: '60px', marginTop: '1.5em'}} />
 
                     </div>
                 </div>
