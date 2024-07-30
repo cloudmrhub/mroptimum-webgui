@@ -42,10 +42,10 @@ export const SetupInspection = ()=>{
         "Array Combining",
         "Multiple Replica",
         "Pseudo Multiple Replica",
-        "Pseudo Multiple Replica Wein"
+        "Generalized Pseudo-Replica"
     ];
 
-    const idToSecondaryOptions = ['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa'];
+    const idToSecondaryOptions = ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA'];
     const coilOptionAlias: { [options: string]: string } = {
         'inner': 'Internal Reference',
         'innerACL': 'Internal Reference with AutoCalibration Lines'
@@ -58,11 +58,11 @@ export const SetupInspection = ()=>{
     const kernelSizeRows: GridRowsProp = [
         {
             id: 1,
-            type: 'Kernel size 1',
+            type: 'Kernel Size 1',
         },
         {
             id: 2,
-            type: 'Kernel size 2',
+            type: 'Kernel Size 2',
         }];
     const kernelSizeColumns: GridColDef[] = [
         {field: 'type', headerName: 'type', width: 180, editable: false},
@@ -93,11 +93,11 @@ export const SetupInspection = ()=>{
     const rows: GridRowsProp = [
         {
             id: 1,
-            type: 'Acceleration factor 1',
+            type: 'Acceleration Factor 1',
         },
         {
             id: 2,
-            type: 'Acceleration factor 2',
+            type: 'Acceleration Factor 2',
         },
         {
             id: 3,
@@ -244,7 +244,7 @@ export const SetupInspection = ()=>{
 }
 
 const SettingsText = (props:any)=>{
-    return <span style={{color:'#580F8B'}} {...props}/>
+    return <span  {...props}/>
 }
 
 const SettingsBox = (props:any)=>{

@@ -60,7 +60,7 @@ export default function CmrNameDialog(props: {originalName: string; renamingCall
             <Dialog open={open} onClose={handleClose}  fullWidth
                     maxWidth="xs">
                 <DialogTitle>
-                    Renaming file {originalName} to:
+                Rename the File {originalName} as:
                 </DialogTitle>
                 <DialogContent>
                     {/*<DialogContentText>*/}

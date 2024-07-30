@@ -133,7 +133,7 @@ const Results = ({visible}:{visible?:boolean}) => {
         },
         {
             field: 'action',
-            headerName: 'Action',
+            headerName: 'Actions',
             sortable: false,
             width: 160,
             disableClickEventBubbling: true,
@@ -292,10 +292,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                 }
                 dispatch(resultActions.setOpenPanel(key));
             }}>
-                <CmrPanel header='Results' className={'mb-2'} key={'0'}>
+                <CmrPanel header='Jobs' className={'mb-2'} key={'0'}>
                     <Row style={{alignItems:'center'}}>
                         <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
-                                   uploadButtonName={'Upload Result'}
+                                   uploadButtonName={'Upload Results'}
                                    maxCount={1}
                                    key={uploaderKey}
                                    preprocess={async (file)=>{
@@ -329,7 +329,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                     {showingLogs && <Logs/>}
                 </CmrPanel>
                 <CmrPanel className={'mb-2'}
-                          header={activeJobAlias != undefined ? `Inspecting ${activeJobAlias}` : 'Inspection'}
+                          header={activeJobAlias != undefined ? `Viewing ${activeJobAlias}` : 'View Results'}
                           key={'1'}>
                     {activeJob != undefined &&
                         <NiiVue niis={niis}
@@ -349,14 +349,14 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 accessToken={accessToken}/>}
                     {activeJob == undefined &&
                         <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-                            No Result Inspections Running
+                            Please Select a Job Result
                         </Box>}
                 </CmrPanel>
-                <CmrPanel header={'Settings Inspection'} key={'2'}>
+                <CmrPanel header={'Current Job Settings'} key={'2'}>
 
                     {activeJob == undefined ?
                         <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-                            No Setup Inspections Running
+                            Please Select a Job Result
                         </Box> :
                         <SetupInspection/>
                     }

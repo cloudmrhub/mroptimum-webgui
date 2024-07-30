@@ -1,10 +1,9 @@
-import axios, {AxiosError, AxiosResponse} from 'axios';
+import axios, { AxiosResponse} from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
     DATAAPI,
     DATA_RENAME_API,
     DATA_DELETE_API,
-    DATAUPLODAAPI,
     DATAUPLOADINIT,
     DATAUPLOADFINALIZE
 } from "../../Variables";

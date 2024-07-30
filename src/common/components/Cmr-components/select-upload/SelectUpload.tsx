@@ -68,10 +68,10 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
         setOpen(false);
     }
     const selectionDialog =  <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Upload or select</DialogTitle>
+        <DialogTitle>Select or Upload</DialogTitle>
         <DialogContent sx={{width: 520}}>
             <DialogContentText sx={{pl:1, pr:1, pb:0}}>
-                {(uploading)?"Please wait for the upload to finish.":"Upload a new file or select from previously uploaded files:"}
+                {(uploading)?"Please wait for the upload to finish.":""}
             </DialogContentText>
                 <DialogContent sx={{p:1}}>
                 <Select
@@ -82,7 +82,7 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     sx={{width: '100%'}}
                 >
                     <MenuItem value={-1}>
-                        <em>Select or upload a new file to proceed</em>
+                    {props.fileSelection.length < 1 ? <em>No Stored Files</em> : <em>Select a Stored File</em>}
                     </MenuItem>
                     {((props.fileSelection!=undefined? props.fileSelection: [])).map((option,index) => (
                         <MenuItem key={index} value={index}>
@@ -92,8 +92,8 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                 </Select>
             </DialogContent>
                 <Box sx={{pt:2, justifyContent:'center',display:'flex', padding:'8px'}}>
-                    {(!uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
-                        Select
+                    {(fileIndex !== -1 && !uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
+                        Ok
                     </Button>}
                     {fileIndex==-1&& <CMRUpload {...props} color="info" fullWidth onUploaded={(res, file)=>{
                         console.log("calling Setup level on uploaded");

@@ -5,9 +5,10 @@ import { Layout } from 'antd';
 const { Footer } = Layout;
 
 const FooterBar = () => {
+    const currentYear = new Date().getFullYear();
     return (
         <Footer className='cmr-footer' style={{ textAlign: 'center', background:'#f8fafc'}}>
-            @ 2023 Copyright: Center for Advanced Imaging Innovation and Research. All rights reserved
+            @ {currentYear} Copyright: Center for Biomedical Imaging. All rights reserved
         </Footer>
     );
 };

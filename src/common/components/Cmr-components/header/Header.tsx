@@ -42,8 +42,19 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
         <nav className="navbar navbar-expand-md navbar-dark bg-dark shadow-sm" style={{background: '#000000'}}>
             {/*add small-margin to className to align header content to the ends*/}
             <div className="container-xl">
-                <Link to="/" className="navbar-brand">
-                    {siteTitle}
+                <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
+{/* <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', display: 'inline-block' }}> */}
+<div style={{ 
+        // backgroundColor: 'white', 
+        borderRadius: '30%', 
+        width: '50px', 
+        height: '50px', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    }}>
+    <img src={process.env.PUBLIC_URL + '/MR Optimum_final_white.png'} alt="Logo" style={{height: '40px', width: '40px'}} /> {/* adjust height and width as needed */}
+</div>                    {/* {siteTitle} */}
                 </Link>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
                         data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent"
