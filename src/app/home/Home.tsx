@@ -385,12 +385,13 @@ const Home = () => {
                                setOpen(true);}}>Delete</Button>
                        </div>
                        <div className="col-4">
-                           <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
+                        {/* TOBEACTIVATED AFTER THE BETA TESTING */}
+                           {/* <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }}
                                       uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData)}
-                            createPayload={createPayload} maxCount={1}></CMRUpload>
+                            createPayload={createPayload} maxCount={1}></CMRUpload> */}
                        </div>
                     </div>
                </CmrPanel>
