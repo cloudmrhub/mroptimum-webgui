@@ -92,7 +92,8 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                 </Select>
             </DialogContent>
                 <Box sx={{pt:2, justifyContent:'center',display:'flex', padding:'8px'}}>
-                    {(fileIndex !== -1 && !uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
+                    {/* TOBEACTIVATED AFTER THE BETA TESTING */}
+                    {/* {(fileIndex !== -1 && !uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
                         Ok
                     </Button>}
                     {fileIndex==-1&& <CMRUpload {...props} color="info" fullWidth onUploaded={(res, file)=>{
@@ -112,7 +113,7 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                                                     setProgress(progress);
                                                 }}
                                                 uploadEnded={()=>setUploading(false)}
-                    ></CMRUpload>}
+                    ></CMRUpload>} */}
                     <Button fullWidth variant="outlined"   color="inherit" sx={{color:'#333', marginLeft:'8px'}} onClick={handleClose}> Cancel</Button>
                 </Box>
         </DialogContent>
