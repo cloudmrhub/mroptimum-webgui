@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField";
 // import {store} from "../../features/store";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
 
-export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleClose,editText='Edit Set Up',queueText='Cancel'}:
+export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleClose,editText='Edit Set Up',queueText='To Job/Save'}:
                                {snrAlias:string,setSNRAlias:(alias:string)=>void, snrContent: string|undefined, confirm: ()=>void, edit: ()=>void, handleClose: ()=>void,
                                     editText?:string, queueText?:string
 })=>{

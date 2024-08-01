@@ -135,7 +135,7 @@ export const SetupInspection = ()=>{
     return <Box>
         <Box className={'setting-box'}>
             <span>
-                {'Number of slices: '}
+                {'Number of Slices: '}
             </span>
             <SettingsText>
                 {slices}

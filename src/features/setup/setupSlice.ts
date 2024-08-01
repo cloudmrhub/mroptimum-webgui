@@ -265,11 +265,14 @@ export const setupSlice = createSlice({
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
             if(state.activeSetup.name!='ac'&&state.activeSetup.name!='mr')
-                state.activeSetup.options.NR = 2;
+                if (state.activeSetup.name == 'pmr')
+                state.activeSetup.options.NR = 20;
+                if (state.activeSetup.name == 'cr')
+                state.activeSetup.options.NR = 3;
             else
                 delete state.activeSetup.options.NR;
             if(state.activeSetup.name=='cr')
-                state.activeSetup.options.boxSize = 2;
+                state.activeSetup.options.boxSize = 3;
             else
                 delete state.activeSetup.options.boxSize;
             state.editInProgress=true;

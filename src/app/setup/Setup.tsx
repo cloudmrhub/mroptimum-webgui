@@ -691,9 +691,9 @@ const Setup = () => {
                                             {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
                                             {/*</FormControl>*/}
                                             <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Number of Pseudo Replica:</CmrLabel>
-                                            <CmrInputNumber value={pseudoReplicaCount}
+                                            <CmrInputNumber value={pseudoReplicaCount ?? 10}
                                                 min={2}
-                                                max={analysisMethod == 2 ? 120 : 10}
+                                                max={analysisMethod == 2 ? 100 : 10}
                                                 onChange={(val) => {
                                                     dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
                                                 }}></CmrInputNumber>
