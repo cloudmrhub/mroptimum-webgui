@@ -5,7 +5,7 @@ import {jobsSlice} from "../../features/jobs/jobsSlice";
 import CMRUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {getUploadedData} from "../../features/data/dataActionCreation";
 import {getFileExtension} from "../../common/utilities";
-import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
+import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
 import {DATAUPLODAAPI, ROI_UPLOAD} from "../../Variables";
 import {AxiosRequestConfig} from "axios";
 import {useAppDispatch, useAppSelector} from "../../features/hooks";
@@ -56,8 +56,11 @@ export const ROITable = (props:{pipelineID: string,
             const fileExtension = getFileExtension(file.name);
 
             if (fileExtension == 'dat') {
-                const transformedFile = await anonymizeTWIX(file);
-                file = transformedFile;
+                let safe = await is_safe_twix(file);
+                if (!safe){
+                    alert('This file contains PIH data. Please anonymize the file before uploading');
+                    return undefined;
+                }
             }
             return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
         }

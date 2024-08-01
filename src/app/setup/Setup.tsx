@@ -10,7 +10,7 @@ import SelectUpload from "../../common/components/Cmr-components/select-upload/S
 import CmrLabel from "../../common/components/Cmr-components/label/Label";
 import { Col, Row } from "antd";
 import AddIcon from '@mui/icons-material/Add';
-import { anonymizeTWIX } from '../../common/utilities/file-transformation/anonymize';
+import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
 import moment from 'moment';
 
 import {
@@ -190,8 +190,11 @@ const Setup = () => {
 
             try {
                 if (fileExtension == 'dat') {
-                    const transformedFile = await anonymizeTWIX(file);
-                    file = transformedFile;
+                    let safe = await is_safe_twix(file);
+                    if (!safe){
+                        alert('This file contains PIH data. Please anonymize the file before uploading');
+                        return undefined;
+                    }
                 }
             } catch (e) {
                 setSDWarningHeader(`Failed to anonymize ${file.name}`);

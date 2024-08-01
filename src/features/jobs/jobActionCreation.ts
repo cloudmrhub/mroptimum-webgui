@@ -12,7 +12,7 @@ import {Job} from "./jobsSlice";
 import {setupSetters} from "../setup/setupSlice";
 import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {getFileExtension} from "../../common/utilities";
-import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
+import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
 import {getUploadedData} from "../data/dataActionCreation";
 export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: string) => {
     const config = {
@@ -150,8 +150,11 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
         const fileExtension = getFileExtension(file.name);
 
         if (fileExtension == 'dat') {
-            const transformedFile = await anonymizeTWIX(file);
-            file = transformedFile;
+            let safe = await is_safe_twix(file);
+            if (!safe){
+                alert('This file contains PIH data. Please anonymize the file before uploading');
+                return undefined;
+            }
         }
         const UploadHeaders: AxiosRequestConfig = {
             headers: {

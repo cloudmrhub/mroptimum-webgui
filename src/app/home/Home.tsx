@@ -23,7 +23,7 @@ import {Button, CircularProgress} from "@mui/material";
 import {GridRowSelectionModel} from "@mui/x-data-grid";
 import CMRUpload, {CMRUploadProps, LambdaFile} from '../../common/components/Cmr-components/upload/Upload';
 import {getFileExtension} from "../../common/utilities";
-import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
+import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
 import {DATAAPI, DATAUPLODAAPI} from "../../Variables";
 import axios, {AxiosRequestConfig} from "axios";
 import {AxiosResponse} from "axios/index";
@@ -319,8 +319,13 @@ const Home = () => {
             const fileExtension = getFileExtension(file.name);
 
             if (fileExtension == 'dat') {
-                const transformedFile = await anonymizeTWIX(file);
-                file = transformedFile;
+                let safe = await is_safe_twix(file);
+                console.log(safe);
+                if (!safe){
+                    alert('This file contains PIH data. Please anonymize the file before uploading');
+                    return undefined;
+                }
+                
             }
             return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
         }

@@ -9,9 +9,11 @@ import {
 } from "../../Variables";
 import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {getFileExtension} from "../../common/utilities";
-import {anonymizeTWIX} from "../../common/utilities/file-transformation/anonymize";
+import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
+
 import {AxiosRequestConfig} from "axios/index";
 import {setupSetters, setupSlice} from "../setup/setupSlice";
+import { and } from 'mathjs';
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
     const config = {
@@ -132,8 +134,16 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
         const fileExtension = getFileExtension(file.name);
 
         if (fileExtension == 'dat') {
-            const transformedFile = await anonymizeTWIX(file);
-            file = transformedFile;
+            // check if file ha phi data
+            if (!is_safe_twix(file)){
+                // # exit and return error
+                // popup error message
+                alert('This file contains PIH data. Please anonymize the file before uploading');
+                return undefined;
+
+
+            }
+            // file = transformedFile;
         }
         const UploadHeaders: AxiosRequestConfig = {
             headers: {
