@@ -390,6 +390,10 @@ const Home = () => {
                                setOpen(true);}}>Delete</Button>
                        </div>
                        <div className="col-4">
+                        {/* TOBREMOVED AFTER THE BETA TESTING */}
+                       <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}>
+        Upload
+    </Button>
                         {/* TOBEACTIVATED AFTER THE BETA TESTING */}
                            {/* <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
                                dispatch(getUploadedData(accessToken));
