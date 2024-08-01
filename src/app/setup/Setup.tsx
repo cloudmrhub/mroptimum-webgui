@@ -340,9 +340,7 @@ const Setup = () => {
             renderHeader: () => {
                 return (
                     <React.Fragment>
-                        <div style={{ cursor: 'pointer' }} onClick={() => {
-                            setSchemaSelector(true);
-                        }}> Actions
+                        <div className="MuiDataGrid-columnHeaderTitle css-t89xny-MuiDataGrid-columnHeaderTitle"> Actions
                         </div>
                         <Tooltip title="Upload schema directly">
                             <IconButton style={{ marginLeft: 'auto' }} onClick={() => {
@@ -653,7 +651,7 @@ const Setup = () => {
                             </Row>
                         </Fragment>}
                 </CmrPanel>
-                <CmrPanel key="2" header={editing == -1 ? "SNR Analysis Method" : `Editing Job ${editing}`} className='mb-2'>
+                <CmrPanel key="2" header={editing == -1 ? "SNR Setup" : `Editing Job ${editing}`} className='mb-2'>
                     <FormControl style={{ width: '100%' }} className={'mb-3'} onChange={(event) => {
                         //@ts-ignore
                         if (event.target.value != analysisMethod)
