@@ -270,14 +270,15 @@ export const setupSlice = createSlice({
                 if (state.activeSetup.name == 'cr')
                 state.activeSetup.options.NR = 3;
             else
-                delete state.activeSetup.options.NR;
+                // delete state.activeSetup.options.NR;
             if(state.activeSetup.name=='cr')
                 state.activeSetup.options.boxSize = 3;
             else
-                delete state.activeSetup.options.boxSize;
+                // delete state.activeSetup.options.boxSize;
             state.editInProgress=true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
+            console.log(action.payload);
             state.activeSetup.options['NR'] = action.payload;
             state.editInProgress=true;
         },
