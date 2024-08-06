@@ -732,7 +732,8 @@ const Setup = () => {
                                         value={(reconstructionMethod != undefined) ? reconstructionMethod : ''}
                                         style={{ display: 'flex', justifyContent: 'space-between' }}
                                     >
-                                        {['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'].map((option, index) => {
+                                        {(analysisMethod == 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod == 1 && noise == null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+
                                             return (analysisMethod != undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
                                                 <FormControlLabel value={index}
                                                     disabled={option == 'ESPIRIT'} control={<Radio />}
@@ -811,7 +812,7 @@ const Setup = () => {
                                                                 <Select
                                                                     labelId="css-label"
                                                                     value={sensitivityMapMethod}
-                                                                    label="Coil sensitivities calculation method"
+                                                                    label="Coil Sensitivities Calculation Method"
                                                                     id="demo-simple-select"
                                                                     sx={{ width: '300pt' }}
                                                                     onChange={(event) => {
