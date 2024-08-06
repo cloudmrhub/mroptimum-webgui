@@ -651,7 +651,7 @@ const Setup = () => {
                             </Row>
                         </Fragment>}
                 </CmrPanel>
-                <CmrPanel key="2" header={editing == -1 ? "SNR Setup" : `Editing Job ${editing}`} className='mb-2'>
+                <CmrPanel key="2" header={editing == -1 ? "SNR Set Up" : `Editing Job ${editing}`} className='mb-2'>
                     <FormControl style={{ width: '100%' }} className={'mb-3'} onChange={(event) => {
                         //@ts-ignore
                         if (event.target.value != analysisMethod)
