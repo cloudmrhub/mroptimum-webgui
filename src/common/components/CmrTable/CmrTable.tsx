@@ -30,6 +30,8 @@ const CmrTable = (props:CmrTableProps) => {
                         paginationModel: { pageSize: 50, page: 0 },
                     },
                 }}
+                localeText={{ noRowsLabel: '' }}
+
                 {...rest}
                 // hideFooter
             />
