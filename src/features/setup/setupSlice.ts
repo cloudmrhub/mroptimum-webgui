@@ -269,7 +269,7 @@ export const setupSlice = createSlice({
                 state.activeSetup.options.NR = 20;
                 if (state.activeSetup.name == 'cr')
                 state.activeSetup.options.NR = 3;
-            else
+            
                 // delete state.activeSetup.options.NR;
             if(state.activeSetup.name=='cr')
                 state.activeSetup.options.boxSize = 3;
