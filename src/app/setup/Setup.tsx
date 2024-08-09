@@ -342,13 +342,14 @@ const Setup = () => {
                     <React.Fragment>
                         <div className="MuiDataGrid-columnHeaderTitle css-t89xny-MuiDataGrid-columnHeaderTitle"> Actions
                         </div>
-                        <Tooltip title="Upload schema directly">
+                        {/* TODO EROS MONTIN */}
+                        {/* <Tooltip title="Upload schema directly">
                             <IconButton style={{ marginLeft: 'auto' }} onClick={() => {
                                 setSchemaSelector(true);
                             }}>
                                 <AddIcon fontSize={'medium'} sx={{}} />
                             </IconButton>
-                        </Tooltip>
+                        </Tooltip> */}
                     </React.Fragment>
                 );
             },
