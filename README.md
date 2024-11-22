@@ -1,6 +1,6 @@
 # MR Optimum Frontend: Web-Based Graphical User Interface (WebGUI)
 
-**MR Optimum** is an advanced tool for simulating, computing, and analyzing MRI signal-to-noise ratio (SNR) across various reconstruction methods. This repository contains the source code for the web-based graphical user interface (WebGUI)
+**MR Optimum** is an advanced tool for computing, and analyzing MRI signal-to-noise ratio (SNR) across various reconstruction methods. This repository contains the source code for the web-based graphical user interface (WebGUI)
 
 ## Table of Contents
 1. [Overview](#overview)
