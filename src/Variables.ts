@@ -31,3 +31,24 @@ export const UPLOAD_FILE_CHUNK = 10 * 1024 * 1024;
 
 // export const HOST = `cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com`;
 
+console.log('SIGNIN:', SIGNIN);
+console.log('FINEGRAIN:', FINEGRAIN);
+console.log('SIGNOUT:', SIGNOUT);
+console.log('PROFILE:', PROFILE);
+console.log('DATAAPI:', DATAAPI);
+console.log('UNZIP:', UNZIP);
+console.log('DATAUPLODAAPI:', DATAUPLODAAPI);
+console.log('DATAUPLOADINIT:', DATAUPLOADINIT);
+console.log('DATAUPLOADFINALIZE:', DATAUPLOADFINALIZE);
+console.log('JOBUPLOADINIT:', JOBUPLOADINIT);
+console.log('JOBUPLOADFINALIZE:', JOBUPLOADFINALIZE);
+console.log('DATA_RENAME_API:', DATA_RENAME_API);
+console.log('DATA_DELETE_API:', DATA_DELETE_API);
+console.log('ROI_GET:', ROI_GET);
+console.log('ROI_UPLOAD:', ROI_UPLOAD);
+console.log('JOBS_API:', JOBS_API);
+console.log('JOBS_RETRIEVE_API:', JOBS_RETRIEVE_API);
+console.log('JOBS_RENAME_API:', JOBS_RENAME_API);
+console.log('JOBS_DELETE_API:', JOBS_DELETE_API);
+console.log('APP_NAME:', APP_NAME);
+console.log('UPLOAD_FILE_CHUNK:', UPLOAD_FILE_CHUNK);
