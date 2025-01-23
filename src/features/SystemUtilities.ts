@@ -2,6 +2,7 @@ import {AxiosResponse} from "axios";
 import {uploadData} from "./data/dataActionCreation";
 
 export const uploadHandlerFactory = (accessToken:string, uploadToken:string,dispatch:any, uploader = uploadData, uploadTarget?:string,)=>{
+    console.log("uploadFACTORY");
     return async (file:File, fileAlias:string,
            fileDatabase:string,
            onProgress?:(progress:number)=>void,
@@ -9,7 +10,7 @@ export const uploadHandlerFactory = (accessToken:string, uploadToken:string,disp
         let result = await dispatch(uploader({file:file,fileAlias:fileAlias, uploadToken,
             accessToken:accessToken,
             onProgress,onUploaded,uploadTarget}))
-        // console.log(result);
+        console.log(result);
         return result.payload.code;
     }
 }

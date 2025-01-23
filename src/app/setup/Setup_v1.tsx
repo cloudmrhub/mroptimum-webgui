@@ -149,7 +149,7 @@ const Setup = () => {
             const submittedDatTime = moment().format('YYYY-MM-DD HH:mm:ss');
             console.log(res.data);
             const uploadedFile: UploadedFile = {
-                id: res.data.response.id || 0,
+                id: res.data.response.id,
                 fileName: res.data.response.filename,
                 createdAt: submittedDatTime,
                 updatedAt: submittedDatTime,
@@ -465,7 +465,7 @@ const Setup = () => {
                     console.log(key);
                     setOpenPanel(key)
                 }}>
-                {/* <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
+                <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
                     <UploadWindow open={schemaSelector} setOpen={setSchemaSelector} fileExtension={'.json'}
                         upload={async (file, fileAlias) => {
                             let snr = JSON.parse(await file.text());
@@ -583,7 +583,7 @@ const Setup = () => {
                     <Confirmation open={sdOpen} setOpen={setSDOpen}
                         message={sdWarning}
                         name={sdWarningHeader} />
-                </CmrPanel> */}
+                </CmrPanel>
                 <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
                     <Row>
                         <Col>
@@ -1073,10 +1073,6 @@ const Setup = () => {
                                                     dispatch(setupSetters.compileSNRSettings(jobAlias));
                                                     setJobSelectionModel([...jobSelectionModel, newJobId]);
                                                     setTimeout(() => setOpenPanel([0]), 500);
-                                                    console.log(store.getState().setup.queuedJobs.slice(-1));
-                                                    dispatch(submitJobs({ accessToken, queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
-                                                    dispatch(setupSetters.bulkDeleteAllJobs());
-
                                                 }}
                                                 handleClose={() => {
                                                     setPreview(undefined);

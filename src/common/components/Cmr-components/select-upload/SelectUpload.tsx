@@ -96,13 +96,13 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                     {(fileIndex !== -1 && !uploading)&&<Button fullWidth sx={{marginRight:'8px'}} variant="contained"  color="success" onClick={onSet}>
                         Ok
                     </Button>}
-                    {fileIndex==-1 && 
+                    {/* {fileIndex==-1 && 
                     <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}>
                     
         Upload
-    </Button>}
+    </Button>} */}
                     {/* TOBEACTIVATED AFTER THE BETA TESTING */}
-                    {/* {fileIndex==-1&& <CMRUpload {...props} color="info" fullWidth onUploaded={(res, file)=>{
+                    {fileIndex==-1&& <CMRUpload {...props} color="info" fullWidth onUploaded={(res, file)=>{
                         console.log("calling Setup level on uploaded");
                         console.log(props.onUploaded);
                         selectFileIndex(props.fileSelection.length);
@@ -119,7 +119,7 @@ const CMRSelectUpload = (props: CMRSelectUploadProps) => {
                                                     setProgress(progress);
                                                 }}
                                                 uploadEnded={()=>setUploading(false)}
-                    ></CMRUpload>} */}
+                    ></CMRUpload>}
                     <Button fullWidth variant="outlined"   color="inherit" sx={{color:'#333', marginLeft:'8px'}} onClick={handleClose}> Cancel</Button>
                 </Box>
         </DialogContent>

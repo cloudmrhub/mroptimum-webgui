@@ -391,16 +391,16 @@ const Home = () => {
                        </div>
                        <div className="col-4">
                         {/* TOBREMOVED AFTER THE BETA TESTING */}
-                       <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}>
+                       {/* <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}>
         Upload
-    </Button>
+    </Button> */}
                         {/* TOBEACTIVATED AFTER THE BETA TESTING */}
-                           {/* <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
+                           <CMRUpload color="info" key={uploadKey} fullWidth onUploaded={(res, file)=>{
                                dispatch(getUploadedData(accessToken));
                                setUploadKey(uploadKey+1);
                            }}
                                       uploadHandler={uploadHandlerFactory(accessToken,uploadToken,dispatch,uploadData)}
-                            createPayload={createPayload} maxCount={1}></CMRUpload> */}
+                            createPayload={createPayload} maxCount={1}></CMRUpload>
                        </div>
                     </div>
                </CmrPanel>

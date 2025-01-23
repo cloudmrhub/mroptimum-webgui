@@ -16,6 +16,8 @@ import {setupSetters, setupSlice} from "../setup/setupSlice";
 import { and } from 'mathjs';
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
+    
+    console.log("getu[ploaded data");
     const config = {
         headers: {
             Authorization: `Bearer ${accessToken}`}
@@ -35,11 +37,15 @@ export const uploadData = createAsyncThunk('UploadData', async(
                                                                    {accessToken:string,uploadToken:string,file:File,fileAlias:string,
                                                                    onProgress?:(progress:number)=>void,uploadTarget?:string,
                                                                    onUploaded?:(res:AxiosResponse,file:File)=>void},thunkAPI)=>{
-    try{
+        console.log("start the upload uploadData");
+                                                                    try{
         const FILE_CHUNK_SIZE = 10 * 1024 * 1024; // 5MB chunk size
         let payload = await createPayload(accessToken, uploadToken, file, fileAlias);
+        console.log("payload created",payload);
         if(payload==undefined)
             return {code:403,response:'file not found',file:undefined,uploadTarget:uploadTarget}
+        if(payload.lambdaFile==undefined)
+            return {code:403,response:'data not allowed',file:undefined,uploadTarget:uploadTarget}
         thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:0}));
         // @ts-ignore
         async function uploadPartWithRetries(partUrl:string,
@@ -59,6 +65,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
                     },
                     cancelToken: cancelTokenSource.token
                 });
+                console.log(response);
                 return response;
             } catch (error) {
                 if (axios.isCancel(error)) {
@@ -74,6 +81,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
                 }
             }
         }
+        console.log(payload);
         const initResponse = await axios.post(payload.destination, payload.lambdaFile,payload.config);
         console.log(initResponse);
 
@@ -84,6 +92,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
         for (let i = 0; i < file.size; i += FILE_CHUNK_SIZE) {
             const part = file.slice(i, i + FILE_CHUNK_SIZE);
             fileParts.push(part);
+            console.log(part);
         }
 
         let totalSize = payload.file.size;
@@ -96,6 +105,10 @@ export const uploadData = createAsyncThunk('UploadData', async(
             const partResponse = await uploadPartWithRetries(partUrl, part, cancelTokenSource,index);
 
             const etag = partResponse?.headers['etag'].replace(/"/g, '');
+            console.log(partResponse);
+            console.log(partResponse?.headers);
+            console.log(etag);
+
             return { partNumber: index + 1, etag };
         }));
 
@@ -109,10 +122,12 @@ export const uploadData = createAsyncThunk('UploadData', async(
         console.log(finalizeResponse);
 
         console.log('all uploads completed');
+        console.log('------',onUploaded);
         if(onUploaded)
             onUploaded(initResponse,file);
-
+        console.log('uploaded');
         thunkAPI.dispatch(getUploadedData(accessToken));
+        console.log('refreshed');
         return {code:200, response: initResponse.data.response, file:payload.lambdaFile,uploadTarget:uploadTarget};
     }catch (e:any) {
         console.log("Following error encountered during uploading:");
@@ -121,18 +136,27 @@ export const uploadData = createAsyncThunk('UploadData', async(
     }
 });
 
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream']; // Add your allowed file types here
+
 const createPayload = async (accessToken:string, uploadToken:string, file: File, fileAlias: string) => {
+
     if (file) {
+        
+        const fileExtension = getFileExtension(file.name);
+        const fileType = file.type || (fileExtension === 'dat' ? 'application/octet-stream' : '');
         const lambdaFile: LambdaFile = {
             "filename": fileAlias,
-            "filetype": file.type,
+            "filetype": fileType,
             "filesize": `${file.size}`,
             "filemd5": '',
             "file": file
         }
-        console.log(file.type);
-        const fileExtension = getFileExtension(file.name);
-
+        // Check if the file type is allowed
+        if (!ALLOWED_FILE_TYPES.includes(fileType)) {
+            alert('This file type is not allowed. Please upload a valid file.');
+            return {lambdaFile: undefined, file: undefined};
+        }
+        
         if (fileExtension == 'dat') {
             // check if file ha phi data
             if (!is_safe_twix(file)){
@@ -145,6 +169,7 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
             }
             // file = transformedFile;
         }
+
         const UploadHeaders: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -158,6 +183,7 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
 
 // Here's the corresponding rename function for Data
 export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg:{accessToken: string, fileId: number,fileName:string},thunkAPI) => {
+    console.log(arg);
     const config = {
         headers: {
             Authorization: `Bearer ${arg.accessToken}`,

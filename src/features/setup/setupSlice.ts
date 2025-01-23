@@ -566,6 +566,11 @@ export const setupSlice = createSlice({
                 }else i++;
             }
         },
+        bulkDeleteAllJobs(state: SetupState) {
+            for (let i = 0; i<state.queuedJobs.length; ) {
+                    state.queuedJobs.splice(i,1);
+            }
+        },
         setUploadProgress(state:SetupState, action:PayloadAction<{ target?:string,progress:number }>){
             if(action.payload.target=='signal'){
                 state.signalUploadProgress = action.payload.progress;
