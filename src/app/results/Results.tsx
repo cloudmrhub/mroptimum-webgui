@@ -140,7 +140,9 @@ const Results = ({visible}:{visible?:boolean}) => {
             renderCell: (params: { row: Job }) => {
                 return (
                     <div>
-                        <IconButton disabled={params.row.status != 'completed'} onClick={(event) => {
+{params.row.status != 'failed' && (
+
+                        <IconButton disabled={params.row.status == 'pending'} onClick={(event) => {
                             event.stopPropagation();
                             if (params.row.pipeline_id == activeJob?.pipeline_id) {
                                 dispatch(resultActions.setOpenPanel([1, 2]));
@@ -187,6 +189,9 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 }}/>
                             }
                         </IconButton>
+)}
+                        {params.row.status === 'completed' && (
+
                         <IconButton onClick={(e) => {
                             e.stopPropagation();
                             params.row.files.forEach(file => {
@@ -211,6 +216,9 @@ const Results = ({visible}:{visible?:boolean}) => {
                         }}>
                             <GetAppIcon/>
                         </IconButton>
+                        )}
+                        {params.row.status === 'completed' && (
+
                         <IconButton onClick={(event) => {
                             event.stopPropagation();
                             if (params.row.pipeline_id == activeJob?.pipeline_id) {
@@ -248,6 +256,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                         }}>
                             <TerminalOutlinedIcon/>
                         </IconButton>
+                        )}
                     </div>
                 );
             },
