@@ -1,0 +1,2548 @@
+{
+  
+  <ParamMap.""> 
+  {
+    <ParamMap."PARC"> 
+    {
+      
+      <ParamMap."HARDWARE"> 
+      {
+        
+        <ParamString."CPUCount">  { "20"  }
+        <ParamString."MaxMemory">  { "256912"  }
+        <ParamString."MaxRawObjectSize">  { "134300"  }
+        <ParamString."MaxRawObjectSizePrioRecon">  { "300"  }
+        <ParamString."ProtectedSize">  { "350"  }
+        <ParamString."RAIDSize">  { "0"  }
+        <ParamString."PDSFastSize">  { "0"  }
+        <ParamString."PDSSaveSize">  { "0"  }
+      }
+      <ParamMap."RECOMPOSE"> 
+      {
+        
+        <ParamString."PatientID">  { "111111"  }
+        <ParamString."PatientBirthDay">  { "20000116"  }
+        <ParamLong."PatientSex">  { 3  }
+        <ParamString."tPatientName">  { "Phan^Tom HPM"  }
+        <ParamLong."SubProtocolIndex">  { }
+        <ParamString."PatientLOID">  { "12.0.732846279"  }
+        <ParamString."StudyLOID">  { "12.0.732846284"  }
+        <ParamString."SeriesLOID">  { "12.0.732846288"  }
+        <ParamLong."ProtocolChangeHistory">  { }
+        <ParamString."tStudyDescription">  { }
+      }
+      <ParamMap."DERIVED"> 
+      {
+        
+        <ParamLong."relSliceNumber">  { 0 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1  }
+        <ParamLong."relPartitionNumber">  { 1 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2 -2 -2  -2 -2 -2 -2 -2 -2 -2 -2  }
+        <ParamLong."groupIndices">  { 0 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1  }
+        <ParamLong."chronSliceIndices">  { 0 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1  -1 -1 -1 -1 -1 -1 -1 -1  }
+        <ParamMap."sGroupArray"> 
+        {
+          
+          <ParamArray."asGroup"> 
+          {
+            <Default> <ParamMap.""> 
+            {
+              
+              <ParamDouble."distance"> 
+              {
+              }
+              
+              <ParamDouble."shift"> 
+              {
+              }
+              
+              <ParamDouble."thickness"> 
+              {
+              }
+            }
+            {  { 1.800  } { -2.152  } { } }
+            
+          }
+        }
+        <ParamBool."MagnitudeImages">  { "true"  }
+        <ParamBool."PhaseImages">  { }
+        <ParamBool."RealPartImages">  { }
+        <ParamLong."ImageLines">  { 256  }
+        <ParamLong."ImageColumns">  { 256  }
+        <ParamLong."Arrhythmia">  { 0 0 1 0 1 0 0 0 1 0  0 0 0 0 0 0 0 0 0 0  0 0 0 0 0 0 0 0 0 0  0 0  }
+        <ParamLong."triggerWindow">  { 0 0 5 0 5 0 0 0 5 0  0 0 0 0 0 0 0 0 0 0  0 0 0 0 0 0 0 0 0 0  0 0  }
+        <ParamDouble."phaseOversampling">  { }
+        <ParamArray."navigators"> 
+        {
+          <Default> <ParamMap.""> 
+          {
+            
+            <ParamMap."readout"> 
+            {
+              
+              <ParamDouble."dSag"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dCor"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dTra"> 
+              {
+                <Precision> 6 
+              }
+            }
+            
+            <ParamMap."phase"> 
+            {
+              
+              <ParamDouble."dSag"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dCor"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dTra"> 
+              {
+                <Precision> 6 
+              }
+            }
+          }
+          { }
+          
+        }
+        <ParamArray."CoilSelects"> 
+        {
+          <Default> <ParamArray.""> 
+          {
+            <MinSize> 1 
+            <MaxSize> 1024 
+            <Default> <ParamMap.""> 
+            {
+              
+              <ParamString."CoilElementID"> 
+              {
+              }
+              
+              <ParamDouble."dFFTScale"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dRawDataCorrectionFactorRe"> 
+              {
+                <Precision> 6 
+              }
+              
+              <ParamDouble."dRawDataCorrectionFactorIm"> 
+              {
+                <Precision> 6 
+              }
+            }
+            { }
+            
+          }
+          {  }
+          
+        }
+      }
+      <Pipe."PIPE"> 
+      {
+        
+        
+        <PipeService."acquisition"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Receiver"  }
+          <ParamLong."WATERMARK">  { }
+          <ParamLong."POOLTHREADS">  { }
+          <ParamLong."DATATHREADS">  { 1  }
+          <ParamFunctor."source"> 
+          {
+            <Class> "SourceFunctor@IrisFunctors" 
+            
+            <ParamBool."SendReadouts">  { }
+            <ParamLong."ScanFrequency">  { 297194510  }
+            <ParamLong."ReadOutInversion_Override">  { }
+            <Event."sendFifoDsc">  { "int32_t" "class MrFifoBufDsc &" "bool"  }
+            <Event."sendFeedback">  { "int32_t" "class MrParcMemPool &"  }
+            <ParamLong."MeasUID">  { 121  }
+            <ParamBool."DisableMeasIdCheck">  { }
+            <Connection."connection0">  { "sendFeedback" "FeedbackRoot" "getRawData"  }
+            <Connection."connection1">  { "sendFifoDsc" "RAIDWriter" "GetFifoDsc"  }
+          }
+          <ParamFunctor."FeedbackRoot"> 
+          {
+            <Class> "RootFunctor@IceScanFunctors" 
+            
+            <ParamLong."NChaVirtual">  { }
+            <ParamLong."NIdaMeas">  { }
+            <ParamLong."NIdbMeas">  { }
+            <ParamLong."NIdcMeas">  { }
+            <ParamLong."NIddMeas">  { }
+            <ParamLong."NIdeMeas">  { }
+            <ParamBool."DoNoisePreset">  { }
+            <ParamLong."NImageLins">  { 256  }
+            <ParamLong."NImageCols">  { 256  }
+            <ParamString."EvalInfoMask1">  { }
+            <ParamString."EvalInfoMask2">  { }
+            <ParamLong."MaxNoOfRepTraces">  { 1  }
+            <ParamLong."NRepMeas">  { 1  }
+            <ParamBool."IsMDSOn">  { }
+            <ParamLong."NLinMeas">  { 256  }
+            <ParamLong."NEcoMeas">  { 1  }
+            <ParamLong."NSetMeas">  { 1  }
+            <ParamLong."NPhsMeas">  { 1  }
+            <ParamLong."NSegMeas">  { }
+            <ParamLong."NParMeas">  { 1  }
+            <ParamLong."NSlcMeas">  { 1  }
+            <ParamLong."NAveMeas">  { 1  }
+            <ParamString."FrameOfReference">  { "1.3.12.2.1107.5.2.34.18915.1.20250116124941656.0.0.0"  }
+            <ParamDouble."RoFOV">  { <Precision> 16  256.0000000000000000  }
+            <ParamDouble."PeFOV">  { <Precision> 16  256.0000000000000000  }
+            <ParamArray."SliceThickness"> 
+            {
+              <Default> <ParamDouble.""> 
+              {
+                <Precision> 16 
+              }
+              { 1.5000000000000000  }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              
+            }
+            <ParamString."PatientPosition">  { "HFS"  }
+            <ParamLong."SBCSOriginPositionX">  { }
+            <ParamLong."SBCSOriginPositionY">  { }
+            <ParamLong."SBCSOriginPositionZ">  { -2331  }
+            <ParamLong."IceControlMask">  { 142  }
+            <ParamLong."IceConfigMask">  { 32768  }
+            <ParamBool."UseFloatTablePos">  { }
+            <ParamLong."PatchValueKSpaceCentreColumn">  { -1  }
+            <ParamLong."PatchValueKSpaceCentreLine">  { -1  }
+            <ParamLong."PatchValueKSpaceCentrePartition">  { -1  }
+            <Method."getRawData">  { "int32_t" "class MrParcMemPool &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+          }
+          <ParamFunctor."RAIDWriter"> 
+          {
+            <Class> "RAIDWriter@IrisFunctors" 
+            
+            <Method."GetFifoDsc">  { "int32_t" "class MrFifoBufDsc &" "bool"  }
+            <Event."SendJobId">  { "int32_t" "uint64_t"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "SendJobId" "Online1.RAIDReader" "GetJobId"  }
+          }
+        }
+        <PipeService."Online1"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { }
+          <ParamLong."POOLTHREADS">  { 1  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."RAIDReader"> 
+          {
+            <Class> "RAIDReader@IrisFunctors" 
+            
+            <Method."GetJobId">  { "int32_t" "uint64_t"  }
+            <Event."sendFifoDsc">  { "int32_t" "class MrFifoBufDsc &" "bool"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "sendFifoDsc" "Unpacker" "GetFifoDsc"  }
+          }
+          <ParamFunctor."Unpacker"> 
+          {
+            <Class> "Unpacker@IrisFunctors" 
+            
+            <ParamBool."HighPrio">  { }
+            <Method."GetFifoDsc">  { "int32_t" "class MrFifoBufDsc &" "bool"  }
+            <Event."sendRawData">  { "int32_t" "class MrParcMemPool &"  }
+            <ParamLong."MeasUID">  { 121  }
+            <ParamBool."DisableMeasIdCheck">  { }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "sendRawData" "root" "getRawData"  }
+          }
+          <ParamFunctor."root"> 
+          {
+            <Class> "RootFunctor@IceScanFunctors" 
+            
+            <ParamLong."NChaVirtual">  { }
+            <ParamLong."NIdaMeas">  { }
+            <ParamLong."NIdbMeas">  { }
+            <ParamLong."NIdcMeas">  { }
+            <ParamLong."NIddMeas">  { }
+            <ParamLong."NIdeMeas">  { }
+            <ParamBool."DoNoisePreset">  { }
+            <ParamLong."NImageLins">  { 256  }
+            <ParamLong."NImageCols">  { 256  }
+            <ParamString."EvalInfoMask1">  { }
+            <ParamString."EvalInfoMask2">  { }
+            <ParamLong."MaxNoOfRepTraces">  { 1  }
+            <ParamLong."NRepMeas">  { 1  }
+            <ParamBool."IsMDSOn">  { }
+            <ParamLong."NLinMeas">  { 256  }
+            <ParamLong."NEcoMeas">  { 1  }
+            <ParamLong."NSetMeas">  { 1  }
+            <ParamLong."NPhsMeas">  { 1  }
+            <ParamLong."NSegMeas">  { }
+            <ParamLong."NParMeas">  { 1  }
+            <ParamLong."NSlcMeas">  { 1  }
+            <ParamLong."NAveMeas">  { 1  }
+            <ParamString."FrameOfReference">  { "1.3.12.2.1107.5.2.34.18915.1.20250116124941656.0.0.0"  }
+            <ParamDouble."RoFOV">  { <Precision> 16  256.0000000000000000  }
+            <ParamDouble."PeFOV">  { <Precision> 16  256.0000000000000000  }
+            <ParamArray."SliceThickness"> 
+            {
+              <Default> <ParamDouble.""> 
+              {
+                <Precision> 16 
+              }
+              { 1.5000000000000000  }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              { }
+              
+            }
+            <ParamString."PatientPosition">  { "HFS"  }
+            <ParamLong."SBCSOriginPositionX">  { }
+            <ParamLong."SBCSOriginPositionY">  { }
+            <ParamLong."SBCSOriginPositionZ">  { -2331  }
+            <ParamLong."IceControlMask">  { 142  }
+            <ParamLong."IceConfigMask">  { 32768  }
+            <ParamBool."UseFloatTablePos">  { }
+            <ParamLong."PatchValueKSpaceCentreColumn">  { -1  }
+            <ParamLong."PatchValueKSpaceCentreLine">  { -1  }
+            <ParamLong."PatchValueKSpaceCentrePartition">  { -1  }
+            <Method."getRawData">  { "int32_t" "class MrParcMemPool &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "Scaling4DynamicGainSwitch" "ComputeScan"  }
+          }
+          <ParamFunctor."Scaling4DynamicGainSwitch"> 
+          {
+            <Class> "Scaling4DynamicGainSwitch@IceScanFunctors" 
+            
+            <ParamArray."CoilSelectInfo"> 
+            {
+              <Default> <ParamArray.""> 
+              {
+                <MinSize> 0 
+                <MaxSize> 2147483647 
+                <Default> <ParamMap.""> 
+                {
+                  
+                  <ParamString."CoilElementID"> 
+                  {
+                  }
+                  
+                  <ParamDouble."dFFTScale"> 
+                  {
+                    <Precision> 16 
+                  }
+                  
+                  <ParamDouble."dRawDataCorrectionFactorRe"> 
+                  {
+                    <Precision> 16 
+                  }
+                  
+                  <ParamDouble."dRawDataCorrectionFactorIm"> 
+                  {
+                    <Precision> 16 
+                  }
+                }
+                
+              }
+              { {  { "CP"  } { 1.0888000000000000  } { 1.0000000000000000  } { } }  }
+              
+            }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "Flags" "ComputeScan"  }
+          }
+          <ParamFunctor."Flags"> 
+          {
+            <Class> "Flags@IceScanFunctors" 
+            
+            <ParamLong."NLinMeas">  { 256  }
+            <ParamBool."IsCardiacTrigger">  { }
+            <ParamBool."IsTReffRequired">  { }
+            <ParamBool."CalcTReff4AllSlices">  { "true"  }
+            <ParamBool."Is3D">  { }
+            <ParamBool."UseFirstLastScanFlags">  { }
+            <ParamLong."ExclDimFirstLastScan">  { }
+            <ParamLong."ImageNumberingStatus">  { 65535  }
+            <ParamLong."NBoundPhs">  { -1  }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "adjroft_ps.adjroft" "ComputeScan"  }
+          }
+        }
+        <PipeService."adjroft_ps"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { 16  }
+          <ParamLong."POOLTHREADS">  { 20  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."adjroft"> 
+          {
+            <Class> "AdjustRoFtInputData@IceScanFunctors" 
+            
+            <ParamLong."NRoFtlen">  { 512  }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "ROFilterFunctor" "ComputeScan"  }
+          }
+          <ParamFunctor."ROFilterFunctor"> 
+          {
+            <Class> "ROFilterFunctor@IceScanFunctors" 
+            
+            <ParamBool."IsRawFiltEnabled">  { }
+            <ParamBool."IsSincEnabled">  { }
+            <ParamLong."NColMeas">  { 512  }
+            <ParamLong."NChaMeas">  { 1  }
+            <ParamLong."NSlcMeas">  { 1  }
+            <ParamLong."NPeFTLen">  { 256  }
+            <ParamLong."NRawFilterSlope_256">  { 48  }
+            <ParamLong."FilterAlgo">  { 2  }
+            <ParamLong."NColDivisor">  { 8  }
+            <ParamBool."IsSlopeReplaceOn">  { }
+            <ParamLong."ConfigColSlopeBehind">  { }
+            <ParamLong."ConfigColSlopeAhead">  { }
+            <ParamLong."ImageDumpFormat">  { }
+            <ParamLong."MaxNoOfOutputs">  { 22  }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "roft" "ComputeScan"  }
+          }
+          <ParamFunctor."roft"> 
+          {
+            <Class> "RoFt@IceScanFunctors" 
+            
+            <ParamLong."FTMode">  { 1  }
+            <ParamDouble."InverseScaleFactor">  { <Precision> 16  1.0000000000000000  }
+            <ParamLong."NImageCols">  { 256  }
+            <ParamBool."PerformanceCounter">  { }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "ScalingFunctor" "ComputeScan"  }
+          }
+          <ParamFunctor."ScalingFunctor"> 
+          {
+            <Class> "ScalingFunctor@IceScanFunctors" 
+            
+            <ParamBool."ChannelScaling">  { "true"  }
+            <ParamBool."InverseChannelScale">  { }
+            <ParamBool."IsPreScanNormalize">  { }
+            <ParamString."PDSdataName">  { }
+            <ParamArray."CoilSelectInfo"> 
+            {
+              <Default> <ParamArray.""> 
+              {
+                <MinSize> 0 
+                <MaxSize> 2147483647 
+                <Default> <ParamMap.""> 
+                {
+                  
+                  <ParamString."CoilElementID"> 
+                  {
+                  }
+                  
+                  <ParamDouble."dFFTScale"> 
+                  {
+                    <Precision> 16 
+                  }
+                  
+                  <ParamDouble."dRawDataCorrectionFactorRe"> 
+                  {
+                    <Precision> 16 
+                  }
+                  
+                  <ParamDouble."dRawDataCorrectionFactorIm"> 
+                  {
+                    <Precision> 16 
+                  }
+                }
+                
+              }
+              { {  { "CP"  } { 1.0888000000000000  } { 1.0000000000000000  } { } }  }
+              
+            }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "rawobjprovider_ps.rawobjprovider" "ComputeScan"  }
+          }
+        }
+        <PipeService."rawobjprovider_ps"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { 16  }
+          <ParamLong."POOLTHREADS">  { 1  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."rawobjprovider"> 
+          {
+            <Class> "IceRawObjProvider@IceScanFunctors" 
+            
+            <ParamBool."PresetRawObj">  { }
+            <ParamLong."RawCol">  { 256  }
+            <ParamLong."RawLin">  { 256  }
+            <ParamLong."RawCha">  { 1  }
+            <ParamLong."RawSet">  { 1  }
+            <ParamLong."RawEco">  { 1  }
+            <ParamLong."RawPhs">  { 1  }
+            <ParamLong."RawRep">  { 1  }
+            <ParamLong."RawPar">  { 1  }
+            <ParamLong."RawSlc">  { 1  }
+            <ParamLong."RawIda">  { 1  }
+            <ParamLong."RawIdb">  { 1  }
+            <ParamLong."RawIdc">  { 1  }
+            <ParamLong."RawIdd">  { 1  }
+            <ParamLong."RawIde">  { 1  }
+            <ParamLong."RawAve">  { 1  }
+            <ParamBool."ReportDestruction">  { }
+            <ParamBool."ObjWithRepDim">  { }
+            <ParamBool."ObjNamWithReps">  { "true"  }
+            <ParamString."ObjName">  { "RawObj"  }
+            <ParamLong."RawObjsInQuota">  { }
+            <ParamLong."Timeout4QuotaFallback">  { }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "accu" "ComputeScan"  }
+          }
+          <ParamFunctor."accu"> 
+          {
+            <Class> "AccuDecorator@IceScanFunctors" 
+            
+            <ParamBool."PerformAdjustPaFT">  { }
+            <ParamBool."InplaceAccu">  { "true"  }
+            <ParamBool."IsDimensionAveraging">  { }
+            <ParamBool."ForwardChunkOfAverages">  { "true"  }
+            <ParamBool."MultipleCalls">  { "true"  }
+            <ParamBool."IsBookkeeping">  { "true"  }
+            <ParamBool."IgnorePaFTedDstSoda">  { }
+            <ParamBool."ObjNamWithReps">  { "true"  }
+            <ParamString."ObjName">  { "RawObj"  }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ScanReady">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ScanReady" "ImageLooper" "ComputeScan"  }
+          }
+          <ParamFunctor."ImageLooper"> 
+          {
+            <Class> "ImageLooper@IceScanFunctors" 
+            
+            <ParamLong."NLin">  { 256  }
+            <ParamLong."NPeftLen">  { 256  }
+            <ParamLong."TriggerMode">  { 1  }
+            <ParamBool."TriggerRefScanCalculation">  { }
+            <ParamBool."UnconditionalEndOfJobCalculation">  { }
+            <ParamBool."ErrorOnNotPaFTedData43D">  { "true"  }
+            <ParamLong."IceControlMask">  { 142  }
+            <ParamBool."RemoveRawObjPerLastScanInMeas">  { "true"  }
+            <ParamBool."AdditionalImageDimensionAVE">  { }
+            <ParamBool."StoreAllRawObjsTillEnd">  { }
+            <ParamBool."ObjNamWithReps">  { "true"  }
+            <ParamString."ObjName">  { "RawObj"  }
+            <ParamLong."LoopStartSet">  { }
+            <ParamLong."LoopStartEco">  { }
+            <ParamLong."LoopStartPhs">  { }
+            <ParamLong."LoopStartRep">  { }
+            <ParamLong."LoopStartPar">  { }
+            <ParamLong."LoopStartSlc">  { }
+            <ParamLong."LoopStartIda">  { }
+            <ParamLong."LoopStartIdb">  { }
+            <ParamLong."LoopStartIdc">  { }
+            <ParamLong."LoopStartIdd">  { }
+            <ParamLong."LoopStartIde">  { }
+            <ParamLong."LoopStartAve">  { }
+            <ParamLong."LoopLengthSet">  { -1  }
+            <ParamLong."LoopLengthEco">  { -1  }
+            <ParamLong."LoopLengthPhs">  { -1  }
+            <ParamLong."LoopLengthPar">  { -1  }
+            <ParamLong."LoopLengthSlc">  { -1  }
+            <ParamLong."LoopLengthIda">  { -1  }
+            <ParamLong."LoopLengthIdb">  { -1  }
+            <ParamLong."LoopLengthIdc">  { -1  }
+            <ParamLong."LoopLengthIdd">  { -1  }
+            <ParamLong."LoopLengthIde">  { -1  }
+            <ParamLong."LoopLengthAve">  { -1  }
+            <ParamBool."NoOfflineCalcOnAbortedMeas">  { }
+            <ParamString."DebugDumpPathName">  { "C:/MedCom/Temp/"  }
+            <Method."ComputeScan">  { "int32_t" "class IceAs &" "class MdhProxy &" "class ScanControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 512  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "MiniHeadFillDecorator_ps.MiniHeadFillDecorator" "ComputeImage"  }
+          }
+        }
+        <PipeService."MiniHeadFillDecorator_ps"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { 16  }
+          <ParamLong."POOLTHREADS">  { 1  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."MiniHeadFillDecorator"> 
+          {
+            <Class> "MiniHeadFillDecorator@IceImageReconFunctors" 
+            
+            <ParamLong."MultipleSeriesMode">  { 4  }
+            <ParamBool."AutoLoadInViewer">  { "true"  }
+            <ParamBool."SetSeriesEndFlag">  { "true"  }
+            <ParamLong."SeriesNoThreshold">  { 999999  }
+            <ParamLong."ImaNoThreshold">  { 999999  }
+            <ParamBool."ReverseRepOrderInSeries">  { }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "localpefilter_ps.localpefilter" "ComputeImage"  }
+          }
+        }
+        <PipeService."localpefilter_ps"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { 16  }
+          <ParamLong."POOLTHREADS">  { 20  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."localpefilter"> 
+          {
+            <Class> "LocalPEFilteringDecorator@IceImageReconFunctors" 
+            
+            <ParamBool."IsRawFiltEnabled">  { }
+            <ParamBool."IsSincEnabled">  { }
+            <ParamBool."IsMargosianAlgo">  { }
+            <ParamLong."NPeftLen">  { 256  }
+            <ParamLong."NRawFilterSlope_256">  { 48  }
+            <ParamLong."FilterAlgo">  { 2  }
+            <ParamLong."NLinDivisor">  { 8  }
+            <ParamBool."IsSlopeReplaceOn">  { }
+            <ParamLong."NConfigLinSlopeBehind">  { }
+            <ParamLong."NConfigLinSlopeAhead">  { }
+            <ParamLong."IceControlMask">  { 142  }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "peft" "ComputeImage"  }
+          }
+          <ParamFunctor."peft"> 
+          {
+            <Class> "PeFt@IceImageReconFunctors" 
+            
+            <ParamLong."NImageLins">  { 256  }
+            <ParamLong."NPeFTLen">  { 256  }
+            <ParamBool."PerformanceCounter">  { }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "extractmodecombine" "ComputeImage"  }
+          }
+          <ParamFunctor."extractmodecombine"> 
+          {
+            <Class> "ExtractModeCombineSelector@IceImageReconFunctors" 
+            
+            <ParamBool."CalcMagnitudeImages">  { "true"  }
+            <ParamBool."CalcRealPartAbsImages">  { }
+            <ParamBool."CalcRealPartImages">  { }
+            <ParamBool."CalcPhaseImages">  { }
+            <ParamBool."MargosianAlgo">  { }
+            <ParamBool."3DMargosianAlgo">  { }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."PhaseImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "extractMAG" "ComputeImage"  }
+          }
+          <ParamFunctor."extractMAG"> 
+          {
+            <Class> "ExtractFunctor@IceImageReconFunctors" 
+            
+            <ParamBool."ErrorOnScaleFactorZero">  { "true"  }
+            <ParamDouble."ImageScaleFactor">  { <Precision> 16  1.0000000000000000  }
+            <ParamDouble."AdditionalScale">  { <Precision> 16  1.0000000000000000  }
+            <ParamDouble."SeqScale">  { <Precision> 16  1.0000000000000000  }
+            <ParamLong."NAve">  { 1  }
+            <ParamLong."FunctorMode">  { 16  }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "imafinish" "ComputeImage"  }
+          }
+          <ParamFunctor."imafinish"> 
+          {
+            <Class> "ImaFinishDecorator@IceImageReconFunctors" 
+            
+            <ParamLong."MeasUID">  { 121  }
+            <ParamLong."BorderPreset">  { -1  }
+            <ParamBool."FloatExtract">  { }
+            <ParamBool."StoreEnvObjsTillEnd">  { }
+            <ParamBool."DoNormOri">  { "true"  }
+            <ParamBool."ProduceSquareImages">  { }
+            <ParamBool."Hold1stOrientation">  { }
+            <ParamArray."SliceGroupIndices"> 
+            {
+              <Default> <ParamLong.""> 
+              {
+              }
+              { }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              
+            }
+            <ParamArray."ProtocolSliceNumber"> 
+            {
+              <Default> <ParamLong.""> 
+              {
+              }
+              { }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              { -1  }
+              
+            }
+            <ParamArray."ObjNams4RemoveFromEnvPerRep"> 
+            {
+              <Default> <ParamBool.""> 
+              {
+                <LimitRange> { "false" "true" }
+              }
+              
+            }
+            <ParamArray."ObjNams4RemoveFromEnv"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { 1  }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <Connection."connection0">  { "ImageReady" "imagesend_ps.imagesend" "ComputeImage"  }
+          }
+        }
+        <PipeService."imagesend_ps"> 
+        {
+          <Class> "PipeLinkService@MrParc" 
+          
+          <ParamString."GROUP">  { "Calculation"  }
+          <ParamLong."WATERMARK">  { 16  }
+          <ParamLong."POOLTHREADS">  { 1  }
+          <ParamLong."DATATHREADS">  { }
+          <ParamFunctor."imagesend"> 
+          {
+            <Class> "ImageSendFunctor@IceImageReconFunctors" 
+            
+            <Method."ComputeImage">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <Event."ImageReady">  { "int32_t" "class IceAs &" "class MrPtr<class MiniHeader,class Parc::Component> &" "class ImageControl &"  }
+            <ParamLong."Threading">  { }
+            <ParamBool."_Execute">  { "true"  }
+            <ParamArray."_BypassEvents"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+            <ParamArray."_BypassSinks"> 
+            {
+              <Default> <ParamString.""> 
+              {
+              }
+              
+            }
+          }
+        }
+      }
+      <ParamMap."SERVICES"> 
+      {
+        
+        <ParamFunctor."MeasContext"> 
+        {
+          <Class> "MeasContext@MrParc" 
+          
+          <ParamLong."MeasUid">  { 121  }
+          <ParamLong."MultiStepProt">  { 17690  }
+          <ParamString."Study">  { "12.0.732846284"  }
+          <ParamString."Patient">  { "12.0.732846279"  }
+          <ParamBool."HighPrio">  { }
+          <ParamLong."RegisterID">  { 8  }
+          <ParamBool."PatChanged">  { }
+          <ParamString."EndMultiStep">  { }
+          <ParamString."EndStudy">  { }
+          <ParamBool."IsInlineProcessing">  { "true"  }
+        }
+        <ParamFunctor."FillMiniHeaderData"> 
+        {
+          <Class> "FillMiniHeaderData@IceServices" 
+          
+          <ParamLong."MeasUID">  { 121  }
+          <ParamLong."IceControlMask">  { 142  }
+          <ParamLong."BitsStored">  { 12  }
+          <ParamString."IceProgramName">  { "%SiemensIceProgs%\IceProgramOnline2D"  }
+          <ParamString."SequenceDescription">  { "SNR_TxRef200"  }
+          <ParamString."SequenceFileName">  { "%SiemensSeq%\gre"  }
+          <ParamString."SequenceString">  { "fl2d1"  }
+          <ParamLong."BaseResolution">  { 256  }
+          <ParamLong."PhaseEncodingLines">  { 256  }
+          <ParamLong."NoOfFourierLines">  { 256  }
+          <ParamLong."NoOfFourierPartitions">  { 1  }
+          <ParamLong."NoImagesPerSlab">  { 32  }
+          <ParamLong."NPhs">  { 1  }
+          <ParamLong."NSlc">  { 1  }
+          <ParamLong."NEco">  { 1  }
+          <ParamLong."NRep">  { }
+          <ParamLong."NSeg">  { 1  }
+          <ParamLong."NPar">  { 1  }
+          <ParamLong."NAve">  { 1  }
+          <ParamDouble."DAve">  { <Precision> 16  1.0000000000000000  }
+          <ParamLong."TurboFactor">  { 1  }
+          <ParamDouble."ContrastBolusVolume">  { <Precision> 16  }
+          <ParamString."BolusAgent">  { }
+          <ParamBool."IsRealtime">  { }
+          <ParamBool."2DInterpolation">  { }
+          <ParamBool."RawFilterOn">  { }
+          <ParamBool."EllipticalFilterOn">  { }
+          <ParamLong."AverageMode">  { 1  }
+          <ParamLong."MultiSliceMode">  { 1  }
+          <ParamLong."SeqDimension">  { 2  }
+          <ParamDouble."ReadFoV">  { <Precision> 16  256.0000000000000000  }
+          <ParamDouble."PhaseFoV">  { <Precision> 16  256.0000000000000000  }
+          <ParamDouble."PhaseResolution">  { <Precision> 16  1.0000000000000000  }
+          <ParamDouble."TR">  { <Precision> 16  500000.0000000000000000  }
+          <ParamArray."TE"> 
+          {
+            <Default> <ParamDouble.""> 
+            {
+              <Precision> 16 
+            }
+            { 4070.0000000000000000  }
+            { 15000.0000000000000000  }
+            { 20000.0000000000000000  }
+            { 25000.0000000000000000  }
+            { 30000.0000000000000000  }
+            { 35000.0000000000000000  }
+            { 40000.0000000000000000  }
+            { 45000.0000000000000000  }
+            { 50000.0000000000000000  }
+            { 55000.0000000000000000  }
+            { 60000.0000000000000000  }
+            { 65000.0000000000000000  }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            
+          }
+          <ParamDouble."TI">  { <Precision> 16  300000.0000000000000000  }
+          <ParamArray."RealDwellTime"> 
+          {
+            <Default> <ParamLong.""> 
+            {
+            }
+            { 6500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { 7500  }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            { }
+            
+          }
+          <ParamDouble."BandwidthPerPixelPhaseEncode">  { <Precision> 16  }
+          <ParamString."CoilInfoText">  { "C:CPH"  }
+          <ParamArray."SliceGroupIndices"> 
+          {
+            <Default> <ParamLong.""> 
+            {
+            }
+            { }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            
+          }
+          <ParamArray."SpacingBetweenSlices"> 
+          {
+            <Default> <ParamDouble.""> 
+            {
+              <Precision> 16 
+            }
+            { 1.8000000000000000  }
+            
+          }
+          <ParamArray."AnatomicalSliceNo"> 
+          {
+            <Default> <ParamLong.""> 
+            {
+            }
+            { }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            
+          }
+          <ParamArray."PartitionNoDirection"> 
+          {
+            <Default> <ParamLong.""> 
+            {
+            }
+            { 1  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            { -2  }
+            
+          }
+          <ParamArray."ProtocolSliceNumber"> 
+          {
+            <Default> <ParamLong.""> 
+            {
+            }
+            { }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            { -1  }
+            
+          }
+          <ParamBool."OnlineSendIma">  { }
+          <ParamBool."OnlineSendRAW">  { }
+          <ParamBool."OnlineSendRHP">  { }
+          <ParamBool."OnlineSendMeasData">  { }
+          <ParamArray."CoilSelectInfo"> 
+          {
+            <Default> <ParamArray.""> 
+            {
+              <MinSize> 0 
+              <MaxSize> 2147483647 
+              <Default> <ParamMap.""> 
+              {
+                
+                <ParamString."CoilElementID"> 
+                {
+                }
+                
+                <ParamDouble."dFFTScale"> 
+                {
+                  <Precision> 16 
+                }
+                
+                <ParamDouble."dRawDataCorrectionFactorRe"> 
+                {
+                  <Precision> 16 
+                }
+                
+                <ParamDouble."dRawDataCorrectionFactorIm"> 
+                {
+                  <Precision> 16 
+                }
+              }
+              
+            }
+            { {  { "CP"  } { 1.0888000000000000  } { 1.0000000000000000  } { } }  }
+            
+          }
+          <ParamBool."InversionTimeRequired">  { }
+          <ParamBool."TriggerTimeRequired">  { }
+          <ParamBool."IsCardiacTrigger">  { }
+          <ParamBool."IsSharedPhasesTrigger">  { }
+          <ParamLong."PhasePartialFourierFactor">  { 16  }
+          <ParamBool."ContinuousTriggerTime">  { }
+          <ParamBool."SkipDisplay">  { }
+          <ParamLong."SecondsSinceMidnight4Test">  { }
+        }
+        <ParamFunctor."PDS"> 
+        {
+          <Class> "PDS@MrParc" 
+          
+          <ParamLong."MeasUid">  { 121  }
+        }
+        <ParamFunctor."Sender"> 
+        {
+          <Class> "Sender@IrisServices" 
+          
+          <ParamLong."MeasUID">  { 121  }
+          <ParamBool."SuppressSend">  { }
+        }
+        <ParamFunctor."FeedbackSvc"> 
+        {
+          <Class> "Feedback@IrisServices" 
+          
+          <ParamLong."Port">  { 3001  }
+          <ParamString."IPAddress">  { "192.168.2.2"  }
+        }
+        <ParamFunctor."RAIDLocal"> 
+        {
+          <Class> "RAIDLocal@IrisServices" 
+          
+          <ParamBool."RaidSimu">  { }
+          <ParamLong."DataSrc">  { 1  }
+          <ParamLong."MeasUID">  { 121  }
+          <ParamString."ProtocolName">  { "SNR_TxRef200"  }
+          <ParamString."PatientName">  { "Phan^Tom HPM"  }
+          <ParamString."PatientBirthDay">  { "20000116"  }
+        }
+        <ParamFunctor."Receiver"> 
+        {
+          <Class> "PCI_RX@IrisServices" 
+          
+          <ParamLong."MeasUID">  { 121  }
+        }
+        <ParamFunctor."WorkerThreadDispenser"> 
+        {
+          <Class> "ThreadDispenserService@MrParc" 
+          
+          <ParamLong."NumberOfProcessors">  { 20  }
+        }
+      }
+    }
+  }
+}
+Dicom

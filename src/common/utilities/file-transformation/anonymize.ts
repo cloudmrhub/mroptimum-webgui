@@ -15,8 +15,7 @@ const hasAnonymizedFields = (text: string): boolean => {
     const patterns = {
       ssn: /\b\d{3}-\d{2}-\d{4}\b/, // Social Security Number
       address: /\b\d+ [A-Z][a-z]+ [A-Z][a-z]+, [A-Z]{2} \d{5}\b/, // Address
-      patientname: /atient\*?\s*ame[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z]\.)?\s*[A-Z][a-z]+(?:,?\s*(Jr\.|Sr\.|III|IV))?)/i, // Patient Name
-      dob: /\b(0[1-9]|1[0-2])[\/\-](0[1-9]|[12][0-9]|3[01])[\/\-]\d{4}\b/ // Date of Birth      
+      patientname: /<ParamString\.["']PatientName["']>\s*{\s*["']([^"^]+)\^([^"^]+)["']\s*}/i,
     };
   
     const detected: Record<string, string[]> = {};
