@@ -136,7 +136,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
     }
 });
 
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream']; // Add your allowed file types here
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream','application/x-extension-dat']; // Add your allowed file types here
 
 const createPayload = async (accessToken:string, uploadToken:string, file: File, fileAlias: string) => {
 
@@ -153,19 +153,23 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
         }
         // Check if the file type is allowed
         if (!ALLOWED_FILE_TYPES.includes(fileType)) {
+            console.log(fileType);
             alert('This file type is not allowed. Please upload a valid file.');
             return {lambdaFile: undefined, file: undefined};
         }
         
         if (fileExtension == 'dat') {
             // check if file ha phi data
-            if (!is_safe_twix(file)){
+            console.log("checking for PHI data");
+            const isSafe = await is_safe_twix(file);
+            if (!isSafe) {
                 // # exit and return error
                 // popup error message
                 alert('This file contains PIH data. Please anonymize the file before uploading');
+                console.log("file is not safe");
                 return undefined;
-
-
+            }else{
+                console.log("file is safe");
             }
             // file = transformedFile;
         }
