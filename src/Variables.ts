@@ -1,6 +1,7 @@
 import {CLOUDMR_SERVER, PROFILE_SERVER, MRO_SERVER, API_URL} from "./env";
 
 export const SIGNIN = `${CLOUDMR_SERVER}/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
+
 export const FINEGRAIN = `${API_URL}/auth`;
 export const SIGNOUT= `${CLOUDMR_SERVER}/logout`;//https://cloudmrhub.com/api/auth/logout`;
 export const PROFILE = `${PROFILE_SERVER}/profile`;
@@ -20,7 +21,7 @@ export const ROI_UPLOAD = `${CLOUDMR_SERVER}/uploads`;
 export const JOBS_API = `${MRO_SERVER}/pipeline`;
 export const JOBS_RETRIEVE_API = `${MRO_SERVER}/downloads`;
 export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
-export const JOBS_DELETE_API =  `http://localhost:5010/jobs/delete`;
+export const JOBS_DELETE_API =  `${MRO_SERVER}/pipeline`;
 
 export const APP_NAME = 'MR Optimum';
 
