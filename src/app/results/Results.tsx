@@ -249,7 +249,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     console.error("Error deleting job or fetching updated jobs:", error);
                                 }
                             });
-                            setCancelCallbackjob(()=>{});
+                            setCancelCallbackjob(()=>{
+                                console.log("Cancel action was triggered.");
+
+                            });
                             setOpen(true);
                         }}>
                             <DeleteIcon />
@@ -262,8 +265,13 @@ const Results = ({visible}:{visible?:boolean}) => {
    open={open}
    setOpen={setOpen}
    confirmCallback={() => confirmCallbackjob()} // Wrap in a function
-   cancelCallback={() => cancelCallbackjob()} // Wrap in a function
-   cancellable={true}
+   cancelCallback={() => {
+    if (cancelCallbackjob) {
+        cancelCallbackjob();
+    } else {
+        setOpen(false); // Close the dialog if no cancel callback is set
+    }
+}}   cancellable={true}
    width={450}
 />
 
