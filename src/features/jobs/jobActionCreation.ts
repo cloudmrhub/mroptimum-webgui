@@ -36,12 +36,18 @@ export const renameUpstreamJob = createAsyncThunk('RenameJob', async (arg:{acces
 });
 
 export const deleteUpstreamJob = createAsyncThunk('DeleteJob', async (arg: { accessToken: string, jobId: string }) => {
+    // const data = { jobId: arg.jobId }; // No need to stringify, axios will handle it
     const config = {
         headers: {
-            Authorization: `Bearer ${arg.accessToken}`,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${arg.accessToken}`
         },
-    };
-    const response = await axios.delete(`${JOBS_DELETE_API}/${arg.jobId}`, config);
+        params: {
+            id: arg.jobId // Send jobId as a query parameter
+        }
+        };
+    const response = await axios.delete(`${JOBS_DELETE_API}`,config);
+    console.log(response);
     if (response.status == 200)
         getUpstreamJobs(arg.accessToken);
 });

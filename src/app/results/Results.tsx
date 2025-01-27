@@ -28,6 +28,11 @@ import {uploadHandlerFactory} from "../../features/SystemUtilities";
 import CmrInput from "../../common/components/Cmr-components/input/Input";
 import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
 import EditConfirmation from "../../common/components/Cmr-components/dialogue/EditConfirmation";
+import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
+import DeleteIcon from "@mui/icons-material/Delete";
+import {jobsSlice} from "../../features/jobs/jobsSlice";
+
+
 
 export interface NiiFile {
     filename: string;
@@ -60,6 +65,13 @@ const Results = ({visible}:{visible?:boolean}) => {
     const [warningOpen, setWarningOpen] = useState(false);
 
     const [showingLogs, setShowingLogs] = useState(false);
+
+    const [name, setName] = useState<string | undefined>(undefined);
+    const [message, setMessage] = useState<string | undefined>(undefined);
+    const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
+    const [open, setOpen] = useState<boolean>(false);
+    const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
+    const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => {});
 
     useEffect(() => {
         //@ts-ignore
@@ -217,6 +229,26 @@ const Results = ({visible}:{visible?:boolean}) => {
                             <GetAppIcon/>
                         </IconButton>
                         )}
+                        
+                        <IconButton onClick={() => {
+                            setName(`Deleting job`);
+                            setMessage(`Please confirm that you are deleting job ${params.row.id.toString()}.`);
+                            setColor('error');
+
+                            setConfirmCallback(async () => {
+                                console.log(params.row);
+                                await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
+                                await dispatch(getUpstreamJobs(accessToken)); // Dispatch after deleteUpstreamJob completes
+                                return true; // Return a boolean value
+                            });
+
+
+                            setCancelCallbackjob(()=>{});
+                            setOpen(true);
+                        }}>
+                            <DeleteIcon />
+                        </IconButton>
+
                         {params.row.status === 'completed' && (
 
                         <IconButton onClick={(event) => {

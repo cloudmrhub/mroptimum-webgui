@@ -17,6 +17,7 @@ import {
     renameUploadedData,
     uploadData
 } from '../../features/data/dataActionCreation';
+import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 import {Button, CircularProgress} from "@mui/material";
@@ -257,6 +258,8 @@ const Home = () => {
                             setMessage(`Please confirm that you are deleting job ${params.row.id}.`);
                             setColor('error');
                             setConfirmCallback(()=>()=>{
+                                console.log(index);
+                                dispatch(deleteUpstreamJob({accessToken, jobId: params.row.id}));
                                 dispatch(jobsSlice.actions.deleteJob({index}));
                             });
                             setCancelCallback(()=>{});
