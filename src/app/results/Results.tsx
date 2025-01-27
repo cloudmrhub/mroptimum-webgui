@@ -18,7 +18,8 @@ import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbo
 import {Row} from "antd";
 import Box from "@mui/material/Box";
 import {SetupInspection} from "./SetupInspection";
-import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
+// import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
+import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
 import {Logs} from "./Logs";
 import CmrUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
 import {AxiosRequestConfig} from "axios";
@@ -32,6 +33,7 @@ import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
 import {jobsSlice} from "../../features/jobs/jobsSlice";
 
+import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 
 
 export interface NiiFile {
@@ -70,7 +72,7 @@ const Results = ({visible}:{visible?:boolean}) => {
     const [message, setMessage] = useState<string | undefined>(undefined);
     const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
     const [open, setOpen] = useState<boolean>(false);
-    const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
+    const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => {});
     const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => {});
 
     useEffect(() => {
@@ -234,20 +236,36 @@ const Results = ({visible}:{visible?:boolean}) => {
                             setName(`Deleting job`);
                             setMessage(`Please confirm that you are deleting job ${params.row.id.toString()}.`);
                             setColor('error');
-
-                            setConfirmCallback(async () => {
-                                console.log(params.row);
-                                await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
-                                await dispatch(getUpstreamJobs(accessToken)); // Dispatch after deleteUpstreamJob completes
-                                return true; // Return a boolean value
+                            setConfirmCallbackjob(() => async () => {
+                                try {
+                                    // First, delete the upstream job
+                                    await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
+                                    
+                                    // Then, fetch the updated upstream jobs
+                                    await dispatch(getUpstreamJobs(accessToken));
+                            
+                                    console.log("Job deleted and upstream jobs updated successfully.");
+                                } catch (error) {
+                                    console.error("Error deleting job or fetching updated jobs:", error);
+                                }
                             });
-
-
                             setCancelCallbackjob(()=>{});
                             setOpen(true);
                         }}>
                             <DeleteIcon />
                         </IconButton>
+                        
+                        <Confirmation
+   name={name}
+   message={message}
+   color={color}
+   open={open}
+   setOpen={setOpen}
+   confirmCallback={() => confirmCallbackjob()} // Wrap in a function
+   cancelCallback={() => cancelCallbackjob()} // Wrap in a function
+   cancellable={true}
+   width={450}
+/>
 
                         {params.row.status === 'completed' && (
 
@@ -285,11 +303,17 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     }, 5000)
                                 }
                             });
-                        }}>
-                            <TerminalOutlinedIcon/>
+                        }}    
+                        style={{
+                            margin: '2px', // Adds space outside the button
+                            padding: '2px', // Increases the clickable area and space around the icon
+                        }}
+>
+                            <HistoryOutlined/>
                         </IconButton>
                         )}
                     </div>
+                    
                 );
             },
         }
