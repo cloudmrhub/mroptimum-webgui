@@ -275,7 +275,7 @@ const Results = ({visible}:{visible?:boolean}) => {
    width={450}
 />
 
-                        {params.row.status === 'completed' && (
+                        {((params.row.status === 'completed') || (params.row.status === 'failed'))  && (
 
                         <IconButton onClick={(event) => {
                             event.stopPropagation();
@@ -290,6 +290,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 setShowingLogs(true);
                                 try {
                                     //@ts-ignore
+                                    
                                     let volumes = value.payload.volumes;
                                     let niis = value.payload.niis;
                                     for (let i = 0; i < niis.length; i++) {

@@ -40,7 +40,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
     }
     let volumes:Volume[] = [];
     let file = job.files[0];
-    // console.log(file);
+    console.log(file);
     let result = (await axios.post(UNZIP, JSON.parse(file.location),{
         headers: {
             Authorization:`Bearer ${accessToken}`

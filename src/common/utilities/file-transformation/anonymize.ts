@@ -31,7 +31,7 @@ const hasAnonymizedFields = (text: string): boolean => {
     const hasAnonymized = hasAnonymizedFields(text);
   
     // If anonymized fields are found and no PHI is detected, return false (safe)
-    if (hasAnonymized && Object.keys(detected).length === 0) {
+    if (hasAnonymized ) {
       return false; // File is safe and anonymized
     }
   
