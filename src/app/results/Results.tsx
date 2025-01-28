@@ -131,7 +131,7 @@ const Results = ({visible}:{visible?:boolean}) => {
             headerName: 'Alias',
             dataIndex: 'alias',
             field: 'alias',
-            flex: 3,
+            flex: 2,
         },
         {
             headerName: 'Date Submitted',
@@ -149,7 +149,7 @@ const Results = ({visible}:{visible?:boolean}) => {
             field: 'action',
             headerName: 'Actions',
             sortable: false,
-            width: 160,
+            width: 256,
             disableClickEventBubbling: true,
             renderCell: (params: { row: Job }) => {
                 return (
@@ -312,10 +312,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 }
                             });
                         }}    
-                        style={{
-                            margin: '2px', // Adds space outside the button
-                            padding: '2px', // Increases the clickable area and space around the icon
-                        }}
+                        // style={{
+                        //     margin: '2px', // Adds space outside the button
+                        //     padding: '2px', // Increases the clickable area and space around the icon
+                        // }}
 >
                             <HistoryOutlined/>
                         </IconButton>

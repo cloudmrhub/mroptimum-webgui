@@ -409,9 +409,9 @@ const Home = () => {
                </CmrPanel>
                <NameDialog  open={nameDialogOpen} setOpen = {setNameDialogOpen} originalName={originalName}
                             renamingCallback={renamingCallback}/>
-               <CmrPanel key="1" header="Jobs">
+               {/* <CmrPanel key="1" header="Jobs">
                    <CmrTable dataSource={jobsData} columns={jobsColumns} />
-               </CmrPanel>
+               </CmrPanel> */}
                <Confirmation
                    name={name}
                    message={message}
