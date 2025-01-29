@@ -167,19 +167,20 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 job: params.row,
                             })).then(async (value: any) => {
                                 try {
+                                    console.log(value);
                                     //@ts-ignore
-                                    let volumes = value.payload.volumes;
-                                    let niis = value.payload.niis;
-                                    for (let i = 0; i < niis.length; i++) {
-                                        let nii = niis[i];
-                                        if (nii.id === 0) {
-                                            dispatch(resultActions.selectVolume(i));
-                                            nv.loadVolumes([volumes[i]]);
-                                            dispatch(resultActions.setOpenPanel([1, 2]));
-                                            nv.closeDrawing();
-                                            break;
-                                        }
-                                    }
+                                    // let volumes = value.payload.volumes;
+                                    // let niis = value.payload.niis;
+                                    // for (let i = 0; i < niis.length; i++) {
+                                    //     let nii = niis[i];
+                                    //     if (nii.id === 0) {
+                                    //         dispatch(resultActions.selectVolume(i));
+                                    //         nv.loadVolumes([volumes[i]]);
+                                    //         dispatch(resultActions.setOpenPanel([1, 2]));
+                                    //         nv.closeDrawing();
+                                    //         break;
+                                    //     }
+                                    // }
                                 } catch (e) {
                                     warn("Error loading results, please check internet connectivity");
                                 }

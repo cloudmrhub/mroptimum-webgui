@@ -6,7 +6,7 @@
 
 
 const hasAnonymizedFields = (text: string): boolean => {
-    const anonymizedPattern = /\b[xX]{3,}\b/; // Detect "xxx", "XXXX", etc.
+    const anonymizedPattern = /\b[xX]{4,}\b/; // Detect "xxx", "XXXX", etc.
     return anonymizedPattern.test(text); // Returns true if a match is found
   };
   

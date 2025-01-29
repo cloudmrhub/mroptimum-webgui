@@ -394,7 +394,7 @@ const Setup = () => {
         },
     ];
 
-    const [openPanel, setOpenPanel] = useState((noise != undefined && signal != undefined) ? [2] : [1]);
+    const [openPanel, setOpenPanel] = useState((noise != undefined && signal != undefined) ? [1] : [0]);
     let snr: any = undefined;
     let [previewContent, setPreview] = useState<string | undefined>(undefined);
     const [schemaSelector, setSchemaSelector] = useState(false);
@@ -460,6 +460,24 @@ const Setup = () => {
     }
     return (
         <Fragment>
+                        <CmrButton
+                variant="outlined"
+                color="warning"
+                onClick={() => {
+                    // Reset signal and noise
+                    dispatch(setSignal(undefined));
+                    dispatch(setNoise(undefined));
+                    // Reset file updated flags
+                    setSignalFileUpdated(false);
+                    setNoiseFileUpdated(false);
+                    // Reset uploaded data
+                    // setUploadedData(null);
+                    setOpenPanel([0]);
+                }}
+                sx={{ width: '100%' }}
+            >
+                Reset Signal & Noise Files
+            </CmrButton>
             <CmrCollapse accordion={false} expandIconPosition="right"
                 activeKey={openPanel} onChange={(key: any) => {
                     console.log(key);
@@ -585,6 +603,7 @@ const Setup = () => {
                         name={sdWarningHeader} />
                 </CmrPanel> */}
                 <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
+ 
                     <Row>
                         <Col>
                             <Row style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
@@ -594,12 +613,13 @@ const Setup = () => {
                                         dispatch(setSignal(signal));
                                         setSignalFileUpdated(signal != undefined);
                                         if (signalFileUpdated && noiseFileUpdated)
-                                            setTimeout(() => setOpenPanel([2]), 500);
+                                            console.log('signal and noise updated');
+                                            setTimeout(() => setOpenPanel([0]), 500);
                                     }} maxCount={1}
                                     createPayload={createPayload}
                                     onUploaded={uploadResHandlerFactory(setSignal, () => {
                                         if (noise != undefined && signal != undefined)
-                                            setTimeout(() => setOpenPanel([2]), 500);
+                                            setTimeout(() => setOpenPanel([0]), 500);
                                     })} style={{
                                         height: 'fit-content',
                                         marginTop: 'auto',
@@ -615,7 +635,7 @@ const Setup = () => {
                                 <CmrCheckbox onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
-                                        setTimeout(() => setOpenPanel([2]), 500);
+                                        setTimeout(() => setOpenPanel([1]), 500);
                                 }} checked={multiraid != undefined && multiraid}>
                                     Multi-Raid
                                 </CmrCheckbox>
@@ -633,13 +653,20 @@ const Setup = () => {
                                             onSelected={(noise) => {
                                                 dispatch(setNoise(noise));
                                                 setNoiseFileUpdated(noise != undefined);
+                                                console.log(noise);
+                                                console.log(signalFileUpdated);
+                                                console.log(noiseFileUpdated);
                                                 if (signalFileUpdated && noiseFileUpdated)
-                                                    setTimeout(() => setOpenPanel([2]), 500);
+                                                    console.log('signal and noise updated');
+                                                    setTimeout(() => setOpenPanel([1]), 500);
                                             }} maxCount={1}
                                             createPayload={createPayload}
                                             onUploaded={uploadResHandlerFactory(setNoise, () => {
+                                                console.log(noise);
+                                                console.log(signalFileUpdated);
+                                                console.log(noiseFileUpdated);
                                                 if (noise != undefined && signal != undefined)
-                                                    setTimeout(() => setOpenPanel([2]), 500);
+                                                    setTimeout(() => setOpenPanel([1]), 500);
                                             })}
                                             style={{ height: 'fit-content', marginLeft: '2pt' }}
                                             chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
