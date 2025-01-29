@@ -11,19 +11,19 @@ interface CmrTableProps extends Omit<DataGridProps, 'rows'>{
     idAlias?:string;
     name?:string
     style?:CSSProperties;
+    showCheckbox?: boolean; // New prop to control checkbox visibility
+
 }
-const CmrTable = (props:CmrTableProps) => {
-    const { dataSource,columns,
-        idAlias, className, onRowSelectionModelChange,style, ...rest } = props;
-    // const columnsWAction =[...columns];
+const CmrTable = (props: CmrTableProps) => {
+    const { dataSource, columns, idAlias, className, onRowSelectionModelChange, style, showCheckbox = true, ...rest } = props;
 
     return (
-        <div style={(style)?style:{ height: '400px', width: '100%' }} className={`${className? className:''}`}>
-            <h3 style={{marginLeft:'auto',marginRight:'auto'}}>{props.name}</h3>
+        <div style={style ? style : { height: '400px', width: '100%' }} className={`${className ? className : ''}`}>
+            <h3 style={{ marginLeft: 'auto', marginRight: 'auto' }}>{props.name}</h3>
             <DataGrid
-                rows={(dataSource!=undefined)?dataSource.map((row:any) => ({ id: (idAlias!=undefined)? row[idAlias]:row['id'], ...row })):[]}
+                rows={dataSource ? dataSource.map((row: any) => ({ id: idAlias ? row[idAlias] : row['id'], ...row })) : []}
                 columns={columns}
-                checkboxSelection
+                checkboxSelection={showCheckbox} // Conditionally show checkboxes
                 onRowSelectionModelChange={onRowSelectionModelChange}
                 initialState={{
                     pagination: {
@@ -31,9 +31,7 @@ const CmrTable = (props:CmrTableProps) => {
                     },
                 }}
                 localeText={{ noRowsLabel: '' }}
-
                 {...rest}
-                // hideFooter
             />
         </div>
     );

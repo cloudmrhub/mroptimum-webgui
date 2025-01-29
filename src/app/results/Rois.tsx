@@ -247,6 +247,6 @@ export const ROITable = (props:{pipelineID: string,
                    createPayload={createPayload} maxCount={1}></CMRUpload>
             </div>
         </div>
-        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open)=>setWarningVisible(open)}/>
+        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open)=>setWarningVisible(open)} confirmText={'OK'}/>
     </Box>;
 }

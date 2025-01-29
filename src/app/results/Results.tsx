@@ -120,6 +120,8 @@ const Results = ({visible}:{visible?:boolean}) => {
         });
     }
 
+    
+
     const completedJobsColumns = [
         {
             headerName: 'Job ID',
@@ -168,19 +170,19 @@ const Results = ({visible}:{visible?:boolean}) => {
                             })).then(async (value: any) => {
                                 try {
                                     console.log(value);
-                                    //@ts-ignore
-                                    // let volumes = value.payload.volumes;
-                                    // let niis = value.payload.niis;
-                                    // for (let i = 0; i < niis.length; i++) {
-                                    //     let nii = niis[i];
-                                    //     if (nii.id === 0) {
-                                    //         dispatch(resultActions.selectVolume(i));
-                                    //         nv.loadVolumes([volumes[i]]);
-                                    //         dispatch(resultActions.setOpenPanel([1, 2]));
-                                    //         nv.closeDrawing();
-                                    //         break;
-                                    //     }
-                                    // }
+                                    // @ts-ignore
+                                    let volumes = value.payload.volumes;
+                                    let niis = value.payload.niis;
+                                    for (let i = 0; i < niis.length; i++) {
+                                        let nii = niis[i];
+                                        if (nii.id === 0) {
+                                            dispatch(resultActions.selectVolume(i));
+                                            nv.loadVolumes([volumes[i]]);
+                                            dispatch(resultActions.setOpenPanel([1, 2]));
+                                            nv.closeDrawing();
+                                            break;
+                                        }
+                                    }
                                 } catch (e) {
                                     warn("Error loading results, please check internet connectivity");
                                 }
@@ -397,7 +399,8 @@ const Results = ({visible}:{visible?:boolean}) => {
                             setAutoRefresh(e.target.value);
                         }}>Auto Refreshing</CmrCheckbox>
                     </Row>
-                    <CmrTable dataSource={results} columns={completedJobsColumns}/>
+                    <CmrTable dataSource={results} columns={completedJobsColumns}     showCheckbox={false} // This will hide the checkboxes
+                    />
                     <Button className={'mt-3'} fullWidth variant={'contained'} onClick={() => {
                         dispatch(getUpstreamJobs(accessToken));
                     }}>Refresh {jobsLoading&& <CircularProgress size={18} style={{color:'white',position:'relative', left:'5pt'}}/>}</Button>
