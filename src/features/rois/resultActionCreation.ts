@@ -47,8 +47,14 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
         }
     })).data;
     console.log(result);
+
+    
+     
+
     let niis = <NiiFile[]> result.data;
+    console.log(niis);
     niis.forEach((value)=>{
+        console.log(value);
         volumes.push({
             //URL is for NiiVue blob loading
             url: value.link,
@@ -62,7 +68,9 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
         // Set pipeline ID
 },{
         // Adding extra information to the meta field
+        
         getPendingMeta: ({ arg, requestId }) => {
+            console.log('Pending Meta:');
             return {
                 jobId: arg.job.id, // 'arg' is your original payload
                 requestId

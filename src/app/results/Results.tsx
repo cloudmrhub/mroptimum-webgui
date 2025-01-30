@@ -291,9 +291,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 job: params.row,
                             })).then((value: any) => {
                                 setShowingLogs(true);
+
                                 try {
                                     //@ts-ignore
-                                    
+                                    if (activeJob?.status == "completed") {
                                     let volumes = value.payload.volumes;
                                     let niis = value.payload.niis;
                                     for (let i = 0; i < niis.length; i++) {
@@ -305,14 +306,16 @@ const Results = ({visible}:{visible?:boolean}) => {
                                             break;
                                         }
                                     }
+                                }
+
                                 } catch (e) {
                                     console.log(e);
-                                    setWarning("Error loading logs, please wait till the task is complete");
-                                    setWarningOpen(true);
+                                    // setWarning("Error loading logs, please wait till the task is complete");
+                                    // setWarningOpen(true);
                                     setTimeout(() => {
                                         setWarningOpen(false);
                                         setWarning("");
-                                    }, 5000)
+                                    }, 2000)
                                 }
                             });
                         }}    
@@ -431,13 +434,13 @@ const Results = ({visible}:{visible?:boolean}) => {
                         </Box>}
                 </CmrPanel>
                 <CmrPanel header={'Current Job Settings'} key={'2'}>
-
-                    {activeJob == undefined ?
-                        <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-                            Please Select a Job Result
-                        </Box> :
-                        <SetupInspection/>
-                    }
+                {activeJob?.status === 'completed' ? (
+        <SetupInspection/>
+    ) : (
+        <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
+            {!activeJob ? 'Please Select a Job Result' : 'Job is not completed'}
+        </Box>
+    )}
                 </CmrPanel>
             </CmrCollapse>
             <div style={{height: '69px'}}></div>

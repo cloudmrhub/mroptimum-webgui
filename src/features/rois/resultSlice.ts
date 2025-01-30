@@ -94,6 +94,7 @@ export const resultSlice = createSlice({
         }),
         builder.addCase(
             loadResult.fulfilled, (state:ROIState,action)=>{
+                console.log(action.payload);
             state.activeJob=action.payload.job;
             //@ts-ignore
             state.activeJob.setup = {alias:'-',version:'v0'};
@@ -103,8 +104,11 @@ export const resultSlice = createSlice({
             state.activeJob.logs = action.payload.result.headers.log;
             //@ts-ignore
             state.activeJob.slices = action.payload.result.info?.slices;
+            //@ts-ignore
             state.niis[state.activeJob.pipeline_id] = action.payload.niis;
+            
             state.selectedVolume = 1;
+                //ts-ignore
             state.resultLoading = -1;
         }),
         builder.addCase(
@@ -124,11 +128,19 @@ export const resultGetters = {
     },
 
     getPseudoReplicaCount: (state: RootState): number | undefined => {
-        return state.result.activeJob?.setup.task?.options['NR'];
+        try{if(state.result.activeJob?.setup.task?.options['NR']!=undefined)
+            return Number(state.result.activeJob?.setup.task?.options['NR']);}
+        catch(e){
+            return undefined;
+        }
     },
 
     getBoxSize: (state: RootState): number | undefined => {
-        return state.result.activeJob?.setup.task?.options['boxSize'];
+        try{if(state.result.activeJob?.setup.task?.options['boxSize']!=undefined)
+            return Number(state.result.activeJob?.setup.task?.options['boxSize']);}
+        catch(e){
+            return undefined;
+        }
     },
 
     getSignal: (state: RootState): FileReference | undefined => {
@@ -144,7 +156,12 @@ export const resultGetters = {
     },
 
     getReconstructionMethod: (state: RootState): number | undefined => {
-        return state.result.activeJob?.setup.task?.options.reconstructor?.id;
+        try{if(state.result.activeJob?.setup.task?.options.reconstructor?.id!=undefined)
+            return Number(state.result.activeJob?.setup.task?.options.reconstructor?.id);
+        }catch(e){
+            return 0;
+        }
+        // return state.result.activeJob?.setup.task?.options.reconstructor?.id;
     },
 
     getReconstructionMethodName: (state: RootState): string | undefined => {

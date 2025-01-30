@@ -1,4 +1,4 @@
-import {Box, Button, FormControl, IconButton, Slider, Stack, SvgIconProps, Tooltip, Typography} from "@mui/material";
+import {Box, Button, FormControl, IconButton, Slider, Stack, SvgIconProps, Tooltip, Typography,FormLabel} from "@mui/material";
 import ImagesearchRollerIcon from "@mui/icons-material/ImagesearchRoller";
 import BrushIcon from "@mui/icons-material/Brush";
 import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined";
@@ -114,24 +114,24 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         {/*        Save ROI*/}
         {/*    </Button>*/}
         {/*</FormControl>*/}
-
         <FormControl>
-            <Stack direction="row">
-                <IconButton aria-label="fill" onClick={clickMask}>
-                    <FormatColorFillIcon style={{color:(expandedOption=='m'&&maskColor!=undefined)?maskColor:'white'}}/>
-                </IconButton>
-            </Stack>
-            <MaskPlatte
-                resampleImage={()=>{
-                    props.resampleImage();
-                    props.setDrawingChanged(true);
-                }}
-                expanded={expandedOption=='m'}
-                nv={props.nv}
-                setMaskColor={setMaskColor}
-                unfocus={()=>{setExpandedOption('n')}}
-            />
-        </FormControl>
+        <FormLabel 
+        component="legend"
+        className={"ms-2"}
+        style={{width:'100%', textAlign:'center', color:'white',fontSize:18,fontWeight:500}}
+        sx={{
+            marginBottom: 0,
+            marginLeft: 2,
+            color: 'white',
+            fontWeight: 500,
+            fontSize: 14,
+            
+        }}
+    >
+        Drawing Tools:
+    </FormLabel>
+            </FormControl>
+        
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
@@ -211,6 +211,23 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             <OpacityPlatte drawingOpacity={props.drawingOpacity}
                            setDrawingOpacity={props.setDrawingOpacity}
                            expanded={expandOpacityOptions}/>
+        </FormControl>
+        <FormControl>
+            <Stack direction="row">
+                <IconButton aria-label="fill" onClick={clickMask}>
+                    <FormatColorFillIcon style={{color:(expandedOption=='m'&&maskColor!=undefined)?maskColor:'white'}}/>
+                </IconButton>
+            </Stack>
+            <MaskPlatte
+                resampleImage={()=>{
+                    props.resampleImage();
+                    props.setDrawingChanged(true);
+                }}
+                expanded={expandedOption=='m'}
+                nv={props.nv}
+                setMaskColor={setMaskColor}
+                unfocus={()=>{setExpandedOption('n')}}
+            />
         </FormControl>
     </Box>;
 }
