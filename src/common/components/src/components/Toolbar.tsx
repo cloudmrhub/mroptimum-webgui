@@ -316,7 +316,8 @@ export default function Toolbar(props:ToolbarProps) {
                             Labels Visible
                         </Typography>
                         <Switch
-                            defaultChecked={false}
+                                                    defaultChecked={false}
+
                             checked={props.labelsVisible}
                             onChange={props.toggleLabelsVisible}
                         />
