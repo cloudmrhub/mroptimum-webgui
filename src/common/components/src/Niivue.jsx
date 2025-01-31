@@ -137,7 +137,7 @@ export default function NiiVueport(props) {
     },[]);
 
     React.useEffect(()=>{
-        console.log(props.niis[props.selectedVolume]);
+        // console.log(props.niis[props.selectedVolume]);
         //Wait for other rendering processes to complete  before applying styles
         stylingProxy(props.niis[props.selectedVolume]);
     },[props.selectedVolume,props.niis])
@@ -177,7 +177,7 @@ export default function NiiVueport(props) {
             },2500)
             return;
         }
-        console.log(nv.volumes);
+        // console.log(nv.volumes);
         setLayers([...nv.volumes]);
         setBoundMins(nv.frac2mm([0,0,0]));
         setBoundMaxs(nv.frac2mm([1,1,1]));
@@ -196,7 +196,7 @@ export default function NiiVueport(props) {
 
 
     function checkRange(numbers) {
-        console.log(numbers);
+        // console.log(numbers);
         const range_min = getMin(numbers);
         const range_max = getMax(numbers);
 
@@ -1011,7 +1011,7 @@ export default function NiiVueport(props) {
                 "type": "image",
                 "contentType": "application/octet-stream"
             }, config);
-            console.log(response.data);
+            // console.log(response.data);
             // Monkey patch object URL creation
             // Store the original URL.createObjectURL method
             const originalCreateObjectURL = URL.createObjectURL;

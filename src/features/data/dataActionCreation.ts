@@ -17,14 +17,14 @@ import { and } from 'mathjs';
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
     
-    console.log("getu[ploaded data");
+    // console.log("getu[ploaded data");
     const config = {
         headers: {
             Authorization: `Bearer ${accessToken}`}
     }
     try{
         const response = await axios.get(DATAAPI, config);
-        console.log(response.data);
+        // console.log(response.data);
         return response.data;
     }catch(e){
         console.log(e);
@@ -187,7 +187,7 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
 
 // Here's the corresponding rename function for Data
 export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg:{accessToken: string, fileId: number,fileName:string},thunkAPI) => {
-    console.log(arg);
+    // console.log(arg);
     const config = {
         headers: {
             Authorization: `Bearer ${arg.accessToken}`,

@@ -47,12 +47,11 @@ export default function CmrTabs(props: CmrTabsProps) {
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
-        console.log(newValue);
         if(props.onTabSelected)
             props.onTabSelected(newValue);
     };
 
-    console.log(props.tabList);
+    // console.log(props.tabList);
     return (
         <Box sx={{ width: '100%' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1}}>

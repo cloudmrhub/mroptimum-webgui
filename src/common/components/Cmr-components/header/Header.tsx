@@ -17,12 +17,11 @@ const Header = ({siteTitle, authentication,handleLogout,menuList}:{
     const currPath = navigate.name;
     const [menuSelect, setMenuSelect] = useState(siteTitle);
     const { email, accessToken } = authentication;
-    console.log(authentication);
 
     useEffect(() => {
         for (let item of menuList) {
-            console.log(item.path);
-            console.log(currPath);
+            // console.log(item.path);
+            // console.log(currPath);
             if (item.path === currPath) setMenuSelect(item.title);
         }
     }, [currPath]);

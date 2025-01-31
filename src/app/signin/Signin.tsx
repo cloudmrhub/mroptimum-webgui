@@ -28,6 +28,7 @@ export default function Signin({signInCallback}: {signInCallback: (credentials: 
         const data = new FormData(event.currentTarget);
         //@ts-ignore
         signInCallback({email: data.get('email'), password: data.get('password')});
+        
     };
 
     return (

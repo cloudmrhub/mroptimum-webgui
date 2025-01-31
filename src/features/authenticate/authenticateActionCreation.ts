@@ -4,6 +4,7 @@ import {SIGNOUT, SIGNIN, JOBS_API, PROFILE, APP_NAME} from "../../Variables";
 import {Job} from "../jobs/jobsSlice";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
 import {API_URL} from "../../env";
+import { sign } from 'mathjs';
 
 export interface SigninDataType {
     email: string;
@@ -12,13 +13,20 @@ export interface SigninDataType {
 
 export const getAccessToken = createAsyncThunk('SIGN_IN', async (signinData: SigninDataType,thunkAPI) => {
     const response = await axios.post(SIGNIN, signinData);
-    // console.log(response);
-    // console.log(response.data);
+    console.log(response);
+    console.log(response.data);
+    if (response.data.error !== undefined)
+    {       
+        alert('Invalid email or password for user ' + signinData.email);
+        return {error:'Unauthorized'};
+    }else{
+        console.log('Successfully logged in');
     if(response.data.access_token!=undefined)
         thunkAPI.dispatch(getProfile(response.data.access_token));
     if(response.data.access_token!=undefined)
         thunkAPI.dispatch(getFineGrainToken({accessToken:response.data.access_token}))
     return Object.assign(signinData, response.data);
+    }
 });
 
 export const getFineGrainToken = createAsyncThunk('FINE_GRAIN',

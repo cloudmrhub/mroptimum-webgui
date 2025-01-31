@@ -480,7 +480,7 @@ const Setup = () => {
             </CmrButton>
             <CmrCollapse accordion={false} expandIconPosition="right"
                 activeKey={openPanel} onChange={(key: any) => {
-                    console.log(key);
+                    // console.log(key);
                     setOpenPanel(key)
                 }}>
                 {/* <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
@@ -653,18 +653,18 @@ const Setup = () => {
                                             onSelected={(noise) => {
                                                 dispatch(setNoise(noise));
                                                 setNoiseFileUpdated(noise != undefined);
-                                                console.log(noise);
-                                                console.log(signalFileUpdated);
-                                                console.log(noiseFileUpdated);
+                                                // console.log(noise);
+                                                // console.log(signalFileUpdated);
+                                                // console.log(noiseFileUpdated);
                                                 if (signalFileUpdated && noiseFileUpdated)
                                                     console.log('signal and noise updated');
                                                     setTimeout(() => setOpenPanel([1]), 500);
                                             }} maxCount={1}
                                             createPayload={createPayload}
                                             onUploaded={uploadResHandlerFactory(setNoise, () => {
-                                                console.log(noise);
-                                                console.log(signalFileUpdated);
-                                                console.log(noiseFileUpdated);
+                                                // console.log(noise);
+                                                // console.log(signalFileUpdated);
+                                                // console.log(noiseFileUpdated);
                                                 if (noise != undefined && signal != undefined)
                                                     setTimeout(() => setOpenPanel([1]), 500);
                                             })}
@@ -1100,7 +1100,7 @@ const Setup = () => {
                                                     dispatch(setupSetters.compileSNRSettings(jobAlias));
                                                     setJobSelectionModel([...jobSelectionModel, newJobId]);
                                                     setTimeout(() => setOpenPanel([0]), 500);
-                                                    console.log(store.getState().setup.queuedJobs.slice(-1));
+                                                    // console.log(store.getState().setup.queuedJobs.slice(-1));
                                                     dispatch(submitJobs({ accessToken, queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
 

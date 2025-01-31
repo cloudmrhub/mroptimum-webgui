@@ -73,9 +73,9 @@ export const ROITable = (props:{pipelineID: string,
             editable:true,
             valueSetter:(params: GridValueSetterParams)=>{
                 let value = params.value;
-                console.log(params);
+                // console.log(params);
                 const newAlias = params.value; // Value entered by the user
-                console.log(newAlias);
+                // console.log(newAlias);
                 if(newAlias!=params.row.alias){
                     props.setLabelAlias(params.row.label, newAlias);
                 }

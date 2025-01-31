@@ -22,7 +22,7 @@ const CmrCollapse = (props: CmrCollapseProps) => {
     defaultActiveKey = (defaultActiveKey)?defaultActiveKey:[];
     let [activeKeys, setActiveKeys] = React.useState(defaultActiveKey);
     if(activeKey!=undefined&&activeKey!=activeKeys){
-        console.log(activeKey);
+        // console.log(activeKey);
         if(activeKey instanceof Array)
             setActiveKeys(activeKey);
         else setActiveKeys([activeKey]);

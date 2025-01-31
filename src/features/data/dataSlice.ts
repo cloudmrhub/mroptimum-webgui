@@ -62,7 +62,7 @@ export const dataSlice = createSlice({
             if(payloadData==undefined)
                 return;
             if (payloadData.length > 0) {
-                console.log(payloadData);
+                // console.log(payloadData);
                 payloadData.forEach((element) => {
                     data.push({
                         id: element.id,

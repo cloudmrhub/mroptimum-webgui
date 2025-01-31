@@ -94,7 +94,7 @@ export const resultSlice = createSlice({
         }),
         builder.addCase(
             loadResult.fulfilled, (state:ROIState,action)=>{
-                console.log(action.payload);
+                // console.log(action.payload);
             state.activeJob=action.payload.job;
             //@ts-ignore
             state.activeJob.setup = {alias:'-',version:'v0'};

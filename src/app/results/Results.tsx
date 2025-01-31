@@ -169,7 +169,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 job: params.row,
                             })).then(async (value: any) => {
                                 try {
-                                    console.log(value);
+                                    // console.log(value);
                                     // @ts-ignore
                                     let volumes = value.payload.volumes;
                                     let niis = value.payload.niis;
@@ -247,13 +247,13 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     // Then, fetch the updated upstream jobs
                                     await dispatch(getUpstreamJobs(accessToken));
                             
-                                    console.log("Job deleted and upstream jobs updated successfully.");
+                                    // console.log("Job deleted and upstream jobs updated successfully.");
                                 } catch (error) {
                                     console.error("Error deleting job or fetching updated jobs:", error);
                                 }
                             });
                             setCancelCallbackjob(()=>{
-                                console.log("Cancel action was triggered.");
+                                // console.log("Cancel action was triggered.");
 
                             });
                             setOpen(true);
@@ -278,7 +278,8 @@ const Results = ({visible}:{visible?:boolean}) => {
    width={450}
 />
 
-                        {((params.row.status === 'completed') || (params.row.status === 'failed'))  && (
+                        {/* {((params.row.status === 'completed') || (params.row.status === 'failed'))  && ( */}
+                        {(params.row.status === 'completed')  && (
 
                         <IconButton onClick={(event) => {
                             event.stopPropagation();
@@ -315,7 +316,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     setTimeout(() => {
                                         setWarningOpen(false);
                                         setWarning("");
-                                    }, 2000)
+                                    }, 3000)
                                 }
                             });
                         }}    
@@ -392,7 +393,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                                     }}
                                    onUploaded={()=>{//Refresh job list after successful upload
                                         dispatch(getUpstreamJobs(accessToken));
-                                        console.log(uploaderKey);
+                                        // console.log(uploaderKey);
                                         setUploaderKey(uploaderKey+1);
                                    }}
                                    uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}

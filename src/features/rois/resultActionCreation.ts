@@ -18,7 +18,7 @@ export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pi
         }
     };
     const response = await axios.get(ROI_GET, config);
-    console.log(response);
+    // console.log(response);
     return {rois:response.data, pipeline_id:pipeline};
 });
 
@@ -40,21 +40,21 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
     }
     let volumes:Volume[] = [];
     let file = job.files[0];
-    console.log(file);
+    // console.log(file);
     let result = (await axios.post(UNZIP, JSON.parse(file.location),{
         headers: {
             Authorization:`Bearer ${accessToken}`
         }
     })).data;
-    console.log(result);
+    // console.log(result);
 
     
      
 
     let niis = <NiiFile[]> result.data;
-    console.log(niis);
+    // console.log(niis);
     niis.forEach((value)=>{
-        console.log(value);
+        // console.log(value);
         volumes.push({
             //URL is for NiiVue blob loading
             url: value.link,
@@ -70,7 +70,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
         // Adding extra information to the meta field
         
         getPendingMeta: ({ arg, requestId }) => {
-            console.log('Pending Meta:');
+            // console.log('Pending Meta:');
             return {
                 jobId: arg.job.id, // 'arg' is your original payload
                 requestId

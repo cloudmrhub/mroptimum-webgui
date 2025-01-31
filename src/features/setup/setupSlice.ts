@@ -300,7 +300,7 @@ export const setupSlice = createSlice({
                 return;
             }
             state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
-            console.log(state.activeSetup.options.reconstructor.options.noise);
+            // console.log(state.activeSetup.options.reconstructor.options.noise);
             state.activeSetup.options.reconstructor.options.signalMultiRaid = false;
             if (state.activeSetup.options.reconstructor.options.signal) {
                 state.activeSetup.options.reconstructor.options.signal.options.multiraid = false;
@@ -582,7 +582,7 @@ export const setupSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(submitJobs.fulfilled, (state,responses)=>{
-            console.log(responses.payload);
+            // console.log(responses.payload);
             for(let response of responses.payload){
                 //@ts-ignore
                 let id = response.id;
