@@ -101,7 +101,7 @@ export default function NiiVueport(props) {
 
     const [min, setMin] = useState(0);
     const [max, setMax] = useState(1);
-    const [textsVisible, setTextsVisible] = useState(true);
+    const [textsVisible, setTextsVisible] = useState(false);
 
     const [transformFactors, setTransformFactors] = useState({a: 1, b:0});
 
@@ -822,9 +822,9 @@ export default function NiiVueport(props) {
         }else{
             nvUpdateSliceType('multi');
             setShowCrosshair(true);
-            setTextsVisible(true);
+            setTextsVisible(false);
             nv.opts.crosshairWidth = 1;
-            nv.hideText = false;
+            nv.hideText = true;
         }
     }
 
