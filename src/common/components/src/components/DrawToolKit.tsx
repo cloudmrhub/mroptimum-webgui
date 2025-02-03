@@ -128,7 +128,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             
         }}
     >
-        Drawing Tools:
+        ROI Tools:
     </FormLabel>
             </FormControl>
         

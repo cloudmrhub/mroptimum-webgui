@@ -284,7 +284,7 @@ export default function UploadWindow({
             Drag & Drop or Click to Upload Your File Here <sup>*</sup>
         </Typography>
         <Typography variant="body2" align="center" style={{marginTop: 'auto',fontSize: '0.8rem', fontStyle:'italic'}}>
-            * Warning: The file you are uploading may contain sensitive information protected under privacy laws. Please ensure all PHI is anonymized before proceeding.
+            * Warning: The file you are uploading may contain sensitive information protected under privacy laws. Please ensure all PHI is anonymized before proceeding.Before proceeding. The user is the sole responsible for data anonymization.
         </Typography>
                                     
                                 </Box>

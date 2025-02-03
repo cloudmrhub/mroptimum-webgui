@@ -12,6 +12,7 @@ import { Col, Row } from "antd";
 import AddIcon from '@mui/icons-material/Add';
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
 import moment from 'moment';
+import ArticleIcon from '@mui/icons-material/Article';
 
 import {
     Divider,
@@ -679,7 +680,7 @@ const Setup = () => {
                             </Row>
                         </Fragment>}
                 </CmrPanel>
-                <CmrPanel key="2" header={editing == -1 ? "SNR Set Up" : `Editing Job ${editing}`} className='mb-2'>
+                <CmrPanel key="2" header={editing == -1 ? "SNR Analysis" : `Editing Job ${editing}`} className='mb-2'>
                     <FormControl style={{ width: '100%' }} className={'mb-3'} onChange={(event) => {
                         //@ts-ignore
                         if (event.target.value != analysisMethod)
@@ -705,7 +706,18 @@ const Setup = () => {
                     {analysisMethod != undefined && snrDescription != '' &&
                         <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
                             expanded={true}>
-                            {snrDescription}
+                                   {analysisMethod === 0 && (
+      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
+    )}
+    {analysisMethod === 1 && (
+      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
+    )}
+    {analysisMethod === 2 && (
+      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
+    )}
+    {analysisMethod === 3 && (
+      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
+    )}
                         </CmrPanel>}
 
                     {(analysisMethod != undefined) &&

@@ -102,7 +102,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                 <Box id={"controlDock"} className={'title'} style={{width:'100%'}}  ref={sliceControl}>
                     Controls
                 </Box>
-                <Slider name={'xSlice'} min={mins[0]} max={maxs[0]} value={mms[0]} setValue={(val:number)=>{
+                <Slider name={'X'} min={mins[0]} max={maxs[0]} value={mms[0]} setValue={(val:number)=>{
                     props.nv.scene.crosshairPos = [toRatio(val, mins[0], maxs[0]),
                         toRatio(mms[1], mins[1], maxs[1]),
                         toRatio(mms[2], mins[2], maxs[2])];
@@ -111,7 +111,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     // official API if otherwise supported
                     props.nv.drawScene();
                 }}/>
-                <Slider name={'ySlice'} min={mins[1]} max={maxs[1]} value={mms[1]} setValue={(val:number)=>{
+                <Slider name={'Y'} min={mins[1]} max={maxs[1]} value={mms[1]} setValue={(val:number)=>{
                     props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
                         toRatio(val, mins[1], maxs[1]),
                         toRatio(mms[2], mins[2], maxs[2])];
@@ -120,7 +120,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     // official API if otherwise supported
                     props.nv.drawScene();
                 }}/>
-                <Slider name={'zSlice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val:number)=>{
+                <Slider name={'Slice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val:number)=>{
                     props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
                         toRatio(mms[1], mins[1], maxs[1]),
                         toRatio(val, mins[2], maxs[2])];
@@ -129,7 +129,7 @@ export function NiivuePanel (props:NiivuePanelProps) {
                     // official API if otherwise supported
                     props.nv.drawScene();
                 }}/>
-                <DualSlider name={'range'}
+                <DualSlider name={'Values'}
                             max={props.nv.volumes[0]?props.nv.volumes[0].robust_max:1}
                             min={props.nv.volumes[0]?props.nv.volumes[0].robust_min:0}
                             setMin={(min)=>{

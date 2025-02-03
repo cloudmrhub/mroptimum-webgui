@@ -33,7 +33,7 @@ function AboutPage() {
                             {funding}
                         </div>
                         <div className="container py-1">
-                            <p className="cmTitle">Please cite the following publications if you usr MR Optimum </p>
+                            <p className="cmTitle">Please cite the following publications if you use MR Optimum </p>
                             {refs}
                         </div>
                         <div className="container py-1">
@@ -59,10 +59,9 @@ const description = (
             MR Optimum is a web-based application for the evaluation of MR image quality in terms of signal-to-noise ratio (SNR). It provides standardized access to the most common methods for SNR calculation.
             
                 <ul style={{ marginBottom: "0px" }}>
-                    <li><a href="https://med.nyu.edu/faculty/riccardo-lattanzi" target="_blank">Riccardo Lattanzi, PhD</a></li>
-                    <li><a href="https://github.com/erosmontin" target="_blank">Eros Montin, PhD</a></li>
-                    <li><a href="https://cai2r.net/about/team/#roy-wiggins" target="_blank">Roy Wiggins</a></li>
-                    <li><a href="https://https://github.com/YuelongLi" target="_blank">Yuelong Li</a></li>
+                    <li>Principal Investigator: Riccardo Lattanzi, PhD</li>
+                    <li>Head of Software Development: Eros Montin, PhD</li>
+                    <li>Collaborators: Roy Wiggins, Yuelong Li</li>
                 </ul>
                 
         </div>
@@ -72,7 +71,7 @@ const description = (
 const doc = (
     <div className="cmParagraph">
         <div className="cmText">
-            Our python sources are available <a href="https://github.com/cloudmrhub-com/cloudmrhub" target="_blank">here</a>. User manuals and video tutorials will be available in the future.
+            Our python sources are available <a href="https://github.com/cloudmrhub/mroptimum-tools" target="_blank">here</a>. User manuals and video tutorials will be available in the future.
         </div>
     </div>
 );
@@ -81,7 +80,7 @@ const funding = (
     <div>
         <div className="cmParagraph">
             <div className="cmText">
-                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number <span style={{fontWeight: 'bold'}}>R01 EB024536</span>. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
+                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number <a href="https://reporter.nih.gov/project-details/10992662">R01 EB024536</a>. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
             </div>
         </div>
 
