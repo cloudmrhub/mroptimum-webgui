@@ -139,31 +139,31 @@ export const SetupInspection = ()=>{
             </span>
             <SettingsText>
                 {slices}
-            </SettingsText>.
+            </SettingsText>
         </Box>
-        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
+        <Divider variant="middle" sx={{marginTop: '5pt', marginBottom: '5pt', color: 'gray'}}/>
         <Box className={'setting-box'}>
             <span>{`SNR Analysis Method: `}</span>
             <SettingsText>
                 {analysisMethodMapping[Number(analysisMethod)]}
-            </SettingsText>.
+            </SettingsText>
         </Box>
-        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'darkgray'}}/>
+        <Divider variant="middle" sx={{marginTop: '5pt', marginBottom: '5pt', color: 'darkgray'}}/>
         {(analysisMethod != undefined) &&
             <>
                     {(analysisMethod == 2 || analysisMethod == 3) &&
                         <SettingsBox>
                             <span>{'Number of Pseudo Replica: '}</span>
-                            <SettingsText>{pseudoReplicaCount}</SettingsText>.
+                            <SettingsText>{pseudoReplicaCount}</SettingsText>
                         </SettingsBox>}
                     {(analysisMethod == 3) &&
                         <SettingsBox>
                             <span>{'Box Size: '}</span>
-                            <SettingsText>{boxSize}</SettingsText>.
+                            <SettingsText>{boxSize}</SettingsText>
                         </SettingsBox>}
                 <SettingsBox>
                     <span>{'Image Reconstruction Method: '}</span>
-                    <SettingsText>{idToSecondaryOptions[Number(reconstructionMethod)]}</SettingsText>.
+                    <SettingsText>{idToSecondaryOptions[Number(reconstructionMethod)]}</SettingsText>
                 </SettingsBox>
                     {(reconstructionMethod != undefined) &&
                         <Box>
@@ -172,14 +172,14 @@ export const SetupInspection = ()=>{
                                    {(flipAngleCorrection)?'Using ':'Not Using '}
                                </SettingsText>
                                <span>
-                                   {(flipAngleCorrection)?'Flip Angle Correction,':'Flip Angle Correction.'}
+                                   {(flipAngleCorrection)?'Flip Angle Correction,':'Flip Angle Correction'}
                                </span>
                                {(flipAngleCorrection) &&
                                    <>
                                        Flip Angle Correction File:
                                        <SettingsText>
                                            {flipAngleCorrectionFile?.options.filename}
-                                       </SettingsText>.
+                                       </SettingsText>
                                    </>
                                }
                            </SettingsBox>
@@ -187,26 +187,30 @@ export const SetupInspection = ()=>{
                             {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
                                 <SettingsBox
                                 >
-                                    <span>
+                                    <p>
                                         Using
                                     <SettingsText>
                                         {loadSensitivity?' Loaded ':' Calculated '}
                                     </SettingsText>
                                         {'Coil Sensitivities; '}
-                                    </span>
+                                    </p>
+
                                     {(loadSensitivity) ?
                                         <span>
                                                     Coil Sensitvitiy File <SettingsText>{sensitivityMapSource?.options.filename}</SettingsText>
                                                 </span> : <span>
+                                                    
+                                                
                                                     Coil Sensitivities Calculation Method: <SettingsText>
                                                     {sensitivityMapMethod?coilOptionAlias[sensitivityMapMethod]:'undefined'}
+                                                    
                                                 </SettingsText>
                                                 </span>}
                                     {/*<InputLabel id="css-label">Age</InputLabel>*/}
                                 </SettingsBox>}
                             {(reconstructionMethod==3) &&
                                 <SettingsBox>
-                                    <p style={{marginBottom:'5pt'}}>
+                                    <p style={{marginBottom:'10pt'}}>
                                         Kernel Size 1: <SettingsText>{kernelSize1}</SettingsText>
                                     </p>
                                     <p>
@@ -223,18 +227,20 @@ export const SetupInspection = ()=>{
                                 </SettingsBox>}
                             {(decimateMapping[reconstructionMethod] && decimateData) &&
                                 <SettingsBox>
-                                    <p style={{marginBottom:'5pt'}}>
+                                    <p style={{marginBottom:'10pt'}}>
                                         Acceleration Factor 1: <SettingsText>{decimateAcceleration1}</SettingsText>
-                                        , Acceleration Factor 2: <SettingsText>{decimateAcceleration2}</SettingsText>.
+                                        </p>
+                                        <p >
+                                        Acceleration Factor 2: <SettingsText>{decimateAcceleration2}</SettingsText>
                                     </p>
                                     <p>
-                                        Use{decimateACL == null?
+                                        Used {decimateACL == null?
                                         <SettingsText>
                                             {' All '}
                                         </SettingsText>
                                         :<SettingsText>
                                             {decimateACL}
-                                        </SettingsText>}Autocalibration Lines.
+                                        </SettingsText>} Autocalibration Lines
                                     </p>
                                 </SettingsBox>
                             }

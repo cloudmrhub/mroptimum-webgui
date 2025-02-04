@@ -21,6 +21,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
     //file after upload, or if it should refresh for a new session
     retains?:boolean;
     maxCount: number;
+    changeNameAfterUpload?: boolean;
     onRemove?:(removedFile: File)=>void;
     /**
      * Allows access to file content prior to uploading.
@@ -87,6 +88,7 @@ const CmrUpload = (props: CMRUploadProps) => {
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
     let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
+    
 
    const upload = async (file: File, fileAlias:string, fileDatabase: string)=>{
         setUploading(true);
@@ -172,8 +174,13 @@ const CmrUpload = (props: CMRUploadProps) => {
                         }}
                         sx={props.sx}
                 >
-                    {(uploadedFile==undefined)?(props.uploadButtonName?props.uploadButtonName:"Upload"):uploadedFile}
-                </Button>
+                     {/* if if props.changeNameAfterUpload */}
+
+                     {props.changeNameAfterUpload ? 
+    (uploadedFile === undefined ? (props.uploadButtonName ? props.uploadButtonName : "Upload") : uploadedFile) 
+    : 
+    (props.uploadButtonName ? props.uploadButtonName : "Upload")
+}                </Button>
             :
                 <Button fullWidth={props.fullWidth} style={props.style} variant={"contained"} sx={{overflowWrap:'inherit'}} color={'primary'} disabled>
                     Uploading {progress}%
@@ -182,6 +189,10 @@ const CmrUpload = (props: CMRUploadProps) => {
                           template={{showFileName:true,showFileSize:true}}/>
         </React.Fragment>
     );
+};
+
+CmrUpload.defaultProps = {
+    changeNameAfterUpload: true,
 };
 
 export type {CMRUploadProps};

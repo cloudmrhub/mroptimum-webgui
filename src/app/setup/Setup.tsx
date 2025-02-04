@@ -733,7 +733,7 @@ const Setup = () => {
                                             <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Number of Pseudo Replica:</CmrLabel>
                                             <CmrInputNumber value={pseudoReplicaCount ?? 10}
                                                 min={2}
-                                                max={analysisMethod == 2 ? 100 : 10}
+                                                max={analysisMethod == 2 ? 128 : 10}
                                                 onChange={(val) => {
                                                     dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
                                                 }}></CmrInputNumber>

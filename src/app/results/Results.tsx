@@ -26,12 +26,13 @@ import {AxiosRequestConfig} from "axios";
 import {DATAUPLODAAPI} from "../../Variables";
 import {processJobZip} from "./PreprocessJob";
 import {uploadHandlerFactory} from "../../features/SystemUtilities";
-import CmrInput from "../../common/components/Cmr-components/input/Input";
-import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
+// import CmrInput from "../../common/components/Cmr-components/input/Input";
+// import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
 import EditConfirmation from "../../common/components/Cmr-components/dialogue/EditConfirmation";
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
-import {jobsSlice} from "../../features/jobs/jobsSlice";
+// import {jobsSlice} from "../../features/jobs/jobsSlice";
+import Tooltip from '@mui/material/Tooltip';
 
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
 
@@ -157,6 +158,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                 return (
                     <div>
 {params.row.status != 'failed' && (
+        <Tooltip title={`View job ${params.row.alias}`}>
 
                         <IconButton disabled={params.row.status == 'pending'} onClick={(event) => {
                             event.stopPropagation();
@@ -206,9 +208,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 }}/>
                             }
                         </IconButton>
+                        </Tooltip>
 )}
                         {params.row.status === 'completed' && (
-
+                            <Tooltip title={`Download job ${params.row.alias}`}>
                         <IconButton onClick={(e) => {
                             e.stopPropagation();
                             params.row.files.forEach(file => {
@@ -233,8 +236,10 @@ const Results = ({visible}:{visible?:boolean}) => {
                         }}>
                             <GetAppIcon/>
                         </IconButton>
+                        </Tooltip>
                         )}
-                        
+
+                        <Tooltip title={`Delete job ${params.row.alias}`}>
                         <IconButton onClick={() => {
                             setName(`Deleting job`);
                             setMessage(`Please confirm that you are deleting job ${params.row.id.toString()}.`);
@@ -260,7 +265,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                         }}>
                             <DeleteIcon />
                         </IconButton>
-                        
+                           </Tooltip>
                         <Confirmation
    name={name}
    message={message}
@@ -280,6 +285,7 @@ const Results = ({visible}:{visible?:boolean}) => {
 
                         {/* {((params.row.status === 'completed') || (params.row.status === 'failed'))  && ( */}
                         {(params.row.status === 'completed')  && (
+                            <Tooltip title={`Read Log of job ${params.row.alias}`}>
 
                         <IconButton onClick={(event) => {
                             event.stopPropagation();
@@ -292,10 +298,8 @@ const Results = ({visible}:{visible?:boolean}) => {
                                 job: params.row,
                             })).then((value: any) => {
                                 setShowingLogs(true);
-
                                 try {
                                     //@ts-ignore
-                                    if (activeJob?.status == "completed") {
                                     let volumes = value.payload.volumes;
                                     let niis = value.payload.niis;
                                     for (let i = 0; i < niis.length; i++) {
@@ -307,26 +311,21 @@ const Results = ({visible}:{visible?:boolean}) => {
                                             break;
                                         }
                                     }
-                                }
-
                                 } catch (e) {
                                     console.log(e);
-                                    // setWarning("Error loading logs, please wait till the task is complete");
-                                    // setWarningOpen(true);
+                                    setWarning("Error loading logs, please wait till the task is complete");
+                                    setWarningOpen(true);
                                     setTimeout(() => {
                                         setWarningOpen(false);
                                         setWarning("");
-                                    }, 3000)
+                                    }, 5000)
                                 }
                             });
-                        }}    
-                        // style={{
-                        //     margin: '2px', // Adds space outside the button
-                        //     padding: '2px', // Increases the clickable area and space around the icon
-                        // }}
->
+                        }}>
+
                             <HistoryOutlined/>
                         </IconButton>
+                        </Tooltip>
                         )}
                     </div>
                     
