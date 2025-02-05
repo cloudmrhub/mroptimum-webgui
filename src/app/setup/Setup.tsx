@@ -36,12 +36,12 @@ import {
     MuiEvent
 } from "@mui/x-data-grid";
 import CmrButton from "../../common/components/Cmr-components/button/Button";
-import CmrTable from "../../common/components/CmrTable/CmrTable";
+// import CmrTable from "../../common/components/CmrTable/CmrTable";
 import CmrInputNumber from "../../common/components/Cmr-components/input-number/InputNumber";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { UploadedFile } from "../../features/data/dataSlice";
 import { formatBytes, getFileExtension } from "../../common/utilities";
-import { boolean } from "mathjs";
+// import { boolean } from "mathjs";
 import { Job, jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
@@ -52,13 +52,13 @@ import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
-import Confirmation from '../../common/components/Cmr-components/dialogue/Confirmation';
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
+// import Confirmation from '../../common/components/Cmr-components/dialogue/Confirmation';
+// import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+// import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
-import { SNREditor } from './SetupEditor';
+// import { SNREditor } from './SetupEditor';
 import { LambdaFile } from "../../common/components/Cmr-components/upload/Upload";
-import { createTheme } from "@mui/material/styles";
+// import { createTheme } from "@mui/material/styles";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
 
 
@@ -1115,6 +1115,7 @@ const Setup = () => {
                                                     // console.log(store.getState().setup.queuedJobs.slice(-1));
                                                     dispatch(submitJobs({ accessToken, queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
+                                                    dispatch(setupSetters.setMaskOption(Number(0)));
 
                                                 }}
                                                 handleClose={() => {

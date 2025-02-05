@@ -284,7 +284,7 @@ const Results = ({visible}:{visible?:boolean}) => {
 />
 
                         {/* {((params.row.status === 'completed') || (params.row.status === 'failed'))  && ( */}
-                        {(params.row.status === 'completed')  && (
+                        {/* {(params.row.status === 'completed')  && (
                             <Tooltip title={`Read Log of job ${params.row.alias}`}>
 
                         <IconButton onClick={(event) => {
@@ -326,7 +326,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                             <HistoryOutlined/>
                         </IconButton>
                         </Tooltip>
-                        )}
+                        )} */}
                     </div>
                     
                 );
