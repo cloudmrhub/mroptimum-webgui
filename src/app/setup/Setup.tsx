@@ -99,7 +99,7 @@ const Setup = () => {
     const decimateData = useAppSelector(setupGetters.getDecimate);
     const decimateAcceleration1 = useAppSelector(setupGetters.getDecimateAcceleration1);
     const decimateAcceleration2 = useAppSelector(setupGetters.getDecimateAcceleration2);
-    const decimateACL = useAppSelector(setupGetters.getDecimateACL);
+    const [decimateACL, setDecimateACL] = useState(useAppSelector(setupGetters.getDecimateACL) ?? null);
     const kernelSize1 = useAppSelector(setupGetters.getKernelSize1);
     const kernelSize2 = useAppSelector(setupGetters.getKernelSize2);
     let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
@@ -141,7 +141,6 @@ const Setup = () => {
         'innerACL': 'Internal Reference with AutoCalibration Lines'
     };
     const decimateMapping = [false, false, true, true];
-
     const uploadResHandlerFactory = (reducer: (payload: UploadedFile) => {
         payload: UploadedFile | undefined,
         type: string
@@ -1042,17 +1041,30 @@ const Setup = () => {
                                                         }
                                                         else if (params.id == '3') {
                                                             dispatch(setupSetters.setDecimateACL(value));
+                                                            setDecimateACL(value);
+
                                                         }
 
                                                     }}
                                                 />
                                                 <CmrCheckbox checked={decimateACL == null} style={{ marginLeft: 0 }} onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        dispatch(setupSetters.setDecimateACL(null));
-                                                    } else {
-                                                        dispatch(setupSetters.setDecimateACL(24));
-                                                    }
-                                                }}>
+                                                                                            if (e.target.checked) {
+                                                                                                dispatch(setupSetters.setDecimateACL(null));
+                                                                                                setDecimateACL(null);
+
+                                                                                                if (reconstructionMethod == 2){
+                                                                                                    dispatch(setupSetters.setSensitivityMapMethod('inner'));
+                                                                                                }
+                                                                                            } else {
+                                                                                                dispatch(setupSetters.setDecimateACL(24));
+                                                                                                setDecimateACL(24);
+                                                                                                if (reconstructionMethod == 2){
+                                                                                                    dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
+                                                                                                }
+                                                                                            }
+
+                                                                                            
+                                                                                        }}>
                                                      Use All Lines for Autocalibration
                                                 </CmrCheckbox>
                                                 <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
@@ -1116,6 +1128,8 @@ const Setup = () => {
                                                     dispatch(submitJobs({ accessToken, queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
                                                     dispatch(setupSetters.setMaskOption(Number(0)));
+                                                    dispatch(setupSetters.setDecimateACL(null));
+                                                    setDecimateACL(null);
 
                                                 }}
                                                 handleClose={() => {

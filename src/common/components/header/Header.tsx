@@ -11,7 +11,7 @@ const HeaderBar = () => {
 
     const menuList = [
         { title: 'About', path: '/about' },
-        { title: 'Contact Us', path: '/contact' },
+        // { title: 'Contact Us', path: '/contact' },
         { title: 'Bug Report', path: '/bug-report' },
     ];
 
