@@ -885,7 +885,8 @@ const Setup = () => {
                                                         <FormControlLabel value="0" control={<Radio />} label="Do Not Mask Coil Sensitivities Maps" />
                                                         <FormControlLabel value="1" control={<Radio />}
                                                             label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                Use Percent Threshold of the Max Value
+                                                                Mask Pixels Below a Percentage of Max Value
+
                                                                 {maskMethod === 1 && (
                                                                 <>
                                                                 <CmrInputNumber value={maskThreshold}
@@ -901,7 +902,7 @@ const Setup = () => {
                                                         <FormControlLabel value="3"
                                                             control={<Radio />}
                                                             label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                ESPIRIT &nbsp;&nbsp;  {maskMethod === 3 && (
+                                                                use Mask from ESPIRiT &nbsp;&nbsp;  {maskMethod === 3 && (
                                                                     <>
                                                                         k:
                                                                         <CmrInputNumber value={kStore}

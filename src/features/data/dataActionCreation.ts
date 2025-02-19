@@ -24,7 +24,7 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
     }
     try{
         const response = await axios.get(DATAAPI, config);
-        // console.log(response.data);
+        console.log(response.data);
         return response.data;
     }catch(e){
         console.log(e);
