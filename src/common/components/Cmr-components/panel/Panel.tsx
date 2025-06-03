@@ -43,7 +43,7 @@ const CmrPanel = function(props:CmrPanelProps){
                     {props.children}
                 </div>
                 :
-                <div className={`card-body m-5 ${props.cardProps?.className}`} style={
+                <div className={`card-body m-4 ${props.cardProps?.className}`} style={
                     {maxHeight:undefined,padding:0, opacity:'1',
                         visibility:'visible',transition:'all 0.5s'}}>
                     {props.children}

@@ -191,7 +191,7 @@ const Setup = () => {
             try {
                 if (fileExtension == 'dat') {
                     let safe = await is_safe_twix(file);
-                    if (!safe){
+                    if (!safe) {
                         alert('This file contains PIH data. Please anonymize the file before uploading');
                         return undefined;
                     }
@@ -460,7 +460,7 @@ const Setup = () => {
     }
     return (
         <Fragment>
-                        <CmrButton
+            <CmrButton
                 variant="outlined"
                 color="warning"
                 onClick={() => {
@@ -474,10 +474,11 @@ const Setup = () => {
                     // setUploadedData(null);
                     setOpenPanel([0]);
                 }}
-                sx={{ width: '100%' }}
+                sx={{ width: '100%', marginBottom: '10px' }}
             >
                 Reset Signal & Noise Files
             </CmrButton>
+
             <CmrCollapse accordion={false} expandIconPosition="right"
                 activeKey={openPanel} onChange={(key: any) => {
                     // console.log(key);
@@ -603,10 +604,10 @@ const Setup = () => {
                         name={sdWarningHeader} />
                 </CmrPanel> */}
                 <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
- 
+
                     <Row>
                         <Col>
-                            <Row style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
+                            <Row>
                                 <CmrLabel>Signal File:</CmrLabel>
                                 {signalProgress < 0 ? <SelectUpload fileSelection={uploadedData}
                                     onSelected={(signal) => {
@@ -614,7 +615,7 @@ const Setup = () => {
                                         setSignalFileUpdated(signal != undefined);
                                         if (signalFileUpdated && noiseFileUpdated)
                                             console.log('signal and noise updated');
-                                            setTimeout(() => setOpenPanel([0]), 500);
+                                        setTimeout(() => setOpenPanel([0]), 500);
                                     }} maxCount={1}
                                     createPayload={createPayload}
                                     onUploaded={uploadResHandlerFactory(setSignal, () => {
@@ -632,7 +633,7 @@ const Setup = () => {
                                     : <Button variant={"contained"} size={'medium'} style={{ textTransform: 'none', height: 'fit-content' }} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled={true}>
                                         Uploading {+(signalProgress * 99).toFixed(2)}%
                                     </Button>}
-                                <CmrCheckbox onChange={(event) => {
+                                <CmrCheckbox  sx={{ ml: 1 }} onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
                                         setTimeout(() => setOpenPanel([1]), 500);
@@ -658,7 +659,7 @@ const Setup = () => {
                                                 // console.log(noiseFileUpdated);
                                                 if (signalFileUpdated && noiseFileUpdated)
                                                     console.log('signal and noise updated');
-                                                    setTimeout(() => setOpenPanel([1]), 500);
+                                                setTimeout(() => setOpenPanel([1]), 500);
                                             }} maxCount={1}
                                             createPayload={createPayload}
                                             onUploaded={uploadResHandlerFactory(setNoise, () => {
@@ -705,18 +706,18 @@ const Setup = () => {
                     {analysisMethod != undefined && snrDescription != '' &&
                         <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
                             expanded={true}>
-                                   {analysisMethod === 0 && (
-      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
-    )}
-    {analysisMethod === 1 && (
-      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
-    )}
-    {analysisMethod === 2 && (
-      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
-    )}
-    {analysisMethod === 3 && (
-      <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
-    )}
+                            {analysisMethod === 0 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
+                            )}
+                            {analysisMethod === 1 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
+                            )}
+                            {analysisMethod === 2 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
+                            )}
+                            {analysisMethod === 3 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
+                            )}
                         </CmrPanel>}
 
                     {(analysisMethod != undefined) &&
@@ -888,14 +889,14 @@ const Setup = () => {
                                                                 Mask Pixels Below a Percentage of Max Value
 
                                                                 {maskMethod === 1 && (
-                                                                <>
-                                                                <CmrInputNumber value={maskThreshold}
-                                                                    min={1}
-                                                                    style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                    onChange={(val) => {
-                                                                        dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
-                                                                    }} />%
-                                                                  </>
+                                                                    <>
+                                                                        <CmrInputNumber value={maskThreshold}
+                                                                            min={1}
+                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
+                                                                            onChange={(val) => {
+                                                                                dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                            }} />%
+                                                                    </>
                                                                 )}
                                                             </Box>} />
                                                         {/* <FormControlLabel value="2" control={<Radio />} label="Inner reference" /> */}
@@ -1049,24 +1050,24 @@ const Setup = () => {
                                                     }}
                                                 />
                                                 <CmrCheckbox checked={decimateACL == null} style={{ marginLeft: 0 }} onChange={(e) => {
-                                                                                            if (e.target.checked) {
-                                                                                                dispatch(setupSetters.setDecimateACL(null));
-                                                                                                setDecimateACL(null);
+                                                    if (e.target.checked) {
+                                                        dispatch(setupSetters.setDecimateACL(null));
+                                                        setDecimateACL(null);
 
-                                                                                                if (reconstructionMethod == 2){
-                                                                                                    dispatch(setupSetters.setSensitivityMapMethod('inner'));
-                                                                                                }
-                                                                                            } else {
-                                                                                                dispatch(setupSetters.setDecimateACL(24));
-                                                                                                setDecimateACL(24);
-                                                                                                if (reconstructionMethod == 2){
-                                                                                                    dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
-                                                                                                }
-                                                                                            }
+                                                        if (reconstructionMethod == 2) {
+                                                            dispatch(setupSetters.setSensitivityMapMethod('inner'));
+                                                        }
+                                                    } else {
+                                                        dispatch(setupSetters.setDecimateACL(24));
+                                                        setDecimateACL(24);
+                                                        if (reconstructionMethod == 2) {
+                                                            dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
+                                                        }
+                                                    }
 
-                                                                                            
-                                                                                        }}>
-                                                     Use All Lines for Autocalibration
+
+                                                }}>
+                                                    Use All Lines for Autocalibration
                                                 </CmrCheckbox>
                                                 <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                                             </div>
@@ -1094,7 +1095,7 @@ const Setup = () => {
                                             </CmrCheckbox>}
                                         </Row>
                                         <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                        <CmrButton sx={{ width: '100%' }} variant={"outlined"} color={'success'}
+                                        <CmrButton sx={{ width: '100%' }} variant={"outlined"} color={'primary'}
                                             onClick={() => {
                                                 if (!preflightValidation())
                                                     return;

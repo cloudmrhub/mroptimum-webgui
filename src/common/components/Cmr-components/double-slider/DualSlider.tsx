@@ -105,7 +105,7 @@ export const DualSlider = ({name,min,max,setMin,setMax,
     const rightText = Math.abs(right) < 0.01 && right != 0 ? Number(right).toExponential(3).toUpperCase() : Number(right).toFixed(3);
 
     return <Box sx={{display:'flex',flexDirection:'row', paddingLeft:'4px',paddingRight:'4px'}} height={20}>
-        <Box flex={0.322} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
+        <Box flex={0.165} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
              fontFamily={'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'}>
             {name}
         </Box>

@@ -1,14 +1,15 @@
 import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import {TabInfo} from "./tab.model";
-import {cloneElement} from "react";
+import { TabInfo } from "./tab.model";
+import { cloneElement } from "react";
 
 interface CmrTabsProps {
     tabList: TabInfo[];
-    onTabSelected?: (tabId:number)=>void;
+    onTabSelected?: (tabId: number) => void;
 }
 
 interface TabPanelProps {
@@ -28,7 +29,7 @@ function CustomTabPanel(props: TabPanelProps) {
             aria-labelledby={`simple-tab-${index}`}
             {...other}
         >
-            <Box sx={{ p: 0}} style={{display:(value === index?undefined:'none')}}>
+            <Box sx={{ p: 0 }} style={{ display: (value === index ? undefined : 'none') }}>
                 <Typography>{children}</Typography>
             </Box>
         </div>
@@ -47,32 +48,38 @@ export default function CmrTabs(props: CmrTabsProps) {
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setValue(newValue);
-        if(props.onTabSelected)
+        if (props.onTabSelected)
             props.onTabSelected(newValue);
     };
 
     // console.log(props.tabList);
     return (
-        <Box sx={{ width: '100%' }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1}}>
+        <Container maxWidth="lg"
+            sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                mt: 4
+            }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
                 <Tabs value={value} onChange={handleChange} aria-label="basic tabs example"
-                      textColor='inherit'
-                      TabIndicatorProps={{
-                            style: {
-                                backgroundColor: "#580F8B",
-                            }
-                }}>
-                    {props.tabList.map((tab, index)=>
-                        <Tab sx={{color:(value==index)?'#580F8B':undefined}}  style={{fontSize:'14pt',textTransform:'none'}} label={tab.text} {...a11yProps(index)}/>)}
+                    textColor='inherit'
+                    TabIndicatorProps={{
+                        style: {
+                            backgroundColor: "#580F8B",
+                        }
+                    }}>
+                    {props.tabList.map((tab, index) =>
+                        <Tab sx={{ color: (value == index) ? '#580F8B' : undefined }} style={{ fontSize: '14px', textTransform: 'uppercase', fontWeight: 400 }} label={tab.text} {...a11yProps(index)} />)}
                 </Tabs>
             </Box>
-            {props.tabList.map((tab, index)=>
+            {props.tabList.map((tab, index) =>
                 <CustomTabPanel value={value} index={index}>
-                    {cloneElement(tab.children,{
-                        visible:value==index
+                    {cloneElement(tab.children, {
+                        visible: value == index
                     })}
                 </CustomTabPanel>
             )}
-        </Box>
+        </Container>
     );
 }

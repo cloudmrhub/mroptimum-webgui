@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import './Upload.scss';
-import {Box, Button, SxProps, Theme} from '@mui/material';
+import { Box, Button, SxProps, Theme } from '@mui/material';
 import UploadWindow from "./UploadWindow";
-import axios, {AxiosRequestConfig, AxiosResponse} from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 export interface LambdaFile {
     "filename": string;
@@ -16,13 +16,13 @@ export interface LambdaFile {
  * functionalities and call back methods evoked
  * for specific interactions
  */
-interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
+interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement> {
     //Determines if the upload buttons should retain the uploaded
     //file after upload, or if it should refresh for a new session
-    retains?:boolean;
+    retains?: boolean;
     maxCount: number;
     changeNameAfterUpload?: boolean;
-    onRemove?:(removedFile: File)=>void;
+    onRemove?: (removedFile: File) => void;
     /**
      * Allows access to file content prior to uploading.
      * If returned value from the method is false,
@@ -30,24 +30,24 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      * create payload.
      * @param file
      */
-    beforeUpload?: (file:File)=>Promise<boolean>;
+    beforeUpload?: (file: File) => Promise<boolean>;
     /**
      * This or uploadHandler must be specified
      * @param file
      * @param fileAlias
      * @param fileDatabase
      */
-    createPayload?: (file: File,fileAlias:string, fileDatabase: string)=>
-        (Promise<{destination: string, lambdaFile:LambdaFile, file:File, config: AxiosRequestConfig}|undefined>);
-    onUploadProgressUpdate?:(loaded: number, total: number)=>void|undefined;
-    onUploaded: (res: AxiosResponse, file: File)=>Promise<void>|void;
-    sx?:  SxProps<Theme>|undefined;
+    createPayload?: (file: File, fileAlias: string, fileDatabase: string) =>
+        (Promise<{ destination: string, lambdaFile: LambdaFile, file: File, config: AxiosRequestConfig } | undefined>);
+    onUploadProgressUpdate?: (loaded: number, total: number) => void | undefined;
+    onUploaded: (res: AxiosResponse, file: File) => Promise<void> | void;
+    sx?: SxProps<Theme> | undefined;
     rest?: any;
     fileExtension?: string;
-    uploadStarted?:()=>void;
-    uploadEnded?:()=>void;
-    uploadFailed?:()=>void;
-    uploadProgressed?:(progress:number)=>void;
+    uploadStarted?: () => void;
+    uploadEnded?: () => void;
+    uploadFailed?: () => void;
+    uploadProgressed?: (progress: number) => void;
     /**
      * Override this to replace the default behavior of uploading
      * @param file
@@ -56,9 +56,9 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      * @param onProgress
      * @param onUploaded
      */
-    uploadHandler?:(file:File, fileAlias:string, fileDatabase:string,
-                    onProgress?:(progress:number)=>void,
-                    onUploaded?:(res:AxiosResponse,file:File)=>void)=>Promise<number>;
+    uploadHandler?: (file: File, fileAlias: string, fileDatabase: string,
+        onProgress?: (progress: number) => void,
+        onUploaded?: (res: AxiosResponse, file: File) => void) => Promise<number>;
     fullWidth?: boolean;
     style?: any;
     /**
@@ -66,7 +66,7 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      * if set to reusable
      */
     reusable?: boolean;
-    uploadButtonName?:string;
+    uploadButtonName?: string;
     /**
      * Processes the uploaded file before performing the upload;
      * @return file/undefined/statuscode undefined to fail the upload, return File
@@ -74,7 +74,8 @@ interface CMRUploadProps extends React.HTMLAttributes<HTMLDivElement>{
      * and return to upload window.
      * @param file
      */
-    preprocess?:(file:File)=>Promise<File|undefined|number>;
+    preprocess?: (file: File) => Promise<File | undefined | number>;
+    color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning";
 }
 
 
@@ -87,106 +88,110 @@ const CmrUpload = (props: CMRUploadProps) => {
      */
     let [uploading, setUploading] = useState(false);
     let [progress, setProgress] = useState(0);
-    let [uploadedFile, setUploadedFile] = useState<string|undefined>(undefined);
-    
+    let [uploadedFile, setUploadedFile] = useState<string | undefined>(undefined);
 
-   const upload = async (file: File, fileAlias:string, fileDatabase: string)=>{
+
+    const upload = async (file: File, fileAlias: string, fileDatabase: string) => {
         setUploading(true);
-        const onProgress = (progress:number)=>{
-            let percentage = (progress* 99);
-            props.uploadProgressed&&props.uploadProgressed(+percentage.toFixed(2));
+        const onProgress = (progress: number) => {
+            let percentage = (progress * 99);
+            props.uploadProgressed && props.uploadProgressed(+percentage.toFixed(2));
             setProgress(+percentage.toFixed(2));
         }
-        if(props.uploadStarted)
+        if (props.uploadStarted)
             props.uploadStarted();
-        let status:any = 0;
+        let status: any = 0;
         // try {
-            if(props.beforeUpload!=undefined&&!await props.beforeUpload(file)){
-                if(props.uploadEnded)
-                    props.uploadEnded();
-                setUploading(false);
-                return 200;
-            }
-            if(props.preprocess){
-                let processed = await props.preprocess(file);
-                if(processed==undefined)
-                    return failUpload();
-                if(typeof processed =='number'){
-                    setUploading(false);
-                    return processed;
-                }
-                file = processed as File;
-            }
-            if(props.uploadHandler!=undefined){
-                status = await props.uploadHandler(file,fileAlias,fileDatabase,onProgress,props.onUploaded);
-                setUploadedFile(props.reusable?undefined:file.name);
-            }else if(props.createPayload){
-                let payload = await props.createPayload(file, fileAlias, fileDatabase);
-                if(payload==undefined){
-                    return failUpload();
-                }
-                payload.config.onUploadProgress = (progressEvent) => {
-                    if(progressEvent.total==undefined)
-                        return;
-                    onProgress(progressEvent.loaded/progressEvent.total);
-                };
-                // console.log(payload.formData)
-                const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
-                status = res.status;
-                if(status===200){
-                    // file.name = res.data.response.
-                    // await axios.post(res.data.upload_url, file)
-                    console.log(res.data);
-                    await axios.put(res.data.upload_url, payload.file, {
-                        headers: {
-                            'Content-Type': payload.file.type
-                        }
-                    })
-                    await props.onUploaded(res,payload.file);
-                    setUploadedFile(props.reusable?undefined:payload.file.name);
-                }
-            }else{
-                return failUpload();
-            }
-            if(props.uploadEnded)
+        if (props.beforeUpload != undefined && !await props.beforeUpload(file)) {
+            if (props.uploadEnded)
                 props.uploadEnded();
             setUploading(false);
-            setProgress(0);
+            return 200;
+        }
+        if (props.preprocess) {
+            let processed = await props.preprocess(file);
+            if (processed == undefined)
+                return failUpload();
+            if (typeof processed == 'number') {
+                setUploading(false);
+                return processed;
+            }
+            file = processed as File;
+        }
+        if (props.uploadHandler != undefined) {
+            status = await props.uploadHandler(file, fileAlias, fileDatabase, onProgress, props.onUploaded);
+            setUploadedFile(props.reusable ? undefined : file.name);
+        } else if (props.createPayload) {
+            let payload = await props.createPayload(file, fileAlias, fileDatabase);
+            if (payload == undefined) {
+                return failUpload();
+            }
+            payload.config.onUploadProgress = (progressEvent) => {
+                if (progressEvent.total == undefined)
+                    return;
+                onProgress(progressEvent.loaded / progressEvent.total);
+            };
+            // console.log(payload.formData)
+            const res = await axios.post(payload.destination, payload.lambdaFile, payload.config);
+            status = res.status;
+            if (status === 200) {
+                // file.name = res.data.response.
+                // await axios.post(res.data.upload_url, file)
+                console.log(res.data);
+                await axios.put(res.data.upload_url, payload.file, {
+                    headers: {
+                        'Content-Type': payload.file.type
+                    }
+                })
+                await props.onUploaded(res, payload.file);
+                setUploadedFile(props.reusable ? undefined : payload.file.name);
+            }
+        } else {
+            return failUpload();
+        }
+        if (props.uploadEnded)
+            props.uploadEnded();
+        setUploading(false);
+        setProgress(0);
         // }
         return status;
     };
 
-    function failUpload(){
+    function failUpload() {
         setUploading(false);
         setProgress(0);
-        if(props.uploadFailed)
+        if (props.uploadFailed)
             return props.uploadFailed();
         return 0;
     }
 
     return (
         <React.Fragment>
-            {(!uploading)?
+            {(!uploading) ?
 
-                <Button fullWidth={props.fullWidth} style={props.style} variant={(uploadedFile==undefined)?"contained":"outlined"}
-                        onClick={()=>{
-                            setOpen(true);
-                        }}
-                        sx={props.sx}
+                <Button 
+                    fullWidth={props.fullWidth} 
+                    style={props.style} 
+                    variant={(uploadedFile == undefined) ? "contained" : "outlined"}
+                    onClick={() => {
+                        setOpen(true);
+                    }}
+                    color={props.color || "primary"}
+                    sx={props.sx}
                 >
-                     {/* if if props.changeNameAfterUpload */}
+                    {/* if if props.changeNameAfterUpload */}
 
-                     {props.changeNameAfterUpload ? 
-    (uploadedFile === undefined ? (props.uploadButtonName ? props.uploadButtonName : "Upload") : uploadedFile) 
-    : 
-    (props.uploadButtonName ? props.uploadButtonName : "Upload")
-}                </Button>
-            :
-                <Button fullWidth={props.fullWidth} style={props.style} variant={"contained"} sx={{overflowWrap:'inherit'}} color={'primary'} disabled>
+                    {props.changeNameAfterUpload ?
+                        (uploadedFile === undefined ? (props.uploadButtonName ? props.uploadButtonName : "Upload") : uploadedFile)
+                        :
+                        (props.uploadButtonName ? props.uploadButtonName : "Upload")
+                    }                </Button>
+                :
+                <Button fullWidth={props.fullWidth} style={props.style} variant={"contained"} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled>
                     Uploading {progress}%
                 </Button>}
             <UploadWindow open={open} setOpen={setOpen} upload={upload} fileExtension={props.fileExtension}
-                          template={{showFileName:true,showFileSize:true}}/>
+                template={{ showFileName: true, showFileSize: true }} />
         </React.Fragment>
     );
 };
@@ -195,5 +200,5 @@ CmrUpload.defaultProps = {
     changeNameAfterUpload: true,
 };
 
-export type {CMRUploadProps};
+export type { CMRUploadProps };
 export default CmrUpload;

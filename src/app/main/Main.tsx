@@ -20,9 +20,14 @@ const Main = (props: any) => {
         dispatch(getProfile(accessToken));
     }, [accessToken]);
     return (
-        <div className={`${focusedTab==2?'container-fluid':'container'} mt-4`} style={{maxWidth:focusedTab==2?'90%':undefined,transition: 'all 0.3s'}}>
+        // <div className={`${focusedTab==2?'container-fluid':'container'} mt-4`} style={{maxWidth:focusedTab==2?'100%':undefined,transition: 'all 0.3s'}}>
+        //     <CmrTabs tabList={tabData} onTabSelected={tabIndex => {
+        //         setFocusedTab(tabIndex)
+        //     }
+        //     }/>
+        // </div>
+         <div className="container-fluid mt-4" style={{transition: 'all 0.3s'}}>
             <CmrTabs tabList={tabData} onTabSelected={tabIndex => {
-                
                 setFocusedTab(tabIndex)
             }
             }/>

@@ -19,7 +19,7 @@ const CmrTable = (props: CmrTableProps) => {
 
     return (
         <div style={style ? style : { height: '400px', width: '100%' }} className={`${className ? className : ''}`}>
-            <h3 style={{ marginLeft: 'auto', marginRight: 'auto' }}>{props.name}</h3>
+            {/* <h3 style={{ marginLeft: 'auto', marginRight: 'auto' }}>{props.name}</h3> */}
             <DataGrid
                 rows={dataSource ? dataSource.map((row: any) => ({ id: idAlias ? row[idAlias] : row['id'], ...row })) : []}
                 columns={columns}

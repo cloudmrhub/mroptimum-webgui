@@ -106,19 +106,18 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
             alignItems: 'center',
             borderRadius:'4px',
             height:'20pt',
-            // justifyContent:'center',
             backgroundColor: '#333',
         }} style={props.style}>
-        {/*<FormControl>*/}
-        {/*    <Button className={'ms-2'} variant='contained' disabled={!props.changesMade} onClick={props.saveROI}>*/}
-        {/*        Save ROI*/}
-        {/*    </Button>*/}
-        {/*</FormControl>*/}
+        {/* <FormControl>
+            <Button className={'ms-2'} variant='contained' disabled={!props.changesMade} onClick={props.saveROI}>
+                Save ROI
+            </Button>
+        </FormControl>  */}
         <FormControl>
         <FormLabel 
         component="legend"
         className={"ms-2"}
-        style={{width:'100%', textAlign:'center', color:'white',fontSize:18,fontWeight:500}}
+        style={{width:'100%', textAlign:'center', color:'white',fontSize:16,fontWeight:400}}
         sx={{
             marginBottom: 0,
             marginLeft: 2,

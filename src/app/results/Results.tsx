@@ -372,9 +372,9 @@ const Results = ({visible}:{visible?:boolean}) => {
                 }
                 dispatch(resultActions.setOpenPanel(key));
             }}>
-                <CmrPanel header='Jobs' className={'mb-2'} key={'0'}>
-                    <Row style={{alignItems:'center'}}>
-                        <CmrUpload style={{marginLeft: 'auto',marginTop:'auto',marginBottom:'auto'}}
+                <CmrPanel header='Job Results' className={'mb-2'} key={'0'}>
+                    <Row style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        <CmrUpload style={{marginTop:'auto',marginBottom:'auto'}}
                                    uploadButtonName={'Upload Results'}
                                    maxCount={1}
                                    key={uploaderKey}

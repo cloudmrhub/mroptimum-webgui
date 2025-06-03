@@ -7,10 +7,19 @@
 }
 
 .MuiDataGrid-columnHeaders{
-  background: #333;
-  color: white;
+  background: #F3E5F5;
+  color: #333;
 }
 
 .MuiDataGrid-columnHeaders .MuiSvgIcon-root {
-  color: white;
+  color: #580f8b;
+}
+
+// Religning MUI checkbox in the header
+.MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainerContent {
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

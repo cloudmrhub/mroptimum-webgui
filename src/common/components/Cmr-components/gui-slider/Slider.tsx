@@ -107,11 +107,10 @@ export const Slider = ({
 
     return <Box sx={{display: 'flex', flexDirection: 'row', paddingLeft: '4px', paddingRight: '4px',marginBottom:'4px'
     }} height={20}>
-        <Box flex={0.77} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
-             fontFamily={'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'}>
+        <Box flex={0.15} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}>
             {name}
         </Box>
-        <Box sx={{display: 'flex', flexDirection: 'row'}} flex={1}>
+        <Box sx={{display: 'flex'}} flex={1}> 
             <Box sx={{
                 backgroundColor: '#f0f0f0',
                 flex: 1,
@@ -119,7 +118,7 @@ export const Slider = ({
                 marginRight: '4px',
                 borderRadius: '2px',
                 position: 'relative',
-                overflow: 'hidden'
+                // overflow: 'hidden'
             }} ref={sliderRef}
                  onMouseDown={handleDragStart}>
                 {/* Visual representation of the slider */}

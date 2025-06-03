@@ -1,7 +1,20 @@
-@import url(https://fonts.googleapis.com/css?family=Nunito);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bs-dark-rgb: 0, 0, 0; /* change these values to your preferred RGB color */
+}
+
+.navbar {
+  font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+.navbar .dropdown-toggle {
+  font-size: 14px;
+}
+
+.navbar .nav-link {
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .small-margin{
@@ -15,6 +28,5 @@
 }
 
 .navbar-brand {
-  font-family: 'Nunito', sans-serif;
-
+  font-family: 'Inter', sans-serif;
 }

@@ -1,39 +1,42 @@
 import CmrTable from "../../common/components/CmrTable/CmrTable";
-import React, {ChangeEvent, CSSProperties, useState} from "react";
-import {Button} from "@mui/material";
-import {jobsSlice} from "../../features/jobs/jobsSlice";
-import CMRUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
-import {getUploadedData} from "../../features/data/dataActionCreation";
-import {getFileExtension} from "../../common/utilities";
-import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
-import {DATAUPLODAAPI, ROI_UPLOAD} from "../../Variables";
-import {AxiosRequestConfig} from "axios";
-import {useAppDispatch, useAppSelector} from "../../features/hooks";
-import {nv} from "../../common/components/src/Niivue";
-import {GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, GridValueSetterParams, MuiEvent} from "@mui/x-data-grid";
+import React, { ChangeEvent, CSSProperties, useState } from "react";
+import { Tooltip, IconButton } from "@mui/material";
+import { jobsSlice } from "../../features/jobs/jobsSlice";
+import CMRUpload, { LambdaFile } from "../../common/components/Cmr-components/upload/Upload";
+import { getUploadedData } from "../../features/data/dataActionCreation";
+import { getFileExtension } from "../../common/utilities";
+import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
+import { DATAUPLODAAPI, ROI_UPLOAD } from "../../Variables";
+import { AxiosRequestConfig } from "axios";
+import { useAppDispatch, useAppSelector } from "../../features/hooks";
+import { nv } from "../../common/components/src/Niivue";
+import { GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, GridValueSetterParams, MuiEvent } from "@mui/x-data-grid";
 import axios from "axios";
 import Box from "@mui/material/Box";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import IconButton from "@mui/material/IconButton";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faObjectGroup, faObjectUngroup, faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Checkbox from "@mui/material/Checkbox";
 import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
-import {getPipelineROI} from "../../features/rois/resultActionCreation";
+import { getPipelineROI } from "../../features/rois/resultActionCreation";
 
-export const ROITable = (props:{pipelineID: string,
-    rois:any[], resampleImage:()=>void,
-    zipAndSendROI:(url:string,filename:string,blob:Blob)=>Promise<void>,
-    unpackROI:(url:string)=>Promise<void>,
-    setLabelAlias:(label:number|string,alias:string)=>void,
-    style?: CSSProperties,nv:any})=>{
+export const ROITable = (props: {
+    pipelineID: string,
+    rois: any[], resampleImage: () => void,
+    zipAndSendROI: (url: string, filename: string, blob: Blob) => Promise<void>,
+    unpackROI: (url: string) => Promise<void>,
+    setLabelAlias: (label: number | string, alias: string) => void,
+    style?: CSSProperties, nv: any
+}) => {
     // const rois:ROI[] = useAppSelector(state=>{
     //     return (state.roi.rois[props.pipelineID]==undefined)?[]:state.roi.rois[props.pipelineID];
     // })
     // console.log(rois);
     const [uploadKey, setUploadKey] = useState(1);
     const { accessToken } = useAppSelector((state) => state.authenticate);
-    const pipeline = useAppSelector((state)=>state.result.activeJob?.pipeline_id);
-    const [selectedData,setSelectedData] = useState<GridRowSelectionModel>([]);
+    const pipeline = useAppSelector((state) => state.result.activeJob?.pipeline_id);
+    const [selectedData, setSelectedData] = useState<GridRowSelectionModel>([]);
     const dispatch = useAppDispatch();
     const UploadHeaders: AxiosRequestConfig = {
         headers: {
@@ -57,26 +60,26 @@ export const ROITable = (props:{pipelineID: string,
 
             if (fileExtension == 'dat') {
                 let safe = await is_safe_twix(file);
-                if (!safe){
+                if (!safe) {
                     alert('This file contains PIH data. Please anonymize the file before uploading');
                     return undefined;
                 }
             }
-            return {destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
+            return { destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
         }
     };
-    const roiColumns=[
+    const roiColumns = [
         {
-            headerName:'ROI Label',
+            headerName: 'ROI Label',
             field: 'alias',
             flex: 1,
-            editable:true,
-            valueSetter:(params: GridValueSetterParams)=>{
+            editable: true,
+            valueSetter: (params: GridValueSetterParams) => {
                 let value = params.value;
                 // console.log(params);
                 const newAlias = params.value; // Value entered by the user
                 // console.log(newAlias);
-                if(newAlias!=params.row.alias){
+                if (newAlias != params.row.alias) {
                     props.setLabelAlias(params.row.label, newAlias);
                 }
                 return params.row
@@ -86,18 +89,20 @@ export const ROITable = (props:{pipelineID: string,
             headerName: 'Color',
             field: 'color',
             flex: 0.5,
-            sortable:false,
-            renderHeader: (params:any) => {
+            sortable: false,
+            renderHeader: (params: any) => {
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                         {params.colDef.headerName}
                     </Box>
                 );
             },
-            renderCell: (params:{row:any})=>{
-                return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
-                    <div style={{width:'14pt',height:'14pt',
-                        borderRadius:'3pt',background:`${params.row.color}`}}>
+            renderCell: (params: { row: any }) => {
+                return <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{
+                        width: '14pt', height: '14pt',
+                        borderRadius: '3pt', background: `${params.row.color}`
+                    }}>
                     </div>
                 </Box>
             }
@@ -106,7 +111,7 @@ export const ROITable = (props:{pipelineID: string,
             headerName: 'Mean',
             field: 'mu',
             flex: 1,
-            renderCell: (params:{row:any})=>{
+            renderCell: (params: { row: any }) => {
                 return <div>
                     {`${params.row.mu.toFixed(3)}`}
                 </div>
@@ -116,7 +121,7 @@ export const ROITable = (props:{pipelineID: string,
             headerName: 'SD',
             field: 'std',
             flex: 1,
-            renderCell: (params:{row:any})=>{
+            renderCell: (params: { row: any }) => {
                 return <div>
                     {`${params.row.std.toFixed(3)}`}
                 </div>
@@ -126,23 +131,23 @@ export const ROITable = (props:{pipelineID: string,
             headerName: 'Visibility',
             field: 'visibility',
             flex: 1,
-            sortable:false,
-            renderHeader: (params:any) => {
+            sortable: false,
+            renderHeader: (params: any) => {
                 return (
                     <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                         {params.colDef.headerName}
                     </Box>
                 );
             },
-            renderCell: (params:{row:any})=>{
-                return <Box sx={{width: '100%',display:'flex',justifyContent:'center'}}>
-                    <IconButton onClick={(event)=>{
-                        props.nv.setLabelVisibility(Number(params.row.label),!props.nv.getLabelVisibility(Number(params.row.label)));
+            renderCell: (params: { row: any }) => {
+                return <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                    <IconButton onClick={(event) => {
+                        props.nv.setLabelVisibility(Number(params.row.label), !props.nv.getLabelVisibility(Number(params.row.label)));
                         props.resampleImage();
                         props.nv.drawScene();
                         event.stopPropagation();
                     }}>
-                        {params.row.visibility?<VisibilityIcon sx={{color:'#aaa'}}/>:<VisibilityOffIcon sx={{color:'#aaa'}}/>}
+                        {params.row.visibility ? <VisibilityIcon sx={{ color: '#aaa' }} /> : <VisibilityOffIcon sx={{ color: '#aaa' }} />}
                     </IconButton>
                 </Box>
             }
@@ -156,97 +161,129 @@ export const ROITable = (props:{pipelineID: string,
 
     const [warningVisible, setWarningVisible] = useState(false);
     const [warningMessage, setWarningMessage] = useState('');
-    const warnEmptySelection = function(message:string){
+    const warnEmptySelection = function (message: string) {
         setWarningMessage(message);
         setWarningVisible(true);
     }
     return <Box style={props.style}>
-        <CmrTable hideFooter={true} getRowId={(row) => row.label} style={{height:'70%',marginBottom:10}} dataSource={props.rois} columns={roiColumns}
-                  columnHeaderHeight={40}
-                  rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel)=>{
-            setSelectedData(rowSelectionModel);
+        <CmrTable sx={{
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+            marginBottom: 0,
+            paddingBottom: 0,
         }}
-                // processRowUpdate={(newRow, oldRow) => {
-                //     console.log(newRow);
-                //     console.log(oldRow);
-                //     if(oldRow.alias!=newRow.alias) {
-                //         const newAlias = newRow.alias; // Value entered by the user
-                //         console.log(newAlias);
-                //         const cellLabel = newRow.label; // Assuming the label is stored in params.id
-                //         props.setLabelAlias(cellLabel, newAlias);
-                //     }
-                //     return true;
-                // }}
+            hideFooter={true} getRowId={(row) => row.label} style={{ height: '70%' }} dataSource={props.rois} columns={roiColumns}
+            columnHeaderHeight={40}
+            rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
+                setSelectedData(rowSelectionModel);
+
+            }}
+        // processRowUpdate={(newRow, oldRow) => {
+        //     console.log(newRow);
+        //     console.log(oldRow);
+        //     if(oldRow.alias!=newRow.alias) {
+        //         const newAlias = newRow.alias; // Value entered by the user
+        //         console.log(newAlias);
+        //         const cellLabel = newRow.label; // Assuming the label is stored in params.id
+        //         props.setLabelAlias(cellLabel, newAlias);
+        //     }
+        //     return true;
+        // }}
         />
-        <div className="row mt-2">
-            <div className="col-6">
-                <Button sx={{background:'#555', ":hover":{background:'#333'}}}  style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+
+        {/*Toolbar: Group, Ungroup, Download, Delete, Upload */}
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 2,
+                mt: 0,
+                px: 2,
+                py: 1,
+                backgroundColor: '#f8f9fa',
+                border: '1px solid rgba(0, 0, 0, 0.12)',
+                borderTop: 'none',
+                borderRadius: '0 0 4px 4px',
+            }}
+        >
+            <Tooltip title="Group">
+                <IconButton onClick={() => {
                     props.nv.groupLabelsInto(selectedData.map(value => Number(value)));
                     props.nv.drawScene();
                     props.resampleImage();
-                }}>Group</Button>
-            </div>
-            <div className="col-6">
-                <Button sx={{background:'#555', ":hover":{background:'#333'}}} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                }}>
+                    <FontAwesomeIcon icon={faObjectGroup} style={{ fontSize: '16px' }} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Ungroup">
+                <IconButton onClick={() => {
                     props.nv.ungroup();
                     props.nv.drawScene();
                     props.resampleImage();
-                }}>Ungroup</Button>
-            </div>
-        </div>
-        <div className="row mt-2">
-            <div className="col-4">
-                <Button color={'success'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={async ()=>{
+                }}>
+                    <FontAwesomeIcon icon={faObjectUngroup} style={{ fontSize: '16px' }} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Download">
+                <IconButton onClick={async () => {
                     let fileName = 'label';
                     let selectedLabels = []
-                    for(let label of selectedData) {
-                        fileName+=label;
+                    for (let label of selectedData) {
+                        fileName += label;
                         selectedLabels.push(Number(label));
                     }
-                    fileName+='.nii';
-                    if(selectedLabels.length==0) {
+                    fileName += '.nii';
+                    if (selectedLabels.length == 0) {
                         warnEmptySelection("No ROI selected for download");
                         return;
                     }
                     await props.nv.saveImageByLabels(fileName, selectedLabels);
-                }}>Download</Button>
-            </div>
-            <div className="col-4">
-                <Button color={'error'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} onClick={()=>{
+                }}>
+                    <FontAwesomeIcon icon={faDownload} style={{ fontSize: '16px' }} />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Delete">
+                <IconButton onClick={() => {
                     props.nv.deleteDrawingByLabel(selectedData.map(value => Number(value)))
                     props.resampleImage();
                     props.nv.drawScene();
-                }}>Delete</Button>
-            </div>
-            <div className="col-4">
-                <CMRUpload changeNameAfterUpload={false} color="info" key={uploadKey} onUploaded={(res, file)=>{
-                }}  fullWidth
-                    uploadHandler={async (file)=>{
-                       const config = {
-                           headers: {
-                               Authorization: `Bearer ${accessToken}`,
-                           },
-                       };
-                       console.log(props);
-                       let filename = file.name;
-                       filename.split('.').pop();
-                       const response = await axios.post(ROI_UPLOAD, {
-                           "filename": filename,
-                           "pipeline_id": props.pipelineID,
-                           "type": "image",
-                           "contentType": "application/octet-stream"
-                       }, config);
-                       console.log(response);
-                       await props.zipAndSendROI(response.data.upload_url,filename,file).then(async () => {
-                           await props.unpackROI(response.data.access_url);
-                           // @ts-ignore
-                           dispatch(getPipelineROI({accessToken,pipeline}));
-                       });
-                       return 200;
-                   }}
-                   createPayload={createPayload} maxCount={1}></CMRUpload>
-            </div>
-        </div>
-        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open)=>setWarningVisible(open)} confirmText={'OK'}/>
+                }}>
+                    <FontAwesomeIcon icon={faTrash} style={{ fontSize: '16px' }} />
+                </IconButton>
+            </Tooltip>
+
+            {/* Keep Upload Button the Same, Embedded in Toolbar */}
+            <CMRUpload changeNameAfterUpload={false} color="primary" key={uploadKey} onUploaded={(res, file) => {
+            }} uploadHandler={async (file) => {
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                };
+                console.log(props);
+                let filename = file.name;
+                filename.split('.').pop();
+                const response = await axios.post(ROI_UPLOAD, {
+                    "filename": filename,
+                    "pipeline_id": props.pipelineID,
+                    "type": "image",
+                    "contentType": "application/octet-stream"
+                }, config);
+                console.log(response);
+                await props.zipAndSendROI(response.data.upload_url, filename, file).then(async () => {
+                    await props.unpackROI(response.data.access_url);
+                    // @ts-ignore
+                    dispatch(getPipelineROI({ accessToken, pipeline }));
+                });
+                return 200;
+            }}
+                createPayload={createPayload} maxCount={1}></CMRUpload>
+        </Box>
+        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open) => setWarningVisible(open)} confirmText={'OK'} />
     </Box>;
 }

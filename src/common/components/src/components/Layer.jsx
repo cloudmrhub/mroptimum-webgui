@@ -1,4 +1,4 @@
-import {Box, Divider, MenuItem, Slider} from "@mui/material";
+import { Box, Divider, MenuItem, Slider, Card, CardContent } from "@mui/material";
 import { Typography } from "@mui/material";
 import { Button } from "@mui/material";
 import { Select } from "@mui/material";
@@ -31,7 +31,7 @@ function makeColorGradients(colorMapValues) {
 
 export default function Layer(props) {
   const image = props.image
-    const nii = props.nii
+  const nii = props.nii
   const [detailsOpen, setDetailsOpen] = React.useState(true)
   const [color, setColor] = React.useState(image.colormap)
   const [opacity, setOpacity] = React.useState(1.0)
@@ -104,17 +104,9 @@ export default function Layer(props) {
         flexDirection: 'column',
       }}
     >
-      <Paper
-        elevation={0}
-        sx={{
-          marginTop: 0.5,
-          marginBottom: 0.5,
-            borderStyle:'solid',
-            borderWidth:'1px',
-            borderColor:'gray'
-        }}
-      >
-        <Box
+      <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+        <CardContent> 
+          <Box
           sx={{
             margin: 1,
             display: 'flex',
@@ -139,88 +131,88 @@ export default function Layer(props) {
             {ArrowIcon}
           </IconButton>
         </Box>
-        <Box
-          sx={{
-            display: detailsOpen ? 'flex' : 'none',
-            flexDirection: 'column'
-          }}>
-          {/*<Box*/}
-          {/*  sx={{*/}
-          {/*    display: 'flex',*/}
-          {/*    flexDirection: 'row',*/}
-          {/*    justifyContent: 'space-between',*/}
-          {/*    width: '100%'*/}
-          {/*  }}*/}
-          {/*  m={1}*/}
-          {/*>*/}
-          {/*  <IconButton*/}
-          {/*  >*/}
-          {/*    <KeyboardDoubleArrowUpIcon />*/}
-          {/*  </IconButton>*/}
-
-          {/*  <IconButton*/}
-          {/*  >*/}
-          {/*    <KeyboardArrowUpIcon />*/}
-          {/*  </IconButton>*/}
-
-          {/*  <IconButton*/}
-          {/*  >*/}
-          {/*    <KeyboardArrowDownIcon />*/}
-          {/*  </IconButton>*/}
-
-          {/*  <IconButton*/}
-          {/*  >*/}
-          {/*    <KeyboardDoubleArrowDownIcon />*/}
-          {/*  </IconButton>*/}
-
-          {/*</Box>*/}
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              width: '100%',
-            }}
-          >
+              display: detailsOpen ? 'flex' : 'none',
+              flexDirection: 'column'
+            }}>
+            {/*<Box*/}
+            {/*  sx={{*/}
+            {/*    display: 'flex',*/}
+            {/*    flexDirection: 'row',*/}
+            {/*    justifyContent: 'space-between',*/}
+            {/*    width: '100%'*/}
+            {/*  }}*/}
+            {/*  m={1}*/}
+            {/*>*/}
+            {/*  <IconButton*/}
+            {/*  >*/}
+            {/*    <KeyboardDoubleArrowUpIcon />*/}
+            {/*  </IconButton>*/}
+
+            {/*  <IconButton*/}
+            {/*  >*/}
+            {/*    <KeyboardArrowUpIcon />*/}
+            {/*  </IconButton>*/}
+
+            {/*  <IconButton*/}
+            {/*  >*/}
+            {/*    <KeyboardArrowDownIcon />*/}
+            {/*  </IconButton>*/}
+
+            {/*  <IconButton*/}
+            {/*  >*/}
+            {/*    <KeyboardDoubleArrowDownIcon />*/}
+            {/*  </IconButton>*/}
+
+            {/*</Box>*/}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                width: '100%',
+              }}
+            >
               <Typography marginLeft={2}>
-                  Opacity: {opacity.toFixed(2)}
+                Opacity: {opacity.toFixed(2)}
               </Typography>
 
               <Slider
-                  sx={{width:'80%', alignSelf:'center', marginY:2}} value={opacity} step={0.01} min={0} max={1}
-                  onChange={(event, value) => {
-                      handleOpacityChanged(value);
-                  }}/>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: '100%'
-            }}
-            m={2}
-          >
-            <FormControl>
-              <InputLabel>Color</InputLabel>
-              <Select
-                style={{ width: '200px' }}
-                value={color}
-                label='Color'
-                size='small'
-                onChange={handleColorChange}
-              >
-                {allColors}
-              </Select>
-            </FormControl>
-            {/*<IconButton*/}
-            {/*  onClick={handleDelete}*/}
-            {/*>*/}
-            {/*  <DeleteIcon />*/}
-            {/*</IconButton>*/}
-          </Box>
-        </Box>
-      </Paper>
+                sx={{ width: '80%', alignSelf: 'center', marginY: 2 }} value={opacity} step={0.01} min={0} max={1}
+                onChange={(event, value) => {
+                  handleOpacityChanged(value);
+                }} />
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                width: '100%'
+              }}
+              m={2}
+            >
+              <FormControl>
+                <InputLabel>Color</InputLabel>
+                <Select
+                  style={{ width: '200px' }}
+                  value={color}
+                  label='Color'
+                  size='small'
+                  onChange={handleColorChange}
+                >
+                  {allColors}
+                </Select>
+              </FormControl>
+              {/*<IconButton*/}
+              {/*  onClick={handleDelete}*/}
+              {/*>*/}
+              {/*  <DeleteIcon />*/}
+              {/*</IconButton>*/}
+            </Box>
+          </Box></CardContent>
+      </Card>
     </Box>
   )
 }
