@@ -17,7 +17,8 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
 
     return  <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle  sx={{ml:2,mt:2,mr:2, p:1}}>Setup Preview</DialogTitle>
-        <DialogContent sx={{m:2, mt:0, mb:1, p:1}} style={{overflowY:'hidden'}}dividers>
+        <DialogContent sx={{m:2, mt:0, mb:1, p:1}} dividers>
+            {/* style={{overflowY:'hidden'}} */}
             {/*<DialogContentText color={'#1976d2'}>*/}
             {/*    The SNR JSON that will be submitted:*/}
             {/*</DialogContentText>*/}
@@ -52,14 +53,14 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
                 handleClose();
             }}>{queueText}</CmrButton>
             {!developer&&
-                <CmrButton fullWidth variant={"outlined"} sx={{color:'#1976d2'}} onClick={()=>{
+                <CmrButton fullWidth variant={"outlined"} onClick={()=>{
                     edit();
                     handleClose();
                 }}>{editText}</CmrButton>}
         </DialogActions>
         {developer&&
             <DialogActions sx={{pt:0,pl:3,pr:3}}>
-                <CmrButton fullWidth variant={"outlined"} sx={{color:'#1976d2'}} onClick={()=>{
+                <CmrButton fullWidth variant={"outlined"} onClick={()=>{
                     edit();
                     handleClose();
                 }}>{editText}</CmrButton>

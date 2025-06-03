@@ -101,7 +101,7 @@ const Home = () => {
         },
         {
             field: 'actions',
-            headerName: 'Actions',
+            headerName: 'Edit File Name',
             sortable: false,
             width: 160,
             disableClickEventBubbling: true,
@@ -128,8 +128,9 @@ const Home = () => {
                             });
                         }}>
                             {params.row.renamingPending ? <CircularProgress size={20} /> : <EditIcon />}
-                        </IconButton>
-                        <IconButton onClick={(e) => {/* Download logic here */
+                        </IconButton> 
+                        {/* Download logic here  */}
+                        {/* <IconButton onClick={(e) => {
                             let url = params.row.link;
                             e.stopPropagation();
                             e.preventDefault();
@@ -154,8 +155,8 @@ const Home = () => {
                             document.body.removeChild(a)
                         }}>
                             <GetAppIcon />
-                        </IconButton>
-                        <IconButton onClick={(e) => {
+                        </IconButton> */}
+                        {/* <IconButton onClick={(e) => {
                             setName(`Deleting data`);
                             setMessage(`Please confirm that you are deleting: ${params.row.fileName}.`);
                             setColor('error');
@@ -169,7 +170,7 @@ const Home = () => {
                             e.stopPropagation();
                         }}>
                             {params.row.deletionPending ? <CircularProgress size={20} /> : <DeleteIcon />}
-                        </IconButton>
+                        </IconButton> */}
                     </div>
                 );
             },
@@ -374,11 +375,6 @@ const Home = () => {
                     }} columns={uploadedFilesColumns} />
                     <div className="row mt-2">
                         <div className="col-4">
-                            <Button color={'success'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
-                                downloadSelectedValues();
-                            }}>Download</Button>
-                        </div>
-                        <div className="col-4">
                             <Button color={'error'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
                                 setName(`Deleting data`);
                                 setMessage(`Please confirm that you are deleting the selected jobs.`);
@@ -392,8 +388,14 @@ const Home = () => {
                                     }
                                 });
                                 setOpen(true);
-                            }}>Delete</Button>
+                            }} disabled={selectedData.length === 0}>Delete</Button>
                         </div>
+                        <div className="col-4">
+                            <Button color={'success'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
+                                downloadSelectedValues();
+                            }} disabled={selectedData.length === 0}>Download</Button>
+                        </div>
+                        
                         <div className="col-4">
                             {/* TOBREMOVED AFTER THE BETA TESTING */}
                             {/* <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}> Upload </Button> */}

@@ -51,20 +51,19 @@ export function NiivuePanel(props: NiivuePanelProps) {
     // const {gui} = createGUI(props.nv);
 
     let height = window.innerHeight * 0.75;
-    // This hook is for initialization, called only once
-    React.useEffect(() => {
-        if (canvas.current) { // check for the canvas before calling:
-            props.nv.attachTo('niiCanvas');
-            props.nv.opts.dragMode = props.nv.dragModes.pan;
-        }
-    }, [canvas]);
+
+     // This hook is for initialization, called only once
+    React.useEffect(()=>{
+        props.nv.attachTo('niiCanvas');
+        props.nv.opts.dragMode=props.nv.dragModes.pan;
+    },[canvas]);
     // This hook is called when show distribution state changed
-    React.useEffect(() => {
+	React.useEffect(() => {
         props.nv.resizeListener();
         props.nv.setMultiplanarLayout(2);
         props.nv.setMultiplanarPadPixels(10);
         props.resampleImage();
-    }, [window.innerWidth, window.innerHeight]);
+    }, [window.innerWidth,window.innerHeight]);
 
     React.useEffect(() => {
         setTimeout(() => {
@@ -77,9 +76,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
     React.useEffect(() => {
         props.resampleImage();
-        // if(!props.displayVertical)
-        //     props.resampleImage();
-        // histogram.current?.addEventListener('resize',()=>props.resampleImage());
     }, [histogram]);
 
     const [pause, pauseUpdate] = React.useState(false);
@@ -127,18 +123,12 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     mb: { xs: 2, md: 0 },
                 }}
             >
-                <DrawToolkit {...props.drawToolkitProps}
-                    style={{
-                        height: '30pt',
-                        borderBottomLeftRadius: 0,
-                        borderBottomRightRadius: 0,
-                    }} />
                 <LocationTable
                     tableData={props.locationData}
                     isVisible={true}
                     decimalPrecision={props.decimalPrecision}
                     style={{
-                        width: '100%', height: '20pt', paddingTop: "10px", color: 'white',
+                        width: '100%', height: '30pt', paddingTop: "10px", color: 'white',
                         background: "black",
                     }}
                 />
@@ -151,7 +141,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                         height: {
                             xs: 300,  // phones and very small devices
                             sm: 400,  // tablets or small laptops
-                            md: 960,  // desktops and up
+                            md: 1035,  // desktops and up
                         },
                     }}
                 >
@@ -164,6 +154,13 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             height: "100%",
                         }}
                     />
+
+                    {/* <DrawToolkit {...props.drawToolkitProps}
+                    style={{
+                        height: '30pt',
+                        borderBottomLeftRadius: 0,
+                        borderBottomRightRadius: 0,
+                    }} /> */}
                 </Box>
 
             </Box>
@@ -185,10 +182,17 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     height: "100%"
                 }}
             >
+                <DrawToolkit {...props.drawToolkitProps}
+                    style={{
+                        height: '30pt',
+                        marginBottom: '10px',
+                        // borderBottomLeftRadius: 0,
+                        // borderBottomRightRadius: 0,
+                    }} />
                 <Box id={"controlDock"} className={'title'} style={{ width: '100%' }} ref={sliceControl}>
                     Controls
                 </Box>
-                <Card variant="outlined" sx={{ mb: 2,  borderTopLeftRadius: 0, borderTopRightRadius: 0}}>
+                <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
                     <CardContent>
                         <Box style={{ display: 'flex', flex: 1, minWidth: '245px', flexDirection: 'column' }}>
                             <Slider name={'X'} min={mins[0]} max={maxs[0]} value={mms[0]} setValue={(val: number) => {
