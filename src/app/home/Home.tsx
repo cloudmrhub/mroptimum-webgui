@@ -1,8 +1,6 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import './Home.scss';
-import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
-import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
-import CmrTable from '../../common/components/CmrTable/CmrTable';
+import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { dataSlice, UploadedFile } from '../../features/data/dataSlice';
 import IconButton from "@mui/material/IconButton";
