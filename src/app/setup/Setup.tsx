@@ -1,18 +1,16 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import './Setup.scss';
-import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
-import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
+import { CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { getUploadedData, uploadData } from '../../features/data/dataActionCreation';
 import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
 import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
-import CmrLabel from "../../common/components/Cmr-components/label/Label";
+// import CmrLabel from "../../common/components/Cmr-components/label/Label";
+import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
-import AddIcon from '@mui/icons-material/Add';
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
 import moment from 'moment';
-import ArticleIcon from '@mui/icons-material/Article';
 
 import {
     Divider,
@@ -25,7 +23,7 @@ import {
     InputLabel,
     Select, MenuItem, Tooltip, Snackbar, Alert, Slide, Button, Box
 } from "@mui/material";
-import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
+import { CmrCheckbox } from 'cloudmr-ux';
 import {
     DataGrid,
     GridCellEditStopParams,
@@ -35,13 +33,11 @@ import {
     GridRowsProp,
     MuiEvent
 } from "@mui/x-data-grid";
-import CmrButton from "../../common/components/Cmr-components/button/Button";
-// import CmrTable from "../../common/components/CmrTable/CmrTable";
+import { CmrButton } from 'cloudmr-ux';
 import CmrInputNumber from "../../common/components/Cmr-components/input-number/InputNumber";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { UploadedFile } from "../../features/data/dataSlice";
 import { formatBytes, getFileExtension } from "../../common/utilities";
-// import { boolean } from "mathjs";
 import { Job, jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
@@ -57,7 +53,7 @@ import { snrDescriptions } from "./SetupDescriptions";
 // import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
 // import { SNREditor } from './SetupEditor';
-import { LambdaFile } from "../../common/components/Cmr-components/upload/Upload";
+import { LambdaFile } from 'cloudmr-ux';
 // import { createTheme } from "@mui/material/styles";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
 

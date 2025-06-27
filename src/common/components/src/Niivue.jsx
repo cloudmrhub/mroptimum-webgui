@@ -776,7 +776,7 @@ export default function NiiVueport(props) {
         nv.setSelectionBoxColor([...rgb01, 0.5])
     }
 
-    const [sliceType, setSliceType] = React.useState('multi')
+    const [sliceType, setSliceType] = React.useState('axial')
     function nvUpdateSliceType(newSliceType) {
         setSliceType(newSliceType);
         if (newSliceType === 'axial') {

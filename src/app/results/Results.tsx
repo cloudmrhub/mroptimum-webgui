@@ -1,40 +1,38 @@
-import React, {Fragment, useEffect, useState} from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import './Results.scss';
-import CmrCollapse from '../../common/components/Cmr-components/collapse/Collapse';
-import CmrPanel from '../../common/components/Cmr-components/panel/Panel';
-import CmrTable from '../../common/components/CmrTable/CmrTable';
-import {getUploadedData} from '../../features/data/dataActionCreation';
-import {useAppDispatch, useAppSelector} from '../../features/hooks';
+import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
+import { getUploadedData } from '../../features/data/dataActionCreation';
+import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import NiiVue, {nv} from "../../common/components/src/Niivue";
-import {Job} from "../../features/jobs/jobsSlice";
-import {getUpstreamJobs, uploadJob} from "../../features/jobs/jobActionCreation";
-import {resultActions, ROI} from "../../features/rois/resultSlice";
-import {getPipelineROI, loadResult} from "../../features/rois/resultActionCreation";
-import {Alert, Button, CircularProgress, Slide, Snackbar} from "@mui/material";
-import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
-import {Row} from "antd";
+import NiiVue, { nv } from "../../common/components/src/Niivue";
+import { Job } from "../../features/jobs/jobsSlice";
+import { getUpstreamJobs, uploadJob } from "../../features/jobs/jobActionCreation";
+import { resultActions, ROI } from "../../features/rois/resultSlice";
+import { getPipelineROI, loadResult } from "../../features/rois/resultActionCreation";
+import { Alert, Button, CircularProgress, Slide, Snackbar } from "@mui/material";
+import { CmrCheckbox } from 'cloudmr-ux';
+import { Row } from "antd";
 import Box from "@mui/material/Box";
-import {SetupInspection} from "./SetupInspection";
+import { SetupInspection } from "./SetupInspection";
 // import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
 import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
-import {Logs} from "./Logs";
-import CmrUpload, {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
-import {AxiosRequestConfig} from "axios";
-import {DATAUPLODAAPI} from "../../Variables";
-import {processJobZip} from "./PreprocessJob";
-import {uploadHandlerFactory} from "../../features/SystemUtilities";
+import { Logs } from "./Logs";
+import { CMRUpload } from 'cloudmr-ux';
+import { AxiosRequestConfig } from "axios";
+import { DATAUPLODAAPI } from "../../Variables";
+import { processJobZip } from "./PreprocessJob";
+import { uploadHandlerFactory } from "../../features/SystemUtilities";
 // import CmrInput from "../../common/components/Cmr-components/input/Input";
 // import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
-import EditConfirmation from "../../common/components/Cmr-components/dialogue/EditConfirmation";
+import { CmrEditConfirmation } from 'cloudmr-ux';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
 // import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Tooltip from '@mui/material/Tooltip';
 
-import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
+import { CmrConfirmation } from 'cloudmr-ux';
 
 
 export interface NiiFile {
@@ -46,9 +44,9 @@ export interface NiiFile {
     link: string;
 }
 
-const Results = ({visible}:{visible?:boolean}) => {
+const Results = ({ visible }: { visible?: boolean }) => {
     const dispatch = useAppDispatch();
-    const {accessToken, queueToken} = useAppSelector((state) => state.authenticate);
+    const { accessToken, queueToken } = useAppSelector((state) => state.authenticate);
     const results = useAppSelector((state) =>
         state.jobs.jobs);
     const jobsLoading = useAppSelector(state => state.jobs.loading);
@@ -73,8 +71,8 @@ const Results = ({visible}:{visible?:boolean}) => {
     const [message, setMessage] = useState<string | undefined>(undefined);
     const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
     const [open, setOpen] = useState<boolean>(false);
-    const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => {});
-    const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => {});
+    const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
+    const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
 
     useEffect(() => {
         //@ts-ignore
@@ -83,18 +81,18 @@ const Results = ({visible}:{visible?:boolean}) => {
         dispatch(getUpstreamJobs(accessToken));
 
         let interval = setInterval(() => {
-            if (visible&&autoRefresh&&openPanel.indexOf(0) >= 0) {
+            if (visible && autoRefresh && openPanel.indexOf(0) >= 0) {
                 //@ts-ignore
                 dispatch(getUpstreamJobs(accessToken));
             }
         }, 15000);
-        return ()=>{
+        return () => {
             clearInterval(interval);
         }
     }, [visible]);
 
     const [lastUpdated, setLastUpdated] = useState(Date.now());
-    const warn=(message:string)=>{
+    const warn = (message: string) => {
 
         setWarning(message);
         setWarningOpen(true);
@@ -104,24 +102,24 @@ const Results = ({visible}:{visible?:boolean}) => {
         }, 5000)
     }
 
-    const getAlias = async(alias: string)=>{
+    const getAlias = async (alias: string) => {
         setOriginalName(alias);
         setNameDialogOpen(true);
-        return new Promise<string>( (resolve, reject) => {
-            const callback = async (value:string)=>{
+        return new Promise<string>((resolve, reject) => {
+            const callback = async (value: string) => {
                 resolve(value);
                 return true;
             }
-            const cancelCallback = async (_:string) => {
+            const cancelCallback = async (_: string) => {
                 reject(alias);
                 return true;
             }
-            setRenamingCallback(()=>callback);
-            setCancelCallback(()=>cancelCallback);
+            setRenamingCallback(() => callback);
+            setCancelCallback(() => cancelCallback);
         });
     }
 
-    
+
 
     const completedJobsColumns = [
         {
@@ -157,131 +155,131 @@ const Results = ({visible}:{visible?:boolean}) => {
             renderCell: (params: { row: Job }) => {
                 return (
                     <div>
-{params.row.status != 'failed' && (
-        <Tooltip title={`View job ${params.row.alias}`}>
+                        {params.row.status != 'failed' && (
+                            <Tooltip title={`View job ${params.row.alias}`}>
 
-                        <IconButton disabled={params.row.status == 'pending'} onClick={(event) => {
-                            event.stopPropagation();
-                            if (params.row.pipeline_id == activeJob?.pipeline_id) {
-                                dispatch(resultActions.setOpenPanel([1, 2]));
-                                return;
-                            }
-                            dispatch(loadResult({
-                                accessToken,
-                                job: params.row,
-                            })).then(async (value: any) => {
-                                try {
-                                    // console.log(value);
-                                    // @ts-ignore
-                                    let volumes = value.payload.volumes;
-                                    let niis = value.payload.niis;
-                                    for (let i = 0; i < niis.length; i++) {
-                                        let nii = niis[i];
-                                        if (nii.id === 0) {
-                                            dispatch(resultActions.selectVolume(i));
-                                            nv.loadVolumes([volumes[i]]);
-                                            dispatch(resultActions.setOpenPanel([1, 2]));
-                                            nv.closeDrawing();
-                                            break;
-                                        }
+                                <IconButton disabled={params.row.status == 'pending'} onClick={(event) => {
+                                    event.stopPropagation();
+                                    if (params.row.pipeline_id == activeJob?.pipeline_id) {
+                                        dispatch(resultActions.setOpenPanel([1, 2]));
+                                        return;
                                     }
-                                } catch (e) {
-                                    warn("Error loading results, please check internet connectivity");
-                                }
-                                setTimeout(() => nv.resizeListener(), 700);
-                                //@ts-ignore
-                                dispatch(getPipelineROI({
-                                    pipeline: params.row.pipeline_id,
-                                    accessToken: accessToken
-                                }));
-                            });
-                        }}>
-                            {resultLoading == params.row.id || params.row.status == 'pending' ?
-                                <div className="spinner-border spinner-border-sm" style={{aspectRatio: '1 / 1'}}
-                                     role="status"/>
-                                :
-                                <PlayArrowIcon sx={{
-                                    color: (params.row.status != 'completed') ? '#a9b7a9' : '#4CAF50', // green color
-                                    '&:hover': {
-                                        color: '#45a049', // darker green when hovering
-                                    },
-                                }}/>
-                            }
-                        </IconButton>
-                        </Tooltip>
-)}
+                                    dispatch(loadResult({
+                                        accessToken,
+                                        job: params.row,
+                                    })).then(async (value: any) => {
+                                        try {
+                                            // console.log(value);
+                                            // @ts-ignore
+                                            let volumes = value.payload.volumes;
+                                            let niis = value.payload.niis;
+                                            for (let i = 0; i < niis.length; i++) {
+                                                let nii = niis[i];
+                                                if (nii.id === 0) {
+                                                    dispatch(resultActions.selectVolume(i));
+                                                    nv.loadVolumes([volumes[i]]);
+                                                    dispatch(resultActions.setOpenPanel([1, 2]));
+                                                    nv.closeDrawing();
+                                                    break;
+                                                }
+                                            }
+                                        } catch (e) {
+                                            warn("Error loading results, please check internet connectivity");
+                                        }
+                                        setTimeout(() => nv.resizeListener(), 700);
+                                        //@ts-ignore
+                                        dispatch(getPipelineROI({
+                                            pipeline: params.row.pipeline_id,
+                                            accessToken: accessToken
+                                        }));
+                                    });
+                                }}>
+                                    {resultLoading == params.row.id || params.row.status == 'pending' ?
+                                        <div className="spinner-border spinner-border-sm" style={{ aspectRatio: '1 / 1' }}
+                                            role="status" />
+                                        :
+                                        <PlayArrowIcon sx={{
+                                            color: (params.row.status != 'completed') ? '#8a6fae' : '#580f8b', // purple color
+                                            '&:hover': {
+                                                color: '#390063', // darker purple when hovering
+                                            },
+                                        }} />
+                                    }
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         {params.row.status === 'completed' && (
                             <Tooltip title={`Download job ${params.row.alias}`}>
-                        <IconButton onClick={(e) => {
-                            e.stopPropagation();
-                            params.row.files.forEach(file => {
-                                let url = file.link;
-                                if (url == "unknown")
-                                    return;
-                                // Create an anchor element
-                                const a = document.createElement('a');
-                                // Extract the file name from the URL, if possible
-                                a.download = `${file.fileName}.${url.split('.').pop()}`;
-                                a.href = url;
-                                // Append the anchor to the body (this is necessary to programmatically trigger the click event)
-                                document.body.appendChild(a);
+                                <IconButton onClick={(e) => {
+                                    e.stopPropagation();
+                                    params.row.files.forEach(file => {
+                                        let url = file.link;
+                                        if (url == "unknown")
+                                            return;
+                                        // Create an anchor element
+                                        const a = document.createElement('a');
+                                        // Extract the file name from the URL, if possible
+                                        a.download = `${file.fileName}.${url.split('.').pop()}`;
+                                        a.href = url;
+                                        // Append the anchor to the body (this is necessary to programmatically trigger the click event)
+                                        document.body.appendChild(a);
 
-                                // Trigger a click event to start the download
-                                a.click();
+                                        // Trigger a click event to start the download
+                                        a.click();
 
-                                // Remove the anchor from the body
-                                document.body.removeChild(a);
-                            });
+                                        // Remove the anchor from the body
+                                        document.body.removeChild(a);
+                                    });
 
-                        }}>
-                            <GetAppIcon/>
-                        </IconButton>
-                        </Tooltip>
+                                }}>
+                                    <GetAppIcon />
+                                </IconButton>
+                            </Tooltip>
                         )}
 
                         <Tooltip title={`Delete job ${params.row.alias}`}>
-                        <IconButton onClick={() => {
-                            setName(`Deleting job`);
-                            setMessage(`Please confirm that you are deleting job ${params.row.id.toString()}.`);
-                            setColor('error');
-                            setConfirmCallbackjob(() => async () => {
-                                try {
-                                    // First, delete the upstream job
-                                    await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
-                                    
-                                    // Then, fetch the updated upstream jobs
-                                    await dispatch(getUpstreamJobs(accessToken));
-                            
-                                    // console.log("Job deleted and upstream jobs updated successfully.");
-                                } catch (error) {
-                                    console.error("Error deleting job or fetching updated jobs:", error);
-                                }
-                            });
-                            setCancelCallbackjob(()=>{
-                                // console.log("Cancel action was triggered.");
+                            <IconButton onClick={() => {
+                                setName(`Deleting job`);
+                                setMessage(`Please confirm that you are deleting job ${params.row.id.toString()}.`);
+                                setColor('error');
+                                setConfirmCallbackjob(() => async () => {
+                                    try {
+                                        // First, delete the upstream job
+                                        await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
 
-                            });
-                            setOpen(true);
-                        }}>
-                            <DeleteIcon />
-                        </IconButton>
-                           </Tooltip>
-                        <Confirmation
-   name={name}
-   message={message}
-   color={color}
-   open={open}
-   setOpen={setOpen}
-   confirmCallback={() => confirmCallbackjob()} // Wrap in a function
-   cancelCallback={() => {
-    if (cancelCallbackjob) {
-        cancelCallbackjob();
-    } else {
-        setOpen(false); // Close the dialog if no cancel callback is set
-    }
-}}   cancellable={true}
-   width={450}
-/>
+                                        // Then, fetch the updated upstream jobs
+                                        await dispatch(getUpstreamJobs(accessToken));
+
+                                        // console.log("Job deleted and upstream jobs updated successfully.");
+                                    } catch (error) {
+                                        console.error("Error deleting job or fetching updated jobs:", error);
+                                    }
+                                });
+                                setCancelCallbackjob(() => {
+                                    // console.log("Cancel action was triggered.");
+
+                                });
+                                setOpen(true);
+                            }}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <CmrConfirmation
+                            name={name}
+                            message={message}
+                            color={color}
+                            open={open}
+                            setOpen={setOpen}
+                            confirmCallback={() => confirmCallbackjob()} // Wrap in a function
+                            cancelCallback={() => {
+                                if (cancelCallbackjob) {
+                                    cancelCallbackjob();
+                                } else {
+                                    setOpen(false); // Close the dialog if no cancel callback is set
+                                }
+                            }} cancellable={true}
+                            width={450}
+                        />
 
                         {/* {((params.row.status === 'completed') || (params.row.status === 'failed'))  && ( */}
                         {/* {(params.row.status === 'completed')  && (
@@ -328,7 +326,7 @@ const Results = ({visible}:{visible?:boolean}) => {
                         </Tooltip>
                         )} */}
                     </div>
-                    
+
                 );
             },
         }
@@ -345,105 +343,105 @@ const Results = ({visible}:{visible?:boolean}) => {
     const [nameDialogOpen, setNameDialogOpen] = useState(false);
     const [originalName, setOriginalName] = useState('');
     const [renamingCallback, setRenamingCallback] =
-        useState(()=>(async (val:string)=>true));
+        useState(() => (async (val: string) => true));
     const [cancelCallback, setCancelCallback] =
-        useState(()=>(async (val:string)=>true));
+        useState(() => (async (val: string) => true));
 
     return (
         <Fragment>
-            <Snackbar anchorOrigin={{vertical: 'top', horizontal: 'left'}}
-                      TransitionComponent={(props) => <Slide {...props} direction="right"/>}
-                      open={warningOpen} autoHideDuration={7000} onClose={() => setWarningOpen(false)}>
-                <Alert onClose={() => setWarningOpen(false)} severity="error" sx={{width: '100%'}}>
+            <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                TransitionComponent={(props) => <Slide {...props} direction="right" />}
+                open={warningOpen} autoHideDuration={7000} onClose={() => setWarningOpen(false)}>
+                <Alert onClose={() => setWarningOpen(false)} severity="error" sx={{ width: '100%' }}>
                     {warning}
                 </Alert>
             </Snackbar>
-            <EditConfirmation  open={nameDialogOpen} setOpen = {setNameDialogOpen}
-                               cancelCallback={cancelCallback}
-                               cancellable={true}
-                               defaultText={originalName}
-                               message={'Provide the alias associated with the result file.'}
-                               name={'Job alias'}
-                               confirmCallback={renamingCallback}/>
+            <CmrEditConfirmation open={nameDialogOpen} setOpen={setNameDialogOpen}
+                cancelCallback={cancelCallback}
+                cancellable={true}
+                defaultText={originalName}
+                message={'Provide the alias associated with the result file.'}
+                name={'Job alias'}
+                confirmCallback={renamingCallback} />
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
-                         onChange={(key: any) => {
-                if(openPanel.indexOf(0)<0&&key.indexOf(0)>=0) {
-                    dispatch(getUpstreamJobs(accessToken));
-                }
-                dispatch(resultActions.setOpenPanel(key));
-            }}>
+                onChange={(key: any) => {
+                    if (openPanel.indexOf(0) < 0 && key.indexOf(0) >= 0) {
+                        dispatch(getUpstreamJobs(accessToken));
+                    }
+                    dispatch(resultActions.setOpenPanel(key));
+                }}>
                 <CmrPanel header='Job Results' className={'mb-2'} key={'0'}>
                     <Row style={{ alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <CmrUpload style={{marginTop:'auto',marginBottom:'auto'}}
-                                   uploadButtonName={'Upload Results'}
-                                   maxCount={1}
-                                   key={uploaderKey}
-                                   preprocess={async (file)=>{
-                                       try {
-                                           let alias = await getAlias(file.name);
-                                           return processJobZip(file,alias,accessToken);
-                                       }catch {
-                                           return 400;
-                                       }
-                                   }}
-                                   uploadFailed={()=>{
-                                        warn('There was a problem with the result file provided.');
-                                        setUploaderKey(uploaderKey+1);
-                                    }}
-                                   onUploaded={()=>{//Refresh job list after successful upload
-                                        dispatch(getUpstreamJobs(accessToken));
-                                        // console.log(uploaderKey);
-                                        setUploaderKey(uploaderKey+1);
-                                   }}
-                                   uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
-                        >Upload Job Zip </CmrUpload>
+                        <CMRUpload style={{ marginTop: 'auto', marginBottom: 'auto' }}
+                            uploadButtonName={'Upload Results'}
+                            maxCount={1}
+                            key={uploaderKey}
+                            preprocess={async (file) => {
+                                try {
+                                    let alias = await getAlias(file.name);
+                                    return processJobZip(file, alias, accessToken);
+                                } catch {
+                                    return 400;
+                                }
+                            }}
+                            uploadFailed={() => {
+                                warn('There was a problem with the result file provided.');
+                                setUploaderKey(uploaderKey + 1);
+                            }}
+                            onUploaded={() => {//Refresh job list after successful upload
+                                dispatch(getUpstreamJobs(accessToken));
+                                // console.log(uploaderKey);
+                                setUploaderKey(uploaderKey + 1);
+                            }}
+                            uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
+                        >Upload Job Zip </CMRUpload>
                         <CmrCheckbox defaultChecked={true} onChange={(e) => {
                             //@ts-ignore
                             setAutoRefresh(e.target.value);
                         }}>Auto Refreshing</CmrCheckbox>
                     </Row>
-                    <CmrTable dataSource={results} columns={completedJobsColumns}     showCheckbox={false} // This will hide the checkboxes
+                    <CmrTable dataSource={results} columns={completedJobsColumns} showCheckbox={false} // This will hide the checkboxes
                     />
                     <Button className={'mt-3'} fullWidth variant={'contained'} onClick={() => {
                         dispatch(getUpstreamJobs(accessToken));
-                    }}>Refresh {jobsLoading&& <CircularProgress size={18} style={{color:'white',position:'relative', left:'5pt'}}/>}</Button>
-                    {showingLogs && <Logs/>}
+                    }}>Refresh {jobsLoading && <CircularProgress size={18} style={{ color: 'white', position: 'relative', left: '5pt' }} />}</Button>
+                    {showingLogs && <Logs />}
                 </CmrPanel>
                 <CmrPanel className={'mb-2'}
-                          header={activeJobAlias != undefined ? `Viewing ${activeJobAlias}` : 'View Results'}
-                          key={'1'}>
+                    header={activeJobAlias != undefined ? `Viewing ${activeJobAlias}` : 'View Results'}
+                    key={'1'}>
                     {activeJob != undefined &&
                         <NiiVue niis={niis}
-                                warn={warn}
-                                setWarning={setWarning}
-                                setWarningOpen={setWarningOpen}
-                                setSelectedVolume={(index: number) => {
-                                    dispatch(resultActions.selectVolume(index));
-                                }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID}
-                                saveROICallback={() => {
-                                    if(pipelineID)
-                                        dispatch(getPipelineROI({
-                                            pipeline: pipelineID,
-                                            accessToken: accessToken
-                                        }));
-                                }}
-                                accessToken={accessToken}/>}
+                            warn={warn}
+                            setWarning={setWarning}
+                            setWarningOpen={setWarningOpen}
+                            setSelectedVolume={(index: number) => {
+                                dispatch(resultActions.selectVolume(index));
+                            }} selectedVolume={selectedVolume} key={pipelineID} rois={rois} pipelineID={pipelineID}
+                            saveROICallback={() => {
+                                if (pipelineID)
+                                    dispatch(getPipelineROI({
+                                        pipeline: pipelineID,
+                                        accessToken: accessToken
+                                    }));
+                            }}
+                            accessToken={accessToken} />}
                     {activeJob == undefined &&
-                        <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)' }}>
                             Please Select a Job Result
                         </Box>}
                 </CmrPanel>
                 <CmrPanel header={'Current Job Settings'} key={'2'}>
-                {activeJob?.status === 'completed' ? (
-        <SetupInspection/>
-    ) : (
-        <Box sx={{display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)'}}>
-            {!activeJob ? 'Please Select a Job Result' : 'Job is not completed'}
-        </Box>
-    )}
+                    {activeJob?.status === 'completed' ? (
+                        <SetupInspection />
+                    ) : (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)' }}>
+                            {!activeJob ? 'Please Select a Job Result' : 'Job is not completed'}
+                        </Box>
+                    )}
                 </CmrPanel>
             </CmrCollapse>
-            <div style={{height: '69px'}}></div>
+            <div style={{ height: '69px' }}></div>
         </Fragment>
     );
 };

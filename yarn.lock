@@ -3388,12 +3388,12 @@
   "resolved" "https://registry.npmjs.org/axe-core/-/axe-core-4.7.2.tgz"
   "version" "4.7.2"
 
-"axios@^1.4.0":
-  "integrity" "sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA=="
-  "resolved" "https://registry.npmjs.org/axios/-/axios-1.4.0.tgz"
-  "version" "1.4.0"
+"axios@^1.4.0", "axios@^1.9.0":
+  "integrity" "sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg=="
+  "resolved" "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz"
+  "version" "1.9.0"
   dependencies:
-    "follow-redirects" "^1.15.0"
+    "follow-redirects" "^1.15.6"
     "form-data" "^4.0.0"
     "proxy-from-env" "^1.1.0"
 
@@ -3840,10 +3840,10 @@
     "strip-ansi" "^6.0.0"
     "wrap-ansi" "^7.0.0"
 
-"cloudmr-ux@^1.0.6":
-  "integrity" "sha512-ONP5B1iGjv+i0chPgUkrJo9mzp4oK5t5U0oF+mtQITNxdaPF+oddvrH11n74tG4djx/n4pGbv0bbxquHaCDHeg=="
-  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.0.6.tgz"
-  "version" "1.0.6"
+"cloudmr-ux@^1.1.7":
+  "integrity" "sha512-1FJiJYFmqVxLJ7XaWy+5WDWpJsjK5VPQmTHqT6G6k1aVIdyxHI8fGmRdOYfZI3OcHFA+eUIhgS35d2RWqkMcYw=="
+  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.1.7.tgz"
+  "version" "1.1.7"
   dependencies:
     "@emotion/react" "^11.14.0"
     "@emotion/styled" "^11.14.0"
@@ -3851,6 +3851,7 @@
     "@mui/material" "^5.14.2"
     "@mui/x-data-grid" "^6.10.1"
     "antd" "^5.22.1"
+    "axios" "^1.9.0"
     "css-loader" "^7.1.2"
     "sass" "^1.81.0"
     "sass-loader" "^16.0.3"
@@ -5347,10 +5348,10 @@
   "resolved" "https://registry.npmjs.org/flatted/-/flatted-3.2.7.tgz"
   "version" "3.2.7"
 
-"follow-redirects@^1.0.0", "follow-redirects@^1.15.0":
-  "integrity" "sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA=="
-  "resolved" "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.15.2.tgz"
-  "version" "1.15.2"
+"follow-redirects@^1.0.0", "follow-redirects@^1.15.6":
+  "integrity" "sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ=="
+  "resolved" "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.15.9.tgz"
+  "version" "1.15.9"
 
 "for-each@^0.3.3":
   "integrity" "sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw=="

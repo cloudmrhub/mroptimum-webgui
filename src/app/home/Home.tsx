@@ -7,7 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
-import NameDialog from "../../common/components/Cmr-components/rename/edit";
+import { CmrNameDialog } from 'cloudmr-ux';
 import { getUpstreamJobs, renameUpstreamJob } from "../../features/jobs/jobActionCreation";
 import {
     deleteUploadedData,
@@ -17,10 +17,10 @@ import {
 } from '../../features/data/dataActionCreation';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import { jobsSlice } from "../../features/jobs/jobsSlice";
-import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
+import { CmrConfirmation} from 'cloudmr-ux';
 import { Button, CircularProgress } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
-import CMRUpload, { CMRUploadProps, LambdaFile } from '../../common/components/Cmr-components/upload/Upload';
+import { CMRUpload, LambdaFile } from 'cloudmr-ux';
 import { getFileExtension } from "../../common/utilities";
 import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
 import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
@@ -407,10 +407,10 @@ const Home = () => {
                         </div>
                     </div>
                 </CmrPanel>
-                <NameDialog open={nameDialogOpen} setOpen={setNameDialogOpen} originalName={originalName}
+                <CmrNameDialog open={nameDialogOpen} setOpen={setNameDialogOpen} originalName={originalName}
                     renamingCallback={renamingCallback} />
 
-                <Confirmation
+                <CmrConfirmation
                     name={name}
                     message={message}
                     color={color}

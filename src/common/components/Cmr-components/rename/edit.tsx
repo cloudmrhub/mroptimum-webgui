@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
+import { Typography } from '@mui/material';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -60,7 +61,7 @@ export default function CmrNameDialog(props: {originalName: string; renamingCall
             <Dialog open={open} onClose={handleClose}  fullWidth
                     maxWidth="xs">
                 <DialogTitle>
-                Rename the File {originalName} as:
+                    <Typography> Rename the File {originalName} as:</Typography>
                 </DialogTitle>
                 <DialogContent>
                     {/*<DialogContentText>*/}
@@ -77,7 +78,7 @@ export default function CmrNameDialog(props: {originalName: string; renamingCall
                             event.target.select();
                         }}
                         fullWidth
-                        inputProps={{style: {fontSize: "16pt"}}}
+                        inputProps={{style: {fontSize: "16px"}}}
                         variant="standard"
                         onChange={handleTextFieldChange}
                         error={error}
@@ -85,7 +86,7 @@ export default function CmrNameDialog(props: {originalName: string; renamingCall
                     />
                 </DialogContent>
                 <DialogActions>
-                    <CmrButton variant={"outlined"} color={'inherit'} sx={{color:'#333'}} onClick={handleClose}>Cancel</CmrButton>
+                    <CmrButton variant={"outlined"} onClick={handleClose}>Cancel</CmrButton>
                     <CmrButton variant={"contained"} color={'primary'} onClick={handleConfirm}>Confirm</CmrButton>
                 </DialogActions>
             </Dialog>

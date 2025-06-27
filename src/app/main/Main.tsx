@@ -1,4 +1,4 @@
-import CmrTabs from '../../common/components/CmrTabs/CmrTabs';
+import { CmrTabs } from 'cloudmr-ux';
 import Home from '../home/Home';
 import Setup from '../setup/Setup';
 import Results from '../results/Results';
