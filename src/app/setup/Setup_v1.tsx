@@ -9,7 +9,6 @@ import { FileReference, getFiles, setupGetters, setupSetters } from '../../featu
 import { CMRSelectUpload } from 'cloudmr-ux';
 import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
-import AddIcon from '@mui/icons-material/Add';
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
 import moment from 'moment';
 
@@ -53,7 +52,7 @@ import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
 import { CmrConfirmation } from 'cloudmr-ux';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
+import { CmrUploadWindow } from 'cloudmr-ux';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
 import { SNREditor } from './SetupEditor';
 import { LambdaFile } from 'cloudmr-ux';
@@ -466,7 +465,7 @@ const Setup = () => {
                     setOpenPanel(key)
                 }}>
                 <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
-                    <UploadWindow open={schemaSelector} setOpen={setSchemaSelector} fileExtension={'.json'}
+                    <CmrUploadWindow open={schemaSelector} setOpen={setSchemaSelector} fileExtension={'.json'}
                         upload={async (file, fileAlias) => {
                             let snr = JSON.parse(await file.text());
                             let name = fileAlias;

@@ -2,11 +2,7 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {ROI_GET, ROI_UPLOAD, UNZIP} from '../../Variables';
 import {NiiFile, resultActions, ROI, Volume} from "./resultSlice";
-import {nv} from "../../common/components/src/Niivue";
 import {Job, sampleJob} from "../jobs/jobsSlice";
-import {defaultSNR} from "../setup/setupSlice";
-
-
 
 export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pipeline}:{accessToken:string, pipeline:string}) => {
     const config = {
