@@ -14,11 +14,13 @@
 
 export const CLOUDMR_SERVER = process.env.CLOUDMR_SERVER || 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
 
-export const MRO_SERVER = process.env.MRO_SERVER || 'https://3ip95tbnkf.execute-api.us-east-1.amazonaws.com/Prod';
+export const MRO_SERVER = process.env.MRO_SERVER || 'https://aaaz629pyg.execute-api.us-east-1.amazonaws.com/Prod'; // https://3ip95tbnkf.execute-api.us-east-1.amazonaws.com/Prod
 
 // To be merged into CloudMR Server
 export const PROFILE_SERVER = process.env.PROFILE_SERVER || 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
 
-export const API_URL = process.env.API_URL || 'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com/api-token';
+export const API_URL = process.env.API_URL || 'xxxxx'; 
 
-export const API_TOKEN = process.env.API_TOKEN || 'jdgWMwkSLF84OAKnAEQjZ8yHeloiKqkM7H7260ua';
+export const API_TOKEN = process.env.API_TOKEN || 'iwAFDjSeeh9MvhpA7wCT92uztNtPV7NJ6Wwrnd9v';
+
+export const MRO_JOB = process.env.MRO_JOB || 'https://gqies0px4e.execute-api.us-east-1.amazonaws.com/Prod';

@@ -1,4 +1,4 @@
-import {CLOUDMR_SERVER, PROFILE_SERVER, MRO_SERVER, API_URL} from "./env";
+import {CLOUDMR_SERVER, PROFILE_SERVER, MRO_SERVER, API_URL, MRO_JOB} from "./env";
 
 export const SIGNIN = `${CLOUDMR_SERVER}/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
 
@@ -18,7 +18,7 @@ export const DATA_DELETE_API =  `${MRO_SERVER}/deletedata`;
 export const ROI_GET = `${CLOUDMR_SERVER}/getrois`;
 export const ROI_UPLOAD = `${CLOUDMR_SERVER}/uploads`;
 
-export const JOBS_API = `${MRO_SERVER}/pipeline`;
+export const JOBS_API = `${MRO_JOB}/pipeline`;
 export const JOBS_RETRIEVE_API = `${MRO_SERVER}/downloads`;
 export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
 export const JOBS_DELETE_API =  `${MRO_SERVER}/pipeline`;

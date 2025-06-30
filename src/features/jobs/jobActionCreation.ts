@@ -20,6 +20,7 @@ export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: s
             Authorization: `Bearer ${accessToken}`,
         },
     };
+    console.log(JOBS_RETRIEVE_API);
     const response = await axios.get(JOBS_RETRIEVE_API, config);
     return response.data;
 });
