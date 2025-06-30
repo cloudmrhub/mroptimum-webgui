@@ -8,7 +8,7 @@ import DialogActions from "@mui/material/DialogActions";
 import React, {ChangeEvent, useState} from "react";
 import TextField from "@mui/material/TextField";
 // import {store} from "../../features/store";
-import CmrButton from "../../common/components/Cmr-components/button/Button";
+import { CmrButton } from "cloudmr-ux";
 
 export const SNREditor = ({snrAlias,setSNRAlias,snrContent,confirm,edit,handleClose,editText='Edit Set Up',queueText='To Job/Save'}:
                                {snrAlias:string,setSNRAlias:(alias:string)=>void, snrContent: string|undefined, confirm: ()=>void, edit: ()=>void, handleClose: ()=>void,

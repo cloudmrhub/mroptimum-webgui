@@ -7,7 +7,7 @@ import {
     DATAUPLOADINIT,
     DATAUPLOADFINALIZE
 } from "../../Variables";
-import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
+import { LambdaFile } from 'cloudmr-ux';
 import {getFileExtension} from "../../common/utilities";
 import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
 

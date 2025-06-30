@@ -6,7 +6,6 @@ import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
 import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
-// import CmrLabel from "../../common/components/Cmr-components/label/Label";
 import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
@@ -34,7 +33,7 @@ import {
     MuiEvent
 } from "@mui/x-data-grid";
 import { CmrButton } from 'cloudmr-ux';
-import CmrInputNumber from "../../common/components/Cmr-components/input-number/InputNumber";
+import { CmrInputNumber } from 'cloudmr-ux';
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { UploadedFile } from "../../features/data/dataSlice";
 import { formatBytes, getFileExtension } from "../../common/utilities";
@@ -48,9 +47,6 @@ import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
-// import Confirmation from '../../common/components/Cmr-components/dialogue/Confirmation';
-// import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-// import UploadWindow from '../../common/components/Cmr-components/upload/UploadWindow';
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
 // import { SNREditor } from './SetupEditor';
 import { LambdaFile } from 'cloudmr-ux';

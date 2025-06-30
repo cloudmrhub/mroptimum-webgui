@@ -11,16 +11,8 @@ import {
     Select
 } from "@mui/material";
 import {resultGetters} from "../../features/rois/resultSlice";
-import CmrPanel from "../../common/components/Cmr-components/panel/Panel";
-import CmrCollapse from "../../common/components/Cmr-components/collapse/Collapse";
-import React, {Fragment} from "react";
-import {Row} from "antd";
-import CmrLabel from "../../common/components/Cmr-components/label/Label";
-import CmrInputNumber from "../../common/components/Cmr-components/input-number/InputNumber";
-import CmrCheckbox from "../../common/components/Cmr-components/checkbox/Checkbox";
-import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
+import { CmrInputNumber } from "cloudmr-ux";
 import {DataGrid, GridCellEditStopParams, GridColDef, GridRowsProp} from "@mui/x-data-grid";
-import CmrButton from "../../common/components/Cmr-components/button/Button";
 import {store} from "../../features/store";
 import {SNRPreview} from "../setup/SetupPreviewer";
 import {useAppSelector} from "../../features/hooks";

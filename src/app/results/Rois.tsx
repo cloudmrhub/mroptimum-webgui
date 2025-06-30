@@ -1,8 +1,8 @@
-import CmrTable from "../../common/components/CmrTable/CmrTable";
+import { CmrTable } from "cloudmr-ux";
 import React, { ChangeEvent, CSSProperties, useState } from "react";
 import { Tooltip, IconButton } from "@mui/material";
 import { jobsSlice } from "../../features/jobs/jobsSlice";
-import CMRUpload, { LambdaFile } from "../../common/components/Cmr-components/upload/Upload";
+import { CMRUpload, LambdaFile } from "cloudmr-ux";
 import { getUploadedData } from "../../features/data/dataActionCreation";
 import { getFileExtension } from "../../common/utilities";
 import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
@@ -18,7 +18,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faObjectGroup, faObjectUngroup, faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Checkbox from "@mui/material/Checkbox";
-import Confirmation from "../../common/components/Cmr-components/dialogue/Confirmation";
+import { CmrConfirmation } from "cloudmr-ux";
 import { getPipelineROI } from "../../features/rois/resultActionCreation";
 
 export const ROITable = (props: {
@@ -284,6 +284,6 @@ export const ROITable = (props: {
             }}
                 createPayload={createPayload} maxCount={1}></CMRUpload>
         </Box>
-        <Confirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open) => setWarningVisible(open)} confirmText={'OK'} />
+        <CmrConfirmation name={'Warning'} message={warningMessage} color={'error'} width={400} open={warningVisible} setOpen={(open) => setWarningVisible(open)} confirmText={'OK'} />
     </Box>;
 }

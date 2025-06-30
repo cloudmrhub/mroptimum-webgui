@@ -8,7 +8,7 @@ import DialogActions from "@mui/material/DialogActions";
 import React, {ChangeEvent, useState} from "react";
 import TextField from "@mui/material/TextField";
 import {store} from "../../features/store";
-import CmrButton from "../../common/components/Cmr-components/button/Button";
+import { CmrButton } from "cloudmr-ux";
 
 export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job',developer}:
                                {previewContent: string, queue: (jobAlias:string)=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,

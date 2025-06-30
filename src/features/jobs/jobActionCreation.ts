@@ -10,7 +10,7 @@ import {
 } from '../../Variables';
 import {Job} from "./jobsSlice";
 import {setupSetters} from "../setup/setupSlice";
-import {LambdaFile} from "../../common/components/Cmr-components/upload/Upload";
+import { LambdaFile } from 'cloudmr-ux';
 import {getFileExtension} from "../../common/utilities";
 import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
 import {getUploadedData} from "../data/dataActionCreation";

@@ -24,8 +24,6 @@ import { AxiosRequestConfig } from "axios";
 import { DATAUPLODAAPI } from "../../Variables";
 import { processJobZip } from "./PreprocessJob";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
-// import CmrInput from "../../common/components/Cmr-components/input/Input";
-// import CmrNameDialog from "../../common/components/Cmr-components/rename/edit";
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
