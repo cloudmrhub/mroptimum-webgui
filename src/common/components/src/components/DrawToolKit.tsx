@@ -14,10 +14,8 @@ import DrawPlatte from './DrawPlatte'; // Adjust the path as per your folder str
 import DeleteIcon from '@mui/icons-material/Delete';
 import EraserPlatte from "./EraserPlatte";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import {VisibilityOff} from "@mui/icons-material";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpacityIcon from '@mui/icons-material/Opacity';
-import CmrTooltip from "../../Cmr-components/tooltip/Tooltip";
 import MaskPlatte from "./MaskPlatte";
 
 

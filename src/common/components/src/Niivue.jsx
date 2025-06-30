@@ -11,10 +11,10 @@ import NVSwitch from './components/Switch.jsx'
 import Toolbar from './components/Toolbar.tsx'
 import Layer from './components/Layer.jsx'
 import './Niivue.css'
-import EditConfirmation from "../Cmr-components/dialogue/EditConfirmation";
+import { CmrEditConfirmation } from 'cloudmr-ux';
 import axios from "axios";
 import { ROI_UPLOAD } from "../../../Variables";
-import Confirmation from "../Cmr-components/dialogue/Confirmation";
+import { Confirmation } from 'cloudmr-ux';
 import { DrawToolkit } from "./components/DrawToolKit";
 import Plotly from "plotly.js-dist-min";
 import { ROITable } from "../../../app/results/Rois";
@@ -1378,7 +1378,7 @@ export default function NiiVueport(props) {
                 confirmCallback={warningConfirmationCallback}
                 cancelCallback={warningCancelCallback} cancelText={"Don't save"}
             />
-            <EditConfirmation name={'Save drawings'}
+            <CmrEditConfirmation name={'Save drawings'}
                 message={'Please enter the name of the saved drawing'}
                 open={saveDialogOpen} setOpen={setSaveDialogOpen}
                 confirmCallback={saveConfirmCallback}

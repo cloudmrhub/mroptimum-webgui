@@ -1,13 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {Stack, IconButton, Slider, Typography, Box} from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import FiberManualRecordOutlinedIcon from '@mui/icons-material/FiberManualRecordOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import {DualSlider} from "../../Cmr-components/double-slider/DualSlider";
 import {InvertibleDualSlider} from "../../Cmr-components/double-slider/InvertibleDualSlider";
-import CmrCheckbox from "../../Cmr-components/checkbox/Checkbox";
-import {nv} from "../Niivue";
+import { CmrCheckbox } from 'cloudmr-ux';
 
 interface MaskPlatteProps {
     expanded:boolean,
