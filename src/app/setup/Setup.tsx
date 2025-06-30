@@ -5,7 +5,7 @@ import { getUploadedData, uploadData } from '../../features/data/dataActionCreat
 import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
-import SelectUpload from "../../common/components/Cmr-components/select-upload/SelectUpload";
+import { CMRSelectUpload } from 'cloudmr-ux';
 import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
@@ -601,7 +601,7 @@ const Setup = () => {
                         <Col>
                             <Row>
                                 <CmrLabel>Signal File:</CmrLabel>
-                                {signalProgress < 0 ? <SelectUpload fileSelection={uploadedData}
+                                {signalProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
                                     onSelected={(signal) => {
                                         dispatch(setSignal(signal));
                                         setSignalFileUpdated(signal != undefined);
@@ -642,7 +642,7 @@ const Setup = () => {
                                 <Col>
                                     <Row style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
                                         <CmrLabel>Noise File:</CmrLabel>
-                                        {noiseProgress < 0 ? <SelectUpload fileSelection={uploadedData}
+                                        {noiseProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
                                             onSelected={(noise) => {
                                                 dispatch(setNoise(noise));
                                                 setNoiseFileUpdated(noise != undefined);
@@ -787,7 +787,7 @@ const Setup = () => {
                                             No Flip Angle Correction
                                         </CmrCheckbox>
                                         {(flipAngleCorrection) &&
-                                            <SelectUpload fileSelection={uploadedData} onSelected={(file) => {
+                                            <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
                                                 dispatch(setupSetters.setFlipAngleCorrectionFile(file));
                                             }} maxCount={1}
                                                 createPayload={createPayload}
@@ -821,7 +821,7 @@ const Setup = () => {
                                                         <FormControlLabel value={false} control={<Radio />}
                                                             label="Calculate Coil Sensitivities" />
                                                         {(loadSensitivity) ?
-                                                            <SelectUpload fileSelection={uploadedData}
+                                                            <CMRSelectUpload fileSelection={uploadedData}
                                                                 onSelected={(file) => {
                                                                     dispatch(setupSetters.setSensitivityMapSource(file));
                                                                 }} maxCount={1}
@@ -930,7 +930,7 @@ const Setup = () => {
                                                             </Box>} />
                                                         <FormControlLabel value="4" control={<Radio />} label={<Box flexDirection={'row'}>
                                                             Predefined Mask
-                                                            {maskMethod === 4 && <SelectUpload fileSelection={uploadedData} onSelected={(file) => {
+                                                            {maskMethod === 4 && <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
                                                                 dispatch(setupSetters.setMaskStore(file));
                                                             }} maxCount={1}
                                                                 createPayload={createPayload}
