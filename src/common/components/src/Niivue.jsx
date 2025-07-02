@@ -1,26 +1,23 @@
-import React, { useState } from 'react'
-import { Box, Button } from '@mui/material'
+import React, { useState } from 'react';
+import { Box, Button } from '@mui/material';
 import { NVImage } from '@niivue/niivue';
-import { SettingsPanel } from './components/SettingsPanel.jsx'
-import { NumberPicker } from './components/NumberPicker.jsx'
-import { ColorPicker } from './components/ColorPicker.jsx'
-import { LayersPanel } from './components/LayersPanel.jsx'
-import { NiivuePanel } from './components/NiivuePanel.tsx'
+import { SettingsPanel } from './components/SettingsPanel.jsx';
+import { NumberPicker } from './components/NumberPicker.jsx';
+import { ColorPicker } from './components/ColorPicker.jsx';
+import { LayersPanel } from './components/LayersPanel.jsx';
+import { NiivuePanel } from './components/NiivuePanel.tsx';
 import { Niivue } from './NiivuePatcher';
-import NVSwitch from './components/Switch.jsx'
-import Toolbar from './components/Toolbar.tsx'
-import Layer from './components/Layer.jsx'
-import './Niivue.css'
+import NVSwitch from './components/Switch.jsx';
+import Toolbar from './components/Toolbar.tsx';
+import Layer from './components/Layer.jsx';
+import './Niivue.css';
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import axios from "axios";
 import { ROI_UPLOAD } from "../../../Variables";
 import { Confirmation } from 'cloudmr-ux';
-import { DrawToolkit } from "./components/DrawToolKit";
 import Plotly from "plotly.js-dist-min";
-import { ROITable } from "../../../app/results/Rois";
 import { calculateMean, calculateStandardDeviation } from "./components/stats";
 import JSZip from "jszip";
-import { NiiFile } from "../../../features/rois/resultSlice";
 import { getMax, getMin } from "../../utilities";
 import { getPipelineROI } from "../../../features/rois/resultActionCreation";
 import { useAppDispatch, useAppSelector } from "../../../features/hooks";

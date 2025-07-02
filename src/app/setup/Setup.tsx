@@ -593,7 +593,7 @@ const Setup = () => {
                     <Row>
                         <Col>
                             <Row>
-                                <CmrLabel>Signal File:</CmrLabel>
+                                <CmrLabel style={{ marginTop: 'auto', marginBottom: 'auto' }}>Signal File:</CmrLabel>
                                 {signalProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
                                     onSelected={(signal) => {
                                         dispatch(setSignal(signal));
@@ -608,9 +608,9 @@ const Setup = () => {
                                             setTimeout(() => setOpenPanel([0]), 500);
                                     })} style={{
                                         height: 'fit-content',
+                                        marginLeft: '10px',
                                         marginTop: 'auto',
-                                        marginBottom: 'auto',
-                                        // background:'#580F8B'
+                                        marginBottom: 'auto'
                                     }}
                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'signal')}
                                     chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
@@ -634,7 +634,7 @@ const Setup = () => {
                             <Row>
                                 <Col>
                                     <Row style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
-                                        <CmrLabel>Noise File:</CmrLabel>
+                                        <CmrLabel style={{ marginTop: 'auto', marginBottom: 'auto' }}>Noise File:</CmrLabel>
                                         {noiseProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
                                             onSelected={(noise) => {
                                                 dispatch(setNoise(noise));
@@ -654,7 +654,7 @@ const Setup = () => {
                                                 if (noise != undefined && signal != undefined)
                                                     setTimeout(() => setOpenPanel([1]), 500);
                                             })}
-                                            style={{ height: 'fit-content', marginLeft: '2pt' }}
+                                            style={{ height: 'fit-content', marginLeft: '10px' }}
                                             chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
                                             uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'noise')}
                                         /> : <Button variant={"contained"} size={'medium'} style={{ textTransform: 'none' }} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled={true}>

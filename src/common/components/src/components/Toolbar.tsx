@@ -10,7 +10,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import Brightness6Icon from '@mui/icons-material/Brightness6';
-// import {Niivue} from "@niivue/niivue";
+
 
 interface ToolbarProps {
     nv: any;

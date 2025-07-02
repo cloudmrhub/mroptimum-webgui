@@ -7,9 +7,6 @@ import GUI from 'lil-gui';
 import "./Toolbar.scss";
 import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
 import { Slider } from "../../Cmr-components/gui-slider/Slider";
-import { ControlledSlider } from "../../Cmr-components/gui-slider/ControlledSlider";
-import { Typography } from "antd";
-
 
 interface NiivuePanelProps {
     nv: any;
