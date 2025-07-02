@@ -1,23 +1,19 @@
 import { CmrTable } from "cloudmr-ux";
-import React, { ChangeEvent, CSSProperties, useState } from "react";
+import { CSSProperties, useState } from "react";
 import { Tooltip, IconButton } from "@mui/material";
-import { jobsSlice } from "../../features/jobs/jobsSlice";
 import { CMRUpload, LambdaFile } from "cloudmr-ux";
-import { getUploadedData } from "../../features/data/dataActionCreation";
 import { getFileExtension } from "../../common/utilities";
 import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
 import { DATAUPLODAAPI, ROI_UPLOAD } from "../../Variables";
 import { AxiosRequestConfig } from "axios";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
-import { nv } from "../../common/components/src/Niivue";
-import { GridCellEditStopParams, GridCellEditStopReasons, GridRowSelectionModel, GridValueSetterParams, MuiEvent } from "@mui/x-data-grid";
+import { GridRowSelectionModel, GridValueSetterParams } from "@mui/x-data-grid";
 import axios from "axios";
 import Box from "@mui/material/Box";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faObjectGroup, faObjectUngroup, faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
-import Checkbox from "@mui/material/Checkbox";
 import { CmrConfirmation } from "cloudmr-ux";
 import { getPipelineROI } from "../../features/rois/resultActionCreation";
 

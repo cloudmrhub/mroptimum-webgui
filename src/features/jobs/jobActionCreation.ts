@@ -13,7 +13,6 @@ import {setupSetters} from "../setup/setupSlice";
 import { LambdaFile } from 'cloudmr-ux';
 import {getFileExtension} from "../../common/utilities";
 import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
-import {getUploadedData} from "../data/dataActionCreation";
 export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: string) => {
     const config = {
         headers: {

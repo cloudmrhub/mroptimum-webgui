@@ -1,4 +1,4 @@
-import React, {ReactElement} from 'react';
+import React from 'react';
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import HeaderBar from '../common/components/header/Header';
 import FooterBar from '../common/components/footer/Footer';

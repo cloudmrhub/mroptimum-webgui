@@ -16,7 +16,6 @@ import {
     FormControl,
     FormControlLabel,
     FormLabel,
-    Grid,
     RadioGroup,
     Radio,
     InputLabel,
@@ -26,31 +25,25 @@ import { CmrCheckbox } from 'cloudmr-ux';
 import {
     DataGrid,
     GridCellEditStopParams,
-    GridCellEditStopReasons,
-    GridColDef, GridEditInputCell, GridRowId,
-    GridRowSelectionModel,
+    GridColDef, GridRowId,
     GridRowsProp,
-    MuiEvent
 } from "@mui/x-data-grid";
 import { CmrButton } from 'cloudmr-ux';
 import { CmrInputNumber } from 'cloudmr-ux';
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { UploadedFile } from "../../features/data/dataSlice";
 import { formatBytes, getFileExtension } from "../../common/utilities";
-import { Job, jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
+import { jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useStore } from "react-redux";
 import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
 import downloadStringAsFile from "../../common/utilities/DownloadFromText";
-// import { SNREditor } from './SetupEditor';
 import { LambdaFile } from 'cloudmr-ux';
-// import { createTheme } from "@mui/material/styles";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
 
 

@@ -1,6 +1,3 @@
-import linkIcon from '../../assets/pub.png';
-
-
 export const snrDescriptions:{[key:string]:string} = {
     'ac':`This method is applicable to root-sum-of-squares magnitude coil combinations, B1-weighted coil combinations, and SENSE parallel imaging reconstructions. $$SNR_{RSS} = \\sqrt{2(p^H\\Psi ^{-1}p)}$$
         $$SNR_{B1}=\\sqrt{2}\\frac{b^H\\Psi_{scaled}^{-1}p}{b^H\\Psi_{scaled}^{-1}b}$$

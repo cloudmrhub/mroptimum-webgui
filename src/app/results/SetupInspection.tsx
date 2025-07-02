@@ -1,20 +1,10 @@
 import {
-    Box, Button,
+    Box,
     Divider,
-    FormControl,
-    FormControlLabel,
-    FormLabel,
-    InputLabel,
-    MenuItem,
-    Radio,
-    RadioGroup,
-    Select
 } from "@mui/material";
 import {resultGetters} from "../../features/rois/resultSlice";
 import { CmrInputNumber } from "cloudmr-ux";
-import {DataGrid, GridCellEditStopParams, GridColDef, GridRowsProp} from "@mui/x-data-grid";
-import {store} from "../../features/store";
-import {SNRPreview} from "../setup/SetupPreviewer";
+import {GridColDef, GridRowsProp} from "@mui/x-data-grid";
 import {useAppSelector} from "../../features/hooks";
 
 export const SetupInspection = ()=>{

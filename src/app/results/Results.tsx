@@ -16,18 +16,14 @@ import { CmrCheckbox } from 'cloudmr-ux';
 import { Row } from "antd";
 import Box from "@mui/material/Box";
 import { SetupInspection } from "./SetupInspection";
-// import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
-import HistoryOutlined from '@mui/icons-material/HistoryOutlined';
 import { Logs } from "./Logs";
 import { CMRUpload } from 'cloudmr-ux';
 import { AxiosRequestConfig } from "axios";
-import { DATAUPLODAAPI } from "../../Variables";
 import { processJobZip } from "./PreprocessJob";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
-// import {jobsSlice} from "../../features/jobs/jobsSlice";
 import Tooltip from '@mui/material/Tooltip';
 
 import { CmrConfirmation } from 'cloudmr-ux';
