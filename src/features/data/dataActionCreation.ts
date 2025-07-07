@@ -208,7 +208,8 @@ export const deleteUploadedData = createAsyncThunk('DeleteUploadedData', async (
             fileid: arg.fileId
         }
     };
-    const response = await axios.get(`${DATA_DELETE_API}`, config);
+    // const response = await axios.get(`${DATA_DELETE_API}`, config);
+     const response = await axios.get(`${DATA_DELETE_API}/${arg.fileId}`, config);
     if (response.status == 200)
         await thunkAPI.dispatch(getUploadedData(arg.accessToken));
 });
