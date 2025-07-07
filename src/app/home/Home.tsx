@@ -375,7 +375,7 @@ const Home = () => {
                         <div className="col-4">
                             <Button color={'error'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
                                 setName(`Deleting data`);
-                                setMessage(`Please confirm that you are deleting the selected jobs.`);
+                                setMessage(`Please confirm that you are deleting the selected data.`);
                                 setColor('error');
                                 setConfirmCallback(() => () => {
                                     for (let id of selectedData) {
