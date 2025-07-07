@@ -14,7 +14,7 @@ import './Niivue.css';
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import axios from "axios";
 import { ROI_UPLOAD } from "../../../Variables";
-import { Confirmation } from 'cloudmr-ux';
+import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./components/stats";
 import JSZip from "jszip";
