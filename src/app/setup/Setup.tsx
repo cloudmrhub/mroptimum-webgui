@@ -84,7 +84,8 @@ const Setup = () => {
     const decimateData = useAppSelector(setupGetters.getDecimate);
     const decimateAcceleration1 = useAppSelector(setupGetters.getDecimateAcceleration1);
     const decimateAcceleration2 = useAppSelector(setupGetters.getDecimateAcceleration2);
-    const [decimateACL, setDecimateACL] = useState(useAppSelector(setupGetters.getDecimateACL) ?? null);
+    // const [decimateACL, setDecimateACL] = useState(useAppSelector(setupGetters.getDecimateACL) ?? null);
+    const decimateACL = useAppSelector(setupGetters.getDecimateACL);
     const kernelSize1 = useAppSelector(setupGetters.getKernelSize1);
     const kernelSize2 = useAppSelector(setupGetters.getKernelSize2);
     let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
@@ -203,6 +204,18 @@ const Setup = () => {
         window.addEventListener('resize', updateBreakpoint);
         updateBreakpoint();
     }, []);
+
+    useEffect(() => {
+        if (
+            typeof reconstructionMethod === 'number' &&
+            decimateMapping[reconstructionMethod] &&
+            decimateData &&
+            decimateACL !== null
+        ) {
+            dispatch(setupSetters.setDecimateACL(null));
+        }
+    }, [reconstructionMethod, decimateData]);
+
 
     const columns: GridColDef[] = [
         { field: 'type', headerName: 'type', width: 180, editable: false },
@@ -618,7 +631,7 @@ const Setup = () => {
                                     : <Button variant={"contained"} size={'medium'} style={{ textTransform: 'none', height: 'fit-content' }} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled={true}>
                                         Uploading {+(signalProgress * 99).toFixed(2)}%
                                     </Button>}
-                                <CmrCheckbox  sx={{ ml: 1 }} onChange={(event) => {
+                                <CmrCheckbox sx={{ ml: 1 }} onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
                                         setTimeout(() => setOpenPanel([1]), 500);
@@ -1028,7 +1041,7 @@ const Setup = () => {
                                                         }
                                                         else if (params.id == '3') {
                                                             dispatch(setupSetters.setDecimateACL(value));
-                                                            setDecimateACL(value);
+                                                            // setDecimateACL(value);
 
                                                         }
 
@@ -1037,14 +1050,14 @@ const Setup = () => {
                                                 <CmrCheckbox checked={decimateACL == null} style={{ marginLeft: 0 }} onChange={(e) => {
                                                     if (e.target.checked) {
                                                         dispatch(setupSetters.setDecimateACL(null));
-                                                        setDecimateACL(null);
+                                                        // setDecimateACL(null);
 
                                                         if (reconstructionMethod == 2) {
                                                             dispatch(setupSetters.setSensitivityMapMethod('inner'));
                                                         }
                                                     } else {
                                                         dispatch(setupSetters.setDecimateACL(24));
-                                                        setDecimateACL(24);
+                                                        // setDecimateACL(24);
                                                         if (reconstructionMethod == 2) {
                                                             dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
                                                         }
@@ -1116,7 +1129,7 @@ const Setup = () => {
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
                                                     dispatch(setupSetters.setMaskOption(Number(0)));
                                                     dispatch(setupSetters.setDecimateACL(null));
-                                                    setDecimateACL(null);
+                                                    // setDecimateACL(null);
 
                                                 }}
                                                 handleClose={() => {
