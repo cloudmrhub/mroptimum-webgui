@@ -388,7 +388,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                 setUploaderKey(uploaderKey + 1);
                             }}
                             uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
-                        >Upload Job Zip </CMRUpload>
+                        >Upload Results</CMRUpload>
                         <CmrCheckbox defaultChecked={true} onChange={(e) => {
                             //@ts-ignore
                             setAutoRefresh(e.target.value);
