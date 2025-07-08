@@ -181,7 +181,8 @@ export default function NiiVueport(props) {
         setMMs(nv.frac2mm([0.5, 0.5, 0.5]));
         if (verifyComplex(nv.volumes[0]))//Check if there are complex components
             nvSetDisplayedVoxels('absolute')
-        else nvSetDisplayedVoxels('real');
+        // else nvSetDisplayedVoxels('real');
+        else nvSetDisplayedVoxels('absolute');
         let volume = nv.volumes[0];
         // The following actions are performed inside nvSetDisplayedVoxels,
         // along with resizing
@@ -816,7 +817,8 @@ export default function NiiVueport(props) {
                 nv.setCenteredZoom(0.7)
             }, 300)
         } else {
-            nvUpdateSliceType('multi');
+            // nvUpdateSliceType('multi');
+            nvUpdateSliceType('axial');
             setShowCrosshair(true);
             setTextsVisible(false);
             nv.opts.crosshairWidth = 1;
