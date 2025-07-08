@@ -368,7 +368,7 @@ const Home = () => {
         <Fragment>
             <CmrCollapse accordion={false} defaultActiveKey={[0, 1]} expandIconPosition="right">
                 <CmrPanel key="0" header="Uploaded Data" className='mb-2'>
-                    <CmrTable dataSource={[...files].reverse()} rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
+                    <CmrTable dataSource={[...files].filter(file => !file.fileName.toLowerCase().endsWith('.zip')).reverse()} rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
                         setSelectedData(rowSelectionModel);
                     }} columns={uploadedFilesColumns} />
                     <div className="row mt-2">
