@@ -355,7 +355,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 cancellable={true}
                 defaultText={originalName}
                 message={'Provide the alias associated with the result file.'}
-                name={'Job alias'}
+                name={'Job Alias'}
                 confirmCallback={renamingCallback} />
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
                 onChange={(key: any) => {

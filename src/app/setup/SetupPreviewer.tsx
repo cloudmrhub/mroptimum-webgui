@@ -44,7 +44,7 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
             />
         </DialogContent>
         <DialogActions sx={{pl:3,pr:3}}>
-            <CmrButton fullWidth variant={"outlined"} color={'success'} onClick={()=>{
+            <CmrButton variant={"contained"} fullWidth onClick={()=>{
                 queue(alias);
                 handleClose();
             }}>{queueText}</CmrButton>

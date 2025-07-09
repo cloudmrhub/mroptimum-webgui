@@ -254,8 +254,8 @@ const Home = () => {
                             <GetAppIcon />
                         </IconButton>
                         <IconButton onClick={() => {
-                            setName(`Deleting job`);
-                            setMessage(`Please confirm that you are deleting job ${params.row.id}.`);
+                            setName(`Deleting Data`);
+                            setMessage(`Please confirm that you are deleting data ${params.row.id}.`);
                             setColor('error');
                             setConfirmCallback(() => () => {
                                 console.log(index);
@@ -374,7 +374,7 @@ const Home = () => {
                     <div className="row mt-2">
                         <div className="col-4">
                             <Button color={'error'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
-                                setName(`Deleting data`);
+                                setName(`Deleting Data`);
                                 setMessage(`Please confirm that you are deleting the selected data.`);
                                 setColor('error');
                                 setConfirmCallback(() => () => {
