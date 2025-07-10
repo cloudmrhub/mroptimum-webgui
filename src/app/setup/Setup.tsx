@@ -1129,6 +1129,10 @@ const Setup = () => {
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
                                                     dispatch(setupSetters.setMaskOption(Number(0)));
                                                     dispatch(setupSetters.setDecimateACL(null));
+                                                    // Reset masking-related state
+                                                    dispatch(setupSetters.setMaskThreshold(20));
+                                                    dispatch(setupSetters.setMaskESPIRIT({ k: 8, r: 24, t: 0.01, c: 0.995 }));
+                                                    dispatch(setupSetters.setMaskStore(undefined));
                                                     // setDecimateACL(null);
 
                                                 }}
