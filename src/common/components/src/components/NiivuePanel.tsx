@@ -221,8 +221,8 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             }} />
 
                             <DualSlider name={'Values'}
-                                max={props.nv.volumes[0] ? props.nv.volumes[0].robust_max : 1}
-                                min={props.nv.volumes[0] ? props.nv.volumes[0].robust_min : 0}
+                                max={props.nv.volumes[0] ? props.nv.volumes[0].cal_max ?? props.nv.volumes[0].robust_max : 1}
+                                min={props.nv.volumes[0] ? props.nv.volumes[0].cal_min ?? props.nv.volumes[0].robust_min : 0}
                                 setMin={(min) => {
                                     let volume = props.nv.volumes[0];
                                     if (volume == undefined) {
