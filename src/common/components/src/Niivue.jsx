@@ -84,7 +84,6 @@ export default function NiiVueport(props) {
     const [rulerOpacity, setRulerOpacity] = React.useState(nv.opts.rulerColor[3])
     const [highDPI, setHighDPI] = React.useState(false)
 
-    // const [verticalLayout, setVerticalLayout] = React.useState(false);
     const histoRef = React.useRef(null);
     const [rois, setROIs] = React.useState([]);
 
@@ -111,19 +110,6 @@ export default function NiiVueport(props) {
 
 
     React.useEffect(() => {
-        // window.addEventListener('resize',useState=>{
-        //     console.log(window.innerWidth);
-        //     if(window.innerWidth<1250&&!verticalLayout){
-        //         setVerticalLayout(true);
-        //     }else{
-        //         // setVerticalLayout(false);
-        //     }
-        // });
-        // if(window.innerWidth<1250&&!verticalLayout){
-        //     setVerticalLayout(true);
-        // }else{
-        //     setVerticalLayout(false);
-        // }
         if (nv.volumes.length !== 0) {
             setLayers([...nv.volumes]);
             setBoundMins(nv.frac2mm([0, 0, 0]));
@@ -357,14 +343,6 @@ export default function NiiVueport(props) {
             />
         ) : undefined;
     });
-
-
-    // const toggleSampleDistribution = ()=>{
-    //     setVerticalLayout(!verticalLayout);
-    //     // if(!showSampleDistribution)
-    //     //     resampleImage();
-    //     nv.resizeListener();
-    // }
 
     async function addLayer(file) {
         const nvimage = await NVImage.loadFromFile({
@@ -762,11 +740,6 @@ export default function NiiVueport(props) {
             // }
         }
         Plotly.newPlot('histoplot', traces, layout, { responsive: true });
-
-        // if (verticalLayout) {
-        //     Plotly.newPlot('histoplotv', traces, layout, { responsive: true });
-        // } else
-        //     Plotly.newPlot('histoplot', traces, layout, { responsive: true });
     }
 
     function nvUpdateSelectionBoxColor(rgb01) {
@@ -1054,7 +1027,6 @@ export default function NiiVueport(props) {
         showColorBar: colorBar,
         toggleColorBar: nvUpdateColorBar,
         changesMade: drawingChanged,
-        // showSampleDistribution: verticalLayout,
         // toggleSampleDistribution,
         drawUndo: () => {//To be moved and organized
             nv.drawUndo();
@@ -1352,8 +1324,6 @@ export default function NiiVueport(props) {
                 selectedROI={selectedROI}
                 refreshROI={refreshROI}
                 setSelectedROI={selectDrawingLayer}
-                // verticalLayout={verticalLayout}
-                // toggleVerticalLayout={toggleSampleDistribution}
                 toggleShowCrosshair={nvUpdateCrosshair}
                 showCrosshair={showCrosshair}
                 dragMode={dragMode}
@@ -1394,7 +1364,6 @@ export default function NiiVueport(props) {
                 key={`${selectedVolume}`}
                 volumes={layers}
                 colorBarEnabled={colorBar}
-                // displayVertical={verticalLayout}
                 transformFactors={transformFactors}
 
                 decimalPrecision={decimalPrecision}

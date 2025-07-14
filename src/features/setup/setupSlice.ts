@@ -268,11 +268,11 @@ export const setupSlice = createSlice({
                 if (state.activeSetup.name == 'pmr')
                 state.activeSetup.options.NR = 20;
                 if (state.activeSetup.name == 'cr')
-                state.activeSetup.options.NR = 3;
+                state.activeSetup.options.NR = 6;
             
                 // delete state.activeSetup.options.NR;
             if(state.activeSetup.name=='cr')
-                state.activeSetup.options.boxSize = 3;
+                state.activeSetup.options.boxSize = 9;
             else
                 // delete state.activeSetup.options.boxSize;
             state.editInProgress=true;

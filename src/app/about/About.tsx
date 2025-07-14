@@ -61,7 +61,7 @@ const description = (
                 <ul style={{ marginBottom: "0px" }}>
                     <li>Principal Investigator: Riccardo Lattanzi, PhD</li>
                     <li>Head of Software Development: Eros Montin, PhD</li>
-                    <li>Collaborators: Roy Wiggins, Yuelong Li</li>
+                    <li>Collaborators: Roy Wiggins, Xuan Thao Nguyen</li>
                 </ul>
                 
         </div>

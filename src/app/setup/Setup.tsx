@@ -471,6 +471,8 @@ const Setup = () => {
                     // Reset uploaded data
                     // setUploadedData(null);
                     setOpenPanel([0]);
+                    dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
+                    dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
                 }}
                 sx={{ width: '100%', marginBottom: '10px' }}
             >
@@ -884,7 +886,7 @@ const Setup = () => {
                                                         <FormControlLabel value="0" control={<Radio />} label="Do Not Mask Coil Sensitivities Maps" />
                                                         <FormControlLabel value="1" control={<Radio />}
                                                             label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                Mask Pixels Below a Percentage of Max Value
+                                                                Keep Pixels Above a Percentage of Max Value
 
                                                                 {maskMethod === 1 && (
                                                                     <>
@@ -901,7 +903,7 @@ const Setup = () => {
                                                         <FormControlLabel value="3"
                                                             control={<Radio />}
                                                             label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                use Mask from ESPIRiT &nbsp;&nbsp;  {maskMethod === 3 && (
+                                                                Use Mask from ESPIRiT &nbsp;&nbsp;  {maskMethod === 3 && (
                                                                     <>
                                                                         k:
                                                                         <CmrInputNumber value={kStore}
@@ -1133,6 +1135,8 @@ const Setup = () => {
                                                     dispatch(setupSetters.setMaskThreshold(20));
                                                     dispatch(setupSetters.setMaskESPIRIT({ k: 8, r: 24, t: 0.01, c: 0.995 }));
                                                     dispatch(setupSetters.setMaskStore(undefined));
+                                                    dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
+                                                    dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
                                                     // setDecimateACL(null);
 
                                                 }}

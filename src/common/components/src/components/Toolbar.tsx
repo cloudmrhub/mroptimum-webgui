@@ -28,8 +28,6 @@ interface ToolbarProps {
     selectedROI: number;
     setSelectedROI: (selected:number)=>void;
     refreshROI: ()=>void;
-    verticalLayout:boolean;
-    toggleVerticalLayout: ()=>void;
     showCrosshair: boolean;
     toggleShowCrosshair:()=>void;
     dragMode:boolean,
@@ -276,10 +274,7 @@ export default function Toolbar(props:ToolbarProps) {
                         >
                             Vertical Layout
                         </Typography>
-                        <Switch
-                            checked={props.verticalLayout}
-                            onChange={props.toggleVerticalLayout}
-                        />
+                        
                     </Box>
                     <Box
                         sx={{
