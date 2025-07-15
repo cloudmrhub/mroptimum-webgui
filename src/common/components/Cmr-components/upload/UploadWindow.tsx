@@ -351,7 +351,7 @@ export default function UploadWindow({
                         </Box>
                     </DialogContent>
                     <DialogActions>
-                        <Button color={'inherit'} sx={{color: '#333'}} disabled={UpBtnDisabled}
+                        <Button variant='outlined' disabled={UpBtnDisabled}
                                 onClick={handleClose}>Cancel</Button>
                         <Button variant='contained' disabled={UpBtnDisabled}
                                 onClick={handleConfirm}>{UpBtnText}</Button>

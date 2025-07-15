@@ -465,6 +465,9 @@ const Setup = () => {
                     // Reset signal and noise
                     dispatch(setSignal(undefined));
                     dispatch(setNoise(undefined));
+                    // Reset FA file upload
+                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
+                    dispatch(setupSetters.setFlipAngleCorrection(!flipAngleCorrection));         // reset FA checkbox
                     // Reset file updated flags
                     setSignalFileUpdated(false);
                     setNoiseFileUpdated(false);
@@ -473,6 +476,7 @@ const Setup = () => {
                     setOpenPanel([0]);
                     dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
                     dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
+
                 }}
                 sx={{ width: '100%', marginBottom: '10px' }}
             >
@@ -785,9 +789,9 @@ const Setup = () => {
                                 {(reconstructionMethod != undefined) &&
                                     <CmrPanel header={''}
                                         expanded={true}
-                                        className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-0 mb-0' }}>
+                                        className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-4 mb-0' }}>
 
-                                        <CmrCheckbox className='me-2 ms-1' checked={!flipAngleCorrection}
+                                        <CmrCheckbox checked={!flipAngleCorrection}
                                             defaultChecked={!flipAngleCorrection}
                                             onChange={(event) => {
                                                 dispatch(setupSetters.setFlipAngleCorrection(!event.target.checked))
@@ -799,6 +803,7 @@ const Setup = () => {
                                                 dispatch(setupSetters.setFlipAngleCorrectionFile(file));
                                             }} maxCount={1}
                                                 createPayload={createPayload}
+                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'fa')}
                                                 onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
                                                 style={{
                                                     height: 'fit-content',
