@@ -467,7 +467,8 @@ const Setup = () => {
                     dispatch(setNoise(undefined));
                     // Reset FA file upload
                     dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
-                    dispatch(setupSetters.setFlipAngleCorrection(!flipAngleCorrection));         // reset FA checkbox
+                    dispatch(setupSetters.setFlipAngleCorrection(!flipAngleCorrection)); // reset FA checkbox
+                    dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
                     // Reset file updated flags
                     setSignalFileUpdated(false);
                     setNoiseFileUpdated(false);
