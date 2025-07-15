@@ -111,6 +111,7 @@ const Header = ({ siteTitle, authentication, handleLogout, menuList }: {
                                         }}>
                                         Logout
                                     </button></li>
+                                    <li> Build Flag </li>
                                 </ul>
                             </li>
                         </ul>)}
