@@ -5,7 +5,7 @@ import { getUploadedData, uploadData } from '../../features/data/dataActionCreat
 import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
-import CMRSelectUpload from '../../common/components/Cmr-components/select-upload/SelectUpload';
+import { CMRSelectUpload } from 'cloudmr-ux';
 import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
 import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
