@@ -943,6 +943,7 @@ const Setup = () => {
                                                             }} maxCount={1}
                                                                 createPayload={createPayload}
                                                                 onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
+                                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'mask')}
                                                                 style={{
                                                                     height: 'fit-content',
                                                                     marginTop: 'auto',
