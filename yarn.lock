@@ -3432,7 +3432,7 @@
   "resolved" "https://registry.npmjs.org/axe-core/-/axe-core-4.10.3.tgz"
   "version" "4.10.3"
 
-"axios@^1.4.0", "axios@^1.9.0":
+"axios@^1.4.0", "axios@1.10.0":
   "integrity" "sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw=="
   "resolved" "https://registry.npmjs.org/axios/-/axios-1.10.0.tgz"
   "version" "1.10.0"
@@ -3894,10 +3894,10 @@
     "strip-ansi" "^6.0.0"
     "wrap-ansi" "^7.0.0"
 
-"cloudmr-ux@^1.4.6":
-  "integrity" "sha512-Q+E5CQJdkj4lRJ04uP8RrT4c2YlPHHtCUJqfdQXyyt7Uerhh0irS8mVGCGvhZi/0GQwJ7vUJhCwAO6+FZHAcCQ=="
-  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.4.6.tgz"
-  "version" "1.4.6"
+"cloudmr-ux@^1.5.5":
+  "integrity" "sha512-yapbD+41r/kkx0/vf8mvsLPQztcn3BEEPUkiTD4HJBhsj2idWwdkqWMPwlzk3V8VZ/CXjxldKx30feGqR8P0LQ=="
+  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.5.5.tgz"
+  "version" "1.5.5"
   dependencies:
     "@emotion/react" "^11.14.0"
     "@emotion/styled" "^11.14.0"
@@ -3905,7 +3905,7 @@
     "@mui/material" "^5.14.2"
     "@mui/x-data-grid" "^6.10.1"
     "antd" "^5.22.1"
-    "axios" "^1.9.0"
+    "axios" "1.10.0"
     "css-loader" "^7.1.2"
     "sass" "^1.81.0"
     "sass-loader" "^16.0.3"
