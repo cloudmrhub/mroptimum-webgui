@@ -25,7 +25,7 @@
     "antd": "^5.7.3",
     "axios": "^1.4.0",
     "bootstrap": "^5.3.1",
-    "cloudmr-ux": "^1.5.6",
+    "cloudmr-ux": "^1.6.1",
     "gl-matrix": "^3.4.3",
     "https-browserify": "^1.0.0",
     "jszip": "^3.10.1",

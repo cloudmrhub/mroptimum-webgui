@@ -52,7 +52,7 @@ const Header = ({ siteTitle, authentication, handleLogout, menuList }: {
             {/*add small-margin to className to align header content to the ends*/}
             <Container maxWidth="lg">
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
+                <Link to="/" className="navbar-brand" >
                     {/* <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)', display: 'inline-block' }}> */}
                     <div style={{
                         // backgroundColor: 'white', 

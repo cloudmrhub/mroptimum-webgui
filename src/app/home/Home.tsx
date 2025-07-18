@@ -201,7 +201,7 @@ const Home = () => {
             flex: 1,
         },
         {
-            field: 'options',
+            field: 'actions',
             headerName: 'Actions',
             sortable: false,
             width: 160,
@@ -386,12 +386,12 @@ const Home = () => {
                                     }
                                 });
                                 setOpen(true);
-                            }} disabled={selectedData.length === 0}>Delete</Button>
+                            }} disabled={selectedData.length === 0}> <DeleteIcon className='me-2'/>Delete</Button>
                         </div>
                         <div className="col-4">
                             <Button color={'success'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
                                 downloadSelectedValues();
-                            }} disabled={selectedData.length === 0}>Download</Button>
+                            }} disabled={selectedData.length === 0}><GetAppIcon className='me-2' />Download</Button>
                         </div>
                         
                         <div className="col-4">
