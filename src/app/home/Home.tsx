@@ -17,7 +17,7 @@ import {
 } from '../../features/data/dataActionCreation';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import { jobsSlice } from "../../features/jobs/jobsSlice";
-import { CmrConfirmation} from 'cloudmr-ux';
+import { CmrConfirmation } from 'cloudmr-ux';
 import { Button, CircularProgress } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
@@ -126,7 +126,7 @@ const Home = () => {
                             });
                         }}>
                             {params.row.renamingPending ? <CircularProgress size={20} /> : <EditIcon />}
-                        </IconButton> 
+                        </IconButton>
                         {/* Download logic here  */}
                         {/* <IconButton onClick={(e) => {
                             let url = params.row.link;
@@ -368,7 +368,13 @@ const Home = () => {
         <Fragment>
             <CmrCollapse accordion={false} defaultActiveKey={[0, 1]} expandIconPosition="right">
                 <CmrPanel key="0" header="Uploaded Data" className='mb-2'>
-                    <CmrTable dataSource={[...files].filter(file => !file.fileName.toLowerCase().endsWith('.zip')).reverse()} rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
+                    <CmrTable dataSource={[...files]
+                        .filter(file => {
+                            const name = file.fileName.toLowerCase();
+                            return !name.endsWith('.zip') && !name.endsWith('.nii');
+                        })
+                        .reverse()
+                    } rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
                         setSelectedData(rowSelectionModel);
                     }} columns={uploadedFilesColumns} />
                     <div className="row mt-2">
@@ -386,14 +392,14 @@ const Home = () => {
                                     }
                                 });
                                 setOpen(true);
-                            }} disabled={selectedData.length === 0}> <DeleteIcon className='me-2'/>Delete</Button>
+                            }} disabled={selectedData.length === 0}> <DeleteIcon className='me-2' />Delete</Button>
                         </div>
                         <div className="col-4">
                             <Button color={'success'} style={{ textTransform: 'none' }} variant={'contained'} fullWidth={true} onClick={() => {
                                 downloadSelectedValues();
                             }} disabled={selectedData.length === 0}><GetAppIcon className='me-2' />Download</Button>
                         </div>
-                        
+
                         <div className="col-4">
                             {/* TOBREMOVED AFTER THE BETA TESTING */}
                             {/* <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}> Upload </Button> */}

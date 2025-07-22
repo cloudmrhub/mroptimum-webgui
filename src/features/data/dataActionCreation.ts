@@ -1,4 +1,4 @@
-import axios, { AxiosResponse} from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
     DATAAPI,
@@ -8,49 +8,52 @@ import {
     DATAUPLOADFINALIZE
 } from "../../Variables";
 import { LambdaFile } from 'cloudmr-ux';
-import {getFileExtension} from "../../common/utilities";
-import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
+import { getFileExtension } from "../../common/utilities";
+import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
 
-import {AxiosRequestConfig} from "axios/index";
-import {setupSetters, setupSlice} from "../setup/setupSlice";
+import { AxiosRequestConfig } from "axios/index";
+import { setupSetters, setupSlice } from "../setup/setupSlice";
 import { and } from 'mathjs';
 
 export const getUploadedData = createAsyncThunk('GetUploadedData', async (accessToken: string) => {
-    
+
     // console.log("getu[ploaded data");
     const config = {
         headers: {
-            Authorization: `Bearer ${accessToken}`}
+            Authorization: `Bearer ${accessToken}`
+        }
     }
-    try{
+    try {
         const response = await axios.get(DATAAPI, config);
         console.log(response.data);
         return response.data;
-    }catch(e){
+    } catch (e) {
         console.log(e);
         return undefined;
     }
 });
 
-export const uploadData = createAsyncThunk('UploadData', async(
-    {accessToken, uploadToken, file, fileAlias, onProgress, onUploaded, uploadTarget}:
-                                                                   {accessToken:string,uploadToken:string,file:File,fileAlias:string,
-                                                                   onProgress?:(progress:number)=>void,uploadTarget?:string,
-                                                                   onUploaded?:(res:AxiosResponse,file:File)=>void},thunkAPI)=>{
-        console.log("start the upload uploadData");
-                                                                    try{
+export const uploadData = createAsyncThunk('UploadData', async (
+    { accessToken, uploadToken, file, fileAlias, onProgress, onUploaded, uploadTarget }:
+        {
+            accessToken: string, uploadToken: string, file: File, fileAlias: string,
+            onProgress?: (progress: number) => void, uploadTarget?: string,
+            onUploaded?: (res: AxiosResponse, file: File) => void
+        }, thunkAPI) => {
+    console.log("start the upload uploadData");
+    try {
         const FILE_CHUNK_SIZE = 10 * 1024 * 1024; // 5MB chunk size
         let payload = await createPayload(accessToken, uploadToken, file, fileAlias);
-        console.log("payload created",payload);
-        if(payload==undefined)
-            return {code:403,response:'file not found',file:undefined,uploadTarget:uploadTarget}
-        if(payload.lambdaFile==undefined)
-            return {code:403,response:'data not allowed',file:undefined,uploadTarget:uploadTarget}
-        thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:0}));
+        console.log("payload created", payload);
+        if (payload == undefined)
+            return { code: 403, response: 'file not found', file: undefined, uploadTarget: uploadTarget }
+        if (payload.lambdaFile == undefined)
+            return { code: 403, response: 'data not allowed', file: undefined, uploadTarget: uploadTarget }
+        thunkAPI.dispatch(setupSetters.setUploadProgress({ target: uploadTarget, progress: 0 }));
         // @ts-ignore
-        async function uploadPartWithRetries(partUrl:string,
-                                             part:any, cancelTokenSource:any,
-                                             index:number, retries = 2) {
+        async function uploadPartWithRetries(partUrl: string,
+            part: any, cancelTokenSource: any,
+            index: number, retries = 2) {
             try {
                 const response = await axios.put(partUrl, part, {
                     headers: {
@@ -60,8 +63,8 @@ export const uploadData = createAsyncThunk('UploadData', async(
                         totalUploadedParts[index] = progressEvent.loaded;
                         const totalUploaded = totalUploadedParts.reduce((a, b) => a + b, 0);
                         const totalProgress = totalUploaded / totalSize;
-                        onProgress&&onProgress(totalProgress);
-                        thunkAPI.dispatch(setupSetters.setUploadProgress({target:uploadTarget,progress:totalProgress}));
+                        onProgress && onProgress(totalProgress);
+                        thunkAPI.dispatch(setupSetters.setUploadProgress({ target: uploadTarget, progress: totalProgress }));
                     },
                     cancelToken: cancelTokenSource.token
                 });
@@ -75,17 +78,17 @@ export const uploadData = createAsyncThunk('UploadData', async(
                     // Cancel the current request before retrying
                     cancelTokenSource.cancel('Cancelling the current request before retry.');
                     const newCancelTokenSource = axios.CancelToken.source();
-                    return await uploadPartWithRetries(partUrl, part, newCancelTokenSource,index, retries - 1);
+                    return await uploadPartWithRetries(partUrl, part, newCancelTokenSource, index, retries - 1);
                 } else {
                     throw error; // rethrow the error after exhausting retries
                 }
             }
         }
         console.log(payload);
-        const initResponse = await axios.post(payload.destination, payload.lambdaFile,payload.config);
+        const initResponse = await axios.post(payload.destination, payload.lambdaFile, payload.config);
         console.log(initResponse);
 
-        const { uploadId, partUrls, Key} = initResponse.data;
+        const { uploadId, partUrls, Key } = initResponse.data;
 
         // Step 2: Prepare file parts
         const fileParts = [];
@@ -102,7 +105,7 @@ export const uploadData = createAsyncThunk('UploadData', async(
             let partUrl = partUrls[index];
 
             const cancelTokenSource = axios.CancelToken.source();
-            const partResponse = await uploadPartWithRetries(partUrl, part, cancelTokenSource,index);
+            const partResponse = await uploadPartWithRetries(partUrl, part, cancelTokenSource, index);
 
             const etag = partResponse?.headers['etag'].replace(/"/g, '');
             console.log(partResponse);
@@ -117,33 +120,39 @@ export const uploadData = createAsyncThunk('UploadData', async(
             uploadId,
             parts: uploadedParts,
             Key: Key
-        },payload.config);
+        }, payload.config);
 
         console.log(finalizeResponse);
 
         console.log('all uploads completed');
-        console.log('------',onUploaded);
-        if(onUploaded)
-            onUploaded(initResponse,file);
+        console.log('------', onUploaded);
+        if (onUploaded)
+            onUploaded(initResponse, file);
         console.log('uploaded');
         thunkAPI.dispatch(getUploadedData(accessToken));
         console.log('refreshed');
-        return {code:200, response: initResponse.data.response, file:payload.lambdaFile,uploadTarget:uploadTarget};
-    }catch (e:any) {
+        return { code: 200, response: initResponse.data.response, file: payload.lambdaFile, uploadTarget: uploadTarget };
+    } catch (e: any) {
         console.log("Following error encountered during uploading:");
         console.error(e);
-        return {code:500,response: e.response, file:undefined, uploadTarget:uploadTarget}
+        return { code: 500, response: e.response, file: undefined, uploadTarget: uploadTarget }
     }
 });
 
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream','application/x-extension-dat']; // Add your allowed file types here
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream', 'application/x-extension-dat']; // Add your allowed file types here
 
-const createPayload = async (accessToken:string, uploadToken:string, file: File, fileAlias: string) => {
+const createPayload = async (accessToken: string, uploadToken: string, file: File, fileAlias: string) => {
 
     if (file) {
-        
+
         const fileExtension = getFileExtension(file.name);
-        const fileType = file.type || (fileExtension === 'dat' ? 'application/octet-stream' : '');
+        // const fileType = file.type || (fileExtension === 'dat' ? 'application/octet-stream' : '');
+        let fileType = file.type;
+        if (!fileType) {
+            if (fileExtension === 'dat' || fileExtension === 'nii') {
+                fileType = 'application/octet-stream';
+            }
+        }
         const lambdaFile: LambdaFile = {
             "filename": fileAlias,
             "filetype": fileType,
@@ -155,9 +164,9 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
         if (!ALLOWED_FILE_TYPES.includes(fileType)) {
             console.log(fileType);
             alert('This file type is not allowed. Please upload a valid file.');
-            return {lambdaFile: undefined, file: undefined};
+            return { lambdaFile: undefined, file: undefined };
         }
-        
+
         if (fileExtension == 'dat') {
             // check if file ha phi data
             console.log("checking for PHI data");
@@ -168,7 +177,7 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
                 alert('This file contains PIH data. Please anonymize the file before uploading');
                 console.log("file is not safe");
                 return undefined;
-            }else{
+            } else {
                 console.log("file is safe");
             }
             // file = transformedFile;
@@ -178,28 +187,30 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
-                'X-Api-Key':uploadToken
+                'X-Api-Key': uploadToken
             },
         };
-        return {destination: DATAUPLOADINIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
+        return { destination: DATAUPLOADINIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
     }
 };
 
 // Here's the corresponding rename function for Data
-export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg:{accessToken: string, fileId: number,fileName:string},thunkAPI) => {
+export const renameUploadedData = createAsyncThunk('RenameUploadedData', async (arg: { accessToken: string, fileId: number, fileName: string }, thunkAPI) => {
     // console.log(arg);
     const config = {
         headers: {
             Authorization: `Bearer ${arg.accessToken}`,
         },
     };
-    const response = await axios.post(DATA_RENAME_API, {fileid: arg.fileId,
-        filename:arg.fileName}, config);
-    if(response.status === 200)
+    const response = await axios.post(DATA_RENAME_API, {
+        fileid: arg.fileId,
+        filename: arg.fileName
+    }, config);
+    if (response.status === 200)
         await thunkAPI.dispatch(getUploadedData(arg.accessToken));
 });
 
-export const deleteUploadedData = createAsyncThunk('DeleteUploadedData', async (arg: { accessToken: string, fileId: number },thunkAPI) => {
+export const deleteUploadedData = createAsyncThunk('DeleteUploadedData', async (arg: { accessToken: string, fileId: number }, thunkAPI) => {
     const config = {
         headers: {
             Authorization: `Bearer ${arg.accessToken}`,
@@ -209,7 +220,7 @@ export const deleteUploadedData = createAsyncThunk('DeleteUploadedData', async (
         }
     };
     // const response = await axios.get(`${DATA_DELETE_API}`, config);
-     const response = await axios.get(`${DATA_DELETE_API}/${arg.fileId}`, config);
+    const response = await axios.get(`${DATA_DELETE_API}/${arg.fileId}`, config);
     if (response.status == 200)
         await thunkAPI.dispatch(getUploadedData(arg.accessToken));
 });

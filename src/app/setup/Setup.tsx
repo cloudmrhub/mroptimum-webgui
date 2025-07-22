@@ -804,7 +804,7 @@ const Setup = () => {
                                                 dispatch(setupSetters.setFlipAngleCorrectionFile(file));
                                             }} maxCount={1}
                                                 createPayload={createPayload}
-                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'fa')}
+                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
                                                 onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
                                                 style={{
                                                     height: 'fit-content',
@@ -957,6 +957,7 @@ const Setup = () => {
                                                                     marginLeft: '5pt'
                                                                 }}
                                                                 buttonText='Choose or Upload Mask'
+                                                                fileExtension='nii'
                                                                 chosenFile={maskFile?.options.filename}
                                                             />
                                                             }
