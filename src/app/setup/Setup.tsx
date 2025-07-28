@@ -38,6 +38,7 @@ import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ClearIcon from '@mui/icons-material/Clear';
 import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
@@ -392,6 +393,40 @@ const Setup = () => {
         },
     ];
 
+    const selectStyles = {
+        control: (base: any, state: any) => ({
+            ...base,
+            borderColor: state.isFocused ? '#580F8B' : base.borderColor,
+            boxShadow: state.isFocused ? `0 0 0 1px #580F8B` : base.boxShadow,
+            '&:hover': {
+                borderColor: '#580F8B',
+            },
+            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
+            fontWeight: 400,
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isFocused || state.isSelected ? '#F3E5F5' : 'white',
+            color: '#000',
+            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
+            fontWeight: 400,
+        }),
+        menuPortal: (base: any) => ({
+            ...base,
+            zIndex: 2000, // needed for portal target to body
+        }),
+        menu: (base: any) => ({
+            ...base,
+            zIndex: 9999, // ensures it renders over dialogs
+        }),
+        singleValue: (base: any) => ({
+            ...base,
+            color: '#580F8B',
+            fontWeight: 400,
+            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
+        }),
+    };
+
     const [openPanel, setOpenPanel] = useState((noise != undefined && signal != undefined) ? [1] : [0]);
     let snr: any = undefined;
     let [previewContent, setPreview] = useState<string | undefined>(undefined);
@@ -489,156 +524,71 @@ const Setup = () => {
                     // console.log(key);
                     setOpenPanel(key)
                 }}>
-                {/* <CmrPanel header='Job Queue' className={'mb-2'} key={'0'}>
-                    <UploadWindow open={schemaSelector} setOpen={setSchemaSelector} fileExtension={'.json'}
-                        upload={async (file, fileAlias) => {
-                            let snr = JSON.parse(await file.text());
-                            let name = fileAlias;
-                            setJobSelectionModel([newJobId, ...jobSelectionModel]);
-                            dispatch(setupSetters.queueSNRJob({ snr, name }));
-                            return 200;
-                        }} template={{ showFileSize: true, showDatabase: false, showFileName: true }} />
-                    <CmrTable dataSource={queuedJobs} columns={queuedJobsColumns}
-                        rowSelectionModel={jobSelectionModel}
-                        onRowSelectionModelChange={(newSelection: GridRowSelectionModel) => {
-                            setJobSelectionModel(newSelection);
-                        }} />
-                    <SNREditor snrContent={editContent}
-                        snrAlias={editAlias}
-                        setSNRAlias={setEditAlias}
-                        edit={() => {
-                            if (editing == rowId)
-                                return;
-                            if (editActive && analysisMethod != undefined) {
-                                setSNREditWarning('Consider queuing the currently ' +
-                                    'edited SNR first to avoid losing progress.');
-                                setSNREditOpen(true);
-                                setSnrEditWarningCallback(() => {
-                                    // dispatch(setupSetters.loadSNRSettings(editedJSON));
-                                    setOpenPanel([0, 1, 2]);
-                                    // This line is a bit of an unexplainable magic,
-                                    // this method shouldn't be executed without being
-                                    // passed to Edit Warning Confirmation, yet it does get
-                                    // executed to create the effect of screen previewing and then returning
-                                    setAnalysisMethodChanged(true);
-                                });
-                            } else {
-                                dispatch(setupSetters.loadSNRSettings(editedJSON));
-                                setAnalysisMethodChanged(true);
-                                setEditing(rowId);
-                                setOpenPanel([0, 1, 2]);
-                            }
-                        }} confirm={() => {
-                            if (editing == rowId)// when confirming both the snr edit and the name change
-                                dispatch(setupSetters.completeSNREditing({ id: editing, alias: editAlias }));
-                            else {// when confirming the name change alone
-                                dispatch(setupSetters.rename({ id: rowId, alias: editAlias }));
-                            }
-                            setEditing(-1);
-                            setTimeout(() => setOpenPanel([0]), 500);
-                        }}
-                        handleClose={() => {
-                            setEditContent(undefined);
-                        }} />
-                    <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-                        TransitionComponent={(props) => <Slide {...props} direction="right" />}
-                        open={snackOpen} autoHideDuration={7000} onClose={handleSnackClose}>
-                        <Alert onClose={handleSnackClose} severity="success" sx={{ width: '100%' }}>
-                            {snackAlert}
-                        </Alert>
-                    </Snackbar>
-                    <Confirmation setOpen={setSNRDeleteOpen}
-                        open={snrDeleteOpen}
-                        message={snrDeleteWarning}
-                        color={'error'} name={"Confirm Delete"}
-                        cancellable={true}
-                        confirmCallback={snrDeleteWarningCallback} />
-                    <Confirmation setOpen={setSNREditOpen}
-                        open={snrEditOpen}
-                        message={snrEditWarning}
-                        name={"Unfinished SNR Edit"}
-                        cancellable={true}
-                        color={'error'}
-                        confirmText={'Discard Current Edit'}
-                        confirmCallback={() => {
-                            dispatch(setupSetters.loadSNRSettings(editedJSON));
-                            setOpenPanel([0, 1, 2]);
-                            setAnalysisMethodChanged(true);
-                        }} />
-                    <CmrButton sx={{ width: '50%', mt: 1 }} variant={"contained"}
-                        color={'success'} onClick={() => {
-                            console.log(jobSelectionModel);
-                            if (jobSelectionModel.length == 0) {
-                                setSDWarning("Please select the jobs that you would like to submit.");
-                                setSDWarningHeader("No Job Selected for Submission");
-                                setSDOpen(true);
-                            } else {
-                                console.log(queuedJobs);
-                                let selectedJobs = jobSelectionModel.map((value, index) => {
-                                    for (let job of queuedJobs) {
-                                        if (job.id == value) {
-                                            return job;
-                                        }
-                                    }
-                                });
-                                dispatch(jobActions.resetSubmissionState());
-                                console.log(selectedJobs);
-                                // @ts-ignore
-                                dispatch(submitJobs({ accessToken, queueToken, jobQueue: selectedJobs }));
-                                setSnackOpen(true);
-                            }
-                        }}>Submit Jobs</CmrButton>
 
-                    <CmrButton sx={{ width: '49%', marginLeft: '1%', mt: 1 }} variant={"contained"}
-                        color={'error'} onClick={() => {
-                            if (jobSelectionModel.length == 0) {
-                                setSDWarning("Please select the jobs that you would like to delete.");
-                                setSDWarningHeader("No Job Selected for Deletion");
-                                setSDOpen(true);
-                            } else {
-                                setSNRDeleteWarning(`You are about to delete Job ${jobSelectionModel}.`);
-                                setSNRDeleteOpen(true);
-                                setSNRDeleteWarningCallback(() => {
-                                    // @ts-ignore
-                                    return () => dispatch(setupSetters.bulkDeleteQueuedJobs(jobSelectionModel));
-                                });
-                            }
-                        }}>Delete Jobs</CmrButton>
-                    <Confirmation open={sdOpen} setOpen={setSDOpen}
-                        message={sdWarning}
-                        name={sdWarningHeader} />
-                </CmrPanel> */}
                 <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
 
                     <Row>
                         <Col>
                             <Row>
                                 <CmrLabel style={{ marginTop: 'auto', marginBottom: 'auto' }}>Signal File:</CmrLabel>
-                                {signalProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
-                                    onSelected={(signal) => {
-                                        dispatch(setSignal(signal));
-                                        setSignalFileUpdated(signal != undefined);
-                                        if (signalFileUpdated && noiseFileUpdated)
-                                            console.log('signal and noise updated');
-                                        setTimeout(() => setOpenPanel([0]), 500);
-                                    }} maxCount={1}
-                                    createPayload={createPayload}
-                                    onUploaded={uploadResHandlerFactory(setSignal, () => {
-                                        if (noise != undefined && signal != undefined)
-                                            setTimeout(() => setOpenPanel([0]), 500);
-                                    })} style={{
-                                        height: 'fit-content',
-                                        marginLeft: '10px',
-                                        marginTop: 'auto',
-                                        marginBottom: 'auto'
-                                    }}
-                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'signal')}
-                                    chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
-                                />
-                                    : <Button variant={"contained"} size={'medium'} style={{ textTransform: 'none', height: 'fit-content' }} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled={true}>
+                                {signalProgress < 0 ? (
+                                    <Box display="flex" alignItems="center" gap={1}>
+
+                                        <CMRSelectUpload
+                                            fileSelection={uploadedData}
+                                            onSelected={(signal) => {
+                                                dispatch(setSignal(signal));
+                                                setSignalFileUpdated(signal != undefined);
+                                                if (signalFileUpdated && noiseFileUpdated)
+                                                    console.log('signal and noise updated');
+                                                setTimeout(() => setOpenPanel([0]), 500);
+                                            }}
+                                            maxCount={1}
+                                            createPayload={createPayload}
+                                            onUploaded={uploadResHandlerFactory(setSignal, () => {
+                                                if (noise != undefined && signal != undefined)
+                                                    setTimeout(() => setOpenPanel([0]), 500);
+                                            })}
+                                            selectStyles={selectStyles}
+                                            style={{
+                                                height: 'fit-content',
+                                                marginTop: 'auto',
+                                                marginBottom: 'auto',
+                                                marginRight: '0',
+                                                marginLeft: '10px',
+                                            }}
+                                            uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'signal')}
+                                            chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
+                                        />
+
+                                        {signal && (
+                                            <Tooltip title="Clear Uploaded File">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => {
+                                                        dispatch(setupSetters.setSignal(undefined));
+                                                        setSignalFileUpdated(false);
+                                                    }}
+                                                >
+                                                    <ClearIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+
+                                    </Box>
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        size="medium"
+                                        style={{ textTransform: 'none', height: 'fit-content', marginLeft: '10px' }}
+                                        sx={{ overflowWrap: 'inherit' }}
+                                        color="primary"
+                                        disabled
+                                    >
                                         Uploading {+(signalProgress * 99).toFixed(2)}%
-                                    </Button>}
-                                <CmrCheckbox sx={{ ml: 1 }} onChange={(event) => {
+                                    </Button>
+                                )}
+                                <CmrCheckbox sx={{ ml: 2 }} onChange={(event) => {
                                     dispatch(setupSetters.setMultiRaid(event.target.checked))
                                     if (signal != undefined && event.target.checked)
                                         setTimeout(() => setOpenPanel([1]), 500);
@@ -653,33 +603,64 @@ const Setup = () => {
                             <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                             <Row>
                                 <Col>
-                                    <Row style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
+                                    <Row>
                                         <CmrLabel style={{ marginTop: 'auto', marginBottom: 'auto' }}>Noise File:</CmrLabel>
-                                        {noiseProgress < 0 ? <CMRSelectUpload fileSelection={uploadedData}
-                                            onSelected={(noise) => {
-                                                dispatch(setNoise(noise));
-                                                setNoiseFileUpdated(noise != undefined);
-                                                // console.log(noise);
-                                                // console.log(signalFileUpdated);
-                                                // console.log(noiseFileUpdated);
-                                                if (signalFileUpdated && noiseFileUpdated)
-                                                    console.log('signal and noise updated');
-                                                setTimeout(() => setOpenPanel([1]), 500);
-                                            }} maxCount={1}
-                                            createPayload={createPayload}
-                                            onUploaded={uploadResHandlerFactory(setNoise, () => {
-                                                // console.log(noise);
-                                                // console.log(signalFileUpdated);
-                                                // console.log(noiseFileUpdated);
-                                                if (noise != undefined && signal != undefined)
-                                                    setTimeout(() => setOpenPanel([1]), 500);
-                                            })}
-                                            style={{ height: 'fit-content', marginLeft: '10px' }}
-                                            chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
-                                            uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'noise')}
-                                        /> : <Button variant={"contained"} size={'medium'} style={{ textTransform: 'none' }} sx={{ overflowWrap: 'inherit' }} color={'primary'} disabled={true}>
-                                            Uploading {+(noiseProgress * 99).toFixed(2)}%
-                                        </Button>}
+                                        {noiseProgress < 0 ? (
+                                            <Box display="flex" alignItems="center" gap={1}>
+                                                <CMRSelectUpload
+                                                    fileSelection={uploadedData}
+                                                    onSelected={(noise) => {
+                                                        dispatch(setNoise(noise));
+                                                        setNoiseFileUpdated(noise != undefined);
+                                                        if (signalFileUpdated && noiseFileUpdated)
+                                                            console.log('signal and noise updated');
+                                                        setTimeout(() => setOpenPanel([1]), 500);
+                                                    }}
+                                                    maxCount={1}
+                                                    createPayload={createPayload}
+                                                    onUploaded={uploadResHandlerFactory(setNoise, () => {
+                                                        if (noise != undefined && signal != undefined)
+                                                            setTimeout(() => setOpenPanel([1]), 500);
+                                                    })}
+                                                    selectStyles={selectStyles}
+                                                    style={{
+                                                        height: 'fit-content',
+                                                        marginTop: 'auto',
+                                                        marginBottom: 'auto',
+                                                        marginRight: '0',
+                                                        marginLeft: '10px',
+                                                    }}
+                                                    chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
+                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'noise')}
+                                                />
+
+                                                {noise && (
+                                                    <Tooltip title="Clear Uploaded File">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => {
+                                                                dispatch(setNoise(undefined));
+                                                                setNoiseFileUpdated(false);
+                                                            }}
+                                                        >
+                                                            <ClearIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+
+                                            </Box>
+                                        ) : (
+                                            <Button
+                                                variant="contained"
+                                                size="medium"
+                                                style={{ textTransform: 'none', marginLeft: '10px' }}
+                                                sx={{ overflowWrap: 'inherit' }}
+                                                color="primary"
+                                                disabled
+                                            >
+                                                Uploading {+(noiseProgress * 99).toFixed(2)}%
+                                            </Button>
+                                        )}
                                     </Row>
                                 </Col>
                             </Row>
@@ -799,22 +780,42 @@ const Setup = () => {
                                             }}>
                                             No Flip Angle Correction
                                         </CmrCheckbox>
-                                        {(flipAngleCorrection) &&
-                                            <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
-                                                dispatch(setupSetters.setFlipAngleCorrectionFile(file));
-                                            }} maxCount={1}
-                                                createPayload={createPayload}
-                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
-                                                onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
-                                                style={{
-                                                    height: 'fit-content',
-                                                    marginTop: 'auto',
-                                                    marginBottom: 'auto'
-                                                }}
-                                                buttonText='choose FA map'
-                                                chosenFile={faMap?.options.filename}
-                                            />
-                                        }
+                                        {flipAngleCorrection && (
+                                            <>
+                                                <CMRSelectUpload
+                                                    fileSelection={uploadedData}
+                                                    onSelected={(file) => {
+                                                        dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                                    }}
+                                                    maxCount={1}
+                                                    createPayload={createPayload}
+                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
+                                                    onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
+                                                    style={{
+                                                        height: 'fit-content',
+                                                        marginTop: 'auto',
+                                                        marginBottom: 'auto',
+                                                        marginRight: '0',
+                                                    }}
+                                                    selectStyles={selectStyles}
+                                                    buttonText="choose FA map"
+                                                    chosenFile={faMap?.options.filename}
+                                                />
+
+                                                {faMap && (
+                                                    <Tooltip title="Clear Uploaded File">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => dispatch(setupSetters.setFlipAngleCorrectionFile(undefined))}
+                                                            sx={{ marginLeft: '8px' }}
+                                                        >
+                                                            <ClearIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                            </>
+                                        )}
+
                                         <Divider variant="middle"
                                             sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                                         {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
@@ -944,23 +945,42 @@ const Setup = () => {
                                                             </Box>} />
                                                         <FormControlLabel value="4" control={<Radio />} label={<Box flexDirection={'row'}>
                                                             Predefined Mask
-                                                            {maskMethod === 4 && <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
-                                                                dispatch(setupSetters.setMaskStore(file));
-                                                            }} maxCount={1}
-                                                                createPayload={createPayload}
-                                                                onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
-                                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'mask')}
-                                                                style={{
-                                                                    height: 'fit-content',
-                                                                    marginTop: 'auto',
-                                                                    marginBottom: 'auto',
-                                                                    marginLeft: '5pt'
-                                                                }}
-                                                                buttonText='Choose or Upload Mask'
-                                                                fileExtension='nii'
-                                                                chosenFile={maskFile?.options.filename}
-                                                            />
-                                                            }
+                                                            {maskMethod === 4 && (
+                                                                <>
+                                                                    <CMRSelectUpload
+                                                                        fileSelection={uploadedData}
+                                                                        onSelected={(file) => {
+                                                                            dispatch(setupSetters.setMaskStore(file));
+                                                                        }}
+                                                                        maxCount={1}
+                                                                        createPayload={createPayload}
+                                                                        onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
+                                                                        uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'mask')}
+                                                                        style={{
+                                                                            height: 'fit-content',
+                                                                            marginTop: 'auto',
+                                                                            marginBottom: 'auto',
+                                                                            marginRight: '0',
+                                                                            marginLeft: '20px'
+                                                                        }}
+                                                                        selectStyles={selectStyles}
+                                                                        buttonText="Choose or Upload Mask"
+                                                                        chosenFile={maskFile?.options.filename}
+                                                                    />
+
+                                                                    {maskFile && (
+                                                                        <Tooltip title="Clear Uploaded File">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                onClick={() => dispatch(setupSetters.setMaskStore(undefined))}
+                                                                                sx={{ marginLeft: '8px' }}
+                                                                            >
+                                                                                <ClearIcon fontSize="small" />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                </>
+                                                            )}
                                                         </Box>} />
                                                     </RadioGroup>
                                                 </FormControl>
