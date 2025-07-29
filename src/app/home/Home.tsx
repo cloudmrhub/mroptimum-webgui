@@ -404,7 +404,7 @@ const Home = () => {
                             {/* TOBREMOVED AFTER THE BETA TESTING */}
                             {/* <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}> Upload </Button> */}
                             {/* TOBEACTIVATED AFTER THE BETA TESTING */}
-                            <CMRUpload color={'primary'} key={uploadKey} fullWidth onUploaded={(res, file) => {
+                            <CMRUpload fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.dat', '.h5','.png', '.jpg', '.jpeg', '.npx', '.npy', '.pkl', '.mat']} color={'primary'} key={uploadKey} fullWidth onUploaded={(res, file) => {
                                 dispatch(getUploadedData(accessToken));
                                 setUploadKey(uploadKey + 1);
                             }}

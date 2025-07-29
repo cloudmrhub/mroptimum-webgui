@@ -109,6 +109,9 @@ export const jobsSlice = createSlice({
         },
         resetSubmissionState(state:JobsState){
             state.submittingText = 'Submitting jobs...';
+        },
+        setSubmittingText(state, action: PayloadAction<string>) {
+            state.submittingText = action.payload;
         }
     },
     extraReducers: (builder) => (

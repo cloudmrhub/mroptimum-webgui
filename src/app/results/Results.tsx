@@ -370,6 +370,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                             uploadButtonName={'Upload Results'}
                             maxCount={1}
                             key={uploaderKey}
+                            fileExtension={'.zip'}
                             preprocess={async (file) => {
                                 try {
                                     let alias = await getAlias(file.name);
