@@ -105,6 +105,9 @@ const Setup = () => {
     const { cStore, kStore, rStore, tStore } = useAppSelector(state => state.setup);
     const maskFile = useAppSelector(state => state.setup.maskFileStore);
 
+    const [reconWarningOpen, setReconWarningOpen] = useState(false);
+    const [b1SwitchedMessage, setB1SwitchedMessage] = useState<string | undefined>(undefined);
+
     if (analysisMethodChanged) {
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -769,7 +772,7 @@ const Setup = () => {
                                 className={''}>
                                 {(analysisMethod == 2 || analysisMethod == 3) &&
                                     <Fragment>
-                                        <Row className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
+                                        <Row id="reconstruction-method-section" className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
                                             {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
                                             {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
                                             {/*</FormControl>*/}
@@ -1210,10 +1213,14 @@ const Setup = () => {
                                                     return;
                                                 let state = store.getState();
                                                 snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
-                                                // Following check is no longer needed with updated backend
-                                                // if(snr.options.reconstructor.options.sensitivityMap.options.mask.method == 'no'){
-                                                //     snr.options.reconstructor.options.sensitivityMap.options.mask = 'no';
-                                                // }
+
+                                                // If method is Sense or Grappa but accelerations are not applied, open a warning modal
+                                                if ((reconstructionMethod === 2 || reconstructionMethod === 3) &&
+                                                    (!decimateData || (decimateAcceleration1 === 1 && decimateAcceleration2 === 1))) {
+                                                    setReconWarningOpen(true);
+                                                    return;
+                                                }
+
                                                 getFiles(snr);
                                                 if (editing != -1) {
                                                     setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
@@ -1281,6 +1288,59 @@ const Setup = () => {
                     {snackAlert}
                 </Alert>
             </Snackbar>
+
+            <CmrConfirmation
+                open={reconWarningOpen}
+                setOpen={setReconWarningOpen}
+                name="Acceleration Warning"
+                message="No acceleration simulation was selected. If your k-space is SENSE-accelerated, continue with the submission. Otherwise, choose B1 reconstruction."
+                confirmText="Queue"
+                cancelText="Keep Editing"
+                cancellable={true}
+                confirmCallback={() => {
+                    let state = store.getState();
+                    snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+
+                    getFiles(snr);
+                    if (editing != -1) {
+                        setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
+                        setEditContent(JSON.stringify(snr, undefined, '\t'));
+                    } else {
+                        setPreview(JSON.stringify(snr, null, '\t'));
+                        setJobAlias(`${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`)
+                    }
+                }}
+                cancelCallback={() => setReconWarningOpen(false)}
+                color="primary"
+                extraButtons={[
+                    {
+                        text: 'Reconstruct with B1',
+                        onClick: () => {
+                            dispatch(setupSetters.setReconstructionMethod(1));
+                            setReconWarningOpen(false);
+                            setOpenPanel([1]);
+                            setB1SwitchedMessage("Switched to B1-weighted reconstruction.");
+                        }
+                    }
+                ]}
+            />
+
+            <Snackbar
+                open={Boolean(b1SwitchedMessage)}
+                autoHideDuration={4000}
+                onClose={() => setB1SwitchedMessage(undefined)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setB1SwitchedMessage(undefined)}
+                    severity="info"
+                    sx={{ width: '100%' }}
+                >
+                    {b1SwitchedMessage}
+                </Alert>
+            </Snackbar>
+
+
         </Fragment>
     );
 };
