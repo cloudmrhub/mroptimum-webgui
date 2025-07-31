@@ -3914,10 +3914,10 @@
     "strip-ansi" "^6.0.0"
     "wrap-ansi" "^7.0.0"
 
-"cloudmr-ux@^1.9.1":
-  "integrity" "sha512-kyFSpFGb05jCz9+RwSmGV878n75E0a8vpf3k412kZjdvRd7X7uHKpM9v0JQvDDdqrh/q+PiYJVwzPu4FSY3qkQ=="
-  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.9.1.tgz"
-  "version" "1.9.1"
+"cloudmr-ux@^1.9.5":
+  "integrity" "sha512-ESwiCr0m7Wy9KHRr0yiqiSE/83Lzror6/YGtfHjkOb4r+R+PfF4b3tzzfJvS63sB7jL5AK7HGkRJxlnrR2rrfQ=="
+  "resolved" "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-1.9.5.tgz"
+  "version" "1.9.5"
   dependencies:
     "@emotion/react" "^11.14.0"
     "@emotion/styled" "^11.14.0"

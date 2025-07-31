@@ -161,7 +161,7 @@ const initialState: SetupState = {
         gfactor:false,
         matlab:true,
     },
-    maskThresholdStore: 20,
+    maskThresholdStore: 10,
     maskOptionStore: 0,
     kStore: 8,
     rStore: 24,

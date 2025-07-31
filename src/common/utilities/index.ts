@@ -111,10 +111,12 @@ export const formatBytes = (bytes: number, decimals = 2) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 };
 
-export const getFileExtension = (fileName: string) => {
-    return fileName.slice(((fileName.lastIndexOf('.') - 1) >>> 0) + 2);
+export const getFileExtension = (fileName: string): string => {
+    const lower = fileName.toLowerCase();
+    if (lower.endsWith('.nii.gz')) return 'nii.gz';
+    const lastDot = lower.lastIndexOf('.');
+    return lastDot !== -1 ? lower.slice(lastDot + 1) : '';
 };
-
 
 /**
  * Use get max and get min on voxels instead of using

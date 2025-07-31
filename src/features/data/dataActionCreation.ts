@@ -139,59 +139,65 @@ export const uploadData = createAsyncThunk('UploadData', async (
     }
 });
 
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream', 'application/x-extension-dat']; // Add your allowed file types here
+// const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'application/octet-stream', 'application/x-extension-dat']; // Add your allowed file types here
+const ALLOWED_EXTENSIONS = [
+    'nii', 'nii.gz', 'mha', 'mhd', 'dat',
+    'h5', 'mrd', 'png', 'jpeg', 'jpg',
+    'npx', 'npy', 'pkl', 'mat'
+];
 
-const createPayload = async (accessToken: string, uploadToken: string, file: File, fileAlias: string) => {
+const createPayload = async (
+    accessToken: string,
+    uploadToken: string,
+    file: File,
+    fileAlias: string
+) => {
+    if (!file) return undefined;
 
-    if (file) {
+    const fileExtension = getFileExtension(file.name);
+    const lowerExt = fileExtension.toLowerCase();
 
-        const fileExtension = getFileExtension(file.name);
-        // const fileType = file.type || (fileExtension === 'dat' ? 'application/octet-stream' : '');
-        let fileType = file.type;
-        if (!fileType) {
-            if (fileExtension === 'dat' || fileExtension === 'nii') {
-                fileType = 'application/octet-stream';
-            }
-        }
-        const lambdaFile: LambdaFile = {
-            "filename": fileAlias,
-            "filetype": fileType,
-            "filesize": `${file.size}`,
-            "filemd5": '',
-            "file": file
-        }
-        // Check if the file type is allowed
-        if (!ALLOWED_FILE_TYPES.includes(fileType)) {
-            console.log(fileType);
-            alert('This file type is not allowed. Please upload a valid file.');
-            return { lambdaFile: undefined, file: undefined };
-        }
+    // Fallback for unknown MIME types
+    let fileType = file.type || 'application/octet-stream';
 
-        if (fileExtension == 'dat') {
-            // check if file ha phi data
-            console.log("checking for PHI data");
-            const isSafe = await is_safe_twix(file);
-            if (!isSafe) {
-                // # exit and return error
-                // popup error message
-                alert('This file contains PIH data. Please anonymize the file before uploading');
-                console.log("file is not safe");
-                return undefined;
-            } else {
-                console.log("file is safe");
-            }
-            // file = transformedFile;
-        }
-
-        const UploadHeaders: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-                'X-Api-Key': uploadToken
-            },
-        };
-        return { destination: DATAUPLOADINIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
+    // Validate extension
+    if (!ALLOWED_EXTENSIONS.includes(lowerExt)) {
+        alert(`This file type ".${fileExtension}" is not allowed.`);
+        return { lambdaFile: undefined, file: undefined };
     }
+
+    // Handle .dat PHI check
+    if (lowerExt === 'dat') {
+        console.log("checking for PHI data");
+        const isSafe = await is_safe_twix(file);
+        if (!isSafe) {
+            alert('This file contains PIH data. Please anonymize the file before uploading');
+            return undefined;
+        }
+    }
+
+    const lambdaFile: LambdaFile = {
+        filename: fileAlias,
+        filetype: fileType,
+        filesize: `${file.size}`,
+        filemd5: '',
+        file
+    };
+
+    const UploadHeaders: AxiosRequestConfig = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'X-Api-Key': uploadToken
+        }
+    };
+
+    return {
+        destination: DATAUPLOADINIT,
+        lambdaFile,
+        file,
+        config: UploadHeaders
+    };
 };
 
 // Here's the corresponding rename function for Data
