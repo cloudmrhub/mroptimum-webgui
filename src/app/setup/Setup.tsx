@@ -847,9 +847,17 @@ const Setup = () => {
 
                                         <CmrCheckbox checked={!flipAngleCorrection}
                                             defaultChecked={!flipAngleCorrection}
+                                            // onChange={(event) => {
+                                            //     dispatch(setupSetters.setFlipAngleCorrection(!event.target.checked))
+                                            // }}
                                             onChange={(event) => {
-                                                dispatch(setupSetters.setFlipAngleCorrection(!event.target.checked))
-                                            }}>
+                                                const newValue = !event.target.checked;
+                                                dispatch(setupSetters.setFlipAngleCorrection(newValue));
+                                                if (!newValue) {
+                                                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined));
+                                                }
+                                            }}
+                                        >
                                             No Flip Angle Correction
                                         </CmrCheckbox>
                                         {flipAngleCorrection && (
@@ -1122,9 +1130,12 @@ const Setup = () => {
                                         {(decimateMapping[reconstructionMethod]) &&
                                             <Fragment>
                                                 <CmrCheckbox className='m-1' defaultChecked={decimateData}
-                                                    checked={decimateData} onChange={
+                                                    checked={decimateData}
+                                                    onChange={
                                                         (event) =>
-                                                            dispatch(setupSetters.setDecimate(event.target.checked))}>
+                                                            dispatch(setupSetters.setDecimate(event.target.checked))
+                                                    }
+                                                >
                                                     Decimate Data
                                                 </CmrCheckbox>
 
