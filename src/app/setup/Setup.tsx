@@ -858,22 +858,12 @@ const Setup = () => {
                                                     fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.png', '.jpg', '.jpeg', '.npx', '.npy']}
                                                     fileSelection={uploadedData}
                                                     onSelected={(file) => {
-                                                        if (file) {
-                                                            dispatch(setupSetters.setFlipAngleCorrectionFile(file));
-                                                            dispatch(setupSetters.setFlipAngleCorrection(true));
-                                                        } else {
-                                                            dispatch(setupSetters.setFlipAngleCorrection(false));
-                                                        }
+                                                        dispatch(setupSetters.setFlipAngleCorrectionFile(file));
                                                     }}
                                                     maxCount={1}
                                                     createPayload={createPayload}
                                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
-                                                    onUploaded={(res, file) => {
-                                                        uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
-                                                        if (file) {
-                                                            dispatch(setupSetters.setFlipAngleCorrection(true));
-                                                        }
-                                                    }}
+                                                    onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
                                                     style={{
                                                         height: 'fit-content',
                                                         marginTop: 'auto',
