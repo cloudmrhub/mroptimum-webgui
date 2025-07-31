@@ -1131,10 +1131,13 @@ const Setup = () => {
                                             <Fragment>
                                                 <CmrCheckbox className='m-1' defaultChecked={decimateData}
                                                     checked={decimateData}
-                                                    onChange={
-                                                        (event) =>
-                                                            dispatch(setupSetters.setDecimate(event.target.checked))
-                                                    }
+                                                    onChange={(event) => {
+                                                        const checked = event.target.checked;
+                                                        dispatch(setupSetters.setDecimate(checked));
+                                                        if (!checked) {
+                                                            dispatch(setupSetters.setDecimateACL(null));
+                                                        }
+                                                    }}
                                                 >
                                                     Decimate Data
                                                 </CmrCheckbox>
@@ -1244,6 +1247,14 @@ const Setup = () => {
                                                     return;
                                                 }
 
+                                                // if decimate data is unchecked make sure to not include accelerations field
+                                                if (!decimateData) {
+                                                    if (snr?.options?.reconstructor?.options?.hasOwnProperty('accelerations')) {
+                                                        delete snr.options.reconstructor.options.accelerations;
+                                                    }
+                                                    snr.options.reconstructor.options.acl = [null, null];
+                                                }
+
                                                 getFiles(snr);
                                                 if (editing != -1) {
                                                     setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
@@ -1323,6 +1334,14 @@ const Setup = () => {
                 confirmCallback={() => {
                     let state = store.getState();
                     snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+
+                    // if decimate data is unchecked make sure to not include accelerations field
+                    if (!decimateData) {
+                        if (snr?.options?.reconstructor?.options?.hasOwnProperty('accelerations')) {
+                            delete snr.options.reconstructor.options.accelerations;
+                        }
+                        snr.options.reconstructor.options.acl = [null, null];
+                    }
 
                     getFiles(snr);
                     if (editing != -1) {
