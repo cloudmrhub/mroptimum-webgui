@@ -538,7 +538,7 @@ const Setup = () => {
                     dispatch(setNoise(undefined));
                     // Reset FA file upload
                     dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
-                    dispatch(setupSetters.setFlipAngleCorrection(!flipAngleCorrection)); // reset FA checkbox
+                    dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
                     dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
                     // Reset file updated flags
                     setSignalFileUpdated(false);
@@ -582,24 +582,15 @@ const Setup = () => {
                                                     if (signal) {
                                                         setMissingFields((prev) => prev.filter((field) => field !== "Signal"));
                                                     }
-                                                    // if (signalFileUpdated && noiseFileUpdated)
-                                                    //     console.log('signal and noise updated');
-                                                    // setTimeout(() => setOpenPanel([0]), 500);
                                                 }}
                                                 maxCount={1}
                                                 createPayload={createPayload}
-                                                // onUploaded={uploadResHandlerFactory(setSignal, () => {
-                                                //     if (noise != undefined && signal != undefined)
-                                                //         setTimeout(() => setOpenPanel([0]), 500);
-                                                // })}
                                                 onUploaded={(res, file) => {
                                                     uploadResHandlerFactory(setSignal)(res, file);
                                                     setSignalFileUpdated(!!file);
                                                     if (file) {
                                                         setMissingFields((prev) => prev.filter((f) => f !== "Signal"));
                                                     }
-                                                    // if (noise != undefined && signal != undefined)
-                                                    //     setTimeout(() => setOpenPanel([0]), 500);
                                                 }}
                                                 selectStyles={selectStyles}
                                                 style={{
@@ -686,24 +677,15 @@ const Setup = () => {
                                                             if (noise) {
                                                                 setMissingFields((prev) => prev.filter((field) => field !== "Noise"));
                                                             }
-                                                            // if (signalFileUpdated && noiseFileUpdated)
-                                                            //     console.log('signal and noise updated');
-                                                            // setTimeout(() => setOpenPanel([1]), 500);
                                                         }}
                                                         maxCount={1}
                                                         createPayload={createPayload}
-                                                        // onUploaded={uploadResHandlerFactory(setNoise, () => {
-                                                        //     if (noise != undefined && signal != undefined)
-                                                        //         setTimeout(() => setOpenPanel([1]), 500);
-                                                        // })}
                                                         onUploaded={(res, file) => {
                                                             uploadResHandlerFactory(setNoise)(res, file);
                                                             setNoiseFileUpdated(!!file);
                                                             if (file) {
                                                                 setMissingFields((prev) => prev.filter((f) => f !== "Noise"));
                                                             }
-                                                            // if (noise != undefined && signal != undefined)
-                                                            //     setTimeout(() => setOpenPanel([0]), 500);
                                                         }}
                                                         selectStyles={selectStyles}
                                                         style={{
@@ -876,12 +858,22 @@ const Setup = () => {
                                                     fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.png', '.jpg', '.jpeg', '.npx', '.npy']}
                                                     fileSelection={uploadedData}
                                                     onSelected={(file) => {
-                                                        dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                                        if (file) {
+                                                            dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                                            dispatch(setupSetters.setFlipAngleCorrection(true));
+                                                        } else {
+                                                            dispatch(setupSetters.setFlipAngleCorrection(false));
+                                                        }
                                                     }}
                                                     maxCount={1}
                                                     createPayload={createPayload}
                                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
-                                                    onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
+                                                    onUploaded={(res, file) => {
+                                                        uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
+                                                        if (file) {
+                                                            dispatch(setupSetters.setFlipAngleCorrection(true));
+                                                        }
+                                                    }}
                                                     style={{
                                                         height: 'fit-content',
                                                         marginTop: 'auto',
