@@ -515,6 +515,18 @@ const Setup = () => {
         return true;
     }
 
+    // logic for handling panel opening for signal and noise files
+    useEffect(() => {
+        const signal = setupGetters.getSignal(store.getState());
+        const noise = setupGetters.getNoise(store.getState());
+        const multiRaid = setupGetters.getMultiRaid(store.getState());
+
+        if (signal && (noise || multiRaid)) {
+            setTimeout(() => setOpenPanel([1]), 500);
+        }
+    }, [signalFileUpdated, noiseFileUpdated]);
+
+
     return (
         <Fragment>
             <CmrButton
@@ -570,9 +582,9 @@ const Setup = () => {
                                                     if (signal) {
                                                         setMissingFields((prev) => prev.filter((field) => field !== "Signal"));
                                                     }
-                                                    if (signalFileUpdated && noiseFileUpdated)
-                                                        console.log('signal and noise updated');
-                                                    setTimeout(() => setOpenPanel([0]), 500);
+                                                    // if (signalFileUpdated && noiseFileUpdated)
+                                                    //     console.log('signal and noise updated');
+                                                    // setTimeout(() => setOpenPanel([0]), 500);
                                                 }}
                                                 maxCount={1}
                                                 createPayload={createPayload}
@@ -586,8 +598,8 @@ const Setup = () => {
                                                     if (file) {
                                                         setMissingFields((prev) => prev.filter((f) => f !== "Signal"));
                                                     }
-                                                    if (noise != undefined && signal != undefined)
-                                                        setTimeout(() => setOpenPanel([0]), 500);
+                                                    // if (noise != undefined && signal != undefined)
+                                                    //     setTimeout(() => setOpenPanel([0]), 500);
                                                 }}
                                                 selectStyles={selectStyles}
                                                 style={{
@@ -674,9 +686,9 @@ const Setup = () => {
                                                             if (noise) {
                                                                 setMissingFields((prev) => prev.filter((field) => field !== "Noise"));
                                                             }
-                                                            if (signalFileUpdated && noiseFileUpdated)
-                                                                console.log('signal and noise updated');
-                                                            setTimeout(() => setOpenPanel([1]), 500);
+                                                            // if (signalFileUpdated && noiseFileUpdated)
+                                                            //     console.log('signal and noise updated');
+                                                            // setTimeout(() => setOpenPanel([1]), 500);
                                                         }}
                                                         maxCount={1}
                                                         createPayload={createPayload}
@@ -690,8 +702,8 @@ const Setup = () => {
                                                             if (file) {
                                                                 setMissingFields((prev) => prev.filter((f) => f !== "Noise"));
                                                             }
-                                                            if (noise != undefined && signal != undefined)
-                                                                setTimeout(() => setOpenPanel([0]), 500);
+                                                            // if (noise != undefined && signal != undefined)
+                                                            //     setTimeout(() => setOpenPanel([0]), 500);
                                                         }}
                                                         selectStyles={selectStyles}
                                                         style={{
@@ -723,7 +735,7 @@ const Setup = () => {
                                                 <Button
                                                     variant="contained"
                                                     size="medium"
-                                                    style={{ textTransform: 'none'}}
+                                                    style={{ textTransform: 'none' }}
                                                     sx={{ overflowWrap: 'inherit' }}
                                                     color="primary"
                                                     disabled
