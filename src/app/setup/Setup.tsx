@@ -576,10 +576,19 @@ const Setup = () => {
                                                 }}
                                                 maxCount={1}
                                                 createPayload={createPayload}
-                                                onUploaded={uploadResHandlerFactory(setSignal, () => {
+                                                // onUploaded={uploadResHandlerFactory(setSignal, () => {
+                                                //     if (noise != undefined && signal != undefined)
+                                                //         setTimeout(() => setOpenPanel([0]), 500);
+                                                // })}
+                                                onUploaded={(res, file) => {
+                                                    uploadResHandlerFactory(setSignal)(res, file);
+                                                    setSignalFileUpdated(!!file);
+                                                    if (file) {
+                                                        setMissingFields((prev) => prev.filter((f) => f !== "Signal"));
+                                                    }
                                                     if (noise != undefined && signal != undefined)
                                                         setTimeout(() => setOpenPanel([0]), 500);
-                                                })}
+                                                }}
                                                 selectStyles={selectStyles}
                                                 style={{
                                                     height: 'fit-content',
@@ -611,7 +620,7 @@ const Setup = () => {
                                         <Button
                                             variant="contained"
                                             size="medium"
-                                            style={{ textTransform: 'none', height: 'fit-content', marginLeft: '10px' }}
+                                            style={{ textTransform: 'none', height: 'fit-content' }}
                                             sx={{ overflowWrap: 'inherit' }}
                                             color="primary"
                                             disabled
@@ -671,10 +680,19 @@ const Setup = () => {
                                                         }}
                                                         maxCount={1}
                                                         createPayload={createPayload}
-                                                        onUploaded={uploadResHandlerFactory(setNoise, () => {
+                                                        // onUploaded={uploadResHandlerFactory(setNoise, () => {
+                                                        //     if (noise != undefined && signal != undefined)
+                                                        //         setTimeout(() => setOpenPanel([1]), 500);
+                                                        // })}
+                                                        onUploaded={(res, file) => {
+                                                            uploadResHandlerFactory(setNoise)(res, file);
+                                                            setNoiseFileUpdated(!!file);
+                                                            if (file) {
+                                                                setMissingFields((prev) => prev.filter((f) => f !== "Noise"));
+                                                            }
                                                             if (noise != undefined && signal != undefined)
-                                                                setTimeout(() => setOpenPanel([1]), 500);
-                                                        })}
+                                                                setTimeout(() => setOpenPanel([0]), 500);
+                                                        }}
                                                         selectStyles={selectStyles}
                                                         style={{
                                                             height: 'fit-content',
@@ -705,7 +723,7 @@ const Setup = () => {
                                                 <Button
                                                     variant="contained"
                                                     size="medium"
-                                                    style={{ textTransform: 'none', marginLeft: '10px' }}
+                                                    style={{ textTransform: 'none'}}
                                                     sx={{ overflowWrap: 'inherit' }}
                                                     color="primary"
                                                     disabled
