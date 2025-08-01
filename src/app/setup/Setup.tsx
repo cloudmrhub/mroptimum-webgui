@@ -901,7 +901,7 @@ const Setup = () => {
                                             sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                                         {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
                                             <Fragment>
-                                                <FormControl
+                                                {/* <FormControl
                                                     onChange={(event) => {
                                                         //@ts-ignore
                                                         dispatch(setupSetters.setLoadSensitivity(event.target.value == 'true'));
@@ -955,11 +955,11 @@ const Setup = () => {
                                                                     })}
                                                                 </Select>
                                                             </FormControl>}
-                                                        {/*<InputLabel id="css-label">Age</InputLabel>*/}
                                                     </RadioGroup>
-                                                </FormControl>
-                                                <Divider variant="middle"
-                                                    sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
+                                                </FormControl> */}
+
+                                                {/* <Divider variant="middle"
+                                                    sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} /> */}
 
                                                 <FormControl>
                                                     <FormLabel id="demo-radio-buttons-group-label">Object Masking</FormLabel>
