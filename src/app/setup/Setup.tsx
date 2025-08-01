@@ -901,6 +901,7 @@ const Setup = () => {
                                             sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                                         {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
                                             <Fragment>
+                                                {/* comment out for future use */}
                                                 {/* <FormControl
                                                     onChange={(event) => {
                                                         //@ts-ignore
