@@ -22,6 +22,7 @@ interface SetupState {
     cStore: number;
     tStore: number;
     maskFileStore?: FileReference;
+    quotaExceeded: boolean;
 }
 interface OutputInterface {
     coilsensitivity: boolean,
@@ -167,7 +168,8 @@ const initialState: SetupState = {
     rStore: 24,
     tStore: 0.01,
     cStore: 0.995,
-    maskFileStore: undefined
+    maskFileStore: undefined,
+    quotaExceeded: false,
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
@@ -583,6 +585,10 @@ export const setupSlice = createSlice({
             if (action.payload.target == 'noise') {
                 state.noiseUploadProgress = action.payload.progress;
             }
+        },
+        // set maximum monthly calculation quota
+        setQuotaExceeded(state, action: PayloadAction<boolean>) {
+            state.quotaExceeded = action.payload;
         },
     },
     extraReducers: (builder) => {

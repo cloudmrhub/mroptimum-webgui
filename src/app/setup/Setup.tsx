@@ -472,6 +472,8 @@ const Setup = () => {
     const [snackOpen, setSnackOpen] = useState(false)
     const snackAlert = useAppSelector(state => { return state.jobs.submittingText; });
 
+    const quotaExceeded = useAppSelector(state => state.setup.quotaExceeded);
+
     const handleSnackClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
@@ -535,6 +537,7 @@ const Setup = () => {
             setTimeout(() => setOpenPanel([1]), 500);
         }
     }, [signalFileUpdated, noiseFileUpdated]);
+
 
     return (
         <Fragment>
@@ -1433,6 +1436,20 @@ const Setup = () => {
                 </Alert>
             </Snackbar>
 
+            <Snackbar
+                open={quotaExceeded}
+                autoHideDuration={5000}
+                onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+                    severity="error"
+                    sx={{ width: '100%' }}
+                >
+                    Monthly quota exceeded. Please try again next month.
+                </Alert>
+            </Snackbar>
 
         </Fragment>
     );
