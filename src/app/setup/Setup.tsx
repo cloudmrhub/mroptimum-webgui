@@ -1436,6 +1436,7 @@ const Setup = () => {
                 </Alert>
             </Snackbar>
 
+            {/* warning for max calculations per month */}
             <Snackbar
                 open={quotaExceeded}
                 autoHideDuration={5000}
