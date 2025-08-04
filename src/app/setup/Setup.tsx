@@ -220,6 +220,17 @@ const Setup = () => {
         }
     }, [reconstructionMethod, decimateData]);
 
+    // make sure gfactor is only true when sense and checkbox are selected
+    useEffect(() => {
+        if (reconstructionMethod === 2) {
+            // If coming *into* SENSE, sync payload state to match UI checkbox
+            dispatch(setupSetters.setGFactor(outputGFactor));
+        } else {
+            // Leaving SENSE: always disable gfactor
+            dispatch(setupSetters.setGFactor(false));
+        }
+    }, [reconstructionMethod]);
+
 
     const columns: GridColDef[] = [
         { field: 'type', headerName: 'type', width: 180, editable: false },
@@ -1227,7 +1238,9 @@ const Setup = () => {
                                                 Save Coil Sensitivities
                                             </CmrCheckbox>}
                                             {[2].indexOf(reconstructionMethod) >= 0 && <CmrCheckbox className='m-1' onChange={(e) => {
-                                                dispatch(setupSetters.setOutputGFactor(e.target.checked));
+                                                const val = e.target.checked;
+                                                dispatch(setupSetters.setOutputGFactor(val));
+                                                dispatch(setupSetters.setGFactor(val));
                                             }} defaultChecked={true}
                                                 checked={outputGFactor}>
                                                 Save g Factor
@@ -1241,19 +1254,20 @@ const Setup = () => {
                                                 let state = store.getState();
                                                 snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
 
+                                                // Remove sensitivityMap unless it's SENSE (2) or B1 Weighted (4)
+                                                
+
+                                                // if decimate data is unchecked make sure to not include accelerations and acl fields
+                                                if (!decimateData && snr?.options?.reconstructor?.options) {
+                                                    delete snr.options.reconstructor.options.accelerations;
+                                                    delete snr.options.reconstructor.options.acl;
+                                                }
+
                                                 // If method is Sense or Grappa but accelerations are not applied, open a warning modal
                                                 if ((reconstructionMethod === 2 || reconstructionMethod === 3) &&
                                                     (!decimateData || (decimateAcceleration1 === 1 && decimateAcceleration2 === 1))) {
                                                     setReconWarningOpen(true);
                                                     return;
-                                                }
-
-                                                // if decimate data is unchecked make sure to not include accelerations field
-                                                if (!decimateData) {
-                                                    if (snr?.options?.reconstructor?.options?.hasOwnProperty('accelerations')) {
-                                                        delete snr.options.reconstructor.options.accelerations;
-                                                    }
-                                                    snr.options.reconstructor.options.acl = [null, null];
                                                 }
 
                                                 getFiles(snr);
@@ -1336,13 +1350,14 @@ const Setup = () => {
                     let state = store.getState();
                     snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
 
-                    // if decimate data is unchecked make sure to not include accelerations field
-                    if (!decimateData) {
-                        if (snr?.options?.reconstructor?.options?.hasOwnProperty('accelerations')) {
-                            delete snr.options.reconstructor.options.accelerations;
-                        }
-                        snr.options.reconstructor.options.acl = [null, null];
+                    // if decimate data is unchecked make sure to not include accelerations and acl field
+                    if (!decimateData && snr?.options?.reconstructor?.options) {
+                        delete snr.options.reconstructor.options.accelerations;
+                        delete snr.options.reconstructor.options.acl;
                     }
+
+                    // Remove sensitivityMap unless it's SENSE (2) or B1 Weighted (4)
+                    
 
                     getFiles(snr);
                     if (editing != -1) {

@@ -1,10 +1,10 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {RootState} from '../store';
-import {UploadedFile} from "../data/dataSlice";
-import {Job, SetupInterface} from "../jobs/jobsSlice";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from '../store';
+import { UploadedFile } from "../data/dataSlice";
+import { Job, SetupInterface } from "../jobs/jobsSlice";
 import moment from "moment/moment";
-import {submitJobs} from "./setupActionCreation";
-import {uploadData} from "../data/dataActionCreation";
+import { submitJobs } from "./setupActionCreation";
+import { uploadData } from "../data/dataActionCreation";
 
 interface SetupState {
     loading: boolean;
@@ -14,16 +14,16 @@ interface SetupState {
     idGenerator: number;
     signalUploadProgress: number;
     noiseUploadProgress: number;
-    outputSettings:  OutputInterface;
+    outputSettings: OutputInterface;
     maskThresholdStore: number;
     maskOptionStore: number;
-    kStore:number;
+    kStore: number;
     rStore: number;
     cStore: number;
     tStore: number;
     maskFileStore?: FileReference;
 }
-interface OutputInterface{
+interface OutputInterface {
     coilsensitivity: boolean,
     gfactor: boolean,
     matlab: boolean
@@ -42,7 +42,7 @@ interface SNR {
 
 interface SNROptions {
     NR?: number;
-    boxSize?:number;
+    boxSize?: number;
     reconstructor: Reconstructor;
 }
 
@@ -59,7 +59,7 @@ interface ReconstructorOptions {
     signalMultiRaid?: boolean;
     accelerations?: number[];
     kernelSize?: [number, number];
-    acl?: (number|null)[];
+    acl?: (number | null)[];
     sensitivityMap: SensitivityMap;
     correction: CorrectionOptions;
     decimate?: boolean;
@@ -75,8 +75,8 @@ interface FileReference {
 interface FileOptions {
     type: string;  // "local" or "s3"
     filename: string;
-    bucket:string;
-    key:string;
+    bucket: string;
+    key: string;
     options: Record<string, unknown> | undefined; // Empty object, could define more strictly if needed.
     multiraid?: boolean;
     vendor: string;
@@ -93,14 +93,14 @@ interface SensitivityMapOptions {
     loadSensitivity: boolean;
     sensitivityMapSource?: FileReference;
     sensitivityMapMethod: string;
-    mask:{
-        method:string;
+    mask: {
+        method: string;
         value?: number;
-        k?:number;
-        r?:number;
-        t?:number;
-        c?:number;
-        file?:FileReference;
+        k?: number;
+        r?: number;
+        t?: number;
+        c?: number;
+        file?: FileReference;
     }
 }
 
@@ -132,8 +132,8 @@ export const defaultSNR: SNR = {
                         loadSensitivity: false,
                         sensitivityMapSource: undefined,
                         sensitivityMapMethod: 'inner',
-                        mask:{
-                            method:'no'
+                        mask: {
+                            method: 'no'
                         }
                     }
                 },
@@ -154,12 +154,12 @@ const initialState: SetupState = {
     queuedJobs: [],
     idGenerator: 0,
     editInProgress: false,
-    signalUploadProgress:-1,
-    noiseUploadProgress:-1,
-    outputSettings:{
-        coilsensitivity:false,
-        gfactor:false,
-        matlab:true,
+    signalUploadProgress: -1,
+    noiseUploadProgress: -1,
+    outputSettings: {
+        coilsensitivity: false,
+        gfactor: false,
+        matlab: true,
     },
     maskThresholdStore: 10,
     maskOptionStore: 0,
@@ -167,12 +167,12 @@ const initialState: SetupState = {
     rStore: 24,
     tStore: 0.01,
     cStore: 0.995,
-    maskFileStore:undefined
+    maskFileStore: undefined
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
-    try{
-        let {Bucket, Key} = JSON.parse(uploadedFile.location);
+    try {
+        let { Bucket, Key } = JSON.parse(uploadedFile.location);
         return {
             type: 'file',
             id: uploadedFile.id,
@@ -186,7 +186,7 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
                 vendor: 'Siemens',
             }
         };
-    }catch(e){
+    } catch (e) {
         return {
             type: 'file',
             id: uploadedFile.id,
@@ -205,8 +205,8 @@ function UFtoFR(uploadedFile: UploadedFile): FileReference {
 
 function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
     const regex = /\.(nii(\.gz)?|mha|mhd|nrrd)$/i;
-    try{
-        let {Bucket, Key} = JSON.parse(uploadedFile.location);
+    try {
+        let { Bucket, Key } = JSON.parse(uploadedFile.location);
         return {
             type: 'file',
             id: uploadedFile.id,
@@ -216,10 +216,10 @@ function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
                 options: {},
                 bucket: Bucket,
                 key: Key,
-                vendor: regex.test(uploadedFile.fileName)?'ITK':'unknown',
+                vendor: regex.test(uploadedFile.fileName) ? 'ITK' : 'unknown',
             }
         };
-    }catch(e){
+    } catch (e) {
         return {
             type: 'file',
             id: uploadedFile.id,
@@ -229,18 +229,20 @@ function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
                 options: {},
                 bucket: 'unknown',
                 key: 'unknown',
-                vendor: regex.test(uploadedFile.fileName)?'ITK':'unknown',
+                vendor: regex.test(uploadedFile.fileName) ? 'ITK' : 'unknown',
             }
         };
     }
 }
 
-function createSetup(snr:SNR, alias:string, output:{ coilsensitivity: boolean;gfactor: boolean;matlab: boolean}):SetupInterface{
+function createSetup(snr: SNR, alias: string, output: { coilsensitivity: boolean; gfactor: boolean; matlab: boolean }): SetupInterface {
     getFiles(snr);
-     return {version: "v0",
+    return {
+        version: "v0",
         alias: alias,
-        output:output,
-        task:snr};
+        output: output,
+        task: snr
+    };
 }
 
 
@@ -250,10 +252,10 @@ function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reco
         createdAt: moment().format('YYYY-MM-DD HH:mm:ss'),
         files: [],
         id: setupState.idGenerator++,
-        setup: createSetup(snr,alias,setupState.outputSettings),
+        setup: createSetup(snr, alias, setupState.outputSettings),
         status: "not submitted",
         updatedAt: "",
-        pipeline_id:""
+        pipeline_id: ""
     };
 }
 
@@ -264,26 +266,26 @@ export const setupSlice = createSlice({
         setAnalysisMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
-            if(state.activeSetup.name!='ac'&&state.activeSetup.name!='mr')
+            if (state.activeSetup.name != 'ac' && state.activeSetup.name != 'mr')
                 if (state.activeSetup.name == 'pmr')
-                state.activeSetup.options.NR = 20;
-                if (state.activeSetup.name == 'cr')
+                    state.activeSetup.options.NR = 20;
+            if (state.activeSetup.name == 'cr')
                 state.activeSetup.options.NR = 6;
-            
-                // delete state.activeSetup.options.NR;
-            if(state.activeSetup.name=='cr')
+
+            // delete state.activeSetup.options.NR;
+            if (state.activeSetup.name == 'cr')
                 state.activeSetup.options.boxSize = 9;
             else
                 // delete state.activeSetup.options.boxSize;
-            state.editInProgress=true;
+                state.editInProgress = true;
         },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
             console.log(action.payload);
             state.activeSetup.options['NR'] = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setSignal(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
-            if(action.payload==undefined){
+        setSignal(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
                 state.activeSetup.options.reconstructor.options.signal = undefined;
                 state.editInProgress = true;
                 return;
@@ -291,10 +293,10 @@ export const setupSlice = createSlice({
             let fr = UFtoFR(action.payload);
             state.activeSetup.options.reconstructor.options.signal = fr;
             fr.options.multiraid = state.activeSetup.options.reconstructor.options.signalMultiRaid;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setNoise(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
-            if(action.payload==undefined){
+        setNoise(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
                 state.activeSetup.options.reconstructor.options.noise = undefined;
                 state.editInProgress = true;
                 return;
@@ -305,127 +307,130 @@ export const setupSlice = createSlice({
             if (state.activeSetup.options.reconstructor.options.signal) {
                 state.activeSetup.options.reconstructor.options.signal.options.multiraid = false;
             }
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setMultiRaid(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.signalMultiRaid = action.payload;
             if (state.activeSetup.options.reconstructor.options.signal) {
                 state.activeSetup.options.reconstructor.options.signal.options.multiraid = action.payload;
             }
-            if(action.payload){
+            if (action.payload) {
                 state.activeSetup.options.reconstructor.options.noise = undefined;
             }
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options.reconstructor.id = Number(action.payload);
             state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
-            if(action.payload==3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined){
-                state.activeSetup.options.reconstructor.options.kernelSize=[3,4];
+            if (action.payload == 3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined) {
+                state.activeSetup.options.reconstructor.options.kernelSize = [3, 4];
             }
             state.outputSettings.coilsensitivity = action.payload == 2 || action.payload == 1;
             state.outputSettings.gfactor = action.payload == 2;
-            if(action.payload == 2 ||action.payload==3){
+            if (action.payload == 2 || action.payload == 3) {
                 state.activeSetup.options.reconstructor.options.decimate = false;
-            }else
+            } else
                 delete state.activeSetup.options.reconstructor.options.decimate;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setOutputMatlab(state:SetupState, action: PayloadAction<boolean>){
+        setOutputMatlab(state: SetupState, action: PayloadAction<boolean>) {
             state.outputSettings.matlab = action.payload;
         },
-        setOutputCoilSensitivity(state:SetupState, action: PayloadAction<boolean>){
+        setOutputCoilSensitivity(state: SetupState, action: PayloadAction<boolean>) {
             state.outputSettings.coilsensitivity = action.payload;
         },
-        setOutputGFactor(state:SetupState, action: PayloadAction<boolean>){
+        setOutputGFactor(state: SetupState, action: PayloadAction<boolean>) {
             state.outputSettings.gfactor = action.payload;
+        },
+        setGFactor(state: SetupState, action: PayloadAction<boolean>) {
+            state.activeSetup.options.reconstructor.options.gfactor = action.payload;
         },
         setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
-            if(action.payload==undefined){
+        setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
                 state.activeSetup.options.reconstructor.options.correction.faCorrection = undefined;
                 return;
             }
             state.activeSetup.options.reconstructor.options.correction.faCorrection = UFtoFR(action.payload);
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setLoadSensitivity(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.loadSensitivity = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setSensitivityMapMethod(state: SetupState, action: PayloadAction<string>) {
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapMethod = action.payload;
             state.activeSetup.options.reconstructor.options.sensitivityMap.id = ['innerACL', 'inner'].indexOf((action.payload));
             state.activeSetup.options.reconstructor.options.sensitivityMap.name = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile|undefined>) {
-            if(action.payload==undefined){
+        setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = undefined;
                 state.editInProgress = true;
                 return;
             }
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = UFtoFR(action.payload);
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setDecimate(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
             if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
                 state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
-                state.activeSetup.options.reconstructor.options.acl = [24,24];
-            state.editInProgress=true;
+            state.activeSetup.options.reconstructor.options.acl = [24, 24];
+            state.editInProgress = true;
         },
         setDecimateAccelerations1(state: SetupState, action: PayloadAction<number>) {
-            if(state.activeSetup.options.reconstructor.options.accelerations)
+            if (state.activeSetup.options.reconstructor.options.accelerations)
                 state.activeSetup.options.reconstructor.options.accelerations[0] = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setDecimateAccelerations2(state: SetupState, action: PayloadAction<number>) {
-            if(state.activeSetup.options.reconstructor.options.accelerations)
+            if (state.activeSetup.options.reconstructor.options.accelerations)
                 state.activeSetup.options.reconstructor.options.accelerations[1] = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setKernelSize1(state: SetupState, action: PayloadAction<number>) {
             console.log(state.activeSetup.options.reconstructor.options.kernelSize);
-            if(state.activeSetup.options.reconstructor.options.kernelSize)
+            if (state.activeSetup.options.reconstructor.options.kernelSize)
                 state.activeSetup.options.reconstructor.options.kernelSize[0] = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
         setKernelSize2(state: SetupState, action: PayloadAction<number>) {
-            if(state.activeSetup.options.reconstructor.options.kernelSize)
+            if (state.activeSetup.options.reconstructor.options.kernelSize)
                 state.activeSetup.options.reconstructor.options.kernelSize[1] = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setMaskThreshold(state: SetupState, action: PayloadAction<number>){
+        setMaskThreshold(state: SetupState, action: PayloadAction<number>) {
             state.maskThresholdStore = action.payload;
-            if(state.maskOptionStore == 1){
+            if (state.maskOptionStore == 1) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
                     = state.maskThresholdStore;
             }
         },
-        setMaskStore(state: SetupState, action: PayloadAction<UploadedFile|undefined>){
-            state.maskFileStore = action.payload?UFtoMaskFR(action.payload):undefined;
-            if(state.maskOptionStore == 4){
-                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=state.maskFileStore;
+        setMaskStore(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            state.maskFileStore = action.payload ? UFtoMaskFR(action.payload) : undefined;
+            if (state.maskOptionStore == 4) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = state.maskFileStore;
             }
         },
-        setMaskESPIRIT(state:SetupState, action: PayloadAction<{k?:number,c?:number,r?:number,t?:number}>){
-            if(action.payload.k){
+        setMaskESPIRIT(state: SetupState, action: PayloadAction<{ k?: number, c?: number, r?: number, t?: number }>) {
+            if (action.payload.k) {
                 state.kStore = action.payload.k;
             }
-            if(action.payload.c){
+            if (action.payload.c) {
                 state.cStore = action.payload.c;
             }
-            if(action.payload.r){
+            if (action.payload.r) {
                 state.rStore = action.payload.r;
             }
-            if(action.payload.t){
+            if (action.payload.t) {
                 state.tStore = action.payload.t;
             }
-            if(state.maskOptionStore==3){
+            if (state.maskOptionStore == 3) {
                 const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
                 mask.k = state.kStore;
                 mask.r = state.rStore;
@@ -433,46 +438,46 @@ export const setupSlice = createSlice({
                 mask.c = state.cStore;
             }
         },
-        setMaskOption(state: SetupState, action: PayloadAction<number>){
+        setMaskOption(state: SetupState, action: PayloadAction<number>) {
             state.maskOptionStore = action.payload;
-            if(state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask==undefined){
-                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask = {method:'no'};
+            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask == undefined) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask = { method: 'no' };
             }
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.method =
-                                ['no', 'percentage', 'reference','espirit','upload'][action.payload];
-            if(action.payload == 1)
+                ['no', 'percentage', 'reference', 'espirit', 'upload'][action.payload];
+            if (action.payload == 1)
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
                     = state.maskThresholdStore;
-            else{
+            else {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value = undefined;
             }
 
-            if(action.payload == 3){
+            if (action.payload == 3) {
                 const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
                 mask.k = state.kStore;
                 mask.r = state.rStore;
                 mask.t = state.tStore;
                 mask.c = state.cStore;
-            }else{
+            } else {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.k = undefined;
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.r = undefined;
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.t = undefined;
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.c = undefined;
             }
 
-            if(action.payload == 4){
-                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=state.maskFileStore;
-            }else{
-                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file=undefined;
+            if (action.payload == 4) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = state.maskFileStore;
+            } else {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = undefined;
             }
         },
         setBoxSize(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options.boxSize = action.payload;
-            state.editInProgress=true;
+            state.editInProgress = true;
         },
-        setDecimateACL(state: SetupState, action: PayloadAction<number|null>) {
-            state.activeSetup.options.reconstructor.options.acl = [action.payload,action.payload];
-            state.editInProgress=true;
+        setDecimateACL(state: SetupState, action: PayloadAction<number | null>) {
+            state.activeSetup.options.reconstructor.options.acl = [action.payload, action.payload];
+            state.editInProgress = true;
         },
         compileSNRSettings(state: SetupState, action: PayloadAction<string>) {
             let SNRSpec = state.activeSetup;
@@ -482,12 +487,12 @@ export const setupSlice = createSlice({
             state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
-            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
+            state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.activeSetup.options.reconstructor.options.signal = signalCache;
             state.activeSetup.options.reconstructor.options.noise = noiseCache;
             state.editInProgress = false;
         },
-        completeSNREditing(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
+        completeSNREditing(state: SetupState, action: PayloadAction<{ id: number, alias: string }>) {
             let SNRSpec = state.activeSetup;
             postProcessSNR(SNRSpec);
             let index = -1;
@@ -497,16 +502,16 @@ export const setupSlice = createSlice({
                     break;
                 }
             }
-            state.queuedJobs[index].setup=createSetup(SNRSpec,action.payload.alias,state.outputSettings);
+            state.queuedJobs[index].setup = createSetup(SNRSpec, action.payload.alias, state.outputSettings);
             state.queuedJobs[index].alias = action.payload.alias;
             state.queuedJobs[index].status = 'modified';
             //Deep copy default SNR
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
-            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
+            state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.editInProgress = false;
             console.log(state.queuedJobs[index]);
         },
-        rename(state: SetupState, action: PayloadAction<{id:number, alias:string}>) {
+        rename(state: SetupState, action: PayloadAction<{ id: number, alias: string }>) {
             let index = -1;
             for (let i in state.queuedJobs) {
                 if (state.queuedJobs[i].id == action.payload.id) {
@@ -520,29 +525,29 @@ export const setupSlice = createSlice({
         queueSNRJob(state: SetupState, action: PayloadAction<{ snr: SNR, name: string }>) {
             state.queuedJobs.push(createJob(action.payload.snr, state, action.payload.name));
         },
-        discardSNRSettings(state: SetupState){
+        discardSNRSettings(state: SetupState) {
             let SNRSpec = state.activeSetup;
             let signalCache = SNRSpec.options.reconstructor.options.signal;
             let noiseCache = SNRSpec.options.reconstructor.options.noise;
             state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
-            state.outputSettings = {gfactor:false,matlab:true,coilsensitivity:false};
+            state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.activeSetup.options.reconstructor.options.signal = signalCache;
             state.activeSetup.options.reconstructor.options.noise = noiseCache;
             state.editInProgress = false;
         },
-        loadSNRSettings(state: SetupState, action: PayloadAction<{ SNR:SNR, output: OutputInterface}>) {
+        loadSNRSettings(state: SetupState, action: PayloadAction<{ SNR: SNR, output: OutputInterface }>) {
             state.activeSetup = action.payload.SNR;
             state.outputSettings = action.payload.output;
 
-            if(state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask!=undefined){
+            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask != undefined) {
                 let mask = state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask;
                 //Also load mask stores if mask is specified
-                state.kStore = mask.k??8;
-                state.cStore = mask.c??0.995;
-                state.tStore = mask.t??0.01;
-                state.rStore = mask.r??24;
-                state.maskOptionStore =  ['no', 'percentage', 'reference','espirit','upload'].indexOf(mask.method);
-                state.maskThresholdStore = mask.value??30;
+                state.kStore = mask.k ?? 8;
+                state.cStore = mask.c ?? 0.995;
+                state.tStore = mask.t ?? 0.01;
+                state.rStore = mask.r ?? 24;
+                state.maskOptionStore = ['no', 'percentage', 'reference', 'espirit', 'upload'].indexOf(mask.method);
+                state.maskThresholdStore = mask.value ?? 30;
                 state.maskFileStore = mask.file;
             }
             // snr.options.reconstructor.options.signalMultiRaid
@@ -560,50 +565,50 @@ export const setupSlice = createSlice({
             state.queuedJobs.splice(index, 1);
         },
         bulkDeleteQueuedJobs(state: SetupState, action: PayloadAction<number[]>) {
-            for (let i = 0; i<state.queuedJobs.length; ) {
-                if (action.payload.indexOf(state.queuedJobs[i].id)>=0) {
-                    state.queuedJobs.splice(i,1);
-                }else i++;
+            for (let i = 0; i < state.queuedJobs.length;) {
+                if (action.payload.indexOf(state.queuedJobs[i].id) >= 0) {
+                    state.queuedJobs.splice(i, 1);
+                } else i++;
             }
         },
         bulkDeleteAllJobs(state: SetupState) {
-            for (let i = 0; i<state.queuedJobs.length; ) {
-                    state.queuedJobs.splice(i,1);
+            for (let i = 0; i < state.queuedJobs.length;) {
+                state.queuedJobs.splice(i, 1);
             }
         },
-        setUploadProgress(state:SetupState, action:PayloadAction<{ target?:string,progress:number }>){
-            if(action.payload.target=='signal'){
+        setUploadProgress(state: SetupState, action: PayloadAction<{ target?: string, progress: number }>) {
+            if (action.payload.target == 'signal') {
                 state.signalUploadProgress = action.payload.progress;
             }
-            if(action.payload.target=='noise'){
+            if (action.payload.target == 'noise') {
                 state.noiseUploadProgress = action.payload.progress;
             }
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(submitJobs.fulfilled, (state,responses)=>{
+        builder.addCase(submitJobs.fulfilled, (state, responses) => {
             // console.log(responses.payload);
-            for(let response of responses.payload){
+            for (let response of responses.payload) {
                 //@ts-ignore
                 let id = response.id;
-                for(let job of state.queuedJobs){
-                    if(job.id==id){
+                for (let job of state.queuedJobs) {
+                    if (job.id == id) {
                         //@ts-ignore
-                        if(response.status==200){
-                            job.status='submitted';
-                        }else{
+                        if (response.status == 200) {
+                            job.status = 'submitted';
+                        } else {
                             job.status = 'failed to submit';
                         }
                     }
                 }
             }
         });
-        builder.addCase(uploadData.fulfilled, (state:SetupState, action)=>{
-            let {code, file,uploadTarget} = action.payload;
+        builder.addCase(uploadData.fulfilled, (state: SetupState, action) => {
+            let { code, file, uploadTarget } = action.payload;
             // console.log(response);
-            if(uploadTarget=='signal'){
+            if (uploadTarget == 'signal') {
                 state.signalUploadProgress = -1;
-                if(code==200&&file){
+                if (code == 200 && file) {
                     // const uploadedFile: UploadedFile = {
                     //     id: response.id,
                     //     fileName: response.filename,
@@ -618,9 +623,9 @@ export const setupSlice = createSlice({
                     // };
                 }
             }
-            if(uploadTarget=='noise'){
+            if (uploadTarget == 'noise') {
                 state.noiseUploadProgress = -1;
-                if(code==200&&file){
+                if (code == 200 && file) {
                     // const uploadedFile: UploadedFile = {
                     //     id: response.id,
                     //     fileName: response.filename,
@@ -637,13 +642,13 @@ export const setupSlice = createSlice({
             }
         });
         builder.addCase('persist/REHYDRATE', (state, action) => {
-            if((<PayloadAction<RootState>> action).payload==undefined)
+            if ((<PayloadAction<RootState>>action).payload == undefined)
                 return;
-            let setupState = (<PayloadAction<RootState>> action).payload.setup;
+            let setupState = (<PayloadAction<RootState>>action).payload.setup;
             // When rehydrating, reset the file uploading progresses
             state.noiseUploadProgress = -1;
             state.signalUploadProgress = -1;
-            state.activeSetup =setupState.activeSetup;
+            state.activeSetup = setupState.activeSetup;
             state.editInProgress = setupState.editInProgress;
             state.idGenerator = setupState.idGenerator;
             state.queuedJobs = setupState.queuedJobs;
@@ -711,38 +716,38 @@ const SetupGetters = {
 
     getDecimateAcceleration1: (state: RootState): number | undefined => {
         let acc = state.setup.activeSetup?.options.reconstructor?.options.accelerations;
-        return (acc)?acc[0]:0;
+        return (acc) ? acc[0] : 0;
     },
 
     getDecimateAcceleration2: (state: RootState): number | undefined => {
         let acc = state.setup.activeSetup?.options.reconstructor?.options.accelerations;
-        return (acc)?acc[1]:0;
+        return (acc) ? acc[1] : 0;
     },
     getDecimateACL: (state: RootState): number | null | undefined => {
         let acl = state.setup.activeSetup?.options.reconstructor?.options.acl;
-        return (acl)?acl[0]:0;
+        return (acl) ? acl[0] : 0;
     },
-    getKernelSize1: (state:RootState):number|undefined=>{
+    getKernelSize1: (state: RootState): number | undefined => {
         let ks = state.setup.activeSetup?.options.reconstructor?.options.kernelSize;
-        return (ks)?ks[0]:0;
+        return (ks) ? ks[0] : 0;
     },
-    getKernelSize2: (state:RootState):number|undefined=>{
+    getKernelSize2: (state: RootState): number | undefined => {
         let ks = state.setup.activeSetup?.options.reconstructor?.options.kernelSize;
-        return (ks)?ks[1]:0;
+        return (ks) ? ks[1] : 0;
     },
     getLoadSensitivity(state: RootState): boolean | undefined {
         return state.setup.activeSetup?.options.reconstructor?.options.sensitivityMap?.options.loadSensitivity;
     },
-    getEditInProgress(state: RootState):boolean{
+    getEditInProgress(state: RootState): boolean {
         return state.setup.editInProgress;
     }
 };
 
-function postProcessSNR(SNRSpec: SNR){
+function postProcessSNR(SNRSpec: SNR) {
     // Remove noise reference
     if (SNRSpec.options.reconstructor.options.signalMultiRaid)
         delete SNRSpec.options.reconstructor.options.noise;
-    if (!SNRSpec.options.reconstructor.options.decimate){
+    if (!SNRSpec.options.reconstructor.options.decimate) {
         delete SNRSpec.options.reconstructor.options.acl;
         delete SNRSpec.options.reconstructor.options.accelerations;
     }
@@ -753,7 +758,7 @@ function postProcessSNR(SNRSpec: SNR){
         delete SNRSpec.options.reconstructor.options.decimate;
         delete SNRSpec.options.reconstructor.options.accelerations;
     }
-    if(SNRSpec.options.reconstructor.name != 'grappa'){
+    if (SNRSpec.options.reconstructor.name != 'grappa') {
         delete SNRSpec.options.reconstructor.options.kernelSize;
     }
 }
@@ -761,25 +766,25 @@ function postProcessSNR(SNRSpec: SNR){
 export function getFiles(snr: SNR): void {
     // List of all possible FileReference fields in TE
     let files = [];
-    if(snr.options.reconstructor.options.signal!==undefined){
+    if (snr.options.reconstructor.options.signal !== undefined) {
         files.push('signal');
     }
-    if(snr.options.reconstructor.options.noise!==undefined&&!snr.options.reconstructor.options.signal?.options.multiraid){
+    if (snr.options.reconstructor.options.noise !== undefined && !snr.options.reconstructor.options.signal?.options.multiraid) {
         files.push('noise');
     }
-    if(snr.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource){
+    if (snr.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource) {
         files.push('sensitivityMap');
     }
-    if(snr.options.reconstructor.options.correction.faCorrection){
+    if (snr.options.reconstructor.options.correction.faCorrection) {
         files.push('faCorrection');
     }
-    if(snr.options.reconstructor.options.sensitivityMap.options.mask?.file){
+    if (snr.options.reconstructor.options.sensitivityMap.options.mask?.file) {
         files.push('mask');
     }
     snr.files = files;
 }
 
 
-export type {SNR, FileReference, FileOptions};
+export type { SNR, FileReference, FileOptions };
 export const setupSetters = setupSlice.actions;
 export const setupGetters = SetupGetters;
