@@ -772,15 +772,16 @@ export function getFiles(snr: SNR): void {
     if (snr.options.reconstructor.options.noise !== undefined && !snr.options.reconstructor.options.signal?.options.multiraid) {
         files.push('noise');
     }
-    if (snr.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource) {
+    if (snr.options.reconstructor.options.sensitivityMap?.options?.sensitivityMapSource) {
         files.push('sensitivityMap');
     }
     if (snr.options.reconstructor.options.correction.faCorrection) {
         files.push('faCorrection');
     }
-    if (snr.options.reconstructor.options.sensitivityMap.options.mask?.file) {
+    if (snr.options.reconstructor.options.sensitivityMap?.options?.mask?.file) {
         files.push('mask');
     }
+
     snr.files = files;
 }
 

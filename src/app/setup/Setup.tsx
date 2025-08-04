@@ -231,7 +231,6 @@ const Setup = () => {
         }
     }, [reconstructionMethod]);
 
-
     const columns: GridColDef[] = [
         { field: 'type', headerName: 'type', width: 180, editable: false },
         {
@@ -536,7 +535,6 @@ const Setup = () => {
             setTimeout(() => setOpenPanel([1]), 500);
         }
     }, [signalFileUpdated, noiseFileUpdated]);
-
 
     return (
         <Fragment>
@@ -1254,9 +1252,6 @@ const Setup = () => {
                                                 let state = store.getState();
                                                 snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
 
-                                                // Remove sensitivityMap unless it's SENSE (2) or B1 Weighted (4)
-                                                
-
                                                 // if decimate data is unchecked make sure to not include accelerations and acl fields
                                                 if (!decimateData && snr?.options?.reconstructor?.options) {
                                                     delete snr.options.reconstructor.options.accelerations;
@@ -1270,7 +1265,29 @@ const Setup = () => {
                                                     return;
                                                 }
 
+                                                // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
+                                                const method = snr?.options?.reconstructor?.id;
+
+                                                if (method === 0 || method === 3) {
+                                                    const reconstructor = snr.options.reconstructor;
+
+                                                    if (!reconstructor.options) {
+                                                        reconstructor.options = {};
+                                                    }
+
+                                                    console.log("Before delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
+
+                                                    delete reconstructor.options.sensitivityMap;
+                                                    delete reconstructor.options.loadSensitivity;
+                                                    delete reconstructor.options.sensitivityMapMethod;
+                                                    delete reconstructor.options.mask;
+
+                                                    console.log("After delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
+                                                }
+
+
                                                 getFiles(snr);
+
                                                 if (editing != -1) {
                                                     setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
                                                     setEditContent(JSON.stringify(snr, undefined, '\t'));
@@ -1356,10 +1373,28 @@ const Setup = () => {
                         delete snr.options.reconstructor.options.acl;
                     }
 
-                    // Remove sensitivityMap unless it's SENSE (2) or B1 Weighted (4)
-                    
+                    // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
+                    const method = snr?.options?.reconstructor?.id;
+
+                    if (method === 0 || method === 3) {
+                        const reconstructor = snr.options.reconstructor;
+
+                        if (!reconstructor.options) {
+                            reconstructor.options = {};
+                        }
+
+                        console.log("Before delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
+
+                        delete reconstructor.options.sensitivityMap;
+                        delete reconstructor.options.loadSensitivity;
+                        delete reconstructor.options.sensitivityMapMethod;
+                        delete reconstructor.options.mask;
+
+                        console.log("After delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
+                    }
 
                     getFiles(snr);
+
                     if (editing != -1) {
                         setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
                         setEditContent(JSON.stringify(snr, undefined, '\t'));
