@@ -153,6 +153,7 @@ export default function Toolbar(props: ToolbarProps) {
                                     {value}
                                 </MenuItem>
                             )} */}
+                            
                             {dragModes.map((mode, index) => (
                                 <MenuItem key={index} value={mode.value}>
                                     {mode.label}
