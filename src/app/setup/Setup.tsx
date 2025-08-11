@@ -514,16 +514,15 @@ const Setup = () => {
             setSDWarningHeader("Set Up Validation Failed");
 
             if (missing.includes("Signal") && missing.includes("Noise")) {
-                setSDWarning("Please upload noise and signal files.");
+                setSDWarning("Please select or upload signal and noise files.");
             } else if (missing.includes("Signal")) {
-                setSDWarning("No signal file defined, please make sure the signal file has been successfully uploaded.");
+                setSDWarning("Please select or upload signal file.");
             } else if (missing.includes("Noise")) {
-                setSDWarning("No noise file defined and signal file is not multi-raid," +
-                    " please make sure the noise file has been successfully uploaded.");
+                setSDWarning("The signal file is not multi-raid: please select or upload a separate noise file.");
             } else if (missing.includes("Mask")) {
-                setSDWarning("No mask file defined, yet 'upload mask' option was selected. Please make sure it has been successfully uploaded.");
+                setSDWarning("A mask must be provided if the predefined mask option is checked. ");
             } else if (missing.includes("FA")) {
-                setSDWarning("No flip angle map defined, yet flip angle correction is enabled. Please choose an FA map.");
+                setSDWarning("A flip angle map must be provided if the flip angle correction option is checked.");
             }
 
             setSDOpen(true);
@@ -1381,8 +1380,8 @@ const Setup = () => {
             <CmrConfirmation
                 open={reconWarningOpen}
                 setOpen={setReconWarningOpen}
-                name="Acceleration Warning"
-                message="No acceleration simulation was selected. If your k-space is SENSE-accelerated, continue with the submission. Otherwise, choose B1 reconstruction."
+                name="Warning"
+                message="The current setup assumes that the signal data was prospectively undersampled. If the data is instead fully sampled, either choose B1 reconstruction or keep editing to retrospectively decimate the data."
                 confirmText="Queue"
                 cancelText="Keep Editing"
                 cancellable={true}
@@ -1430,7 +1429,7 @@ const Setup = () => {
                 color="primary"
                 extraButtons={[
                     {
-                        text: 'Reconstruct with B1',
+                        text: 'Reconstruct with B1-weighted',
                         onClick: () => {
                             dispatch(setupSetters.setReconstructionMethod(1));
                             setReconWarningOpen(false);
