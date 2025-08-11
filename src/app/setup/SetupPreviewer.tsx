@@ -2,23 +2,24 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import {ChangeEvent} from "react";
+import { ChangeEvent } from "react";
 import TextField from "@mui/material/TextField";
 import { CmrButton } from "cloudmr-ux";
 
-export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlias,editText='Keep Editing',queueText='Queue Job',developer}:
-                               {previewContent: string, queue: (jobAlias:string)=>void, edit: ()=>void, alias:string, setAlias:(event: ChangeEvent)=>void, handleClose: ()=>void,
-                                    editText?:string, queueText?:string, developer:boolean
-})=>{
+export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, setAlias, editText = 'Keep Editing', queueText = 'Queue Job', developer }:
+    {
+        previewContent: string, queue: (jobAlias: string) => void, edit: () => void, alias: string, setAlias: (event: ChangeEvent) => void, handleClose: () => void,
+        editText?: string, queueText?: string, developer: boolean
+    }) => {
 
-    return  <Dialog open={true} onClose={handleClose} fullWidth={true}>
-        <DialogTitle  sx={{ml:2,mt:2,mr:2, p:1}}>Setup Preview</DialogTitle>
-        <DialogContent sx={{m:2, mt:0, mb:1, p:1}} dividers>
+    return <Dialog open={true} onClose={handleClose} fullWidth={true}>
+        <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
+        <DialogContent sx={{ m: 2, mt: 0, mb: 1, p: 1 }} dividers>
             {/* style={{overflowY:'hidden'}} */}
             {/*<DialogContentText color={'#1976d2'}>*/}
             {/*    The SNR JSON that will be submitted:*/}
             {/*</DialogContentText>*/}
-            {developer&&<TextField
+            {developer && <TextField
                 multiline
                 label={"The SNR JSON that will be submitted:"}
                 fullWidth
@@ -43,25 +44,31 @@ export const SNRPreview = ({previewContent,queue,edit,handleClose, alias,setAlia
                 onChange={setAlias}
             />
         </DialogContent>
-        <DialogActions sx={{pl:3,pr:3}}>
-            <CmrButton variant={"contained"} fullWidth onClick={()=>{
-                queue(alias);
-                handleClose();
-            }}>{queueText}</CmrButton>
-            {!developer&&
-                <CmrButton fullWidth variant={"outlined"} onClick={()=>{
-                    edit();
-                    handleClose();
-                }}>{editText}</CmrButton>}
-        </DialogActions>
-        {developer&&
-            <DialogActions sx={{pt:0,pl:3,pr:3}}>
-                <CmrButton fullWidth variant={"outlined"} onClick={()=>{
+
+        <DialogActions sx={{ pt: 0, pl: 3, pr: 3 }}>
+            {/* {!developer && */}
+                <CmrButton fullWidth variant={"outlined"} onClick={() => {
                     edit();
                     handleClose();
                 }}>{editText}</CmrButton>
-            </DialogActions>}
-        </Dialog>;
+                {/* } */}
+
+            <CmrButton variant={"contained"} fullWidth onClick={() => {
+                queue(alias);
+                handleClose();
+            }}>{queueText}</CmrButton>
+
+        </DialogActions>
+
+        {/* {developer &&
+            <DialogActions sx={{ pl: 3, pr: 3 }}>
+                <CmrButton fullWidth variant={"outlined"} onClick={() => {
+                    edit();
+                    handleClose();
+                }}>{editText}</CmrButton>
+            </DialogActions>} */}
+
+    </Dialog>;
     // return <Dialog
     //     sx={{ '& .MuiDialog-paper': { width: 'fit-content', maxHeight: 435 } }}
     //     // maxWidth="xs"

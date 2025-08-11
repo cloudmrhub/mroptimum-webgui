@@ -504,6 +504,10 @@ const Setup = () => {
             missing.push("Mask");
         }
 
+        if (flipAngleCorrection && !faMap) {
+            missing.push("FA");
+        }
+
         setMissingFields(missing);
 
         if (missing.length > 0) {
@@ -518,6 +522,8 @@ const Setup = () => {
                     " please make sure the noise file has been successfully uploaded.");
             } else if (missing.includes("Mask")) {
                 setSDWarning("No mask file defined, yet 'upload mask' option was selected. Please make sure it has been successfully uploaded.");
+            } else if (missing.includes("FA")) {
+                setSDWarning("No flip angle map defined, yet flip angle correction is enabled. Please choose an FA map.");
             }
 
             setSDOpen(true);
@@ -859,14 +865,13 @@ const Setup = () => {
 
                                         <CmrCheckbox checked={!flipAngleCorrection}
                                             defaultChecked={!flipAngleCorrection}
-                                            // onChange={(event) => {
-                                            //     dispatch(setupSetters.setFlipAngleCorrection(!event.target.checked))
-                                            // }}
                                             onChange={(event) => {
                                                 const newValue = !event.target.checked;
                                                 dispatch(setupSetters.setFlipAngleCorrection(newValue));
                                                 if (!newValue) {
                                                     dispatch(setupSetters.setFlipAngleCorrectionFile(undefined));
+                                                    // FA correction disabled: clear FA file and remove FA from missing
+                                                    setMissingFields(prev => prev.filter(f => f !== "FA"));
                                                 }
                                             }}
                                         >
@@ -879,11 +884,19 @@ const Setup = () => {
                                                     fileSelection={uploadedData}
                                                     onSelected={(file) => {
                                                         dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                                        if (file) {
+                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
+                                                        }
                                                     }}
                                                     maxCount={1}
                                                     createPayload={createPayload}
                                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
-                                                    onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
+                                                    onUploaded={(res, file) => {
+                                                        uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
+                                                        if (file) {
+                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
+                                                        }
+                                                    }}
                                                     style={{
                                                         height: 'fit-content',
                                                         marginTop: 'auto',
@@ -891,7 +904,7 @@ const Setup = () => {
                                                         marginRight: '0',
                                                     }}
                                                     selectStyles={selectStyles}
-                                                    buttonText="choose FA map"
+                                                    buttonText="Choose FA Map"
                                                     chosenFile={faMap?.options.filename}
                                                 />
 
@@ -905,6 +918,13 @@ const Setup = () => {
                                                             <ClearIcon fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
+                                                )}
+
+                                                {/* Red text validation: mirror the Mask pattern */}
+                                                {flipAngleCorrection && !faMap && missingFields.includes("FA") && (
+                                                    <Typography variant="body2" color="error" sx={{ ml: 4 }}>
+                                                        field is required
+                                                    </Typography>
                                                 )}
                                             </>
                                         )}

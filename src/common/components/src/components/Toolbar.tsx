@@ -76,12 +76,13 @@ export default function Toolbar(props:ToolbarProps) {
                     }}
                 >
 
-                    <IconButton
+                    {/* Temporarily hide hamburger side menu */}
+                    {/* <IconButton
                         size={'small'}
                         onClick={props.toggleLayers}
                     >
                         <MenuIcon/>
-                    </IconButton>
+                    </IconButton> */}
 
                     <FormControl
                         size='small'
@@ -263,7 +264,7 @@ export default function Toolbar(props:ToolbarProps) {
                         />
                     </Box>
 
-                    <Box
+                    {/* <Box
                         sx={{
                             display:'flex',
                             alignItems: 'center'
@@ -275,7 +276,8 @@ export default function Toolbar(props:ToolbarProps) {
                             Vertical Layout
                         </Typography>
                         
-                    </Box>
+                    </Box> */}
+
                     <Box
                         sx={{
                             display:'flex',

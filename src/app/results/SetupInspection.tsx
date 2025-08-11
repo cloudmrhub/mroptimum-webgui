@@ -140,7 +140,7 @@ export const SetupInspection = ()=>{
                         </SettingsBox>}
                     {(analysisMethod == 3) &&
                         <SettingsBox>
-                            <span>{'Box Size: '}</span>
+                            <span>{'Cubic VOI Size (Length of Side in Pixels): '}</span>
                             <SettingsText>{boxSize}</SettingsText>
                         </SettingsBox>}
                 <SettingsBox>

@@ -86,13 +86,13 @@ export const ROITable = (props: {
             field: 'color',
             flex: 0.5,
             sortable: false,
-            renderHeader: (params: any) => {
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        {params.colDef.headerName}
-                    </Box>
-                );
-            },
+            // renderHeader: (params: any) => {
+            //     return (
+            //         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            //             {params.colDef.headerName}
+            //         </Box>
+            //     );
+            // },
             renderCell: (params: { row: any }) => {
                 return <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                     <div style={{
@@ -128,13 +128,13 @@ export const ROITable = (props: {
             field: 'visibility',
             flex: 1,
             sortable: false,
-            renderHeader: (params: any) => {
-                return (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                        {params.colDef.headerName}
-                    </Box>
-                );
-            },
+            // renderHeader: (params: any) => {
+            //     return (
+            //         <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+            //             {params.colDef.headerName}
+            //         </Box>
+            //     );
+            // },
             renderCell: (params: { row: any }) => {
                 return <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                     <IconButton onClick={(event) => {
@@ -162,12 +162,13 @@ export const ROITable = (props: {
         setWarningVisible(true);
     }
     return <Box style={props.style}>
-        <CmrTable sx={{
-            borderBottomLeftRadius: 0,
-            borderBottomRightRadius: 0,
-            marginBottom: 0,
-            paddingBottom: 0,
-        }}
+        <CmrTable 
+        // sx={{
+        //     borderBottomLeftRadius: 0,
+        //     borderBottomRightRadius: 0,
+        //     marginBottom: 0,
+        //     paddingBottom: 0,
+        // }}
             hideFooter={true} getRowId={(row) => row.label} style={{ height: '70%' }} dataSource={props.rois} columns={roiColumns}
             columnHeaderHeight={40}
             rowSelectionModel={selectedData} onRowSelectionModelChange={(rowSelectionModel) => {
