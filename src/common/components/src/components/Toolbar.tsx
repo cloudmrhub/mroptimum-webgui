@@ -1,11 +1,11 @@
-import React, {ChangeEvent, Fragment, useState} from 'react'
-import {Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Tooltip, Typography} from "@mui/material"
-import {IconButton,FormControl,Select,MenuItem,InputLabel} from "@mui/material";
+import React, { ChangeEvent, Fragment, useState } from 'react'
+import { Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Tooltip, Typography } from "@mui/material"
+import { IconButton, FormControl, Select, MenuItem, InputLabel } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
-import {ROI} from "../../../../features/rois/resultSlice";
-import {useAppDispatch, useAppSelector} from "../../../../features/hooks";
-import {getPipelineROI} from "../../../../features/rois/resultActionCreation";
+import { ROI } from "../../../../features/rois/resultSlice";
+import { useAppDispatch, useAppSelector } from "../../../../features/hooks";
+import { getPipelineROI } from "../../../../features/rois/resultActionCreation";
 import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
@@ -19,35 +19,35 @@ interface ToolbarProps {
 
     toggleLayers: React.MouseEventHandler<HTMLButtonElement> | undefined;
     toggleSettings: React.MouseEventHandler<HTMLButtonElement> | undefined;
-    volumes: {url:string, name:string, alias:string}[];
+    volumes: { url: string, name: string, alias: string }[];
     selectedVolume: number;
-    setSelectedVolume: (index: number)=>void;
+    setSelectedVolume: (index: number) => void;
     showColorBar: boolean;
-    toggleColorBar:()=>void;
+    toggleColorBar: () => void;
     rois: ROI[];
     selectedROI: number;
-    setSelectedROI: (selected:number)=>void;
-    refreshROI: ()=>void;
+    setSelectedROI: (selected: number) => void;
+    refreshROI: () => void;
     showCrosshair: boolean;
-    toggleShowCrosshair:()=>void;
-    dragMode:boolean,
-    setDragMode:(dragMode:string|boolean)=>void;
-    radiological:boolean;
-    toggleRadiological:()=>void;
-    saveROI:(callback: ()=>void,preSaving:()=>void)=>void;
+    toggleShowCrosshair: () => void;
+    dragMode: boolean,
+    setDragMode: (dragMode: string | boolean) => void;
+    radiological: boolean;
+    toggleRadiological: () => void;
+    saveROI: (callback: () => void, preSaving: () => void) => void;
     complexMode: string;
-    setComplexMode:(complexMode:string)=>void;
-    complexOptions:string[];
+    setComplexMode: (complexMode: string) => void;
+    complexOptions: string[];
 
-    labelsVisible:boolean;
-    toggleLabelsVisible:()=>void;
+    labelsVisible: boolean;
+    toggleLabelsVisible: () => void;
 
     saving: boolean;
-    setSaving: (saving:boolean)=>void;
+    setSaving: (saving: boolean) => void;
 }
 
-export default function Toolbar(props:ToolbarProps) {
-    const {saving, setSaving} = props;
+export default function Toolbar(props: ToolbarProps) {
+    const { saving, setSaving } = props;
     let dispatch = useAppDispatch();
     function handleSliceTypeChange(e: { target: { value: any } }) {
         let newSliceType = e.target.value
@@ -55,15 +55,21 @@ export default function Toolbar(props:ToolbarProps) {
         nvUpdateSliceType(newSliceType)
     }
 
-    let dragModes = ["Pan","Measurement","Contrast",'None'];
+    // let dragModes = ["Pan","Measurement","Contrast",'None'];
+    let dragModes = [
+        { value: "pan", label: "Pan and Zoom" },
+        { value: "measurement", label: "Measurement" },
+        { value: "contrast", label: "Contrast" },
+        { value: "none", label: "None" }
+    ];
     let accessToken = useAppSelector(state => state.authenticate.accessToken);
     let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
 
-    
+
 
     return (
-        <Box  sx={{display:'flex', flexDirection:'column',width:'100%'}}>
-            {props.volumes[props.selectedVolume]!=undefined&&<Fragment>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            {props.volumes[props.selectedVolume] != undefined && <Fragment>
                 <Box
                     sx={{
                         display: 'flex',
@@ -96,9 +102,9 @@ export default function Toolbar(props:ToolbarProps) {
                             id="slice-type"
                             value={props.selectedVolume}
                             label="Current Plot"
-                            onChange={(e)=>props.setSelectedVolume(Number(e.target.value))}
+                            onChange={(e) => props.setSelectedVolume(Number(e.target.value))}
                         >
-                            {props.volumes.map((value,index)=>{
+                            {props.volumes.map((value, index) => {
                                 return <MenuItem value={index}>{value.alias}</MenuItem>;
                             })}
                         </Select>
@@ -137,16 +143,21 @@ export default function Toolbar(props:ToolbarProps) {
                             id="drag-mode"
                             value={props.dragMode}
                             label="Display mode"
-                            onChange={e=>{
+                            onChange={e => {
                                 console.log(e.target.value);
                                 props.setDragMode(e.target.value);
                             }}
                         >
-                            {dragModes.map((value,index) =>
+                            {/* {dragModes.map((value, index) =>
                                 <MenuItem key={index} value={value.toLowerCase()}>
                                     {value}
                                 </MenuItem>
-                            )}
+                            )} */}
+                            {dragModes.map((mode, index) => (
+                                <MenuItem key={index} value={mode.value}>
+                                    {mode.label}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
@@ -162,9 +173,9 @@ export default function Toolbar(props:ToolbarProps) {
                             id="slice-type"
                             value={props.complexMode}
                             label="Opened ROIs"
-                            onChange={(e)=>props.setComplexMode(e.target.value)}
+                            onChange={(e) => props.setComplexMode(e.target.value)}
                         >
-                            {props.complexOptions.map(value=>{
+                            {props.complexOptions.map(value => {
                                 return <MenuItem value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</MenuItem>
                             })}
                         </Select>
@@ -183,33 +194,33 @@ export default function Toolbar(props:ToolbarProps) {
                             id="slice-type"
                             value={props.selectedROI}
                             label="Opened ROIs"
-                            // onChange={(e)=>}
+                        // onChange={(e)=>}
                         >
-                            {props.rois.map((value,index)=>{
-                                return <MenuItem value={index} onClick={()=>props.setSelectedROI(Number(index))}>{value.filename}</MenuItem>;
+                            {props.rois.map((value, index) => {
+                                return <MenuItem value={index} onClick={() => props.setSelectedROI(Number(index))}>{value.filename}</MenuItem>;
                             })}
                         </Select>
                     </FormControl>
                     <Button variant={'contained'}
-                            endIcon={saving && <CircularProgress sx={{color:'white'}} size={20} />}
-                            onClick={()=>{
-                                if(saving)
-                                    return;
-                        props.saveROI(async ()=>{
-                            if(pipeline)
-                                await dispatch(getPipelineROI({accessToken,pipeline}));
-                            setSaving(false);
-                        },()=>{
-                            setSaving(true);
-                        });
-                    }}>
+                        endIcon={saving && <CircularProgress sx={{ color: 'white' }} size={20} />}
+                        onClick={() => {
+                            if (saving)
+                                return;
+                            props.saveROI(async () => {
+                                if (pipeline)
+                                    await dispatch(getPipelineROI({ accessToken, pipeline }));
+                                setSaving(false);
+                            }, () => {
+                                setSaving(true);
+                            });
+                        }}>
                         Save Drawing Layer
                     </Button>
                     <IconButton
                         onClick={props.toggleSettings}
-                        style={{marginLeft:'auto'}}
+                        style={{ marginLeft: 'auto' }}
                     >
-                        <SettingsIcon/>
+                        <SettingsIcon />
                     </IconButton>
                 </Box>
                 <Box
@@ -225,7 +236,7 @@ export default function Toolbar(props:ToolbarProps) {
                 >
                     <Box
                         sx={{
-                            display:'flex',
+                            display: 'flex',
                             alignItems: 'center'
                         }}
                         m={1}
@@ -245,7 +256,7 @@ export default function Toolbar(props:ToolbarProps) {
                     </Box>
                     <Box
                         sx={{
-                            display:'flex',
+                            display: 'flex',
                             alignItems: 'center'
                         }}
                         m={1}
@@ -280,7 +291,7 @@ export default function Toolbar(props:ToolbarProps) {
 
                     <Box
                         sx={{
-                            display:'flex',
+                            display: 'flex',
                             alignItems: 'center'
                         }}
                         m={1}
@@ -300,7 +311,7 @@ export default function Toolbar(props:ToolbarProps) {
 
                     <Box
                         sx={{
-                            display:'flex',
+                            display: 'flex',
                             alignItems: 'center'
                         }}
                         m={1}
@@ -313,34 +324,34 @@ export default function Toolbar(props:ToolbarProps) {
                             Labels Visible
                         </Typography>
                         <Switch
-                                                    defaultChecked={false}
+                            defaultChecked={false}
 
                             checked={props.labelsVisible}
                             onChange={props.toggleLabelsVisible}
                         />
                     </Box>
 
-                    <Stack flexDirection={'row'} sx={{m:2}}>
+                    <Stack flexDirection={'row'} sx={{ m: 2 }}>
                         <Tooltip title={'Reset Views'} placement={'right'}>
-                            <IconButton onClick={()=>props.nv.resetScene()}>
-                                <HomeIcon/>
+                            <IconButton onClick={() => props.nv.resetScene()}>
+                                <HomeIcon />
                             </IconButton>
                         </Tooltip>
 
                         <Tooltip title={'Recenter Views'} placement={'right'}>
-                            <IconButton onClick={()=>props.nv.recenter()}>
-                                <CenterFocusStrongIcon/>
+                            <IconButton onClick={() => props.nv.recenter()}>
+                                <CenterFocusStrongIcon />
                             </IconButton>
                         </Tooltip>
 
                         <Tooltip title={'Reset Zooms'} placement={'right'}>
-                            <IconButton onClick={()=>props.nv.resetZoom()}>
-                                <ZoomInMapIcon/>
+                            <IconButton onClick={() => props.nv.resetZoom()}>
+                                <ZoomInMapIcon />
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={'Reset Contrast'} placement={'right'}>
-                            <IconButton onClick={()=>props.nv.resetContrast()}>
-                                <Brightness6Icon/>
+                            <IconButton onClick={() => props.nv.resetContrast()}>
+                                <Brightness6Icon />
                             </IconButton>
                         </Tooltip>
                     </Stack>
