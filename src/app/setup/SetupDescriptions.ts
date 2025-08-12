@@ -1,17 +1,16 @@
 export const snrDescriptions:{[key:string]:string} = {
     'ac':`This method is applicable to root-sum-of-squares magnitude coil combinations, B1-weighted coil combinations, and SENSE parallel imaging reconstructions. $$SNR_{RSS} = \\sqrt{2(p^H\\Psi ^{-1}p)}$$
-        $$SNR_{B1}=\\sqrt{2}\\frac{b^H\\Psi_{scaled}^{-1}p}{b^H\\Psi_{scaled}^{-1}b}$$
-         $$SNR_{SENSE} = \\sqrt{2}\\frac{|u^Tp|}{\\sqrt{u\\Psi^{-1}_{scaled}u^T}}$$
+        $$SNR_{B1}=\\sqrt{2}\\frac{b^H\\Psi^{-1}p}{b^H\\Psi^{-1}b}$$
+         $$SNR_{SENSE} = \\sqrt{2}\\frac{|u^Tp|}{\\sqrt{u\\Psi^{-1}u^T}}$$
           Where the superscript \\(^T\\) and \\(^H\\) indicate the transpose and the conjugate of the transpose, respectively; 
-          \\(b\\) is the vector of complex coil sensitivity, \\(p\\) is the vector of complex image values for each coil, and u is the vector of complex coil unmixing coefficients for the SENSE reconstruction.
+          \\(b\\) is the vector of complex coil sensitivity, \\(p\\) is the vector of complex image values for each coil, \u03A8 is the noise covariance matrix, and \\(u\\) is the vector of complex coil unmixing coefficients for the SENSE reconstruction.
           
 
     $$\\newline$$
 
           Kellman P, McVeigh ER. Image reconstruction in SNR units: a general method for SNR measurement.  Magn Reson Med. 2005 Dec;54(6):1439-47. 
             doi: <a href="https://pubmed.ncbi.nlm.nih.gov/16261576/" target="_blank">10.1002/mrm.20713</a>. Erratum in: Magn Reson Med. 2007 Jul;58(1):211-2`,
-    'mr':`The SNR is calculated on a pixel-by-pixel basis as the ratio of the average (signal) and standard deviation (noise) 
-        of pixel values through a stack of equivalent image replicas. The replicas can be generated with any image reconstruction technique. A noise reference scan could be used to estimate the noise correlation between the elements of a received array.`,
+    'mr':`The SNR is calculated on a pixel-by-pixel basis as the ratio of the average (signal) and standard deviation (noise) of pixel values through a stack of equivalent image replicas. The replicas can be generated with any image reconstruction technique. Depending on the image reconstruction technique, a noise reference scan may be required to estimate the noise correlation between the elements of a received array.`,
     'pmr':`The SNR is calculated on a pixel-by-pixel basis as the ratio of the average (signal) and standard deviation (noise) of pixel values through a stack of image pseudo replicas, which are generated via a Monte Carlo technique from k-space data from a single MR acquisition. The pseudo replicas can be generated with any image reconstruction technique. A noise reference scan could be used to estimate the noise correlation between the elements of a received array.
     $$\\newline$$
     Robson PM, Grant AK, Madhuranthakam AJ, Lattanzi R, Sodickson DK, McKenzie CA. Comprehensive quantification of signal-to-noise ratio and g-factor for image-based and k-space-based parallel imaging reconstructions. Magn Reson Med. 2008 Oct;60(4):895-907. doi: <a href="https://pubmed.ncbi.nlm.nih.gov/18816810/" target="_blank">10.1002/mrm.21728</a>`,
