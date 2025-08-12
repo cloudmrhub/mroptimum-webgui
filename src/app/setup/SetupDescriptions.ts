@@ -3,7 +3,7 @@ export const snrDescriptions:{[key:string]:string} = {
         $$SNR_{B1}=\\sqrt{2}\\frac{b^H\\Psi^{-1}p}{b^H\\Psi^{-1}b}$$
          $$SNR_{SENSE} = \\sqrt{2}\\frac{|u^Tp|}{\\sqrt{u\\Psi^{-1}u^T}}$$
           Where the superscript \\(^T\\) and \\(^H\\) indicate the transpose and the conjugate of the transpose, respectively; 
-          \\(b\\) is the vector of complex coil sensitivity, \\(p\\) is the vector of complex image values for each coil, \u03A8 is the noise covariance matrix, and \\(u\\) is the vector of complex coil unmixing coefficients for the SENSE reconstruction.
+          \\(b\\) is the vector of complex coil sensitivity, \\(p\\) is the vector of complex image values for each coil, \\(\\Psi\\) is the noise covariance matrix, and \\(u\\) is the vector of complex coil unmixing coefficients for the SENSE reconstruction.
           
 
     $$\\newline$$
