@@ -490,7 +490,8 @@ const Setup = () => {
         if (!signal) {
             missing.push("Signal");
         }
-        if (!noise && !multiraid) {
+
+        if (!noise && !multiraid && analysisMethod !== 1) {
             missing.push("Noise");
         }
 
@@ -722,7 +723,9 @@ const Setup = () => {
                                                                 onClick={() => {
                                                                     dispatch(setNoise(undefined));
                                                                     setNoiseFileUpdated(false);
-                                                                    setMissingFields((prev) => [...prev, "Noise"]);
+                                                                    if (analysisMethod !== 1 && !multiraid) {
+                                                                        setMissingFields((prev) => [...prev, "Noise"]);
+                                                                    }
                                                                 }}
                                                             >
                                                                 <ClearIcon fontSize="small" />
@@ -744,11 +747,9 @@ const Setup = () => {
                                             )}
                                         </Box>
 
-                                        {/* Only show red error if multiraid is off */}
-                                        {(!multiraid) && missingFields.includes("Noise") && (
-                                            <Typography variant="body2" color="error">
-                                                field is required
-                                            </Typography>
+                                        {/* Only show red error if multiraid is off and analysisMethod is not multiple replica */}
+                                        {(!multiraid && analysisMethod !== 1) && missingFields.includes("Noise") && (
+                                            <Typography variant="body2" color="error">field is required</Typography>
                                         )}
                                     </Box>
                                 </Col>
