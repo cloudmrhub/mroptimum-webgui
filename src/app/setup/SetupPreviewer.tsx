@@ -5,12 +5,15 @@ import DialogActions from "@mui/material/DialogActions";
 import { ChangeEvent } from "react";
 import TextField from "@mui/material/TextField";
 import { CmrButton } from "cloudmr-ux";
+import { useState } from "react";
 
 export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, setAlias, editText = 'Keep Editing', queueText = 'Queue Job', developer }:
     {
         previewContent: string, queue: (jobAlias: string) => void, edit: () => void, alias: string, setAlias: (event: ChangeEvent) => void, handleClose: () => void,
         editText?: string, queueText?: string, developer: boolean
     }) => {
+
+    const [jobName, setJobName] = useState("");
 
     return <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
@@ -39,22 +42,26 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
                 fullWidth
                 required
                 label="Set Job Name:"
-                value={alias}
+                placeholder={alias}
+                value={jobName}
                 variant="standard"
-                onChange={setAlias}
+                onChange={(e) => {
+                    setJobName(e.target.value);  // keep local state in sync
+                    setAlias(e);                 // keep parent state in sync
+                }}
             />
         </DialogContent>
 
         <DialogActions sx={{ pt: 0, pl: 3, pr: 3 }}>
             {/* {!developer && */}
-                <CmrButton fullWidth variant={"outlined"} onClick={() => {
-                    edit();
-                    handleClose();
-                }}>{editText}</CmrButton>
-                {/* } */}
+            <CmrButton fullWidth variant={"outlined"} onClick={() => {
+                edit();
+                handleClose();
+            }}>{editText}</CmrButton>
+            {/* } */}
 
             <CmrButton variant={"contained"} fullWidth onClick={() => {
-                queue(alias);
+                queue(jobName || alias);
                 handleClose();
             }}>{queueText}</CmrButton>
 

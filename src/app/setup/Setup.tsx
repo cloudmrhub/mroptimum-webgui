@@ -272,11 +272,11 @@ const Setup = () => {
     const rows: GridRowsProp = [
         {
             id: 1,
-            type: 'Acceleration Factor 1',
+            type: 'Acceleration Factor X',
         },
         {
             id: 2,
-            type: 'Acceleration Factor 2',
+            type: 'Acceleration Factor Y',
         },
         {
             id: 3,
@@ -315,11 +315,11 @@ const Setup = () => {
     const kernelSizeRows: GridRowsProp = [
         {
             id: 1,
-            type: 'Kernel Size 1',
+            type: 'Kernel Size X',
         },
         {
             id: 2,
-            type: 'Kernel Size 2',
+            type: 'Kernel Size Y',
         }];
     const queuedJobsColumns: GridColDef[] = [
         {
