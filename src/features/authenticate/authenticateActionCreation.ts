@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import {SIGNOUT, SIGNIN, JOBS_API, PROFILE, APP_NAME} from "../../Variables";
-import {Job} from "../jobs/jobsSlice";
+import {SIGNIN, PROFILE, APP_NAME} from "../../Variables";
 import {getUpstreamJobs} from "../jobs/jobActionCreation";
 import {API_URL} from "../../env";
-import { sign } from 'mathjs';
 
 export interface SigninDataType {
     email: string;

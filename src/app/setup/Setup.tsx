@@ -2,13 +2,11 @@ import React, { Fragment, useEffect, useState } from 'react';
 import './Setup.scss';
 import { CmrCollapse, CmrPanel, CmrConfirmation } from 'cloudmr-ux';
 import { getUploadedData, uploadData } from '../../features/data/dataActionCreation';
-import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
 import { CMRSelectUpload } from 'cloudmr-ux';
 import { CmrLabel } from 'cloudmr-ux';
 import { Col, Row } from "antd";
-import { is_safe_twix } from '../../common/utilities/file-transformation/anonymize';
 import moment from 'moment';
 
 import {
@@ -163,36 +161,6 @@ const Setup = () => {
             'Authorization': `Bearer ${accessToken}`,
             'X-Api-Key': uploadToken
         },
-    };
-    const createPayload = async (file: File, fileAlias: string) => {
-        let formData = new FormData();
-        if (file) {
-            const lambdaFile: LambdaFile = {
-                "filename": fileAlias,
-                "filetype": file.type,
-                "filesize": `${file.size}`,
-                "filemd5": '',
-                "file": file
-            }
-            formData.append("lambdaFile", JSON.stringify(lambdaFile));
-            formData.append("file", file);
-            const fileExtension = getFileExtension(file.name);
-
-            try {
-                if (fileExtension == 'dat') {
-                    let safe = await is_safe_twix(file);
-                    if (!safe) {
-                        alert('This file contains PIH data. Please anonymize the file before uploading');
-                        return undefined;
-                    }
-                }
-            } catch (e) {
-                setSDWarningHeader(`Failed to anonymize ${file.name}`);
-                setSDWarning(`Problems were encountered when anonymizing ${file.name}, consider using dedicated anonymization tools or otherwise proceed.`);
-                setSDOpen(true);
-            }
-            return { destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
-        }
     };
     useEffect(() => {
         //@ts-ignore
@@ -602,7 +570,6 @@ const Setup = () => {
                                                     }
                                                 }}
                                                 maxCount={1}
-                                                createPayload={createPayload}
                                                 onUploaded={(res, file) => {
                                                     uploadResHandlerFactory(setSignal)(res, file);
                                                     setSignalFileUpdated(!!file);
@@ -697,7 +664,6 @@ const Setup = () => {
                                                             }
                                                         }}
                                                         maxCount={1}
-                                                        createPayload={createPayload}
                                                         onUploaded={(res, file) => {
                                                             uploadResHandlerFactory(setNoise)(res, file);
                                                             setNoiseFileUpdated(!!file);
@@ -889,7 +855,6 @@ const Setup = () => {
                                                         }
                                                     }}
                                                     maxCount={1}
-                                                    createPayload={createPayload}
                                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
                                                     onUploaded={(res, file) => {
                                                         uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
@@ -954,7 +919,6 @@ const Setup = () => {
                                                                 onSelected={(file) => {
                                                                     dispatch(setupSetters.setSensitivityMapSource(file));
                                                                 }} maxCount={1}
-                                                                createPayload={createPayload}
                                                                 onUploaded={uploadResHandlerFactory(setupSetters.setSensitivityMapSource)}
                                                                 style={{
                                                                     height: 'fit-content',
@@ -1077,7 +1041,6 @@ const Setup = () => {
                                                                                         }
                                                                                     }}
                                                                                     maxCount={1}
-                                                                                    createPayload={createPayload}
                                                                                     onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
                                                                                     uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'mask')}
                                                                                     style={{

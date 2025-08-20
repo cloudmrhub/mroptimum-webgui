@@ -1,12 +1,9 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
-    DATAUPLOADFINALIZE,
-    DATAUPLOADINIT,
-    JOBS_API,
     JOBS_DELETE_API,
     JOBS_RENAME_API,
-    JOBS_RETRIEVE_API, JOBUPLOADFINALIZE, JOBUPLOADINIT
+    JOBS_RETRIEVE_API, JOB_UPLOAD_FINALIZE, JOB_UPLOAD_INIT
 } from '../../Variables';
 import {Job} from "./jobsSlice";
 import {setupSetters} from "../setup/setupSlice";
@@ -122,7 +119,7 @@ export const uploadJob = createAsyncThunk('UploadJob', async(
         }));
 
         // Step 4: Finalize the upload
-        const finalizeResponse = await axios.post(JOBUPLOADFINALIZE, {
+        const finalizeResponse = await axios.post(JOB_UPLOAD_FINALIZE, {
             uploadId,
             parts: uploadedParts,
             Key: Key
@@ -169,6 +166,6 @@ const createPayload = async (accessToken:string, uploadToken:string, file: File,
                 'X-Api-Key':uploadToken
             },
         };
-        return {destination: JOBUPLOADINIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
+        return {destination: JOB_UPLOAD_INIT, lambdaFile: lambdaFile, file: file, config: UploadHeaders};
     }
 };

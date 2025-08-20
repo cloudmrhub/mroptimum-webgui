@@ -2,7 +2,7 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { Job } from "../jobs/jobsSlice";
 import { getUpstreamJobs } from "../jobs/jobActionCreation";
-import { JOBS_API, JOBS_RETRIEVE_API } from "../../Variables";
+import { JOBS_API, APP_NAME } from "../../Variables";
 import { setupSetters } from "./setupSlice";
 
 export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
@@ -15,7 +15,7 @@ export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
             try {
                 let res = await axios.post(
                     JOBS_API,
-                    JSON.stringify(job.setup),
+                    JSON.stringify({...job.setup, application:APP_NAME} ),
                     {
                         headers: {
                             Authorization: `Bearer ${accessToken}`,

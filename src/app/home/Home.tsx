@@ -23,7 +23,7 @@ import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
 import { getFileExtension } from "../../common/utilities";
 import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
-import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
+import { DATA_API } from "../../Variables";
 import axios, { AxiosRequestConfig } from "axios";
 import { AxiosResponse } from "axios/index";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
@@ -34,7 +34,7 @@ const getDataMethod = async (accessToken: string) => {
         }
     }
     try {
-        const response = await axios.get(DATAAPI, config);
+        const response = await axios.get(DATA_API, config);
         return response.data;
     } catch (e) {
         console.log(e);
@@ -307,32 +307,6 @@ const Home = () => {
         },
     };
 
-    const createPayload = async (file: File, fileAlias: string) => {
-        let formData = new FormData();
-        if (file) {
-            const lambdaFile: LambdaFile = {
-                "filename": fileAlias,
-                "filetype": file.type,
-                "filesize": `${file.size}`,
-                "filemd5": '',
-                "file": file
-            }
-            formData.append("lambdaFile", JSON.stringify(lambdaFile));
-            formData.append("file", file);
-            const fileExtension = getFileExtension(file.name);
-
-            if (fileExtension == 'dat') {
-                let safe = await is_safe_twix(file);
-                console.log(safe);
-                if (!safe) {
-                    alert('This file contains PIH data. Please anonymize the file before uploading');
-                    return undefined;
-                }
-
-            }
-            return { destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
-        }
-    };
     function downloadSelectedValues() {
         let downloadPending: UploadedFile[] = [];
         selectedData.map((id) => {
@@ -409,7 +383,7 @@ const Home = () => {
                                 setUploadKey(uploadKey + 1);
                             }}
                                 uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData)}
-                                createPayload={createPayload} maxCount={1}></CMRUpload>
+                                maxCount={1}></CMRUpload>
                         </div>
                     </div>
                 </CmrPanel>

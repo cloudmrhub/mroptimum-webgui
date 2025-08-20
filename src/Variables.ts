@@ -1,27 +1,30 @@
-import {CLOUDMR_SERVER, PROFILE_SERVER, MRO_SERVER, API_URL, MRO_JOB} from "./env";
+import {CLOUDMR_SERVER, API_URL} from "./env";
 
 export const SIGNIN = `${CLOUDMR_SERVER}/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
+export const SIGNOUT = `${CLOUDMR_SERVER}/logout`;//https://cloudmrhub.com/api/auth/logout`;
+export const PROFILE = `${CLOUDMR_SERVER}/profile`;
 
 export const FINEGRAIN = `${API_URL}/auth`;
-export const SIGNOUT= `${CLOUDMR_SERVER}/logout`;//https://cloudmrhub.com/api/auth/logout`;
-export const PROFILE = `${PROFILE_SERVER}/profile`;
-export const DATAAPI = `${MRO_SERVER}/readdata`;
-export const UNZIP = `${MRO_SERVER}/unzip`;
-export const DATAUPLODAAPI = `${MRO_SERVER}/uploads`;
-export const DATAUPLOADINIT = `${MRO_SERVER}/uploadinitiate`;
-export const DATAUPLOADFINALIZE = `${MRO_SERVER}/uploadfinalize`;
-export const JOBUPLOADINIT = `${MRO_SERVER}/uploadresultsinitiate`;
-export const JOBUPLOADFINALIZE = `${MRO_SERVER}/uploadresultsfinalize`;
-export const DATA_RENAME_API = `${MRO_SERVER}/updatedata`;
-export const DATA_DELETE_API =  `${MRO_SERVER}/deletedata`;
-//2g05v1o1jj
-export const ROI_GET = `${CLOUDMR_SERVER}/getrois`;
-export const ROI_UPLOAD = `${CLOUDMR_SERVER}/uploads`;
 
-export const JOBS_API = `${MRO_JOB}/pipeline`;
-export const JOBS_RETRIEVE_API = `${MRO_SERVER}/downloads`;
+export const ROI_GET = `${CLOUDMR_SERVER}/roi/list`;
+export const ROI_UPLOAD = `${CLOUDMR_SERVER}/roi/upload`;
+
+export const DATA_API = `${CLOUDMR_SERVER}/data/read`;
+export const DATA_DELETE_API = `${CLOUDMR_SERVER}/data/delete`;
+export const DATA_RENAME_API = `${CLOUDMR_SERVER}/data/update`;
+
+export const DATA_UPLOAD_INIT = `${CLOUDMR_SERVER}/upload_initiate`;
+export const DATA_UPLOAD_FINALIZE = `${CLOUDMR_SERVER}/upload_finalize`;
+export const JOB_UPLOAD_INIT = `${CLOUDMR_SERVER}/upload_initiate/results`;
+export const JOB_UPLOAD_FINALIZE = `${CLOUDMR_SERVER}/upload_finalize/results`;
+//2g05v1o1jj
+
+export const JOBS_API = `${CLOUDMR_SERVER}/pipeline/queue_job`;
+export const JOBS_RETRIEVE_API = `${CLOUDMR_SERVER}/pipeline/list/b1c2b1a7-d8d1-47e1-85ed-cedf0f838468`
 export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
-export const JOBS_DELETE_API =  `${MRO_SERVER}/pipeline`;
+export const JOBS_DELETE_API =  `${CLOUDMR_SERVER}/pipeline/delete`;
+
+export const UNZIP = `${CLOUDMR_SERVER}/unzip`;
 
 export const APP_NAME = 'MR Optimum';
 
@@ -36,13 +39,12 @@ console.log('SIGNIN:', SIGNIN);
 console.log('FINEGRAIN:', FINEGRAIN);
 console.log('SIGNOUT:', SIGNOUT);
 console.log('PROFILE:', PROFILE);
-console.log('DATAAPI:', DATAAPI);
+console.log('DATAAPI:', DATA_API);
 console.log('UNZIP:', UNZIP);
-console.log('DATAUPLODAAPI:', DATAUPLODAAPI);
-console.log('DATAUPLOADINIT:', DATAUPLOADINIT);
-console.log('DATAUPLOADFINALIZE:', DATAUPLOADFINALIZE);
-console.log('JOBUPLOADINIT:', JOBUPLOADINIT);
-console.log('JOBUPLOADFINALIZE:', JOBUPLOADFINALIZE);
+console.log('DATAUPLOADINIT:', DATA_UPLOAD_INIT);
+console.log('DATAUPLOADFINALIZE:', DATA_UPLOAD_FINALIZE);
+console.log('JOBUPLOADINIT:', JOB_UPLOAD_INIT);
+console.log('JOBUPLOADFINALIZE:', JOB_UPLOAD_FINALIZE);
 console.log('DATA_RENAME_API:', DATA_RENAME_API);
 console.log('DATA_DELETE_API:', DATA_DELETE_API);
 console.log('ROI_GET:', ROI_GET);

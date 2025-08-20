@@ -3,7 +3,6 @@ import './Setup.scss';
 import { CmrCollapse } from 'cloudmr-ux';
 import { CmrPanel } from 'cloudmr-ux';
 import { getUploadedData, uploadData } from '../../features/data/dataActionCreation';
-import { DATAAPI, DATAUPLODAAPI } from "../../Variables";
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
 import { CMRSelectUpload } from 'cloudmr-ux';
@@ -173,36 +172,7 @@ const Setup = () => {
             'X-Api-Key': uploadToken
         },
     };
-    const createPayload = async (file: File, fileAlias: string) => {
-        let formData = new FormData();
-        if (file) {
-            const lambdaFile: LambdaFile = {
-                "filename": fileAlias,
-                "filetype": file.type,
-                "filesize": `${file.size}`,
-                "filemd5": '',
-                "file": file
-            }
-            formData.append("lambdaFile", JSON.stringify(lambdaFile));
-            formData.append("file", file);
-            const fileExtension = getFileExtension(file.name);
-
-            try {
-                if (fileExtension == 'dat') {
-                    let safe = await is_safe_twix(file);
-                    if (!safe){
-                        alert('This file contains PIH data. Please anonymize the file before uploading');
-                        return undefined;
-                    }
-                }
-            } catch (e) {
-                setSDWarningHeader(`Failed to anonymize ${file.name}`);
-                setSDWarning(`Problems were encountered when anonymizing ${file.name}, consider using dedicated anonymization tools or otherwise proceed.`);
-                setSDOpen(true);
-            }
-            return { destination: DATAUPLODAAPI, lambdaFile: lambdaFile, file: file, config: UploadHeaders };
-        }
-    };
+    
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
@@ -595,7 +565,6 @@ const Setup = () => {
                                         if (signalFileUpdated && noiseFileUpdated)
                                             setTimeout(() => setOpenPanel([2]), 500);
                                     }} maxCount={1}
-                                    createPayload={createPayload}
                                     onUploaded={uploadResHandlerFactory(setSignal, () => {
                                         if (noise != undefined && signal != undefined)
                                             setTimeout(() => setOpenPanel([2]), 500);
@@ -635,7 +604,6 @@ const Setup = () => {
                                                 if (signalFileUpdated && noiseFileUpdated)
                                                     setTimeout(() => setOpenPanel([2]), 500);
                                             }} maxCount={1}
-                                            createPayload={createPayload}
                                             onUploaded={uploadResHandlerFactory(setNoise, () => {
                                                 if (noise != undefined && signal != undefined)
                                                     setTimeout(() => setOpenPanel([2]), 500);
@@ -758,7 +726,6 @@ const Setup = () => {
                                             <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
                                                 dispatch(setupSetters.setFlipAngleCorrectionFile(file));
                                             }} maxCount={1}
-                                                createPayload={createPayload}
                                                 onUploaded={uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)}
                                                 style={{
                                                     height: 'fit-content',
@@ -793,7 +760,6 @@ const Setup = () => {
                                                                 onSelected={(file) => {
                                                                     dispatch(setupSetters.setSensitivityMapSource(file));
                                                                 }} maxCount={1}
-                                                                createPayload={createPayload}
                                                                 onUploaded={uploadResHandlerFactory(setupSetters.setSensitivityMapSource)}
                                                                 style={{
                                                                     height: 'fit-content',
@@ -900,7 +866,6 @@ const Setup = () => {
                                                             {maskMethod === 4 && <CMRSelectUpload fileSelection={uploadedData} onSelected={(file) => {
                                                                 dispatch(setupSetters.setMaskStore(file));
                                                             }} maxCount={1}
-                                                                createPayload={createPayload}
                                                                 onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
                                                                 style={{
                                                                     height: 'fit-content',

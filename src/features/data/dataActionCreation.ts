@@ -1,11 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
-    DATAAPI,
+    DATA_API,
     DATA_RENAME_API,
     DATA_DELETE_API,
-    DATAUPLOADINIT,
-    DATAUPLOADFINALIZE
+    DATA_UPLOAD_INIT,
+    DATA_UPLOAD_FINALIZE
 } from "../../Variables";
 import { LambdaFile } from 'cloudmr-ux';
 import { getFileExtension } from "../../common/utilities";
@@ -24,7 +24,7 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
         }
     }
     try {
-        const response = await axios.get(DATAAPI, config);
+        const response = await axios.get(DATA_API, config);
         console.log(response.data);
         return response.data;
     } catch (e) {
@@ -116,7 +116,7 @@ export const uploadData = createAsyncThunk('UploadData', async (
         }));
 
         // Step 4: Finalize the upload
-        const finalizeResponse = await axios.post(DATAUPLOADFINALIZE, {
+        const finalizeResponse = await axios.post(DATA_UPLOAD_FINALIZE, {
             uploadId,
             parts: uploadedParts,
             Key: Key
@@ -193,7 +193,7 @@ const createPayload = async (
     };
 
     return {
-        destination: DATAUPLOADINIT,
+        destination: DATA_UPLOAD_INIT,
         lambdaFile,
         file,
         config: UploadHeaders
