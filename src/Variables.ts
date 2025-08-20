@@ -20,7 +20,7 @@ export const JOB_UPLOAD_FINALIZE = `${CLOUDMR_SERVER}/upload_finalize/results`;
 //2g05v1o1jj
 
 export const JOBS_API = `${CLOUDMR_SERVER}/pipeline/queue_job`;
-export const JOBS_RETRIEVE_API = `${CLOUDMR_SERVER}/pipeline/list/b1c2b1a7-d8d1-47e1-85ed-cedf0f838468`
+export const JOBS_RETRIEVE_API = `${CLOUDMR_SERVER}/pipeline/list`
 export const JOBS_RENAME_API = `http://localhost:5010/jobs/rename`;
 export const JOBS_DELETE_API =  `${CLOUDMR_SERVER}/pipeline/delete`;
 

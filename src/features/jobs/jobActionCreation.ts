@@ -3,7 +3,8 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import {
     JOBS_DELETE_API,
     JOBS_RENAME_API,
-    JOBS_RETRIEVE_API, JOB_UPLOAD_FINALIZE, JOB_UPLOAD_INIT
+    JOBS_RETRIEVE_API, JOB_UPLOAD_FINALIZE, JOB_UPLOAD_INIT,
+    APP_NAME
 } from '../../Variables';
 import {Job} from "./jobsSlice";
 import {setupSetters} from "../setup/setupSlice";
@@ -15,6 +16,9 @@ export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: s
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
+        params: {
+            cloudapp_name: APP_NAME,
+        }
     };
     console.log(JOBS_RETRIEVE_API);
     const response = await axios.get(JOBS_RETRIEVE_API, config);
