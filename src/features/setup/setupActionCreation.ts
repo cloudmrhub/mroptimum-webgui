@@ -15,7 +15,10 @@ export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
             try {
                 let res = await axios.post(
                     JOBS_API,
-                    JSON.stringify({...job.setup, application:APP_NAME} ),
+                    JSON.stringify({
+                        ...job.setup,
+                        cloudapp_name:APP_NAME
+                    } ),
                     {
                         headers: {
                             Authorization: `Bearer ${accessToken}`,

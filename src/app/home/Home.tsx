@@ -23,7 +23,7 @@ import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
 import { getFileExtension } from "../../common/utilities";
 import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
-import { DATA_API } from "../../Variables";
+import { DATA_API, APP_NAME } from "../../Variables";
 import axios, { AxiosRequestConfig } from "axios";
 import { AxiosResponse } from "axios/index";
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
@@ -31,6 +31,9 @@ const getDataMethod = async (accessToken: string) => {
     const config = {
         headers: {
             Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+            cloudapp_name: APP_NAME
         }
     }
     try {

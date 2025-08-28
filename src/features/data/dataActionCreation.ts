@@ -5,7 +5,8 @@ import {
     DATA_RENAME_API,
     DATA_DELETE_API,
     DATA_UPLOAD_INIT,
-    DATA_UPLOAD_FINALIZE
+    DATA_UPLOAD_FINALIZE,
+    APP_NAME
 } from "../../Variables";
 import { LambdaFile } from 'cloudmr-ux';
 import { getFileExtension } from "../../common/utilities";
@@ -21,6 +22,9 @@ export const getUploadedData = createAsyncThunk('GetUploadedData', async (access
     const config = {
         headers: {
             Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+            "cloudapp_name": APP_NAME
         }
     }
     try {
@@ -189,6 +193,9 @@ const createPayload = async (
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
             'X-Api-Key': uploadToken
+        },
+        params: {
+            cloudapp_name: APP_NAME
         }
     };
 
