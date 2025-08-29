@@ -79,6 +79,7 @@ const Home = () => {
             }
         })
     }
+    
     const uploadedFilesColumns = [
 
         {
