@@ -4,7 +4,8 @@ import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { getUploadedData } from '../../features/data/dataActionCreation';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import IconButton from "@mui/material/IconButton";
-import GetAppIcon from "@mui/icons-material/GetApp";
+// import GetAppIcon from "@mui/icons-material/GetApp";
+import DownloadIcon from '@mui/icons-material/Download';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, { nv } from "../../common/components/src/Niivue";
 import { Job } from "../../features/jobs/jobsSlice";
@@ -67,6 +68,38 @@ const Results = ({ visible }: { visible?: boolean }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
     const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
+
+    // const formatCreatedAt = (ts: unknown): string => {
+    //     // Treat empty/epoch as missing
+    //     if (ts === null || ts === undefined) return "—";
+    //     if (ts === "" || ts === "0") return "—";
+
+    //     // Coerce numeric if possible
+    //     const maybeNum = typeof ts === "number" ? ts : Number(ts);
+    //     let date: Date;
+
+    //     if (Number.isFinite(maybeNum)) {
+    //         // Guard against 0 or tiny numbers (epoch noise)
+    //         if (maybeNum <= 0) return "—";
+    //         // Heuristic: seconds vs ms
+    //         date = maybeNum < 1e12 ? new Date(maybeNum * 1000) : new Date(maybeNum);
+    //     } else {
+    //         date = new Date(ts as string);
+    //     }
+
+    //     if (isNaN(date.getTime()) || date.getTime() === 0) return "—";
+
+    //     // YYYY-MM-DD HH:mm:ss (local time)
+    //     const pad = (n: number) => String(n).padStart(2, "0");
+    //     const y = date.getFullYear();
+    //     const m = pad(date.getMonth() + 1);
+    //     const d = pad(date.getDate());
+    //     const hh = pad(date.getHours());
+    //     const mm = pad(date.getMinutes());
+    //     const ss = pad(date.getSeconds());
+    //     return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+    // };
+
 
     useEffect(() => {
         //@ts-ignore
@@ -133,6 +166,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
             dataIndex: 'createdAt',
             field: 'createdAt',
             flex: 2,
+            // renderCell: (params: { row: Job }) => formatCreatedAt(params.row.createdAt),
         },
         {
             headerName: 'Status',
@@ -226,7 +260,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                     });
 
                                 }}>
-                                    <GetAppIcon />
+                                    <DownloadIcon />
                                 </IconButton>
                             </Tooltip>
                         )}
