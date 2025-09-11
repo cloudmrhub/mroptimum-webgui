@@ -3,7 +3,7 @@ import { Box, Button, CircularProgress, Menu, Stack, SvgIconProps, Switch, Toolt
 import { IconButton, FormControl, Select, MenuItem, InputLabel } from "@mui/material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
-import { ROI } from "../../../../features/rois/resultSlice";
+import { ROI } from "cloudmr-core";
 import { useAppDispatch, useAppSelector } from "../../../../features/hooks";
 import { getPipelineROI } from "cloudmr-core";
 import HomeIcon from '@mui/icons-material/Home';

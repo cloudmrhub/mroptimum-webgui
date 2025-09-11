@@ -5,7 +5,7 @@ import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined
 import ReplyIcon from "@mui/icons-material/Reply";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import React, {CSSProperties, useState} from "react";
-import {ROI} from "../../../../features/rois/resultSlice";
+import {ROI} from "cloudmr-core";
 import SvgIcon from "@mui/material/SvgIcon";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import FiberManualRecordOutlinedIcon from "@mui/icons-material/FiberManualRecordOutlined";

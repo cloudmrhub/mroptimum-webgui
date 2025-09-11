@@ -8,7 +8,8 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, { nv } from "../../common/components/src/Niivue";
 import { Job, uploadData, getUpstreamJobs, getPipelineROI, loadResult } from "cloudmr-core";
-import { resultActions, ROI } from "../../features/rois/resultSlice";
+import { resultActions } from "../../features/rois/resultSlice";
+import { ROI } from "cloudmr-core"
 import { Alert, Button, CircularProgress, Slide, Snackbar } from "@mui/material";
 import { CmrCheckbox } from 'cloudmr-ux';
 import { Row } from "antd";
