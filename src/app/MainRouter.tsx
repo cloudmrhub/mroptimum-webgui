@@ -10,12 +10,17 @@ import BugReport from './bug-report/BugReport';
 import {useAppDispatch, useAppSelector} from "../features/hooks";
 import {getLoggedInToken} from "cloudmr-core"
 import WebSignin from "./WebSignin";
+import { AuthenticatedHttpClient } from 'cloudmr-core';
+import { store } from '../features/store';
 
 const debugging = false;
 
 const MainRouter = () => {
     const authenticate = useAppSelector((state) => state.authenticate);
     const dispatch = useAppDispatch();
+    AuthenticatedHttpClient.setAuthenticateStateGetter(() => store.getState().authenticate);
+    AuthenticatedHttpClient.setDispatch(dispatch);
+
     return (<React.Fragment>
         <BrowserRouter>
             {(debugging||authenticate.accessToken) &&

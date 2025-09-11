@@ -7,9 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, { nv } from "../../common/components/src/Niivue";
-import { Job } from "../../features/jobs/jobsSlice";
-import { getUpstreamJobs } from "../../features/jobs/jobActionCreation";
-import { uploadData } from "cloudmr-core";
+import { Job, uploadData, getUpstreamJobs } from "cloudmr-core";
 import { resultActions, ROI } from "../../features/rois/resultSlice";
 import { getPipelineROI, loadResult } from "../../features/rois/resultActionCreation";
 import { Alert, Button, CircularProgress, Slide, Snackbar } from "@mui/material";
@@ -21,9 +19,8 @@ import { Logs } from "./Logs";
 import { CMRUpload } from 'cloudmr-ux';
 import { AxiosRequestConfig } from "axios";
 import { processJobZip } from "./PreprocessJob";
-import { uploadHandlerFactory } from "../../features/SystemUtilities";
+import { deleteUpstreamJob, uploadHandlerFactory } from "cloudmr-core";
 import { CmrEditConfirmation } from 'cloudmr-ux';
-import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import DeleteIcon from "@mui/icons-material/Delete";
 import Tooltip from '@mui/material/Tooltip';
 
@@ -71,14 +68,14 @@ const Results = ({ visible }: { visible?: boolean }) => {
 
     useEffect(() => {
         //@ts-ignore
-        dispatch(getUploadedData(accessToken));
+        dispatch(getUploadedData());
         //@ts-ignore
-        dispatch(getUpstreamJobs(accessToken));
+        dispatch(getUpstreamJobs());
 
         let interval = setInterval(() => {
             if (visible && autoRefresh && openPanel.indexOf(0) >= 0) {
                 //@ts-ignore
-                dispatch(getUpstreamJobs(accessToken));
+                dispatch(getUpstreamJobs());
             }
         }, 15000);
         return () => {
@@ -240,10 +237,10 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                 setConfirmCallbackjob(() => async () => {
                                     try {
                                         // First, delete the upstream job
-                                        await dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id.toString() }));
+                                        await dispatch(deleteUpstreamJob({ jobId: params.row.id.toString() }));
 
                                         // Then, fetch the updated upstream jobs
-                                        await dispatch(getUpstreamJobs(accessToken));
+                                        await dispatch(getUpstreamJobs());
 
                                         // console.log("Job deleted and upstream jobs updated successfully.");
                                     } catch (error) {
@@ -361,7 +358,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
             <CmrCollapse accordion={false} expandIconPosition="right" activeKey={openPanel}
                 onChange={(key: any) => {
                     if (openPanel.indexOf(0) < 0 && key.indexOf(0) >= 0) {
-                        dispatch(getUpstreamJobs(accessToken));
+                        dispatch(getUpstreamJobs());
                     }
                     dispatch(resultActions.setOpenPanel(key));
                 }}>
@@ -385,7 +382,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                 setUploaderKey(uploaderKey + 1);
                             }}
                             onUploaded={() => {//Refresh job list after successful upload
-                                dispatch(getUpstreamJobs(accessToken));
+                                dispatch(getUpstreamJobs());
                                 // console.log(uploaderKey);
                                 setUploaderKey(uploaderKey + 1);
                             }}
@@ -399,7 +396,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                     <CmrTable dataSource={results} columns={completedJobsColumns} showCheckbox={false} // This will hide the checkboxes
                     />
                     <Button className={'mt-3'} fullWidth variant={'contained'} onClick={() => {
-                        dispatch(getUpstreamJobs(accessToken));
+                        dispatch(getUpstreamJobs());
                     }}>Refresh {jobsLoading && <CircularProgress size={18} style={{ color: 'white', position: 'relative', left: '5pt' }} />}</Button>
                     {showingLogs && <Logs />}
                 </CmrPanel>

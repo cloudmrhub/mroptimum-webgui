@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import { getPipelineROI,loadResult } from './resultActionCreation';
 import {defaultSNR, FileReference, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "cloudmr-core";
-import {Job} from "../jobs/jobsSlice";
+import { Job } from 'cloudmr-core';
 import {RootState} from "../store";
 
 export interface ROI {
@@ -77,7 +77,7 @@ export const resultSlice = createSlice({
             state.loading = true;
         }),
         builder.addCase(getPipelineROI.fulfilled, (state, action) => {
-            const {rois, pipeline_id}: {rois:ROI[] ,pipeline_id:string}= action.payload;
+            const {rois, pipeline_id} = action.payload as {rois:ROI[] ,pipeline_id:string};
             state.rois[pipeline_id] = [];
             if (rois.length > 0) {
                 rois.forEach((element) => {

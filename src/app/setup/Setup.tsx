@@ -31,8 +31,7 @@ import { CmrButton } from 'cloudmr-ux';
 import { CmrInputNumber } from 'cloudmr-ux';
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { UploadedFile } from "cloudmr-core";
-import { formatBytes, getFileExtension } from "cloudmr-core";
-import { jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
+import { formatBytes, jobActions } from "cloudmr-core";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -44,7 +43,7 @@ import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
 import { downloadStringAsFile } from "cloudmr-core";
 import { LambdaFile } from 'cloudmr-ux';
-import { uploadHandlerFactory } from "../../features/SystemUtilities";
+import { uploadHandlerFactory } from "cloudmr-core";
 
 
 const Setup = () => {
@@ -150,7 +149,7 @@ const Setup = () => {
                 location: res.data.response.location
             };
             dispatch(reducer(uploadedFile));
-            dispatch(getUploadedData(accessToken));
+            dispatch(getUploadedData());
             (additionalCallbacks) &&
                 additionalCallbacks();
         };
@@ -165,7 +164,7 @@ const Setup = () => {
     };
     useEffect(() => {
         //@ts-ignore
-        dispatch(getUploadedData(accessToken));
+        dispatch(getUploadedData());
 
         const updateBreakpoint = () => {
             if (window.innerWidth < 992) setBreakpoint('md');
@@ -339,7 +338,7 @@ const Setup = () => {
                     <div>
                         <IconButton onClick={(e) => {/* Edit logic here */
                             e.stopPropagation();
-                            let snrPreview: SetupInterface = params.row.setup;
+                            let snrPreview = params.row.setup;
                             setRowId(params.row.id);
                             setEditContent(JSON.stringify(snrPreview, null, '\t'));
                             setEditedJSON({ SNR: snrPreview.task, output: snrPreview.output });

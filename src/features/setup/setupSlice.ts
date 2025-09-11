@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from '../store';
-import { UploadedFile } from "cloudmr-core";
-import { Job, SetupInterface } from "../jobs/jobsSlice";
+import { UploadedFile, Job } from "cloudmr-core";
+
 import moment from "moment/moment";
 import { submitJobs } from "./setupActionCreation";
 import { uploadData } from "cloudmr-core";
@@ -237,7 +237,7 @@ function UFtoMaskFR(uploadedFile: UploadedFile): FileReference {
     }
 }
 
-function createSetup(snr: SNR, alias: string, output: { coilsensitivity: boolean; gfactor: boolean; matlab: boolean }): SetupInterface {
+function createSetup(snr: SNR, alias: string, output: { coilsensitivity: boolean; gfactor: boolean; matlab: boolean }): any {
     getFiles(snr);
     return {
         version: "v0",

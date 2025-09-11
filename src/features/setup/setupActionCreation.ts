@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { Job } from "../jobs/jobsSlice";
-import { getUpstreamJobs } from "../jobs/jobActionCreation";
+
+import { Job, getUpstreamJobs } from "cloudmr-core";
 import { JOBS_API, APP_NAME } from "../../Variables";
 import { setupSetters } from "./setupSlice";
 
@@ -45,7 +45,7 @@ export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
         }
 
         // //Update upstream jobs right after submission
-        thunkAPI.dispatch(getUpstreamJobs(accessToken));
+        thunkAPI.dispatch(getUpstreamJobs());
 
         // Return whether the submission was successful
         return responses;

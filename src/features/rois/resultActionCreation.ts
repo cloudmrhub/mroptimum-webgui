@@ -2,7 +2,7 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import {ROI_GET, ROI_UPLOAD, UNZIP} from '../../Variables';
 import {NiiFile, resultActions, ROI, Volume} from "./resultSlice";
-import {Job, sampleJob} from "../jobs/jobsSlice";
+import { Job } from 'cloudmr-core';
 
 export const getPipelineROI = createAsyncThunk('GetROI', async ({accessToken, pipeline}:{accessToken:string, pipeline:string}) => {
     const config = {
@@ -31,9 +31,9 @@ export function niiToVolume(nii:NiiFile){
 }
 
 export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job}:{accessToken:string,job:Job})=>{
-    if(job.pipeline_id==sampleJob.pipeline_id){
-        return sampleResult;
-    }
+    // if(job.pipeline_id==sampleJob.pipeline_id){
+    //     return sampleResult;
+    // }
     let volumes:Volume[] = [];
     let file = job.files[0];
     // console.log(file);
@@ -47,7 +47,7 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
     
      
 
-    let niis = <NiiFile[]> result.data;
+    let niis = result.data as NiiFile[];
     // console.log(niis);
     niis.forEach((value)=>{
         // console.log(value);
@@ -85,35 +85,35 @@ export const loadResult = createAsyncThunk('LoadResult', async ({accessToken,job
 // });
 
 // For local testing purposes:
-let sampleResult = {
-    job: sampleJob,
-    pipeline_id:'###',
-    volumes: [
-        {
-            name: 'Brain.nii',
-            url: './mni.nii',
-            alias: 'Brain'
-        },{
-            name: 'Hippocampus.nii',
-            url: './hippo.nii',
-            alias: 'Hippocampus',
-        }],
-    niis:[
-        {
-            filename: 'Brain.nii',
-            link: './mni.nii',
-            name: 'Brain',
-            dim:3,
-            type:'output',
-            id:1
+// let sampleResult = {
+//     job: sampleJob,
+//     pipeline_id:'###',
+//     volumes: [
+//         {
+//             name: 'Brain.nii',
+//             url: './mni.nii',
+//             alias: 'Brain'
+//         },{
+//             name: 'Hippocampus.nii',
+//             url: './hippo.nii',
+//             alias: 'Hippocampus',
+//         }],
+//     niis:[
+//         {
+//             filename: 'Brain.nii',
+//             link: './mni.nii',
+//             name: 'Brain',
+//             dim:3,
+//             type:'output',
+//             id:1
 
-        },{
-            filename: 'Hippocampus.nii',
-            link: './hippo.nii',
-            name: 'Hippocampus',
-            dim:3,
-            type:'output',
-            id:2
-        }
-    ]
-}
+//         },{
+//             filename: 'Hippocampus.nii',
+//             link: './hippo.nii',
+//             name: 'Hippocampus',
+//             dim:3,
+//             type:'output',
+//             id:2
+//         }
+//     ]
+// }

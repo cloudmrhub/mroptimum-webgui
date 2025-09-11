@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import {SNR} from "../../features/setup/setupSlice";
-import {LogItem} from "../../features/jobs/jobsSlice";
+import {LogItem} from "cloudmr-core";
 
 interface InfoInterface{
     headers:{

@@ -2,44 +2,19 @@ import React, { Fragment, useEffect, useState } from 'react';
 import './Home.scss';
 import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
-import { dataSlice, UploadedFile, deleteUploadedData, getUploadedData, renameUploadedData } from 'cloudmr-core';
+import { dataSlice, UploadedFile, deleteUploadedData, getUploadedData, renameUploadedData, jobsSlice } from 'cloudmr-core';
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CmrNameDialog } from 'cloudmr-ux';
-import { getUpstreamJobs, renameUpstreamJob } from "../../features/jobs/jobActionCreation";
-import { uploadData } from 'cloudmr-core';
-import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
-import { jobsSlice } from "../../features/jobs/jobsSlice";
+import { deleteUpstreamJob, getUpstreamJobs, uploadData } from 'cloudmr-core';
 import { CmrConfirmation } from 'cloudmr-ux';
 import { Button, CircularProgress } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
-import { getFileExtension } from "cloudmr-core";
-import { is_safe_twix } from "cloudmr-core";
-import { DATA_API, APP_NAME } from "../../Variables";
-import axios, { AxiosRequestConfig } from "axios";
-import { AxiosResponse } from "axios/index";
-import { uploadHandlerFactory } from "../../features/SystemUtilities";
-const getDataMethod = async (accessToken: string) => {
-    const config = {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        },
-        params: {
-            cloudapp_name: APP_NAME
-        }
-    }
-    try {
-        const response = await axios.get(DATA_API, config);
-        return response.data;
-    } catch (e) {
-        console.log(e);
-        return undefined;
-    }
-};
-
+import { AxiosRequestConfig } from "axios";
+import { uploadHandlerFactory } from "cloudmr-core";
 const Home = () => {
 
     const renamingProxy = (newName: string, proxyCallback: () => void) => {
@@ -114,7 +89,6 @@ const Home = () => {
                                     let dataReference = files[index];
                                     //@ts-ignore
                                     dispatch(renameUploadedData({
-                                        accessToken,
                                         fileId: dataReference.id,
                                         newName: newName
                                     }));
@@ -257,7 +231,7 @@ const Home = () => {
                             setColor('error');
                             setConfirmCallback(() => () => {
                                 console.log(index);
-                                dispatch(deleteUpstreamJob({ accessToken, jobId: params.row.id }));
+                                dispatch(deleteUpstreamJob({ jobId: params.row.id }));
                                 dispatch(jobsSlice.actions.deleteJob({ index }));
                             });
                             setCancelCallback(() => { });
@@ -377,7 +351,7 @@ const Home = () => {
                             {/* <Button color={'primary'} style={{textTransform:'none'}} variant={'contained'} fullWidth={true} disabled={true}> Upload </Button> */}
                             {/* TOBEACTIVATED AFTER THE BETA TESTING */}
                             <CMRUpload fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.dat', '.h5','.png', '.jpg', '.jpeg', '.npx', '.npy', '.pkl', '.mat']} color={'primary'} key={uploadKey} fullWidth onUploaded={(res, file) => {
-                                dispatch(getUploadedData(accessToken));
+                                dispatch(getUploadedData());
                                 setUploadKey(uploadKey + 1);
                             }}
                                 uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData)}
