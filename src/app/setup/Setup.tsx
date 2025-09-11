@@ -1,7 +1,8 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import './Setup.scss';
 import { CmrCollapse, CmrPanel, CmrConfirmation } from 'cloudmr-ux';
-import { getUploadedData, uploadData } from '../../features/data/dataActionCreation';
+import { getUploadedData } from 'cloudmr-core';
+import { uploadData } from 'cloudmr-core';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import { FileReference, getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
 import { CMRSelectUpload } from 'cloudmr-ux';
@@ -29,8 +30,8 @@ import {
 import { CmrButton } from 'cloudmr-ux';
 import { CmrInputNumber } from 'cloudmr-ux';
 import { AxiosRequestConfig, AxiosResponse } from "axios";
-import { UploadedFile } from "../../features/data/dataSlice";
-import { formatBytes, getFileExtension } from "../../common/utilities";
+import { UploadedFile } from "cloudmr-core";
+import { formatBytes, getFileExtension } from "cloudmr-core";
 import { jobActions, SetupInterface } from "../../features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
@@ -41,7 +42,7 @@ import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
-import downloadStringAsFile from "../../common/utilities/DownloadFromText";
+import { downloadStringAsFile } from "cloudmr-core";
 import { LambdaFile } from 'cloudmr-ux';
 import { uploadHandlerFactory } from "../../features/SystemUtilities";
 

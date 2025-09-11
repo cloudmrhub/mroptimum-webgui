@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from '../store';
-import { UploadedFile } from "../data/dataSlice";
+import { UploadedFile } from "cloudmr-core";
 import { Job, SetupInterface } from "../jobs/jobsSlice";
 import moment from "moment/moment";
 import { submitJobs } from "./setupActionCreation";
-import { uploadData } from "../data/dataActionCreation";
+import { uploadData } from "cloudmr-core";
 
 interface SetupState {
     loading: boolean;

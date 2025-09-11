@@ -10,7 +10,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import "./Signin.scss";
 // @ts-ignore
 import appIcon from '../../assets/mrOptimum.png';
-import { SigninDataType } from "../../features/authenticate/authenticateActionCreation";
+import { SigninDataType } from "cloudmr-core";
 
 const theme = createTheme({
     palette: {

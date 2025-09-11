@@ -1,8 +1,8 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import { getUpstreamJobs } from './jobActionCreation';
 import {defaultSNR, SNR} from "../setup/setupSlice";
-import {UploadedFile} from "../data/dataSlice";
-import {convertTimestamp} from "../../common/utilities/CalendarHelper";
+import {UploadedFile} from "cloudmr-core";
+import {convertTimestamp} from "cloudmr-core";
 
 export interface SetupInterface{
     version:string,

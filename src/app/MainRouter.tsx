@@ -8,7 +8,7 @@ import About from './about/About';
 import ContactUs from './contact-us/ContactUs';
 import BugReport from './bug-report/BugReport';
 import {useAppDispatch, useAppSelector} from "../features/hooks";
-import {getAccessToken} from "../features/authenticate/authenticateActionCreation"
+import {getLoggedInToken} from "cloudmr-core"
 import WebSignin from "./WebSignin";
 
 const debugging = false;
@@ -24,7 +24,7 @@ const MainRouter = () => {
             <Route path="/websignin/:token" element={<WebSignin/>}/>
             <Route path="/login" element={(authenticate.accessToken)?<Navigate to='/main'/>:<Signin
                 //@ts-ignore
-                signInCallback={(credentials)=>dispatch(getAccessToken(credentials))}/>} />
+                signInCallback={(credentials)=>dispatch(getLoggedInToken(credentials))}/>} />
             <Route
                 path="/"
                 element={debugging||authenticate.accessToken ? (<Navigate to='/main'/>) : (<Navigate to='/login'/>)}/>

@@ -1,7 +1,8 @@
 import {CLOUDMR_SERVER, API_URL} from "./env";
 
-export const SIGNIN = `${CLOUDMR_SERVER}/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
-export const SIGNOUT = `${CLOUDMR_SERVER}/logout`;//https://cloudmrhub.com/api/auth/logout`;
+export const SIGNIN = `${CLOUDMR_SERVER}/auth/login`;//`http://cancelit-env.eba-pmamcuv5.us-east-1.elasticbeanstalk.com/api/auth/login`;//`https://cloudmrhub.com/api/auth/login`;
+export const SIGNOUT = `${CLOUDMR_SERVER}/auth/logout`;//https://cloudmrhub.com/api/auth/logout`;
+export const REFRESH_TOKEN = `${CLOUDMR_SERVER}/auth/refresh`;
 export const PROFILE = `${CLOUDMR_SERVER}/profile`;
 
 export const FINEGRAIN = `${API_URL}/auth`;

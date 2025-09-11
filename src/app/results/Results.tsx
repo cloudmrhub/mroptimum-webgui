@@ -1,14 +1,15 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import './Results.scss';
 import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
-import { getUploadedData } from '../../features/data/dataActionCreation';
+import { getUploadedData } from 'cloudmr-core';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, { nv } from "../../common/components/src/Niivue";
 import { Job } from "../../features/jobs/jobsSlice";
-import { getUpstreamJobs, uploadJob } from "../../features/jobs/jobActionCreation";
+import { getUpstreamJobs } from "../../features/jobs/jobActionCreation";
+import { uploadData } from "cloudmr-core";
 import { resultActions, ROI } from "../../features/rois/resultSlice";
 import { getPipelineROI, loadResult } from "../../features/rois/resultActionCreation";
 import { Alert, Button, CircularProgress, Slide, Snackbar } from "@mui/material";
@@ -388,7 +389,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                 // console.log(uploaderKey);
                                 setUploaderKey(uploaderKey + 1);
                             }}
-                            uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadJob)}
+                            uploadHandler={uploadHandlerFactory(accessToken, queueToken, dispatch, uploadData)}
                         >Upload Results</CMRUpload>
                         <CmrCheckbox defaultChecked={true} onChange={(e) => {
                             //@ts-ignore

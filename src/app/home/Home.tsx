@@ -2,27 +2,22 @@ import React, { Fragment, useEffect, useState } from 'react';
 import './Home.scss';
 import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
-import { dataSlice, UploadedFile } from '../../features/data/dataSlice';
+import { dataSlice, UploadedFile, deleteUploadedData, getUploadedData, renameUploadedData } from 'cloudmr-core';
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CmrNameDialog } from 'cloudmr-ux';
 import { getUpstreamJobs, renameUpstreamJob } from "../../features/jobs/jobActionCreation";
-import {
-    deleteUploadedData,
-    getUploadedData,
-    renameUploadedData,
-    uploadData
-} from '../../features/data/dataActionCreation';
+import { uploadData } from 'cloudmr-core';
 import { deleteUpstreamJob } from '../../features/jobs/jobActionCreation';
 import { jobsSlice } from "../../features/jobs/jobsSlice";
 import { CmrConfirmation } from 'cloudmr-ux';
 import { Button, CircularProgress } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
-import { getFileExtension } from "../../common/utilities";
-import { is_safe_twix } from "../../common/utilities/file-transformation/anonymize";
+import { getFileExtension } from "cloudmr-core";
+import { is_safe_twix } from "cloudmr-core";
 import { DATA_API, APP_NAME } from "../../Variables";
 import axios, { AxiosRequestConfig } from "axios";
 import { AxiosResponse } from "axios/index";
@@ -121,7 +116,7 @@ const Home = () => {
                                     dispatch(renameUploadedData({
                                         accessToken,
                                         fileId: dataReference.id,
-                                        fileName: newName
+                                        newName: newName
                                     }));
                                 });
                                 // In case of non-working API, change name locally

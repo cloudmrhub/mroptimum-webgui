@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 import {configureStore} from "@reduxjs/toolkit";
-import {authenticateSlice} from "./authenticate/autheticateSlice";
-import {dataSlice} from "./data/dataSlice";
+import {authenticateSlice} from "cloudmr-core";
+import {dataSlice} from "cloudmr-core";
 import {jobsSlice} from "./jobs/jobsSlice";
 import {setupSlice} from "./setup/setupSlice";
 import storage from 'redux-persist/lib/storage';

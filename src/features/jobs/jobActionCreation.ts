@@ -9,8 +9,8 @@ import {
 import {Job} from "./jobsSlice";
 import {setupSetters} from "../setup/setupSlice";
 import { LambdaFile } from 'cloudmr-ux';
-import {getFileExtension} from "../../common/utilities";
-import {is_safe_twix} from "../../common/utilities/file-transformation/anonymize";
+import {getFileExtension} from "cloudmr-core";
+import {is_safe_twix} from "cloudmr-core";
 export const getUpstreamJobs = createAsyncThunk('GetJobs', async (accessToken: string) => {
     const config = {
         headers: {

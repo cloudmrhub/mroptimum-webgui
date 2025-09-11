@@ -2,7 +2,7 @@ import './Header.scss';
 import { useAppSelector } from '../../../features/hooks';
 import {AppDispatch} from '../../../features/store';
 import { useDispatch } from 'react-redux';
-import { signOut } from '../../../features/authenticate/authenticateActionCreation';
+import { signOut } from 'cloudmr-core';
 import Header from '../Cmr-components/header/Header';
 
 const HeaderBar = () => {
