@@ -7,9 +7,8 @@ import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import NiiVue, { nv } from "../../common/components/src/Niivue";
-import { Job, uploadData, getUpstreamJobs } from "cloudmr-core";
+import { Job, uploadData, getUpstreamJobs, getPipelineROI, loadResult } from "cloudmr-core";
 import { resultActions, ROI } from "../../features/rois/resultSlice";
-import { getPipelineROI, loadResult } from "../../features/rois/resultActionCreation";
 import { Alert, Button, CircularProgress, Slide, Snackbar } from "@mui/material";
 import { CmrCheckbox } from 'cloudmr-ux';
 import { Row } from "antd";
@@ -182,7 +181,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                         //@ts-ignore
                                         dispatch(getPipelineROI({
                                             pipeline: params.row.pipeline_id,
-                                            accessToken: accessToken
                                         }));
                                     });
                                 }}>
@@ -415,7 +413,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                 if (pipelineID)
                                     dispatch(getPipelineROI({
                                         pipeline: pipelineID,
-                                        accessToken: accessToken
                                     }));
                             }}
                             accessToken={accessToken} />}

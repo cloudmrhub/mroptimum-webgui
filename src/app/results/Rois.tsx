@@ -2,21 +2,18 @@ import { CmrTable } from "cloudmr-ux";
 import { CSSProperties, useState } from "react";
 import { Tooltip, IconButton } from "@mui/material";
 import { CMRUpload, LambdaFile } from "cloudmr-ux";
-import { getFileExtension } from "cloudmr-core";
-import { is_safe_twix } from "cloudmr-core";
-import { ROI_UPLOAD } from "../../Variables";
-import { AxiosRequestConfig } from "axios";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 import { GridRowSelectionModel, GridValueSetterParams } from "@mui/x-data-grid";
-import axios from "axios";
+import axios, {AxiosRequestConfig} from "axios";
 import Box from "@mui/material/Box";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faObjectGroup, faObjectUngroup, faDownload, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { CmrConfirmation } from "cloudmr-ux";
-import { getPipelineROI } from "../../features/rois/resultActionCreation";
-
+import { getPipelineROI } from "cloudmr-core";
+import { AuthenticatedHttpClient } from "cloudmr-core";
+import { getEndpoints } from 'cloudmr-core';
 export const ROITable = (props: {
     pipelineID: string,
     rois: any[], resampleImage: () => void,
@@ -34,12 +31,7 @@ export const ROITable = (props: {
     const pipeline = useAppSelector((state) => state.result.activeJob?.pipeline_id);
     const [selectedData, setSelectedData] = useState<GridRowSelectionModel>([]);
     const dispatch = useAppDispatch();
-    const UploadHeaders: AxiosRequestConfig = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-        },
-    };
+    const endpoints = getEndpoints();
     const roiColumns = [
         {
             headerName: 'ROI Label',
@@ -241,7 +233,7 @@ export const ROITable = (props: {
                 console.log(props);
                 let filename = file.name;
                 filename.split('.').pop();
-                const response = await axios.post(ROI_UPLOAD, {
+                const response = await AuthenticatedHttpClient.post(endpoints.ROI_UPLOAD, {
                     "filename": filename,
                     "pipeline_id": props.pipelineID,
                     "type": "image",

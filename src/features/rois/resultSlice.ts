@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import { getPipelineROI,loadResult } from './resultActionCreation';
+import { getPipelineROI,loadResult } from 'cloudmr-core';
 import {defaultSNR, FileReference, SNR} from "../setup/setupSlice";
 import {UploadedFile} from "cloudmr-core";
 import { Job } from 'cloudmr-core';

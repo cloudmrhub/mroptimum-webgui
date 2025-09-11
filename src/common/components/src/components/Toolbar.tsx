@@ -5,7 +5,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import { ROI } from "../../../../features/rois/resultSlice";
 import { useAppDispatch, useAppSelector } from "../../../../features/hooks";
-import { getPipelineROI } from "../../../../features/rois/resultActionCreation";
+import { getPipelineROI } from "cloudmr-core";
 import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
@@ -62,10 +62,7 @@ export default function Toolbar(props: ToolbarProps) {
         { value: "contrast", label: "Contrast" },
         { value: "none", label: "None" }
     ];
-    let accessToken = useAppSelector(state => state.authenticate.accessToken);
     let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
-
-
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -209,7 +206,7 @@ export default function Toolbar(props: ToolbarProps) {
                                 return;
                             props.saveROI(async () => {
                                 if (pipeline)
-                                    await dispatch(getPipelineROI({ accessToken, pipeline }));
+                                    await dispatch(getPipelineROI({pipeline }));
                                 setSaving(false);
                             }, () => {
                                 setSaving(true);

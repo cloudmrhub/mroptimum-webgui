@@ -19,7 +19,7 @@ import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./components/stats";
 import JSZip from "jszip";
 import { getMax, getMin } from "../../utilities";
-import { getPipelineROI } from "../../../features/rois/resultActionCreation";
+import { getPipelineROI } from "cloudmr-core";
 import { useAppDispatch, useAppSelector } from "../../../features/hooks";
 
 export const nv = new Niivue({
