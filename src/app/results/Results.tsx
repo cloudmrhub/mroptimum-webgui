@@ -166,7 +166,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
             dataIndex: 'createdAt',
             field: 'createdAt',
             flex: 2,
-            // renderCell: (params: { row: Job }) => formatCreatedAt(params.row.createdAt),
         },
         {
             headerName: 'Status',
