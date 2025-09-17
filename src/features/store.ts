@@ -11,7 +11,7 @@ import { persistReducer, persistStore,
     PERSIST,
     PURGE,
     REGISTER, } from 'redux-persist';
-import {resultSlice} from "./rois/resultSlice";
+import { resultSlice } from 'cloudmr-core/features/rois/resultSlice'
 
 let rootReducer = combineReducers({authenticate: authenticateSlice.reducer, data: dataSlice.reducer,
     jobs:jobsSlice.reducer, setup: setupSlice.reducer, result: resultSlice.reducer});

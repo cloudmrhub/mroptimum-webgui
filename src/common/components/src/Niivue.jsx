@@ -13,13 +13,12 @@ import Layer from './components/Layer.jsx';
 import './Niivue.css';
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import axios from "axios";
-import { ROI_UPLOAD } from "../../../Variables";
 import Confirmation from "../Cmr-components/dialogue/Confirmation";
 import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./components/stats";
 import JSZip from "jszip";
 import { getMax, getMin } from "../../utilities";
-import { getPipelineROI } from "cloudmr-core";
+import { AuthenticatedHttpClient, getPipelineROI, getEndpoints } from "cloudmr-core";
 import { useAppDispatch, useAppSelector } from "../../../features/hooks";
 
 export const nv = new Niivue({
@@ -43,6 +42,7 @@ window.nv = nv;
 // The NiiVue component wraps all other components in the UI. 
 // It is exported so that it can be used in other projects easily
 export default function NiiVueport(props) {
+    let endpoints = getEndpoints();
     const selectedVolume = props.selectedVolume;
     const setSelectedVolume = props.setSelectedVolume;
     const { setWarning, setWarningOpen } = props;
@@ -971,12 +971,8 @@ export default function NiiVueport(props) {
         setSaveDialogOpen(true);
         setSaveConfirmCallback(() => (async (filename) => {
             preSaveCallback();
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${props.accessToken}`,
-                },
-            };
-            const response = await axios.post(ROI_UPLOAD, {
+            const config = {};
+            const response = await AuthenticatedHttpClient.post(endpoints.ROI_UPLOAD, {
                 "filename": `${filename}`,
                 "pipeline_id": props.pipelineID,
                 "type": "image",

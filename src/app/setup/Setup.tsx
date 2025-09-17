@@ -1295,7 +1295,7 @@ const Setup = () => {
                                                     setJobSelectionModel([...jobSelectionModel, newJobId]);
                                                     setTimeout(() => setOpenPanel([0]), 500);
                                                     // console.log(store.getState().setup.queuedJobs.slice(-1));
-                                                    dispatch(submitJobs({ accessToken, queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
+                                                    dispatch(submitJobs({ queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
                                                     dispatch(setupSetters.bulkDeleteAllJobs());
                                                     dispatch(setupSetters.setMaskOption(Number(0)));
                                                     dispatch(setupSetters.setDecimateACL(null));

@@ -2,26 +2,23 @@ import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { Job, getUpstreamJobs } from "cloudmr-core";
-import { JOBS_API, APP_NAME } from "../../Variables";
 import { setupSetters } from "./setupSlice";
-
+import { getEndpoints } from 'cloudmr-core';
+import { AuthenticatedHttpClient } from 'cloudmr-core';
 export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
-    async ({ accessToken, jobQueue, queueToken }: { accessToken: string, jobQueue: Job[], queueToken: string }, thunkAPI) => {
+    async ({ jobQueue, queueToken }: { jobQueue: Job[], queueToken: string }, thunkAPI) => {
+        const endpoints = getEndpoints();
         let responses = [];
 
         for (let job of jobQueue) {
             console.log(job);
             console.log(queueToken);
             try {
-                let res = await axios.post(
-                    JOBS_API,
-                    JSON.stringify({
-                        ...job.setup,
-                        cloudapp_name:APP_NAME
-                    } ),
+                let res = await AuthenticatedHttpClient.post(
+                    endpoints.JOBS_API,
+                    JSON.stringify(job.setup),
                     {
                         headers: {
-                            Authorization: `Bearer ${accessToken}`,
                             accept: '*/*',
                             'X-Api-Key': queueToken,
                             'Content-Type': 'application/json',
