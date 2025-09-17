@@ -5,7 +5,7 @@ import Results from '../results/Results';
 import './Main.scss';
 import {useEffect, useState} from "react";
 import {useAppDispatch, useAppSelector} from "../../features/hooks";
-import {getProfile} from "cloudmr-core";
+import {getProfile} from "cloudmr-core/features/authenticate/authenticateActionCreation";
 
 const Main = (props: any) => {
     const tabData = [

@@ -1,7 +1,9 @@
 import { combineReducers } from 'redux';
 import {configureStore} from "@reduxjs/toolkit";
-import {authenticateSlice} from "cloudmr-core";
-import {dataSlice, jobsSlice} from "cloudmr-core";
+import {authenticateSlice} from "cloudmr-core/features/authenticate/authenticateSlice";
+import {dataSlice} from "cloudmr-core/features/data/dataSlice";
+import {jobsSlice} from "cloudmr-core/features/jobs/jobsSlice";
+import { resultSlice } from "cloudmr-core/features/rois/resultSlice"
 import {setupSlice} from "./setup/setupSlice";
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore,
@@ -11,7 +13,6 @@ import { persistReducer, persistStore,
     PERSIST,
     PURGE,
     REGISTER, } from 'redux-persist';
-import { resultSlice } from 'cloudmr-core/features/rois/resultSlice'
 
 let rootReducer = combineReducers({authenticate: authenticateSlice.reducer, data: dataSlice.reducer,
     jobs:jobsSlice.reducer, setup: setupSlice.reducer, result: resultSlice.reducer});

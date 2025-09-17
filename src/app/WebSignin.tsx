@@ -1,6 +1,6 @@
 import {Navigate, useNavigate, useParams} from 'react-router-dom';
 import { useAppDispatch } from '../features/hooks';
-import {webSignin} from "cloudmr-core";
+import {webSignin} from "cloudmr-core/features/authenticate/authenticateActionCreation";
 
 
 

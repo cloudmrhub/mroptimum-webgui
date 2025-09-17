@@ -2,19 +2,22 @@ import React, { Fragment, useEffect, useState } from 'react';
 import './Home.scss';
 import { CmrTable, CmrCollapse, CmrPanel } from 'cloudmr-ux';
 import { useAppDispatch, useAppSelector } from '../../features/hooks';
-import { dataSlice, UploadedFile, deleteUploadedData, getUploadedData, renameUploadedData, jobsSlice } from 'cloudmr-core';
+import { dataSlice, UploadedFile } from 'cloudmr-core/features/data/dataSlice';
+import { deleteUploadedData, getUploadedData, renameUploadedData } from 'cloudmr-core/features/data/dataActionCreation';
+import { jobsSlice } from 'cloudmr-core/features/jobs/jobsSlice';
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CmrNameDialog } from 'cloudmr-ux';
-import { deleteUpstreamJob, getUpstreamJobs, uploadData } from 'cloudmr-core';
+import { deleteUpstreamJob, getUpstreamJobs } from 'cloudmr-core/features/jobs/jobActionCreation';
+import { uploadData } from 'cloudmr-core/features/data/dataActionCreation';
 import { CmrConfirmation } from 'cloudmr-ux';
 import { Button, CircularProgress } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { CMRUpload, LambdaFile } from 'cloudmr-ux';
 import { AxiosRequestConfig } from "axios";
-import { uploadHandlerFactory } from "cloudmr-core";
+import { uploadHandlerFactory } from "cloudmr-core/common/utilities/SystemUtilities";
 const Home = () => {
 
     const renamingProxy = (newName: string, proxyCallback: () => void) => {

@@ -1,16 +1,16 @@
 import React from 'react';
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import HeaderBar from '../common/components/header/Header';
-import FooterBar from '../common/components/footer/Footer';
+import FooterBar from 'cloudmr-core/common/components/footer/Footer';
 import Signin from './signin/Signin';
 import Main from './main/Main';
 import About from './about/About';
 import ContactUs from './contact-us/ContactUs';
 import BugReport from './bug-report/BugReport';
 import {useAppDispatch, useAppSelector} from "../features/hooks";
-import {getLoggedInToken} from "cloudmr-core"
+import {getLoggedInToken} from "cloudmr-core/features/authenticate/authenticateActionCreation"
 import WebSignin from "./WebSignin";
-import { AuthenticatedHttpClient } from 'cloudmr-core';
+import { AuthenticatedHttpClient } from 'cloudmr-core/common/utilities/AuthenticatedRequests';
 import { store } from '../features/store';
 
 const debugging = false;

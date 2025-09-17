@@ -3,7 +3,7 @@ import {Stack, IconButton, Slider, Typography, Box} from '@mui/material';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import {InvertibleDualSlider} from "../../Cmr-components/double-slider/InvertibleDualSlider";
+import {InvertibleDualSlider} from "cloudmr-core/common/components/Cmr-components/double-slider/InvertibleDualSlider";
 import { CmrCheckbox } from 'cloudmr-ux';
 
 interface MaskPlatteProps {

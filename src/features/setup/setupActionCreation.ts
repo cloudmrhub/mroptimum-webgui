@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import { Job, getUpstreamJobs } from "cloudmr-core";
-import { setupSetters } from "./setupSlice";
-import { getEndpoints } from 'cloudmr-core';
-import { AuthenticatedHttpClient } from 'cloudmr-core';
+import { Job } from "cloudmr-core/features/jobs/jobsSlice";
+import { getUpstreamJobs } from "cloudmr-core/features/jobs/jobActionCreation";
+import { getEndpoints } from 'cloudmr-core/config/AppConfig';
+import { AuthenticatedHttpClient } from 'cloudmr-core/common/utilities/AuthenticatedRequests';
+
+
 export const submitJobs = createAsyncThunk('SUBMIT_JOBS',
     async ({ jobQueue, queueToken }: { jobQueue: Job[], queueToken: string }, thunkAPI) => {
         const endpoints = getEndpoints();
