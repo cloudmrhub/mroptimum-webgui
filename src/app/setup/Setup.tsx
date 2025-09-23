@@ -521,9 +521,8 @@ const Setup = () => {
                 onClick={() => {
                     // Reset signal and noise
                     dispatch(setSignal(undefined));
-                    dispatch(setNoise(undefined));
-                    // Reset FA file upload
-                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
+                    dispatch(setNoise(undefined)); 
+                    // reset FA flag
                     dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
                     dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
                     // Reset file updated flags
@@ -830,12 +829,11 @@ const Setup = () => {
                                         className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-4 mb-0' }}>
 
                                         <CmrCheckbox checked={!flipAngleCorrection}
-                                            defaultChecked={!flipAngleCorrection}
+                                            // defaultChecked={!flipAngleCorrection}
                                             onChange={(event) => {
                                                 const newValue = !event.target.checked;
                                                 dispatch(setupSetters.setFlipAngleCorrection(newValue));
                                                 if (!newValue) {
-                                                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined));
                                                     // FA correction disabled: clear FA file and remove FA from missing
                                                     setMissingFields(prev => prev.filter(f => f !== "FA"));
                                                 }

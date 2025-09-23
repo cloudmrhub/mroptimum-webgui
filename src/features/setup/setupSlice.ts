@@ -261,6 +261,20 @@ function createJob(snr: SNR, setupState: SetupState, alias = `${snr.options.reco
     };
 }
 
+function ensureCorrectionNode(state: SetupState) {
+    // Ensure nested containers exist before first write
+    const activeSetup: any = state.activeSetup ?? (state.activeSetup = { options: {} } as any);
+
+    if (!activeSetup.options) activeSetup.options = {};
+    if (!activeSetup.options.reconstructor) activeSetup.options.reconstructor = { options: {} };
+    if (!activeSetup.options.reconstructor.options) activeSetup.options.reconstructor.options = {};
+    if (!activeSetup.options.reconstructor.options.correction) {
+        activeSetup.options.reconstructor.options.correction = {};
+    }
+
+    return activeSetup.options.reconstructor.options.correction as any;
+}
+
 export const setupSlice = createSlice({
     name: 'setup',
     initialState,
@@ -347,16 +361,34 @@ export const setupSlice = createSlice({
         setGFactor(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options.gfactor = action.payload;
         },
+        // setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
+        //     state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
+        //     state.editInProgress = true;
+        // },
         setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
-            state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
+            const correction: any = ensureCorrectionNode(state);
+            correction.useCorrection = action.payload;
+
+            // clear any lingering file
+            if (!action.payload) {
+                correction.faCorrection = undefined;
+            }
             state.editInProgress = true;
         },
-        setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
-            if (action.payload == undefined) {
-                state.activeSetup.options.reconstructor.options.correction.faCorrection = undefined;
+        setFlipAngleCorrectionFile(
+            state: SetupState,
+            action: PayloadAction<UploadedFile | undefined>
+        ) {
+            const correction: any = ensureCorrectionNode(state);
+
+            if (action.payload === undefined) {
+                // Clear file (this is what your reset button wants)
+                correction.faCorrection = undefined;
+                state.editInProgress = true; // <-- make sure this still flips on clear
                 return;
             }
-            state.activeSetup.options.reconstructor.options.correction.faCorrection = UFtoFR(action.payload);
+
+            correction.faCorrection = UFtoFR(action.payload);
             state.editInProgress = true;
         },
         setLoadSensitivity(state: SetupState, action: PayloadAction<boolean>) {
