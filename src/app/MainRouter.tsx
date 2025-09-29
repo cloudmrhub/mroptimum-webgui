@@ -24,7 +24,7 @@ const MainRouter = () => {
     return (<React.Fragment>
         <BrowserRouter>
             {(debugging||authenticate.accessToken) &&
-                <HeaderBar />}
+                <HeaderBar siteTitle="CloudMR" authentication={authenticate} menuList={[]} handleLogout={()=>{}}/>}
         <Routes>
             <Route path="/websignin/:token" element={<WebSignin/>}/>
             <Route path="/login" element={(authenticate.accessToken)?<Navigate to='/main'/>:<Signin

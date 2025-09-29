@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { Box, Button } from '@mui/material';
 import { NVImage } from '@niivue/niivue';
-import { SettingsPanel } from './components/SettingsPanel.jsx';
-import { NumberPicker } from './components/NumberPicker.jsx';
-import { ColorPicker } from './components/ColorPicker.jsx';
-import { LayersPanel } from './components/LayersPanel.jsx';
-import { NiivuePanel } from './components/NiivuePanel.tsx';
+import { SettingsPanel } from './SettingsPanel.jsx';
+import { NumberPicker } from './NumberPicker.jsx';
+import { ColorPicker } from './ColorPicker.jsx';
+import { LayersPanel } from './LayersPanel.jsx';
+import { NiivuePanel } from './NiivuePanel';
 import { Niivue } from './NiivuePatcher';
-import NVSwitch from './components/Switch.jsx';
-import Toolbar from './components/Toolbar.tsx';
-import Layer from './components/Layer.jsx';
+import NVSwitch from './Switch.jsx';
+import Toolbar from './Toolbar';
+import Layer from './Layer.jsx';
 import './Niivue.css';
 import { CmrEditConfirmation } from 'cloudmr-ux';
 import axios from "axios";
-import Confirmation from "../Cmr-components/dialogue/Confirmation";
+import Confirmation from "cloudmr-ux";
 import Plotly from "plotly.js-dist-min";
-import { calculateMean, calculateStandardDeviation } from "./components/stats";
+import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
-import { getMax, getMin } from "../../utilities";
+import { getMax, getMin } from "../utilities/index";
 import { AuthenticatedHttpClient, getPipelineROI, getEndpoints } from "cloudmr-core";
-import { useAppDispatch, useAppSelector } from "../../../features/hooks";
+import { useAppDispatch, useAppSelector } from "../../features/hooks";
 
 export const nv = new Niivue({
     loadingText: '',

@@ -4,7 +4,7 @@ import { IconButton, FormControl, Select, MenuItem, InputLabel } from "@mui/mate
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import { ROI } from "cloudmr-core";
-import { useAppDispatch, useAppSelector } from "../../../../features/hooks";
+import { useAppDispatch, useAppSelector } from "../../features/hooks";
 import { getPipelineROI } from "cloudmr-core";
 import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../features/hooks';
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import NiiVue, { nv } from "../../common/components/src/Niivue";
+import NiiVue, { nv } from "../../common/components/Niivue";
 import { Job } from "cloudmr-core/features/jobs/jobsSlice";
 import { getUpstreamJobs } from "cloudmr-core/features/jobs/jobActionCreation";
 import { uploadData, getUploadedData } from "cloudmr-core/features/data/dataActionCreation";

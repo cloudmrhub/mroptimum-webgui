@@ -1,31 +1,32 @@
-.header-bar {
-  display: flex;
-  flex-direction: row;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bs-dark-rgb: 0, 0, 0; /* change these values to your preferred RGB color */
 }
 
-.logo {
-  float: left;
-  width: 120px;
-  height: 35px;
-  margin: 14px 24px 14px 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.navbar {
+  font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 
-.site-title {
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.65);
+.navbar .dropdown-toggle {
+  font-size: 14px;
 }
 
-.user-profile {
-  margin-left: auto;
+.navbar .nav-link {
+  font-size: 14px;
+  font-weight: 400;
 }
 
-.user-profile .email {
-  color: rgba(255, 255, 255, 0.65);
+.small-margin{
+  margin-left: 25pt;
+  margin-right: 25pt;
 }
 
-.user-profile .logout {
-  margin-left: 20px;
+.navbar-nav > .active > a {
+  color: white;
+  font-weight: 500;
+}
+
+.navbar-brand {
+  font-family: 'Inter', sans-serif;
 }
