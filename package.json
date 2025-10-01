@@ -26,6 +26,7 @@
     "axios": "^1.4.0",
     "bootstrap": "^5.3.1",
     "cloudmr-ux": "^1.9.9",
+    "eslint": "^8.57.1",
     "gl-matrix": "^3.4.3",
     "https-browserify": "^1.0.0",
     "jszip": "^3.10.1",
@@ -47,12 +48,24 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint . ",
+    "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx ."
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-unused-vars": "off"
+    },
+    "ignorePatterns": [
+      "node_modules/",
+      "public/",
+      "assets/",
+      "build/"
     ]
   },
   "browserslist": {
