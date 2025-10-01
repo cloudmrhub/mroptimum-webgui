@@ -59,7 +59,7 @@ export default function NiiVueport(props) {
     const [crosshair3D, setCrosshair3D] = React.useState(false)
     const [textSize, setTextSize] = React.useState(nv.opts.textHeight)
     const [colorBar, setColorBar] = React.useState(nv.opts.isColorbar)
-    const [worldSpace, setWorldSpace] = React.useState(nv.opts.isSliceMM)
+    const [worldSpace, setWorldSpace] = React.useState(nv.opts.isSliceMM) // track the z axis 
     const [clipPlane, setClipPlane] = React.useState(nv.currentClipPlaneIndex > 0 ? true : false)
     // TODO: add crosshair size state and setter
     const [opacity, setopacity] = React.useState(1.0)
@@ -176,6 +176,7 @@ export default function NiiVueport(props) {
         // setMin(volume.cal_min);
         // setMax(volume.cal_max);
         nv.resetScene();
+        nvSetDragMode(dragMode); // keep engine behavior in sync with dropdown
     }
 
 
@@ -421,7 +422,8 @@ export default function NiiVueport(props) {
                 nv.opts.dragMode = nv.dragModes.measurement;
                 break;
             case "pan":
-                nv.opts.dragMode = 3;
+                // nv.opts.dragMode = 3;
+                nv.opts.dragMode = nv.dragModes.pan;
                 break;
         }
         // nv.drawScene();
@@ -761,6 +763,7 @@ export default function NiiVueport(props) {
         } else if (newSliceType === '3d') {
             nv.setSliceType(nv.sliceTypeRender)
         }
+        nvSetDragMode(dragMode);
     }
 
     function nvUpdateLayerOpacity(a) {
@@ -814,6 +817,7 @@ export default function NiiVueport(props) {
             }
             try {
                 await nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
+                nvSetDragMode(dragMode); // re-apply user's drag mode after Niivue resets
             } catch (e) {
                 setWarning("Error loading results, please check internet connectivity");
                 setWarningOpen(true);

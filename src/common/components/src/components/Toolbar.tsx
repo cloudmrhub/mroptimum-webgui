@@ -30,7 +30,8 @@ interface ToolbarProps {
     refreshROI: () => void;
     showCrosshair: boolean;
     toggleShowCrosshair: () => void;
-    dragMode: boolean,
+    // dragMode: boolean,
+    dragMode: string,
     setDragMode: (dragMode: string | boolean) => void;
     radiological: boolean;
     toggleRadiological: () => void;
@@ -96,12 +97,12 @@ export default function Toolbar(props: ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="slice-type-label">Current Plot</InputLabel>
+                        <InputLabel id="slice-type-label">Opened Volume</InputLabel>
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"
                             value={props.selectedVolume}
-                            label="Current Plot"
+                            label="Opened Volume"
                             onChange={(e) => props.setSelectedVolume(Number(e.target.value))}
                         >
                             {props.volumes.map((value, index) => {
@@ -115,7 +116,7 @@ export default function Toolbar(props: ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="slice-type-label">Display mode</InputLabel>
+                        <InputLabel id="slice-type-label">Display Mode</InputLabel>
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"
@@ -137,7 +138,7 @@ export default function Toolbar(props: ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="drag-mode-label">Right Button</InputLabel>
+                        <InputLabel id="drag-mode-label">Drag Mode</InputLabel>
                         <Select
                             labelId="drag-mode-label"
                             id="drag-mode"
@@ -147,13 +148,7 @@ export default function Toolbar(props: ToolbarProps) {
                                 console.log(e.target.value);
                                 props.setDragMode(e.target.value);
                             }}
-                        >
-                            {/* {dragModes.map((value, index) =>
-                                <MenuItem key={index} value={value.toLowerCase()}>
-                                    {value}
-                                </MenuItem>
-                            )} */}
-                            
+                        >   
                             {dragModes.map((mode, index) => (
                                 <MenuItem key={index} value={mode.value}>
                                     {mode.label}
@@ -168,7 +163,7 @@ export default function Toolbar(props: ToolbarProps) {
                             m: 2,
                             minWidth: 120
                         }}>
-                        <InputLabel id="slice-type-label">Pixel Type</InputLabel>
+                        <InputLabel id="slice-type-label">Complex Mode</InputLabel>
                         <Select
                             labelId="slice-type-label"
                             id="slice-type"
