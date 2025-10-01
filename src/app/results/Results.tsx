@@ -51,7 +51,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
     const pipelineID = useAppSelector(state => state.result.activeJob?.pipeline_id);
     const niis = useAppSelector(state => pipelineID ? state.result.niis[pipelineID] : []);
     const rois: ROI[] = useAppSelector(state => {
-        return (pipelineID == undefined || state.result.rois[pipelineID] == undefined) ? [] : state.result.rois[pipelineID];
+        return (pipelineID === undefined || state.result.rois[pipelineID] === undefined) ? [] : state.result.rois[pipelineID];
     })
     const selectedVolume = useAppSelector(state => state.result.selectedVolume);
     const resultLoading = useAppSelector(state => state.result.resultLoading);
@@ -68,7 +68,8 @@ const Results = ({ visible }: { visible?: boolean }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
     const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
-
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData());
@@ -150,12 +151,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
             renderCell: (params: { row: Job }) => {
                 return (
                     <div>
-                        {params.row.status != 'failed' && (
+                        {params.row.status !== 'failed' && (
                             <Tooltip title={`View job ${params.row.alias}`}>
 
-                                <IconButton disabled={params.row.status == 'pending'} onClick={(event) => {
+                                <IconButton disabled={params.row.status === 'pending'} onClick={(event) => {
                                     event.stopPropagation();
-                                    if (params.row.pipeline_id == activeJob?.pipeline_id) {
+                                    if (params.row.pipeline_id === activeJob?.pipeline_id) {
                                         dispatch(resultActions.setOpenPanel([1, 2]));
                                         return;
                                     }
@@ -188,12 +189,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                         }));
                                     });
                                 }}>
-                                    {resultLoading == params.row.id || params.row.status == 'pending' ?
+                                    {resultLoading === params.row.id || params.row.status === 'pending' ?
                                         <div className="spinner-border spinner-border-sm" style={{ aspectRatio: '1 / 1' }}
                                             role="status" />
                                         :
                                         <PlayArrowIcon sx={{
-                                            color: (params.row.status != 'completed') ? '#8a6fae' : '#580f8b', // purple color
+                                            color: (params.row.status !== 'completed') ? '#8a6fae' : '#580f8b', // purple color
                                             '&:hover': {
                                                 color: '#390063', // darker purple when hovering
                                             },
@@ -208,7 +209,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                     e.stopPropagation();
                                     params.row.files.forEach(file => {
                                         let url = file.link;
-                                        if (url == "unknown")
+                                        if (url === "unknown")
                                             return;
                                         // Create an anchor element
                                         const a = document.createElement('a');
@@ -281,7 +282,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
 
                         <IconButton onClick={(event) => {
                             event.stopPropagation();
-                            if (params.row.pipeline_id == activeJob?.pipeline_id) {
+                            if (params.row.pipeline_id === activeJob?.pipeline_id) {
                                 setShowingLogs(!showingLogs);
                                 return;
                             }
@@ -403,9 +404,9 @@ const Results = ({ visible }: { visible?: boolean }) => {
                     {showingLogs && <Logs />}
                 </CmrPanel>
                 <CmrPanel className={'mb-2'}
-                    header={activeJobAlias != undefined ? `Viewing ${activeJobAlias}` : 'View Results'}
+                    header={activeJobAlias !== undefined ? `Viewing ${activeJobAlias}` : 'View Results'}
                     key={'1'}>
-                    {activeJob != undefined &&
+                    {activeJob !== undefined &&
                         <NiiVue niis={niis}
                             warn={warn}
                             setWarning={setWarning}
@@ -420,7 +421,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                                     }));
                             }}
                             accessToken={accessToken} />}
-                    {activeJob == undefined &&
+                    {activeJob === undefined &&
                         <Box sx={{ display: 'flex', justifyContent: 'center', color: 'rgba(0,0,0,0.4)' }}>
                             Please Select a Job Result
                         </Box>}

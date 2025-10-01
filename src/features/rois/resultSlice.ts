@@ -14,7 +14,7 @@ export const resultGetters = {
     },
 
     getPseudoReplicaCount: (state: RootState): number | undefined => {
-        try{if(state.result.activeJob?.setup.task?.options['NR']!=undefined)
+        try{if(state.result.activeJob?.setup.task?.options['NR'] !== undefined)
             return Number(state.result.activeJob?.setup.task?.options['NR']);}
         catch(e){
             return undefined;
@@ -22,7 +22,7 @@ export const resultGetters = {
     },
 
     getBoxSize: (state: RootState): number | undefined => {
-        try{if(state.result.activeJob?.setup.task?.options['boxSize']!=undefined)
+        try{if(state.result.activeJob?.setup.task?.options['boxSize'] !== undefined)
             return Number(state.result.activeJob?.setup.task?.options['boxSize']);}
         catch(e){
             return undefined;
@@ -42,7 +42,7 @@ export const resultGetters = {
     },
 
     getReconstructionMethod: (state: RootState): number | undefined => {
-        try{if(state.result.activeJob?.setup.task?.options.reconstructor?.id!=undefined)
+        try{if(state.result.activeJob?.setup.task?.options.reconstructor?.id !== undefined)
             return Number(state.result.activeJob?.setup.task?.options.reconstructor?.id);
         }catch(e){
             return 0;

@@ -131,14 +131,14 @@ export const SetupInspection = ()=>{
             </SettingsText>
         </Box>
         <Divider variant="middle" sx={{marginTop: '5pt', marginBottom: '5pt', color: 'darkgray'}}/>
-        {(analysisMethod != undefined) &&
+        {(analysisMethod !== undefined) &&
             <>
-                    {(analysisMethod == 2 || analysisMethod == 3) &&
+                    {(analysisMethod === 2 || analysisMethod === 3) &&
                         <SettingsBox>
                             <span>{'Number of Pseudo Replica: '}</span>
                             <SettingsText>{pseudoReplicaCount}</SettingsText>
                         </SettingsBox>}
-                    {(analysisMethod == 3) &&
+                    {(analysisMethod === 3) &&
                         <SettingsBox>
                             <span>{'Cubic VOI Size (Length of Side in Pixels): '}</span>
                             <SettingsText>{boxSize}</SettingsText>
@@ -147,7 +147,7 @@ export const SetupInspection = ()=>{
                     <span>{'Image Reconstruction Method: '}</span>
                     <SettingsText>{idToSecondaryOptions[Number(reconstructionMethod)]}</SettingsText>
                 </SettingsBox>
-                    {(reconstructionMethod != undefined) &&
+                    {(reconstructionMethod !== undefined) &&
                         <Box>
                            <SettingsBox>
                                <SettingsText>
@@ -166,7 +166,7 @@ export const SetupInspection = ()=>{
                                }
                            </SettingsBox>
 
-                            {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
+                            {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length  !== 0) &&
                                 <SettingsBox
                                 >
                                     <p>
@@ -190,7 +190,7 @@ export const SetupInspection = ()=>{
                                                 </span>}
                                     {/*<InputLabel id="css-label">Age</InputLabel>*/}
                                 </SettingsBox>}
-                            {(reconstructionMethod==3) &&
+                            {(reconstructionMethod === 3) &&
                                 <SettingsBox>
                                     <p style={{marginBottom:'10pt'}}>
                                         Kernel Size 1: <SettingsText>{kernelSize1}</SettingsText>
@@ -216,7 +216,7 @@ export const SetupInspection = ()=>{
                                         Acceleration Factor 2: <SettingsText>{decimateAcceleration2}</SettingsText>
                                     </p>
                                     <p>
-                                        Used {decimateACL == null?
+                                        Used {decimateACL === null?
                                         <SettingsText>
                                             {' All '}
                                         </SettingsText>

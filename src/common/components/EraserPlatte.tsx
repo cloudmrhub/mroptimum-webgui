@@ -50,7 +50,7 @@ const DrawPlatte: React.FC<EraserPlatteProps> = ({ expandEraseOptions, updateDra
             <Stack direction="row" style={{justifyContent:'center'}}>
                 {eraseOptions.map((value,index)=><IconButton
                     onClick={()=>{
-                        updateDrawPen({target:{value:(index==0)?8:0}});
+                        updateDrawPen({target:{value:(index === 0)?8:0}});
                         setDrawingEnabled(true);
                     }}>
                     {value}

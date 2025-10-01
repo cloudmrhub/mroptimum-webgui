@@ -43,7 +43,7 @@ export const ROITable = (props: {
                 // console.log(params);
                 const newAlias = params.value; // Value entered by the user
                 // console.log(newAlias);
-                if (newAlias != params.row.alias) {
+                if (newAlias !== params.row.alias) {
                     props.setLabelAlias(params.row.label, newAlias);
                 }
                 return params.row
@@ -146,7 +146,7 @@ export const ROITable = (props: {
         // processRowUpdate={(newRow, oldRow) => {
         //     console.log(newRow);
         //     console.log(oldRow);
-        //     if(oldRow.alias!=newRow.alias) {
+        //     if(oldRow.alias !== newRow.alias) {
         //         const newAlias = newRow.alias; // Value entered by the user
         //         console.log(newAlias);
         //         const cellLabel = newRow.label; // Assuming the label is stored in params.id
@@ -202,7 +202,7 @@ export const ROITable = (props: {
                         selectedLabels.push(Number(label));
                     }
                     fileName += '.nii';
-                    if (selectedLabels.length == 0) {
+                    if (selectedLabels.length === 0) {
                         warnEmptySelection("No ROI selected for download");
                         return;
                     }

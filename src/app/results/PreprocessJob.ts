@@ -33,7 +33,7 @@ export async function processJobZip(file:File,fileAlias:string, token:string){
             if (filename === 'info.json') {
                 // Process info.json
                 const fileContent = await zipEntry.async('string');
-                let infoJSON = <InfoInterface>JSON.parse(fileContent);
+                let infoJSON = JSON.parse(fileContent) as InfoInterface;
                 if (!infoJSON.headers) return undefined;
                 infoJSON.headers.options.pipelineid = null;
                 infoJSON.headers.options.token = `Bearer ${token}`;

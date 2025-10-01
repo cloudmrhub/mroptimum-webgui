@@ -16,8 +16,10 @@ const Main = (props: any) => {
     const [focusedTab,setFocusedTab] = useState(1);
     const accessToken = useAppSelector(state => state.authenticate.accessToken);
     const dispatch = useAppDispatch();
+
     useEffect(() => {
         dispatch(getProfile(accessToken));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accessToken]);
     return (
         // <div className={`${focusedTab==2?'container-fluid':'container'} mt-4`} style={{maxWidth:focusedTab==2?'100%':undefined,transition: 'all 0.3s'}}>

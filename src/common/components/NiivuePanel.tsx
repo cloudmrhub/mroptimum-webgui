@@ -225,7 +225,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 min={props.nv.volumes[0] ? props.nv.volumes[0].cal_min ?? props.nv.volumes[0].robust_min : 0}
                                 setMin={(min) => {
                                     let volume = props.nv.volumes[0];
-                                    if (volume == undefined) {
+                                    if (volume === undefined) {
                                         return;
                                     }
                                     volume.cal_min = min;
@@ -236,7 +236,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 key={props.rangeKey}
                                 setMax={(max) => {
                                     let volume = props.nv.volumes[0];
-                                    if (volume == undefined) {
+                                    if (volume === undefined) {
                                         return;
                                     }
                                     volume.cal_max = max;

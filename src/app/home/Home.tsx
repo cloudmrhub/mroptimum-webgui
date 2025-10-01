@@ -23,7 +23,7 @@ const Home = () => {
     const renamingProxy = (newName: string, proxyCallback: () => void) => {
         return new Promise<boolean>(resolve => {
             let originalExt = originalName.split('.').pop();
-            if (newName.split('.').length == 1) {
+            if (newName.split('.').length === 1) {
                 setMessage(`Missing file extension in '${newName}'.`);
                 setColor('error');
                 setConfirmCallback(() => () => {
@@ -33,7 +33,7 @@ const Home = () => {
                     resolve(false);
                 })
                 setOpen(true);
-            } else if (newName.split('.').pop() != originalExt) {
+            } else if (newName.split('.').pop() !== originalExt) {
                 let newExt = newName.split('.').pop();
                 let orgExt = originalExt ?? '?';
                 setMessage(`Changing file extension from ${orgExt} to ${newExt}.`);
@@ -207,7 +207,7 @@ const Home = () => {
                             console.log(params.row.files);
                             params.row.files.forEach((file: UploadedFile) => {
                                 let url = file.link;
-                                if (url == "unknown")
+                                if (url === "unknown")
                                     return;
                                 // Create an anchor element
                                 const a = document.createElement('a');
@@ -264,14 +264,15 @@ const Home = () => {
     const [cancelCallback, setCancelCallback] = useState<() => void>(() => { });
 
     const [selectedData, setSelectedData] = useState<GridRowSelectionModel>([]);
-
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData(accessToken));
         //@ts-ignore
         dispatch(getUpstreamJobs(accessToken));
         console.log("dispatched");
-    }, []);
+    }, [accessToken]);
 
 
     const [uploadKey, setUploadKey] = useState(0);
@@ -284,9 +285,9 @@ const Home = () => {
 
     function downloadSelectedValues() {
         let downloadPending: UploadedFile[] = [];
-        selectedData.map((id) => {
+        selectedData.forEach((id) => {
             for (let file of files) {
-                if (file.id == id)
+                if (file.id === id)
                     downloadPending.push(file);
             }
         });

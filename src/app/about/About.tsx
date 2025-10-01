@@ -71,7 +71,7 @@ const description = (
 const doc = (
     <div className="cmParagraph">
         <div className="cmText">
-            Our python sources are available <a href="https://github.com/cloudmrhub/mroptimum-tools" target="_blank">here</a>. User manuals and video tutorials will be available in the future.
+            Our python sources are available <a href="https://github.com/cloudmrhub/mroptimum-tools" target="_blank" rel="noreferrer">here</a>. User manuals and video tutorials will be available in the future.
         </div>
     </div>
 );
@@ -80,7 +80,7 @@ const funding = (
     <div>
         <div className="cmParagraph">
             <div className="cmText">
-                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank">NIH</a>) under Award Number <a href="https://reporter.nih.gov/project-details/10992662">R01 EB024536</a>. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
+                MR Optimum is available through the Cloud MR software application framework. This research project is supported by the National Institute of Biomedical Imaging and Bioengineering (<a href="https://www.nibib.nih.gov/" target="_blank" rel="noreferrer">NIBIB</a>) of the National Institutes of Health (<a href="https://www.nih.gov/" target="_blank" rel="noreferrer">NIH</a>) under Award Number <a href="https://reporter.nih.gov/project-details/10992662">R01 EB024536</a>. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health.
             </div>
         </div>
 

@@ -42,7 +42,6 @@ import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
 import { downloadStringAsFile } from "cloudmr-core/common/utilities/DownloadFromText";
-import { LambdaFile } from 'cloudmr-ux';
 import { uploadHandlerFactory } from "cloudmr-core/common/utilities/SystemUtilities";
 
 
@@ -54,7 +53,7 @@ const Setup = () => {
 
     const dispatch = useAppDispatch();
     const { accessToken, level, uploadToken, queueToken } = useAppSelector((state) => state.authenticate);
-    const developer = level != 'standard' && level != 'pro';
+    const developer = level !== 'standard' && level !== 'pro';
     const editActive = useAppSelector(state => state.setup.editInProgress);
     const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
     const newJobId = useAppSelector((state) => state.setup.idGenerator);
@@ -155,13 +154,6 @@ const Setup = () => {
         };
     };
 
-    const UploadHeaders: AxiosRequestConfig = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'X-Api-Key': uploadToken
-        },
-    };
     useEffect(() => {
         //@ts-ignore
         dispatch(getUploadedData());
@@ -175,6 +167,7 @@ const Setup = () => {
 
         window.addEventListener('resize', updateBreakpoint);
         updateBreakpoint();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -186,7 +179,8 @@ const Setup = () => {
         ) {
             dispatch(setupSetters.setDecimateACL(null));
         }
-    }, [reconstructionMethod, decimateData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [decimateMapping, decimateACL, reconstructionMethod, decimateData]);
 
     // make sure gfactor is only true when sense and checkbox are selected
     useEffect(() => {
@@ -197,7 +191,8 @@ const Setup = () => {
             // Leaving SENSE: always disable gfactor
             dispatch(setupSetters.setGFactor(false));
         }
-    }, [reconstructionMethod]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [outputGFactor, reconstructionMethod]);
 
     const columns: GridColDef[] = [
         { field: 'type', headerName: 'type', width: 180, editable: false },
@@ -217,22 +212,22 @@ const Setup = () => {
                             min={1}
                             style={{ width: '100%' }}
                             onChange={(val) => {
-                                dispatch(setupSetters.setDecimateAccelerations1((val == null) ? 1 : val))
+                                dispatch(setupSetters.setDecimateAccelerations1((val === null) ? 1 : val))
                             }}></CmrInputNumber>;
                     case 2:
                         return <CmrInputNumber value={decimateAcceleration2}
                             min={1}
                             style={{ width: '100%' }}
                             onChange={(val) => {
-                                dispatch(setupSetters.setDecimateAccelerations2((val == null) ? 1 : val))
+                                dispatch(setupSetters.setDecimateAccelerations2((val === null) ? 1 : val))
                             }}></CmrInputNumber>;
                     case 3:
-                        return <CmrInputNumber value={decimateACL == null ? Number.NaN : decimateACL}
+                        return <CmrInputNumber value={decimateACL === null ? Number.NaN : decimateACL}
                             style={{ width: '100%' }}
                             min={2}
-                            disabled={decimateACL == null}
+                            disabled={decimateACL === null}
                             onChange={(val) => {
-                                dispatch(setupSetters.setDecimateACL((val == null) ? 1 : val))
+                                dispatch(setupSetters.setDecimateACL((val === null) ? 1 : val))
                             }}></CmrInputNumber>;
                 }
             }
@@ -268,14 +263,14 @@ const Setup = () => {
                             min={1}
                             style={{ width: '100%' }}
                             onChange={(val) => {
-                                dispatch(setupSetters.setKernelSize1((val == null) ? 0 : val))
+                                dispatch(setupSetters.setKernelSize1((val === null) ? 0 : val))
                             }}></CmrInputNumber>;
                     case 2:
                         return <CmrInputNumber value={kernelSize2}
                             min={1}
                             style={{ width: '100%' }}
                             onChange={(val) => {
-                                dispatch(setupSetters.setKernelSize2((val == null) ? 0 : val))
+                                dispatch(setupSetters.setKernelSize2((val === null) ? 0 : val))
                             }}></CmrInputNumber>;
                 }
             }
@@ -351,7 +346,7 @@ const Setup = () => {
                             let row = params.row;
                             let setup = row.setup;
                             let alias = row.alias;
-                            if (alias.split('.').pop() != 'json') {
+                            if (alias.split('.').pop() !== 'json') {
                                 alias = `${alias}.json`;
                             }
                             downloadStringAsFile(JSON.stringify(row, undefined, '\t'), alias);
@@ -408,7 +403,7 @@ const Setup = () => {
         }),
     };
 
-    const [openPanel, setOpenPanel] = useState((noise != undefined && signal != undefined) ? [1] : [0]);
+    const [openPanel, setOpenPanel] = useState((noise !== undefined && signal !== undefined) ? [1] : [0]);
     let snr: any = undefined;
     let [previewContent, setPreview] = useState<string | undefined>(undefined);
     const [schemaSelector, setSchemaSelector] = useState(false);
@@ -502,6 +497,7 @@ const Setup = () => {
     }
 
     // logic for handling panel opening for signal and noise files
+    
     useEffect(() => {
         const signal = setupGetters.getSignal(store.getState());
         const noise = setupGetters.getNoise(store.getState());
@@ -564,7 +560,7 @@ const Setup = () => {
                                                 fileSelection={uploadedData}
                                                 onSelected={(signal) => {
                                                     dispatch(setSignal(signal));
-                                                    setSignalFileUpdated(signal != undefined);
+                                                    setSignalFileUpdated(signal !== undefined);
                                                     if (signal) {
                                                         setMissingFields((prev) => prev.filter((field) => field !== "Signal"));
                                                     }
@@ -585,7 +581,7 @@ const Setup = () => {
                                                     marginRight: '0'
                                                 }}
                                                 uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'signal')}
-                                                chosenFile={(signal?.options.filename != '') ? signal?.options.filename : undefined}
+                                                chosenFile={(signal?.options.filename !== '') ? signal?.options.filename : undefined}
                                             />
 
                                             {/* Clear Button */}
@@ -622,10 +618,10 @@ const Setup = () => {
                                         sx={{ ml: 2 }}
                                         onChange={(event) => {
                                             dispatch(setupSetters.setMultiRaid(event.target.checked));
-                                            if (signal != undefined && event.target.checked)
+                                            if (signal !== undefined && event.target.checked)
                                                 setTimeout(() => setOpenPanel([1]), 500);
                                         }}
-                                        checked={multiraid != undefined && multiraid}
+                                        checked={multiraid !== undefined && multiraid}
                                     >
                                         Multi-Raid
                                     </CmrCheckbox>
@@ -641,7 +637,7 @@ const Setup = () => {
                         </Col>
                     </Row>
 
-                    {(multiraid == undefined || !multiraid) &&
+                    {(multiraid === undefined || !multiraid) &&
                         <Fragment>
                             <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                             <Row>
@@ -658,7 +654,7 @@ const Setup = () => {
                                                         fileSelection={uploadedData}
                                                         onSelected={(noise) => {
                                                             dispatch(setNoise(noise));
-                                                            setNoiseFileUpdated(noise != undefined);
+                                                            setNoiseFileUpdated(noise !== undefined);
                                                             if (noise) {
                                                                 setMissingFields((prev) => prev.filter((field) => field !== "Noise"));
                                                             }
@@ -678,7 +674,7 @@ const Setup = () => {
                                                             marginBottom: 'auto',
                                                             marginRight: '0'
                                                         }}
-                                                        chosenFile={(noise?.options.filename != '') ? noise?.options.filename : undefined}
+                                                        chosenFile={(noise?.options.filename !== '') ? noise?.options.filename : undefined}
                                                         uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'noise')}
                                                     />
 
@@ -722,10 +718,10 @@ const Setup = () => {
                             </Row>
                         </Fragment>}
                 </CmrPanel>
-                <CmrPanel key="2" header={editing == -1 ? "SNR Analysis" : `Editing Job ${editing}`} className='mb-2'>
+                <CmrPanel key="2" header={editing === -1 ? "SNR Analysis" : `Editing Job ${editing}`} className='mb-2'>
                     <FormControl style={{ width: '100%' }} className={'mb-3'} onChange={(event) => {
                         //@ts-ignore
-                        if (event.target.value != analysisMethod)
+                        if (event.target.value !== analysisMethod)
                             setAnalysisMethodChanged(true);
                         //@ts-ignore
                         dispatch(setupSetters.setAnalysisMethod(event.target.value));
@@ -735,7 +731,7 @@ const Setup = () => {
                             row
                             aria-labelledby="demo-row-radio-buttons-group-label"
                             name="row-radio-buttons-group"
-                            value={analysisMethod != undefined ? analysisMethod : ''}
+                            value={analysisMethod !== undefined ? analysisMethod : ''}
                             style={{ display: 'flex', justifyContent: 'space-between' }}
                         >
                             <FormControlLabel value={0} control={<Radio />} label="Analytic Method" />
@@ -745,7 +741,7 @@ const Setup = () => {
                         </RadioGroup>
                     </FormControl>
 
-                    {analysisMethod != undefined && snrDescription != '' &&
+                    {analysisMethod !== undefined && snrDescription !== '' &&
                         <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
                             expanded={true}>
                             {analysisMethod === 0 && (
@@ -762,11 +758,11 @@ const Setup = () => {
                             )}
                         </CmrPanel>}
 
-                    {(analysisMethod != undefined) &&
+                    {(analysisMethod !== undefined) &&
                         <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
                             <CmrPanel header={'Image Reconstruction Method'} cardProps={{ className: 'ms-3 me-3 mt-4 mb-3' }}
                                 className={''}>
-                                {(analysisMethod == 2 || analysisMethod == 3) &&
+                                {(analysisMethod === 2 || analysisMethod === 3) &&
                                     <Fragment>
                                         <Row id="reconstruction-method-section" className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
                                             {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
@@ -775,14 +771,14 @@ const Setup = () => {
                                             <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Number of Pseudo Replica:</CmrLabel>
                                             <CmrInputNumber value={pseudoReplicaCount ?? 10}
                                                 min={2}
-                                                max={analysisMethod == 2 ? 128 : 10}
+                                                max={analysisMethod === 2 ? 128 : 10}
                                                 onChange={(val) => {
-                                                    dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
+                                                    dispatch(setupSetters.setPseudoReplicaCount((val === null) ? 0 : val))
                                                 }}></CmrInputNumber>
                                         </Row>
                                         <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
                                     </Fragment>}
-                                {(analysisMethod == 3) &&
+                                {(analysisMethod === 3) &&
                                     <Fragment>
                                         <Row className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
                                             {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
@@ -793,7 +789,7 @@ const Setup = () => {
                                                 min={2}
                                                 max={20}
                                                 onChange={(val) => {
-                                                    dispatch(setupSetters.setBoxSize((val == null) ? 0 : val))
+                                                    dispatch(setupSetters.setBoxSize((val === null) ? 0 : val))
                                                 }}></CmrInputNumber>
                                         </Row>
                                         <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
@@ -801,7 +797,7 @@ const Setup = () => {
                                 <FormControl style={{ width: '100%' }} className={'mb-3'}
                                     onChange={(event) => {
                                         //@ts-ignore
-                                        if (event.target.value != reconstructionMethod)
+                                        if (event.target.value !== reconstructionMethod)
                                             setReconstructionMethodChanged(true);
                                         //@ts-ignore
                                         dispatch(setupSetters.setReconstructionMethod(event.target.value));
@@ -811,20 +807,20 @@ const Setup = () => {
                                         row
                                         aria-labelledby="demo-row-radio-buttons-group-label"
                                         name="row-radio-buttons-group"
-                                        value={(reconstructionMethod != undefined) ? reconstructionMethod : ''}
+                                        value={(reconstructionMethod !== undefined) ? reconstructionMethod : ''}
                                         style={{ display: 'flex', justifyContent: 'space-between' }}
                                     >
-                                        {(analysisMethod == 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod == 1 && noise == null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+                                        {(analysisMethod === 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod === 1 && noise === null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
 
-                                            return (analysisMethod != undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
+                                            return (analysisMethod !== undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
                                                 <FormControlLabel value={index}
-                                                    disabled={option == 'ESPIRIT'} control={<Radio />}
+                                                    disabled={option === 'ESPIRIT'} control={<Radio />}
                                                     label={option} />
                                                 : undefined;
                                         })}
                                     </RadioGroup>
                                 </FormControl>
-                                {(reconstructionMethod != undefined) &&
+                                {(reconstructionMethod !== undefined) &&
                                     <CmrPanel header={''}
                                         expanded={true}
                                         className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-4 mb-0' }}>
@@ -896,13 +892,13 @@ const Setup = () => {
 
                                         <Divider variant="middle"
                                             sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                        {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length != 0) &&
+                                        {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length !== 0) &&
                                             <Fragment>
                                                 {/* comment out for future use */}
                                                 {/* <FormControl
                                                     onChange={(event) => {
                                                         //@ts-ignore
-                                                        dispatch(setupSetters.setLoadSensitivity(event.target.value == 'true'));
+                                                        dispatch(setupSetters.setLoadSensitivity(event.target.value === 'true'));
                                                     }}>
                                                     <RadioGroup
                                                         row
@@ -979,7 +975,7 @@ const Setup = () => {
                                                                             min={1}
                                                                             style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
                                                                             onChange={(val) => {
-                                                                                dispatch(setupSetters.setMaskThreshold((val == null) ? 1 : val))
+                                                                                dispatch(setupSetters.setMaskThreshold((val === null) ? 1 : val))
                                                                             }} />%
                                                                     </>
                                                                 )}
@@ -994,28 +990,28 @@ const Setup = () => {
                                                                         <CmrInputNumber value={kStore}
                                                                             style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
                                                                             onChange={(val) => {
-                                                                                if (val != null)
+                                                                                if (val !== null)
                                                                                     dispatch(setupSetters.setMaskESPIRIT({ k: val }));
                                                                             }} />
                                                                         r:
                                                                         <CmrInputNumber value={rStore}
                                                                             style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
                                                                             onChange={(val) => {
-                                                                                if (val != null)
+                                                                                if (val !== null)
                                                                                     dispatch(setupSetters.setMaskESPIRIT({ r: val }));
                                                                             }} />
                                                                         t:
                                                                         <CmrInputNumber value={tStore}
                                                                             style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
                                                                             onChange={(val) => {
-                                                                                if (val != null)
+                                                                                if (val !== null)
                                                                                     dispatch(setupSetters.setMaskESPIRIT({ t: val }));
                                                                             }} />
                                                                         c:
                                                                         <CmrInputNumber value={cStore}
                                                                             style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
                                                                             onChange={(val) => {
-                                                                                if (val != null)
+                                                                                if (val !== null)
                                                                                     dispatch(setupSetters.setMaskESPIRIT({ c: val }));
                                                                             }} />
                                                                     </>
@@ -1088,7 +1084,7 @@ const Setup = () => {
                                                 <Divider variant="middle"
                                                     sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
                                             </Fragment>}
-                                        {(reconstructionMethod == 3) &&
+                                        {(reconstructionMethod === 3) &&
                                             <React.Fragment>
                                                 <div className='ms-3' style={{
                                                     height: 'fit-content',
@@ -1114,7 +1110,7 @@ const Setup = () => {
                                                             // console.log(event)
                                                             // return;
                                                             //@ts-ignore
-                                                            if (event.target == undefined || !isNaN(event.target.value))
+                                                            if (event.target === undefined || !isNaN(event.target.value))
                                                                 return;
                                                         }}
                                                     />
@@ -1166,16 +1162,16 @@ const Setup = () => {
                                                         // console.log(event)
                                                         // return;
                                                         //@ts-ignore
-                                                        if (event.target == undefined || !isNaN(event.target.value))
+                                                        if (event.target === undefined || !isNaN(event.target.value))
                                                             return;
                                                         //@ts-ignore
                                                         let value = Number(event.target.value);
-                                                        if (params.id == '1') {
+                                                        if (params.id === '1') {
                                                             dispatch(setupSetters.setDecimateAccelerations1(Math.max(value, 0)));
-                                                        } else if (params.id == '2') {
+                                                        } else if (params.id === '2') {
                                                             dispatch(setupSetters.setDecimateAccelerations2(Math.max(value, 0)));
                                                         }
-                                                        else if (params.id == '3') {
+                                                        else if (params.id === '3') {
                                                             dispatch(setupSetters.setDecimateACL(value));
                                                             // setDecimateACL(value);
 
@@ -1183,18 +1179,18 @@ const Setup = () => {
 
                                                     }}
                                                 />
-                                                <CmrCheckbox checked={decimateACL == null} style={{ marginLeft: 0 }} onChange={(e) => {
+                                                <CmrCheckbox checked={decimateACL === null} style={{ marginLeft: 0 }} onChange={(e) => {
                                                     if (e.target.checked) {
                                                         dispatch(setupSetters.setDecimateACL(null));
                                                         // setDecimateACL(null);
 
-                                                        if (reconstructionMethod == 2) {
+                                                        if (reconstructionMethod === 2) {
                                                             dispatch(setupSetters.setSensitivityMapMethod('inner'));
                                                         }
                                                     } else {
                                                         dispatch(setupSetters.setDecimateACL(24));
                                                         // setDecimateACL(24);
-                                                        if (reconstructionMethod == 2) {
+                                                        if (reconstructionMethod === 2) {
                                                             dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
                                                         }
                                                     }
@@ -1274,14 +1270,14 @@ const Setup = () => {
 
                                                 getFiles(snr);
 
-                                                if (editing != -1) {
+                                                if (editing !== -1) {
                                                     setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
                                                     setEditContent(JSON.stringify(snr, undefined, '\t'));
                                                 } else {
                                                     setPreview(JSON.stringify(snr, null, '\t'));
                                                     setJobAlias(`${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`)
                                                 }
-                                            }}>{editing != -1 ? 'Complete Editing' : 'Queue Job'}</CmrButton>
+                                            }}>{editing !== -1 ? 'Complete Editing' : 'Queue Job'}</CmrButton>
                                         {(previewContent) &&
                                             <SNRPreview previewContent={previewContent} alias={jobAlias}
                                                 developer={developer}
@@ -1381,7 +1377,7 @@ const Setup = () => {
 
                     getFiles(snr);
 
-                    if (editing != -1) {
+                    if (editing !== -1) {
                         setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
                         setEditContent(JSON.stringify(snr, undefined, '\t'));
                     } else {

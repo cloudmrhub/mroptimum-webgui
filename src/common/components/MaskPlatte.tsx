@@ -43,14 +43,14 @@ const MaskPlatte: React.FC<MaskPlatteProps> = ({expanded,nv,setMaskColor,resampl
         if(!expanded){
             cancelMask();
         }else{
-            if(colorIndex!=-1)
+            if(colorIndex !== -1)
                 nv.fillRange(min,max,colorIndex+1,checked,original, setOriginal);
             resampleImage();
         }
     }, [expanded]);
 
     useEffect(() => {
-        if(colorIndex!=-1&&expanded)
+        if(colorIndex !== -1 && expanded)
             nv.fillRange(min,max,colorIndex+1,checked,original, setOriginal);
     }, [min,max,checked]);
     return (

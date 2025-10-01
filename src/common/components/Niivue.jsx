@@ -17,7 +17,7 @@ import Confirmation from "cloudmr-ux";
 import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
-import { getMax, getMin } from "../utilities/index";
+import { getMax, getMin } from "cloudmr-core/common/utilities/index";
 import { AuthenticatedHttpClient, getPipelineROI, getEndpoints } from "cloudmr-core";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 
@@ -185,7 +185,7 @@ export default function NiiVueport(props) {
         const range_max = getMax(numbers);
 
         const range = range_max - range_min;
-        if (range == 0) {
+        if (range === 0) {
             return numbers;
         }
 
@@ -281,6 +281,8 @@ export default function NiiVueport(props) {
             case 'imaginary':
                 volume.img = checkRange(volume.imaginary);
                 break;
+            default:
+                return;
         }
         volume.calMinMax();
         setMin(volume.cal_min);
@@ -423,6 +425,8 @@ export default function NiiVueport(props) {
             case "pan":
                 nv.opts.dragMode = 3;
                 break;
+            default:
+                return;
         }
         // nv.drawScene();
         setDragMode(dragMode);
@@ -451,7 +455,7 @@ export default function NiiVueport(props) {
         setDrawPen(a.target.value)
         let penValue = a.target.value
         nv.setPenValue(penValue & 7, penValue > 0);
-        if (penValue == 8) {
+        if (penValue === 8) {
             nv.setPenValue(0, true)
         }
     }
@@ -671,7 +675,7 @@ export default function NiiVueport(props) {
             responsive: true
         }; // Set the height of the plot here};
         // Bitmap depicts the drawn content
-        if (nv.drawBitmap == null) {
+        if (nv.drawBitmap === null) {
             Plotly.newPlot('histoplot', [], layout, { responsive: true });
             setROIs([]);
             return;
@@ -1355,7 +1359,7 @@ export default function NiiVueport(props) {
                     props.rois[selectedROI].filename : undefined)}
             />
 
-            {props.niis[selectedVolume] != undefined && <NiivuePanel
+            {props.niis[selectedVolume] !== undefined && <NiivuePanel
                 nv={nv}
                 key={`${selectedVolume}`}
                 volumes={layers}

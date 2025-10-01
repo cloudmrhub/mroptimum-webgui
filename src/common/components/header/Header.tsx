@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Header.scss';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  AppBar,
   Toolbar,
-  Typography,
   Container,
-  Box,
-  MenuItem,
-  Button,
-  Menu,
 } from '@mui/material';
 
 interface MenuItem {
@@ -34,7 +28,7 @@ const Header = ({ siteTitle, authentication, handleLogout, menuList }: {
             // console.log(currPath);
             if (item.path === currPath) setMenuSelect(item.title);
         }
-    }, [currPath]);
+    }, [currPath, menuList]);
 
     const handleMenuChange = (info: MenuItem, navigate: any) => {
         if (currPath === info.path) return;
@@ -77,7 +71,7 @@ const Header = ({ siteTitle, authentication, handleLogout, menuList }: {
                     {/* Left Side Of Navbar */}
                     <ul className="navbar-nav">
                         {(menuList || []).map((menuItem) => {
-                            return <li className={`nav-item${(menuItem.title == menuSelect) ? ' active' : ''}`} key={menuItem.path}>
+                            return <li className={`nav-item${(menuItem.title === menuSelect) ? ' active' : ''}`} key={menuItem.path}>
                                 <a className='nav-link' style={{ cursor: 'pointer' }} onClick={(event) => {
                                     switch (menuItem.title) {
                                         case 'Bug Report':
@@ -95,7 +89,7 @@ const Header = ({ siteTitle, authentication, handleLogout, menuList }: {
                     </ul>
 
                     {/**Right Side Of Navbar **/}
-                    {authentication?.accessToken != '' && (
+                    {authentication?.accessToken !== '' && (
                         <ul className="navbar-nav ms-auto">
                             {/** Authentication Links **/}
                             <li className="nav-item dropdown">

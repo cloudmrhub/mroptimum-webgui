@@ -66,7 +66,7 @@ export default function Toolbar(props: ToolbarProps) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-            {props.volumes[props.selectedVolume] != undefined && <Fragment>
+            {props.volumes[props.selectedVolume] !== undefined && <Fragment>
                 <Box
                     sx={{
                         display: 'flex',

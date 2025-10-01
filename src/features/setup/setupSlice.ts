@@ -151,7 +151,7 @@ export const defaultSNR: SNR = {
 };
 
 const initialState: SetupState = {
-    activeSetup: <SNR>JSON.parse(JSON.stringify(defaultSNR)),
+    activeSetup: JSON.parse(JSON.stringify(defaultSNR)) as SNR,
     loading: false,
     queuedJobs: [],
     idGenerator: 0,
@@ -269,14 +269,14 @@ export const setupSlice = createSlice({
         setAnalysisMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.id = Number(action.payload);
             state.activeSetup.name = ['ac', 'mr', 'pmr', 'cr'][action.payload];
-            if (state.activeSetup.name != 'ac' && state.activeSetup.name != 'mr')
-                if (state.activeSetup.name == 'pmr')
+            if (state.activeSetup.name !== 'ac' && state.activeSetup.name !== 'mr')
+                if (state.activeSetup.name === 'pmr')
                     state.activeSetup.options.NR = 20;
-            if (state.activeSetup.name == 'cr')
+            if (state.activeSetup.name === 'cr')
                 state.activeSetup.options.NR = 6;
 
             // delete state.activeSetup.options.NR;
-            if (state.activeSetup.name == 'cr')
+            if (state.activeSetup.name === 'cr')
                 state.activeSetup.options.boxSize = 9;
             else
                 // delete state.activeSetup.options.boxSize;
@@ -288,7 +288,7 @@ export const setupSlice = createSlice({
             state.editInProgress = true;
         },
         setSignal(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
-            if (action.payload == undefined) {
+            if (action.payload === undefined) {
                 state.activeSetup.options.reconstructor.options.signal = undefined;
                 state.editInProgress = true;
                 return;
@@ -299,7 +299,7 @@ export const setupSlice = createSlice({
             state.editInProgress = true;
         },
         setNoise(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
-            if (action.payload == undefined) {
+            if (action.payload === undefined) {
                 state.activeSetup.options.reconstructor.options.noise = undefined;
                 state.editInProgress = true;
                 return;
@@ -325,12 +325,12 @@ export const setupSlice = createSlice({
         setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
             state.activeSetup.options.reconstructor.id = Number(action.payload);
             state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
-            if (action.payload == 3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined) {
+            if (action.payload === 3 && state.activeSetup.options.reconstructor.options.kernelSize === undefined) {
                 state.activeSetup.options.reconstructor.options.kernelSize = [3, 4];
             }
-            state.outputSettings.coilsensitivity = action.payload == 2 || action.payload == 1;
-            state.outputSettings.gfactor = action.payload == 2;
-            if (action.payload == 2 || action.payload == 3) {
+            state.outputSettings.coilsensitivity = action.payload === 2 || action.payload === 1;
+            state.outputSettings.gfactor = action.payload === 2;
+            if (action.payload === 2 || action.payload === 3) {
                 state.activeSetup.options.reconstructor.options.decimate = false;
             } else
                 delete state.activeSetup.options.reconstructor.options.decimate;
@@ -353,7 +353,7 @@ export const setupSlice = createSlice({
             state.editInProgress = true;
         },
         setFlipAngleCorrectionFile(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
-            if (action.payload == undefined) {
+            if (action.payload === undefined) {
                 state.activeSetup.options.reconstructor.options.correction.faCorrection = undefined;
                 return;
             }
@@ -371,7 +371,7 @@ export const setupSlice = createSlice({
             state.editInProgress = true;
         },
         setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
-            if (action.payload == undefined) {
+            if (action.payload === undefined) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = undefined;
                 state.editInProgress = true;
                 return;
@@ -381,7 +381,7 @@ export const setupSlice = createSlice({
         },
         setDecimate(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
-            if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
+            if (action.payload && state.activeSetup.options.reconstructor.options.accelerations === undefined)
                 state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
             state.activeSetup.options.reconstructor.options.acl = [24, 24];
             state.editInProgress = true;
@@ -409,14 +409,14 @@ export const setupSlice = createSlice({
         },
         setMaskThreshold(state: SetupState, action: PayloadAction<number>) {
             state.maskThresholdStore = action.payload;
-            if (state.maskOptionStore == 1) {
+            if (state.maskOptionStore === 1) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
                     = state.maskThresholdStore;
             }
         },
         setMaskStore(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
             state.maskFileStore = action.payload ? UFtoMaskFR(action.payload) : undefined;
-            if (state.maskOptionStore == 4) {
+            if (state.maskOptionStore === 4) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = state.maskFileStore;
             }
         },
@@ -433,7 +433,7 @@ export const setupSlice = createSlice({
             if (action.payload.t) {
                 state.tStore = action.payload.t;
             }
-            if (state.maskOptionStore == 3) {
+            if (state.maskOptionStore === 3) {
                 const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
                 mask.k = state.kStore;
                 mask.r = state.rStore;
@@ -443,19 +443,19 @@ export const setupSlice = createSlice({
         },
         setMaskOption(state: SetupState, action: PayloadAction<number>) {
             state.maskOptionStore = action.payload;
-            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask == undefined) {
+            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask === undefined) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask = { method: 'no' };
             }
             state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.method =
                 ['no', 'percentage', 'reference', 'espirit', 'upload'][action.payload];
-            if (action.payload == 1)
+            if (action.payload === 1)
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
                     = state.maskThresholdStore;
             else {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value = undefined;
             }
 
-            if (action.payload == 3) {
+            if (action.payload === 3) {
                 const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
                 mask.k = state.kStore;
                 mask.r = state.rStore;
@@ -468,7 +468,7 @@ export const setupSlice = createSlice({
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.c = undefined;
             }
 
-            if (action.payload == 4) {
+            if (action.payload === 4) {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = state.maskFileStore;
             } else {
                 state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = undefined;
@@ -489,7 +489,7 @@ export const setupSlice = createSlice({
             postProcessSNR(SNRSpec);
             state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
             //Deep copy default SNR
-            state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.activeSetup = JSON.parse(JSON.stringify(defaultSNR)) as SNR;
             state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.activeSetup.options.reconstructor.options.signal = signalCache;
             state.activeSetup.options.reconstructor.options.noise = noiseCache;
@@ -500,7 +500,7 @@ export const setupSlice = createSlice({
             postProcessSNR(SNRSpec);
             let index = -1;
             for (let i in state.queuedJobs) {
-                if (state.queuedJobs[i].id == action.payload.id) {
+                if (state.queuedJobs[i].id === action.payload.id) {
                     index = Number(i);
                     break;
                 }
@@ -509,7 +509,7 @@ export const setupSlice = createSlice({
             state.queuedJobs[index].alias = action.payload.alias;
             state.queuedJobs[index].status = 'modified';
             //Deep copy default SNR
-            state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.activeSetup = JSON.parse(JSON.stringify(defaultSNR)) as SNR;
             state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.editInProgress = false;
             console.log(state.queuedJobs[index]);
@@ -517,7 +517,7 @@ export const setupSlice = createSlice({
         rename(state: SetupState, action: PayloadAction<{ id: number, alias: string }>) {
             let index = -1;
             for (let i in state.queuedJobs) {
-                if (state.queuedJobs[i].id == action.payload.id) {
+                if (state.queuedJobs[i].id === action.payload.id) {
                     index = Number(i);
                     break;
                 }
@@ -532,7 +532,7 @@ export const setupSlice = createSlice({
             let SNRSpec = state.activeSetup;
             let signalCache = SNRSpec.options.reconstructor.options.signal;
             let noiseCache = SNRSpec.options.reconstructor.options.noise;
-            state.activeSetup = <SNR>JSON.parse(JSON.stringify(defaultSNR));
+            state.activeSetup = JSON.parse(JSON.stringify(defaultSNR)) as SNR;
             state.outputSettings = { gfactor: false, matlab: true, coilsensitivity: false };
             state.activeSetup.options.reconstructor.options.signal = signalCache;
             state.activeSetup.options.reconstructor.options.noise = noiseCache;
@@ -542,7 +542,7 @@ export const setupSlice = createSlice({
             state.activeSetup = action.payload.SNR;
             state.outputSettings = action.payload.output;
 
-            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask != undefined) {
+            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask !== undefined) {
                 let mask = state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask;
                 //Also load mask stores if mask is specified
                 state.kStore = mask.k ?? 8;
@@ -560,7 +560,7 @@ export const setupSlice = createSlice({
         deleteQueuedJob(state: SetupState, action: PayloadAction<number>) {
             let index = -1;
             for (let i in state.queuedJobs) {
-                if (state.queuedJobs[i].id == action.payload) {
+                if (state.queuedJobs[i].id === action.payload) {
                     index = Number(i);
                     break;
                 }
@@ -580,10 +580,10 @@ export const setupSlice = createSlice({
             }
         },
         setUploadProgress(state: SetupState, action: PayloadAction<{ target?: string, progress: number }>) {
-            if (action.payload.target == 'signal') {
+            if (action.payload.target === 'signal') {
                 state.signalUploadProgress = action.payload.progress;
             }
-            if (action.payload.target == 'noise') {
+            if (action.payload.target === 'noise') {
                 state.noiseUploadProgress = action.payload.progress;
             }
         },
@@ -599,9 +599,9 @@ export const setupSlice = createSlice({
                 //@ts-ignore
                 let id = response.id;
                 for (let job of state.queuedJobs) {
-                    if (job.id == id) {
+                    if (job.id === id) {
                         //@ts-ignore
-                        if (response.status == 200) {
+                        if (response.status === 200) {
                             job.status = 'submitted';
                         } else {
                             job.status = 'failed to submit';
@@ -613,9 +613,9 @@ export const setupSlice = createSlice({
         builder.addCase(uploadData.fulfilled, (state: SetupState, action) => {
             let { code, file, uploadTarget } = action.payload;
             // console.log(response);
-            if (uploadTarget == 'signal') {
+            if (uploadTarget === 'signal') {
                 state.signalUploadProgress = -1;
-                if (code == 200 && file) {
+                if (code === 200 && file) {
                     // const uploadedFile: UploadedFile = {
                     //     id: response.id,
                     //     fileName: response.filename,
@@ -630,9 +630,9 @@ export const setupSlice = createSlice({
                     // };
                 }
             }
-            if (uploadTarget == 'noise') {
+            if (uploadTarget === 'noise') {
                 state.noiseUploadProgress = -1;
-                if (code == 200 && file) {
+                if (code === 200 && file) {
                     // const uploadedFile: UploadedFile = {
                     //     id: response.id,
                     //     fileName: response.filename,
@@ -649,9 +649,9 @@ export const setupSlice = createSlice({
             }
         });
         builder.addCase('persist/REHYDRATE', (state, action) => {
-            if ((<PayloadAction<RootState>>action).payload == undefined)
+            if ((action as PayloadAction<RootState>).payload === undefined)
                 return;
-            let setupState = (<PayloadAction<RootState>>action).payload.setup;
+            let setupState = (action as PayloadAction<RootState>).payload.setup;
             // When rehydrating, reset the file uploading progresses
             state.noiseUploadProgress = -1;
             state.signalUploadProgress = -1;
@@ -761,11 +761,11 @@ function postProcessSNR(SNRSpec: SNR) {
     // Remove multi-raid tag
     delete SNRSpec.options.reconstructor.options.signalMultiRaid;
     // Remove non-existent decimate data for Grappa and Sense
-    if (SNRSpec.options.reconstructor.name != 'grappa' && SNRSpec.options.reconstructor.name != 'sense') {
+    if (SNRSpec.options.reconstructor.name !== 'grappa' && SNRSpec.options.reconstructor.name !== 'sense') {
         delete SNRSpec.options.reconstructor.options.decimate;
         delete SNRSpec.options.reconstructor.options.accelerations;
     }
-    if (SNRSpec.options.reconstructor.name != 'grappa') {
+    if (SNRSpec.options.reconstructor.name !== 'grappa') {
         delete SNRSpec.options.reconstructor.options.kernelSize;
     }
 }

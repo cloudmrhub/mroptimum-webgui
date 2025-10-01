@@ -1,5 +1,4 @@
-import {Box, Button, FormControl, IconButton, Slider, Stack, SvgIconProps, Tooltip, Typography,FormLabel} from "@mui/material";
-import ImagesearchRollerIcon from "@mui/icons-material/ImagesearchRoller";
+import {Box, FormControl, IconButton, Slider, Stack, SvgIconProps, Tooltip, Typography,FormLabel} from "@mui/material";
 import BrushIcon from "@mui/icons-material/Brush";
 import AutoFixNormalOutlinedIcon from "@mui/icons-material/AutoFixNormalOutlined";
 import ReplyIcon from "@mui/icons-material/Reply";
@@ -54,27 +53,27 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
     const penColor = ['red','green','blue','yellow','cyan','#e81ce8'][(props.drawPen&7)-1];
     const filled = props.drawPen>7;
     function clickPaintBrush(){
-        if(expandedOption=='d'){
+        if(expandedOption === 'd'){
             setExpandedOption('n');
         }else{
             setExpandedOption('d');
         }
-        props.setDrawingEnabled(expandedOption!='d');
+        props.setDrawingEnabled(expandedOption !== 'd');
     }
     function clickEraser(){
-        if(expandedOption =='e'){
+        if(expandedOption === 'e'){
             setExpandedOption('n');
         }else{
             props.updateDrawPen({target:{value:8}});
             setExpandedOption('e');
         }
-        props.setDrawingEnabled(expandedOption!='e');
+        props.setDrawingEnabled(expandedOption !== 'e');
     }
 
     const [maskColor,setMaskColor] = useState<string|undefined>(undefined);
 
     function clickMask(){
-        if(expandedOption =='m'){
+        if(expandedOption === 'm'){
             setExpandedOption('n');
         }else{
             setExpandedOption('m');
@@ -84,7 +83,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
 
 
     let options = [
-        <FiberManualRecordOutlinedIcon sx={{color:'red'}}/>,
+        <FiberManualRecordOutlinedIcon sx={{ color:'red' }}/>,
         <FiberManualRecordOutlinedIcon sx={{ color: 'green' }}/>,
         <FiberManualRecordOutlinedIcon sx={{ color: 'blue' }} />,
         <FiberManualRecordIcon sx={{color:'red'}}/>,
@@ -132,10 +131,10 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="draw" onClick={clickPaintBrush}>
-                     <BrushIcon  style={{color:(expandedOption=='d'&&penColor!=undefined)?penColor:'white'}}/>
+                     <BrushIcon  style={{color:(expandedOption === 'd' && penColor  !== undefined)?penColor:'white'}}/>
                 </IconButton>
                 <DrawPlatte
-                    expandDrawOptions={expandedOption=='d'}
+                    expandDrawOptions={expandedOption === 'd'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
@@ -147,12 +146,12 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row" >
                 <IconButton aria-label="erase" onClick={clickEraser}>
-                    {(filled||!(expandedOption=='e'))?
+                    {(filled||!(expandedOption === 'e'))?
                         <EraserIcon style={{color:'#ddd'}}/>
                         :<AutoFixNormalOutlinedIcon style={{color:'white'}}/>}
                 </IconButton>
                 <EraserPlatte
-                    expandEraseOptions={expandedOption=='e'}
+                    expandEraseOptions={expandedOption === 'e'}
                     updateDrawPen={props.updateDrawPen}
                     setDrawingEnabled={props.setDrawingEnabled}
                     brushSize={props.brushSize}
@@ -212,7 +211,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
         <FormControl>
             <Stack direction="row">
                 <IconButton aria-label="fill" onClick={clickMask}>
-                    <FormatColorFillIcon style={{color:(expandedOption=='m'&&maskColor!=undefined)?maskColor:'white'}}/>
+                    <FormatColorFillIcon style={{color:(expandedOption === 'm' && maskColor !== undefined)?maskColor:'white'}}/>
                 </IconButton>
             </Stack>
             <MaskPlatte
@@ -220,7 +219,7 @@ export const DrawToolkit = (props:DrawToolkitProps)=>{
                     props.resampleImage();
                     props.setDrawingChanged(true);
                 }}
-                expanded={expandedOption=='m'}
+                expanded={expandedOption==='m'}
                 nv={props.nv}
                 setMaskColor={setMaskColor}
                 unfocus={()=>{setExpandedOption('n')}}

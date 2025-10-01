@@ -2,7 +2,7 @@
  * This file patches the original NiiVue library to produce customized behaviors and effects.
  */
 import {Niivue,NVImage,NVImageFromUrlOptions} from "@niivue/niivue";
-import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import { mat4, vec3 } from 'gl-matrix'
 import {tickSpacing} from "./util";
 import {nv} from "./Niivue";
 
@@ -26,10 +26,10 @@ var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = 
     this.glFlags = 0;
     this.id = id;
     this.colorId = [
-        (id >> 0 & 255) / 255,
-        (id >> 8 & 255) / 255,
-        (id >> 16 & 255) / 255,
-        (id >> 24 & 255) / 255
+        ((id >> 0) & 255) / 255,
+        ((id >> 8) & 255) / 255,
+        ((id >> 16) & 255) / 255,
+        ((id >> 24) & 255) / 255
     ];
     this.modelMatrix = create2();
     this.scale = [1, 1, 1];
@@ -161,9 +161,9 @@ const closeDrawing = Niivue.prototype.closeDrawing;
  * This patch to closeDrawing clears invisible bitmapCache when applied
  */
 Niivue.prototype.closeDrawing = function(){
-    if(this.drawBitmap!==undefined&&this.drawBitmap!==null)
+    if(this.drawBitmap !== undefined && this.drawBitmap !== null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    else if(this.hiddenBitmap!==undefined)
+    else if(this.hiddenBitmap !== undefined)
         this.hiddenBitmap = [];
     closeDrawing.call(this);
 }
@@ -173,7 +173,7 @@ Niivue.prototype.closeDrawing = function(){
  * clear drawing retains itself in the undo stack.
  */
 Niivue.prototype.clearDrawing = function(){
-    if(this.drawBitmap!=undefined&&this.drawBitmap!=null){
+    if(this.drawBitmap !== undefined && this.drawBitmap !== null){
         this.drawBitmap = new Uint8Array(this.drawBitmap.length);
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     }
@@ -314,11 +314,11 @@ Niivue.prototype.drawSceneCore = function () {
             let isDrawColumn = false;
             let isDrawGrid = false;
             let isDrawRow = false;
-            if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.COLUMN)
+            if (this.opts.multiplanarLayout === MULTIPLANAR_TYPE.COLUMN)
                 isDrawColumn = true;
-            else if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.GRID)
+            else if (this.opts.multiplanarLayout === MULTIPLANAR_TYPE.GRID)
                 isDrawGrid = true;
-            else if (this.opts.multiplanarLayout == MULTIPLANAR_TYPE.ROW)
+            else if (this.opts.multiplanarLayout === MULTIPLANAR_TYPE.ROW)
                 isDrawRow = true;
             else {
                 //auto select layout based on canvas size
@@ -1003,9 +1003,9 @@ Niivue.prototype.drawPenFilled = function() {
     // Stride with permutation symmetry
     let strides = [1, this.back.dims[1],this.back.dims[1] * this.back.dims[2]];
     // xStride = s0 for axial and coronal, s1 for sagital
-    let xStride = (axCorSag == 2)?strides[1]:strides[0];
+    let xStride = (axCorSag === 2)?strides[1]:strides[0];
     // yStride = s1 for axial, s2 for coronal and sagital
-    const yStride = (axCorSag == 0)?strides[1]:strides[2];
+    const yStride = (axCorSag === 0)?strides[1]:strides[2];
     // zStride = s2 for axial, s1 for coronal, s0 for sagital
     const zStride = strides[2-axCorSag];
     const zOffset = slice * zStride;
@@ -1036,8 +1036,8 @@ Niivue.prototype.drawPenFilled = function() {
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
     if(this.hiddenBitmap)
-        this.hiddenBitmap.map((value,index)=>{
-            if(value!==0&&this.drawBitmap[index]===0){
+        this.hiddenBitmap.forEach((value,index)=>{
+            if(value !== 0 && this.drawBitmap[index] === 0){
                 this.drawBitmap[index] = value;
             }
         })
@@ -1058,14 +1058,14 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
                                     original=undefined,setOriginal=(original)=>{}){
     console.log(this.volumes);
     let volume = this.volumes[0];
-    if(volume==undefined){
+    if(volume === undefined){
         return;
     }
     if (!this.drawBitmap) {
         this.createEmptyDrawing();
     }
     // First load underlying imprinting
-    if(original==undefined){
+    if(original === undefined){
         setOriginal([...this.drawBitmap]);
     }else{
         this.drawBitmap = new Uint8Array(original);
@@ -1098,8 +1098,8 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
     if(this.hiddenBitmap)
-        this.hiddenBitmap.map((value,index)=>{
-            if(value!==0&&this.drawBitmap[index]===0){
+        this.hiddenBitmap.forEach((value,index)=>{
+            if(value !== 0 &&this.drawBitmap[index] === 0){
                 this.drawBitmap[index] = value;
             }
         })
@@ -1116,13 +1116,13 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
     // props.nv.drawScene()
 }
 
-Niivue.prototype.drawAddUndoBitmapWithHiddenVoxels=function(){
+Niivue.prototype.drawAddUndoBitmapWithHiddenVoxels = function(){
 // Next update drawUndoBitmaps pipeline
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
     if(this.hiddenBitmap)
-        this.hiddenBitmap.map((value,index)=>{
-            if(value!==0&&this.drawBitmap[index]===0){
+        this.hiddenBitmap.forEach((value,index)=>{
+            if(value !== 0 && this.drawBitmap[index] === 0){
                 this.drawBitmap[index] = value;
             }
         })
@@ -1677,7 +1677,7 @@ Niivue.prototype.drawCrossLinesMM=function(sliceIndex, axCorSag, axiMM, corMM, s
 //     }
 //     const crosshairsShader = this.surfaceShader;
 //     crosshairsShader.use(this.gl);
-//     if (mvpMtx == null) {
+//     if (mvpMtx === null) {
 //         ;
 //         [mvpMtx] = this.calculateMvpMatrix(this.crosshairs3D, this.scene.renderAzimuth, this.scene.renderElevation);
 //     }
