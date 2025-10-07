@@ -33,6 +33,10 @@ interface NiivuePanelProps {
 
     transformFactors: { a: number, b: number };
     rangeKey: number;
+
+    gamma: number;
+    gammaKey: number;
+    setGamma: (val: number) => void;
 }
 
 
@@ -49,18 +53,18 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
     let height = window.innerHeight * 0.75;
 
-     // This hook is for initialization, called only once
-    React.useEffect(()=>{
+    // This hook is for initialization, called only once
+    React.useEffect(() => {
         props.nv.attachTo('niiCanvas');
-        props.nv.opts.dragMode=props.nv.dragModes.pan;
-    },[canvas]);
+        props.nv.opts.dragMode = props.nv.dragModes.pan;
+    }, [canvas]);
     // This hook is called when show distribution state changed
-	React.useEffect(() => {
+    React.useEffect(() => {
         props.nv.resizeListener();
         props.nv.setMultiplanarLayout(2);
         props.nv.setMultiplanarPadPixels(10);
         props.resampleImage();
-    }, [window.innerWidth,window.innerHeight]);
+    }, [window.innerWidth, window.innerHeight]);
 
     React.useEffect(() => {
         setTimeout(() => {
@@ -76,15 +80,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
     }, [histogram]);
 
     const [pause, pauseUpdate] = React.useState(false);
-    // React.useEffect(()=>{
-    //     document.getElementById('controlDock')?.appendChild(gui.domElement);
-    // },[sliceControl]);
-
-    // React.useEffect(()=>{
-    //     controllerX.min(mins[0]).max(maxs[0]).setValue(mms[0]);
-    //     controllerY.min(mins[1]).max(maxs[1]).setValue(mms[1]);
-    //     controllerZ.min(mins[2]).max(maxs[2]).setValue(mms[2]);
-    // },[mins,maxs,props.locationData])
 
     const [rangeMin, setRangeMin] = useState(undefined);
     const [rangeMax, setRangemax] = useState(undefined);
@@ -221,8 +216,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             }} />
 
                             <DualSlider name={'Values'}
-                                max={props.nv.volumes[0] ? props.nv.volumes[0].cal_max ?? props.nv.volumes[0].robust_max : 1}
-                                min={props.nv.volumes[0] ? props.nv.volumes[0].cal_min ?? props.nv.volumes[0].robust_min : 0}
+                                min={props.nv.volumes[0]?.robust_min ?? 0}
+                                max={props.nv.volumes[0]?.robust_max ?? 1}
+                                valueLow={props.min}
+                                valueHigh={props.max}
                                 setMin={(min) => {
                                     let volume = props.nv.volumes[0];
                                     if (volume == undefined) {
@@ -247,13 +244,38 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 transform={x => x / a + b}
                                 inverse={y => a * y - a * b}
                             />
+
+
+                            {/* Gamma */}
+                            <div style={{ marginTop: 25, marginBottom: 20 }}>
+                                <label htmlFor="gamma" style={{ display: 'block', marginBottom: 6 }}>
+                                    Gamma: {props.gamma.toFixed(2)}
+                                </label>
+                                <input
+                                    id="gamma"
+                                    type="range"
+                                    min={0.1}
+                                    max={3.0}
+                                    step={0.05}
+                                    value={props.gamma}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        props.setGamma(val);   // update in Niivue.jsx
+                                        props.nv.setGamma(val); // update the Niivue engine
+                                    }}
+                                    style={{ width: '100%', accentColor: '#580f8b' }}
+                                    key={props.gammaKey} // force remount when Toolbar calls nv.onResetGamma()
+                                />
+                            </div>
+
+
+                            <Box style={{ height: '100%' }}>
+                                {props.layerList}
+                            </Box>
+
                         </Box>
                     </CardContent>
                 </Card>
-
-                <Box style={{ height: '100%' }}>
-                    {props.layerList}
-                </Box>
 
                 {/* Histogram + ROI Table combined height = 600 */}
                 <Box sx={{ width: "100%", height: 600 }}>

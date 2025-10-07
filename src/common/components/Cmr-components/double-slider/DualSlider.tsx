@@ -1,5 +1,5 @@
-import {Box} from "@mui/material";
-import {useRef, useState} from "react";
+import { Box } from "@mui/material";
+import { useRef, useState, useEffect } from "react";
 
 /**
  * This dual slider (lil-gui styled) allows users to control the max and min of an interval simultaneously.
@@ -13,11 +13,14 @@ import {useRef, useState} from "react";
  * @param inverse transform and inverse are a pair that masks the rendered values and rendered inputs by a transformation
  * @constructor
  */
-export const DualSlider = ({name,min,max,setMin,setMax,
-                               transform=x=>x,inverse=x=>x}:
-                               {name:string,min:number,max:number, setMin?:(min:number)=>void,
-                                   setMax?:(max:number)=>void,transform?:(x:number)=>number,
-                                   inverse?:(x:number)=>number})=>{
+export const DualSlider = ({ name, min, max, valueLow, valueHigh, setMin, setMax,
+    transform = x => x, inverse = x => x }:
+    {
+        name: string, min: number, max: number, valueLow: number, valueHigh: number, setMin?: (min: number) => void,
+        setMax?: (max: number) => void, transform?: (x: number) => number,
+        inverse?: (x: number) => number
+
+    }) => {
     const [leftSliderPosition, setLeftSliderPosition] = useState(0); // Initial percentage for the left slider
     const [rightSliderPosition, setRightSliderPosition] = useState(100); // Initial percentage for the right slider
     const [isHovering, setIsHovering] = useState(false);
@@ -26,19 +29,35 @@ export const DualSlider = ({name,min,max,setMin,setMax,
     const [minOverride, setMinOverride] = useState<any>(undefined);
     const [maxOverride, setMaxOverride] = useState<any>(undefined);
 
-    if(minOverride)
+    if (minOverride)
         min = minOverride;
-    if(maxOverride)
+    if (maxOverride)
         max = maxOverride;
 
-    const a = transform((max-min)*leftSliderPosition/100+min);
-    const b = transform((max-min)*rightSliderPosition/100+min);
-    const left = Math.min(a,b);
-    const right = Math.max(a,b);
+    const a = transform((max - min) * leftSliderPosition / 100 + min);
+    const b = transform((max - min) * rightSliderPosition / 100 + min);
+    const left = Math.min(a, b);
+    const right = Math.max(a, b);
 
     const sliderRef = useRef(null); // Ref for the parent box
 
-    const handleDragStart = (e:any, slider:string) => {
+    // whenever external values or bounds change, recompute the thumb positions
+    useEffect(() => {
+        // protect against divide-by-zero
+        const span = (max - min) || 1;
+        const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+
+        // NOTE: valueLow/valueHigh are in "real" space; your text boxes
+        // use transform/inverse just for display; the track positions
+        // should be based on real values (untransformed).
+        const lPos = clamp01((valueLow - min) / span) * 100;
+        const rPos = clamp01((valueHigh - min) / span) * 100;
+
+        setLeftSliderPosition(lPos);
+        setRightSliderPosition(rPos);
+    }, [valueLow, valueHigh, min, max]);
+
+    const handleDragStart = (e: any, slider: string) => {
         // Prevent default behavior
         e.preventDefault();
         setLeftEditing(false);
@@ -54,7 +73,7 @@ export const DualSlider = ({name,min,max,setMin,setMax,
         // @ts-ignore
         const sliderWidth = sliderRef.current.offsetWidth;
 
-        const handleMouseMove = (e:any) => {
+        const handleMouseMove = (e: any) => {
             const moveX = e.clientX - startX;
             const newPosition = ((moveX / sliderWidth) * 100) + (slider === 'left' ? leftSliderPosition : rightSliderPosition);
 
@@ -65,17 +84,17 @@ export const DualSlider = ({name,min,max,setMin,setMax,
             // Update the position of the slider
             if (slider === 'left') {
                 setLeftSliderPosition(clampedPosition);
-                const a = (max-min)*clampedPosition/100+min;
-                const b = (max-min)*rightSliderPosition/100+min;
-                setMin&&setMin(Math.min(a,b));
-                setMax&&setMax(Math.max(a,b));
+                const a = (max - min) * clampedPosition / 100 + min;
+                const b = (max - min) * rightSliderPosition / 100 + min;
+                setMin && setMin(Math.min(a, b));
+                setMax && setMax(Math.max(a, b));
 
             } else if (slider === 'right') {
                 setRightSliderPosition(clampedPosition);
-                const a = (max-min)*leftSliderPosition/100+min;
-                const b = (max-min)*clampedPosition/100+min;
-                setMin&&setMin(Math.min(a,b));
-                setMax&&setMax(Math.max(a,b));
+                const a = (max - min) * leftSliderPosition / 100 + min;
+                const b = (max - min) * clampedPosition / 100 + min;
+                setMin && setMin(Math.min(a, b));
+                setMax && setMax(Math.max(a, b));
             }
 
         };
@@ -91,8 +110,8 @@ export const DualSlider = ({name,min,max,setMin,setMax,
         document.addEventListener('mouseup', handleMouseUp);
     };
 
-    const leftText = Math.abs(left)<0.01&&left!=0?Number(left).toExponential(3).toUpperCase():Number(left).toFixed(3);
-    const [leftEditedText,setLeftEditedText] = useState('');
+    const leftText = Math.abs(left) < 0.01 && left != 0 ? Number(left).toExponential(3).toUpperCase() : Number(left).toFixed(3);
+    const [leftEditedText, setLeftEditedText] = useState('');
     const [leftIsNaN, setLeftIsNaN] = useState(false);
     const leftRef = useRef<any>(null);
 
@@ -104,94 +123,99 @@ export const DualSlider = ({name,min,max,setMin,setMax,
     // Logic to handle right value box editing...
     const rightText = Math.abs(right) < 0.01 && right != 0 ? Number(right).toExponential(3).toUpperCase() : Number(right).toFixed(3);
 
-    return <Box sx={{display:'flex',flexDirection:'row', paddingLeft:'4px',paddingRight:'4px'}} height={20}>
-        <Box flex={0.165} fontSize={16} color={'#3D3D3D'} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
-             fontFamily={'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'}>
+    return <Box sx={{ display: 'flex', flexDirection: 'row', paddingLeft: '4px', paddingRight: '4px' }} height={20}>
+        <Box flex={0.165} fontSize={16} alignItems={'center'} display={'flex'} marginBottom={'1pt'}
+        >
             {name}
         </Box>
-        <Box sx={{display:'flex',flexDirection:'row'}} flex={1}>
-            <input ref={leftRef} style={{backgroundColor:'#f0f0f0',width:'45px', borderRadius:'2px', outline:"none",borderStyle:'none',paddingLeft:'3px',paddingRight:'3px', lineHeight:'20px',
-                whiteSpace:'nowrap',fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',fontSize:'11px',color:leftIsNaN?'red':'black'}} value={
-                (leftEditing)?leftEditedText:leftText
+        <Box sx={{ display: 'flex', flexDirection: 'row' }} flex={1}>
+            <input ref={leftRef} style={{
+                backgroundColor: '#f0f0f0', width: '45px', borderRadius: '2px', outline: "none", borderStyle: 'none', paddingLeft: '3px', paddingRight: '3px', lineHeight: '20px',
+                whiteSpace: 'nowrap', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', fontSize: '11px', color: leftIsNaN ? 'red' : 'black'
+            }} value={
+                (leftEditing) ? leftEditedText : leftText
             } onKeyDown={(e) => {
-                if (e.key === 'Enter'&&!leftIsNaN) {
+                if (e.key === 'Enter' && !leftIsNaN) {
                     //@ts-ignore
                     e.target.blur(); // This will cause the input to lose focus
                 }
-            }} onFocus={(e)=>{
+            }} onFocus={(e) => {
                 setLeftEditedText(e.target.value);
                 setLeftEditing(true);
-            }} onChange={(event)=>{
+            }} onChange={(event) => {
                 setLeftIsNaN(isNaN(Number(event.target.value)));
                 setLeftEditedText(event.target.value);
-            }} onBlur={(e)=>{
-                    let val = inverse(Number(leftEditedText));
-                    if(isNaN(val)) {
-                        return e.preventDefault();
-                    }
-                    setLeftEditing(false);
-                    setMin&&setMin(val);
-                    let newMin = min;
-                    if(val<min) {
-                        setMinOverride(val);
-                        newMin = val;
-                    }
-                    let leftPosition = (val-newMin)/(max-newMin)*100;
-                    setLeftSliderPosition(leftPosition);
-            }}/>
+            }} onBlur={(e) => {
+                let val = inverse(Number(leftEditedText));
+                if (isNaN(val)) {
+                    return e.preventDefault();
+                }
+                setLeftEditing(false);
+                setMin && setMin(val);
+                let newMin = min;
+                if (val < min) {
+                    setMinOverride(val);
+                    newMin = val;
+                }
+                let leftPosition = (val - newMin) / (max - newMin) * 100;
+                setLeftSliderPosition(leftPosition);
+            }} />
 
-            <Box sx={{ backgroundColor: '#f0f0f0', flex: 1, marginLeft: '4px', marginRight: '4px', borderRadius: '2px', position: 'relative',
-                overflow:'hidden', opacity:isHovering?0.75:1
+            <Box sx={{
+                backgroundColor: '#f0f0f0', flex: 1, marginLeft: '4px', marginRight: '4px', borderRadius: '2px', position: 'relative',
+                overflow: 'hidden', opacity: isHovering ? 0.75 : 1
             }} ref={sliderRef}
-                 onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+                onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
                 {/* Central gray block with two vertical black components */}
-                <Box sx={{ position: 'absolute', left: `calc(${leftSliderPosition*0.97}% - 10px)`, width: '20px', height: '100%', cursor: 'ew-resize', zIndex: 1 }}
-                     onMouseDown={(e) => handleDragStart(e, 'left')}>
+                <Box sx={{ position: 'absolute', left: `calc(${leftSliderPosition * 0.97}% - 10px)`, width: '20px', height: '100%', cursor: 'ew-resize', zIndex: 1 }}
+                    onMouseDown={(e) => handleDragStart(e, 'left')}>
                     {/* Visual representation of the slider */}
                     <Box sx={{ position: 'absolute', left: '10px', width: '2px', height: '100%', backgroundColor: 'black' }} />
                 </Box>
 
                 {/* Transparent hitbox for the right slider */}
-                <Box sx={{ position: 'absolute', right: `calc(${(100 - rightSliderPosition)*0.97}% - 10px)`, width: '20px', height: '100%', cursor: 'ew-resize', zIndex: 1 }}
-                     onMouseDown={(e) => handleDragStart(e, 'right')}>
+                <Box sx={{ position: 'absolute', right: `calc(${(100 - rightSliderPosition) * 0.97}% - 10px)`, width: '20px', height: '100%', cursor: 'ew-resize', zIndex: 1 }}
+                    onMouseDown={(e) => handleDragStart(e, 'right')}>
                     {/* Visual representation of the slider */}
                     <Box sx={{ position: 'absolute', right: '10px', width: '2px', height: '100%', backgroundColor: 'black' }} />
                 </Box>
             </Box>
 
-            <input style={{backgroundColor: '#f0f0f0', width: '45px', borderRadius: '2px', outline: "none", borderStyle: 'none', paddingLeft: '3px', paddingRight: '3px', lineHeight: '20px',
-                whiteSpace: 'nowrap', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', fontSize: '11px', color: rightIsNaN ? 'red' : 'black'}}
-                 value={(rightEditing) ? rightEditedText : rightText}
-                 ref={rightRef}
-                 onKeyDown={(e) => {
-                     if (e.key === 'Enter' && !rightIsNaN) {
-                         //@ts-ignore
-                         e.target.blur(); // This will cause the input to lose focus
-                     }
-                 }}
-                 onFocus={(e) => {
-                     setRightEditedText(e.target.value);
-                     setRightEditing(true);
-                 }}
-                 onChange={(event) => {
-                     setRightIsNaN(isNaN(Number(event.target.value)));
-                     setRightEditedText(event.target.value);
-                 }}
-                 onBlur={(e) => {
-                     let val = inverse(Number(rightEditedText));
-                     if (isNaN(val)) {
-                         return e.preventDefault();
-                     }
-                     setRightEditing(false);
-                     setMax && setMax(val);
-                     let newMax = max;
-                     if (val > max) {
-                         setMaxOverride(val);
-                         newMax = val;
-                     }
-                     let rightPosition = (val - min) / (newMax - min) * 100;
-                     setRightSliderPosition(rightPosition);
-                 }}
+            <input style={{
+                backgroundColor: '#f0f0f0', width: '45px', borderRadius: '2px', outline: "none", borderStyle: 'none', paddingLeft: '3px', paddingRight: '3px', lineHeight: '20px',
+                whiteSpace: 'nowrap', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif', fontSize: '11px', color: rightIsNaN ? 'red' : 'black'
+            }}
+                value={(rightEditing) ? rightEditedText : rightText}
+                ref={rightRef}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !rightIsNaN) {
+                        //@ts-ignore
+                        e.target.blur(); // This will cause the input to lose focus
+                    }
+                }}
+                onFocus={(e) => {
+                    setRightEditedText(e.target.value);
+                    setRightEditing(true);
+                }}
+                onChange={(event) => {
+                    setRightIsNaN(isNaN(Number(event.target.value)));
+                    setRightEditedText(event.target.value);
+                }}
+                onBlur={(e) => {
+                    let val = inverse(Number(rightEditedText));
+                    if (isNaN(val)) {
+                        return e.preventDefault();
+                    }
+                    setRightEditing(false);
+                    setMax && setMax(val);
+                    let newMax = max;
+                    if (val > max) {
+                        setMaxOverride(val);
+                        newMax = val;
+                    }
+                    let rightPosition = (val - min) / (newMax - min) * 100;
+                    setRightSliderPosition(rightPosition);
+                }}
             />
         </Box>
     </Box>

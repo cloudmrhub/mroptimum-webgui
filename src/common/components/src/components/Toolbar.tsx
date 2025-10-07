@@ -10,13 +10,12 @@ import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import Brightness6Icon from '@mui/icons-material/Brightness6';
-
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 interface ToolbarProps {
     nv: any;
     nvUpdateSliceType: any;
     sliceType: string;
-
     toggleLayers: React.MouseEventHandler<HTMLButtonElement> | undefined;
     toggleSettings: React.MouseEventHandler<HTMLButtonElement> | undefined;
     volumes: { url: string, name: string, alias: string }[];
@@ -32,7 +31,7 @@ interface ToolbarProps {
     toggleShowCrosshair: () => void;
     // dragMode: boolean,
     dragMode: string,
-    setDragMode: (dragMode: string | boolean) => void;
+    setDragMode: (dragMode: string) => void;
     radiological: boolean;
     toggleRadiological: () => void;
     saveROI: (callback: () => void, preSaving: () => void) => void;
@@ -148,7 +147,7 @@ export default function Toolbar(props: ToolbarProps) {
                                 console.log(e.target.value);
                                 props.setDragMode(e.target.value);
                             }}
-                        >   
+                        >
                             {dragModes.map((mode, index) => (
                                 <MenuItem key={index} value={mode.value}>
                                     {mode.label}
@@ -345,9 +344,20 @@ export default function Toolbar(props: ToolbarProps) {
                                 <ZoomInMapIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Reset Contrast'} placement={'right'}>
-                            <IconButton onClick={() => props.nv.resetContrast()}>
+                        <Tooltip title={'Reset Gamma'} placement={'right'}>
+                            <IconButton
+                                onClick={() => {
+                                    props.nv.setGamma(1.0);     // engine reset
+                                    props.nv.onResetGamma?.();  // UI reset: bumps gammaKey + sets gamma=1.0
+                                    // props.nv.resetContrast();
+                                }}
+                            >
                                 <Brightness6Icon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title={'Reset Contast'} placement={'right'}>
+                            <IconButton onClick={() => props.nv.resetContrast()}>
+                                <RestartAltIcon />
                             </IconButton>
                         </Tooltip>
                     </Stack>

@@ -1,6 +1,6 @@
-import { Box, Divider, MenuItem, Slider, Card, CardContent } from "@mui/material";
+import { Box, Divider, MenuItem, Card, CardContent } from "@mui/material";
 import { Typography } from "@mui/material";
-import { Button } from "@mui/material";
+import { CmrLabel } from "cloudmr-ux";
 import { Select } from "@mui/material";
 import { InputLabel } from "@mui/material";
 import { FormControl } from "@mui/material";
@@ -30,6 +30,16 @@ function makeColorGradients(colorMapValues) {
 }
 
 export default function Layer(props) {
+  const allowedColorMaps = [
+    "bone",
+    "gray",
+    "hot",
+    "hsv",
+    "jet",
+    "plasma",
+    "turbo",
+    "viridis"
+  ];
   const image = props.image
   const nii = props.nii
   const [detailsOpen, setDetailsOpen] = React.useState(true)
@@ -37,7 +47,7 @@ export default function Layer(props) {
   const [opacity, setOpacity] = React.useState(1.0)
   let ArrowIcon = detailsOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
   // console.log(props.colorMapValues)
-  let allColors = props.nv.colormaps().map((colorName) => {
+  let allColors = props.nv.colormaps().filter((colorName) => allowedColorMaps.includes(colorName)).map((colorName) => {
     return (
       <MenuItem value={colorName} key={colorName}>
 
@@ -104,115 +114,78 @@ export default function Layer(props) {
         flexDirection: 'column',
       }}
     >
-      <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-        <CardContent> 
-          <Box
-          sx={{
-            margin: 1,
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            flexWrap: 'wrap', // useful for handling long file names
-          }}
-        >
-          <Typography
+      {/* <Box
             sx={{
-              wordBreak: 'break-word', // wrap long names
-              flexBasis: '75%' // allow for name wrapping for long names and alignment to the button
+              // margin: 1,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              flexWrap: 'wrap',
             }}
           >
-            {nii.name}
-          </Typography>
+            <CmrLabel
+            >{nii.name}</CmrLabel>
+          </Box> */}
+      <Box
+        sx={{
+          display: detailsOpen ? 'flex' : 'none',
+          flexDirection: 'column'
+        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            width: '100%',
+            marginBottom: '10px'
+          }}
+        >
+          <CmrLabel marginLeft={2}>
+            Opacity: {opacity.toFixed(2)}
+          </CmrLabel>
 
-          <IconButton
-            onClick={handleDetails}
-            style={{ marginLeft: 'auto' }}
-          >
-            {ArrowIcon}
-          </IconButton>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={opacity}
+            onChange={(e) => {
+              const v = Math.max(0, Math.min(1, parseFloat(e.target.value) || 0));
+              handleOpacityChanged(v);           // updates local state, image.opacity, and notifies parent
+            }}
+            style={{
+              width: '100%',
+              alignSelf: 'center',
+              margin: '8px 0 16px 0',
+              accentColor: '#580f8b',           // <-- your purple
+            }}
+          />
         </Box>
-          <Box
-            sx={{
-              display: detailsOpen ? 'flex' : 'none',
-              flexDirection: 'column'
-            }}>
-            {/*<Box*/}
-            {/*  sx={{*/}
-            {/*    display: 'flex',*/}
-            {/*    flexDirection: 'row',*/}
-            {/*    justifyContent: 'space-between',*/}
-            {/*    width: '100%'*/}
-            {/*  }}*/}
-            {/*  m={1}*/}
-            {/*>*/}
-            {/*  <IconButton*/}
-            {/*  >*/}
-            {/*    <KeyboardDoubleArrowUpIcon />*/}
-            {/*  </IconButton>*/}
 
-            {/*  <IconButton*/}
-            {/*  >*/}
-            {/*    <KeyboardArrowUpIcon />*/}
-            {/*  </IconButton>*/}
-
-            {/*  <IconButton*/}
-            {/*  >*/}
-            {/*    <KeyboardArrowDownIcon />*/}
-            {/*  </IconButton>*/}
-
-            {/*  <IconButton*/}
-            {/*  >*/}
-            {/*    <KeyboardDoubleArrowDownIcon />*/}
-            {/*  </IconButton>*/}
-
-            {/*</Box>*/}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-                width: '100%',
-              }}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+          }}
+        >
+          <FormControl>
+            <InputLabel>Color</InputLabel>
+            <Select
+              style={{ width: '200px' }}
+              value={color}
+              label='Color'
+              size='small'
+              onChange={handleColorChange}
             >
-              <Typography marginLeft={2}>
-                Opacity: {opacity.toFixed(2)}
-              </Typography>
+              {allColors}
+            </Select>
+          </FormControl>
 
-              <Slider
-                sx={{ width: '80%', alignSelf: 'center', marginY: 2 }} value={opacity} step={0.01} min={0} max={1}
-                onChange={(event, value) => {
-                  handleOpacityChanged(value);
-                }} />
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                width: '100%'
-              }}
-              m={2}
-            >
-              <FormControl>
-                <InputLabel>Color</InputLabel>
-                <Select
-                  style={{ width: '200px' }}
-                  value={color}
-                  label='Color'
-                  size='small'
-                  onChange={handleColorChange}
-                >
-                  {allColors}
-                </Select>
-              </FormControl>
-              {/*<IconButton*/}
-              {/*  onClick={handleDelete}*/}
-              {/*>*/}
-              {/*  <DeleteIcon />*/}
-              {/*</IconButton>*/}
-            </Box>
-          </Box></CardContent>
-      </Card>
+        </Box>
+      </Box>
     </Box>
   )
 }

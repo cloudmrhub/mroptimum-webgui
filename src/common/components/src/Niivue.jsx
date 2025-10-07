@@ -103,6 +103,16 @@ export default function NiiVueport(props) {
 
     const [saving, setSaving] = useState(false);
 
+    // Gamma settings
+    const [gamma, setGamma] = React.useState(1.0);
+    const [gammaKey, setGammaKey] = React.useState(0);
+
+    // Niivue → React bridge so other places (Toolbar) can force the UI to reset
+    nv.onResetGamma = () => {
+        setGamma(1.0);
+        setGammaKey(k => k + 1); // re-mounts the slider to reflect the reset
+    };
+
     React.useEffect(() => {
         resampleImage();
         // histogram.current?.addEventListener('resize',()=>props.resampleImage());
@@ -169,12 +179,18 @@ export default function NiiVueport(props) {
             nvSetDisplayedVoxels('absolute')
         // else nvSetDisplayedVoxels('real');
         else nvSetDisplayedVoxels('absolute');
-        let volume = nv.volumes[0];
+        let volume = nv.volumes?.[0];
         // The following actions are performed inside nvSetDisplayedVoxels,
         // along with resizing
         // volume.calMinMax()
-        // setMin(volume.cal_min);
-        // setMax(volume.cal_max);
+        if (volume) {
+            setMin(volume.cal_min);
+            setMax(volume.cal_max)
+        }
+
+        nv.setGamma(1.0);
+        nv.onResetGamma?.();
+
         nv.resetScene();
         nvSetDragMode(dragMode); // keep engine behavior in sync with dropdown
     }
@@ -318,11 +334,17 @@ export default function NiiVueport(props) {
     /**
      * Way to test all value changes
      */
-    nv.onIntensityChange = () => {
-        let volume = nv.volumes[0];
-        setMin(volume.cal_min);
-        setMax(volume.cal_max);
-    }
+    // nv.onIntensityChange = () => {
+    //     let volume = nv.volumes[0];
+    //     setMin(volume.cal_min);
+    //     setMax(volume.cal_max);
+    // }
+    nv.onIntensityChange = (volume) => {
+        const v = volume ?? nv.volumes?.[0];
+        if (!v) return;
+        setMin(v.cal_min);
+        setMax(v.cal_max);
+    };
 
     // nv.createEmptyDrawing();
 
@@ -1395,6 +1417,10 @@ export default function NiiVueport(props) {
                 unzipAndRenderROI={unpackROI}
                 zipAndSendROI={zipAndSendDrawingLayer}
                 setLabelAlias={setLabelAlias}
+
+                gamma={gamma}
+                gammaKey={gammaKey}
+                setGamma={setGamma}
             />}
         </Box>
     )
