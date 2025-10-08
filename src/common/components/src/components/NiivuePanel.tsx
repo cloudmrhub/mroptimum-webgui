@@ -6,7 +6,7 @@ import { DrawToolkit, DrawToolkitProps } from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
 import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
-import { Slider } from "../../Cmr-components/gui-slider/Slider";
+import TKDualRange from "../../Cmr-components/tk-dualrange/TKDualRange";
 
 interface NiivuePanelProps {
     nv: any;
@@ -440,6 +440,8 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 inverse={y => a * y - a * b}
                             />
 
+
+                    
 
                             {/* Gamma */}
                             <div style={{ marginTop: 25, marginBottom: 20 }}>
