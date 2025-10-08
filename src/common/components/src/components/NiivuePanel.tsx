@@ -410,7 +410,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 />
                             </div>
 
-                            <DualSlider name={'Values'}
+                            {/* <DualSlider name={'Values'}
                                 min={props.nv.volumes[0]?.robust_min ?? 0}
                                 max={props.nv.volumes[0]?.robust_max ?? 1}
                                 valueLow={props.min}
@@ -438,13 +438,48 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 }}
                                 transform={x => x / a + b}
                                 inverse={y => a * y - a * b}
+                            /> */}
+
+                            <TKDualRange
+                                name="Values"
+                                /* Domain in REAL space: robust range for the track */
+                                minDomain={props.nv.volumes[0]?.robust_min ?? 0}
+                                maxDomain={props.nv.volumes[0]?.robust_max ?? 1}
+
+                                /* Current window in REAL space: cal_min / cal_max mirrored in React */
+                                valueLow={props.min}
+                                valueHigh={props.max}
+
+                                /* When user drags either thumb or edits the inputs */
+                                onChangeLow={(min) => {
+                                    const v = props.nv.volumes[0];
+                                    if (!v) return;
+                                    v.cal_min = min;
+                                    props.nv.refreshLayers(v, 0, props.nv.volumes.length);
+                                    props.nv.drawScene();
+                                    props.setMin(min);
+                                }}
+                                onChangeHigh={(max) => {
+                                    const v = props.nv.volumes[0];
+                                    if (!v) return;
+                                    v.cal_max = max;
+                                    props.nv.refreshLayers(v, 0, props.nv.volumes.length);
+                                    props.nv.drawScene();
+                                    props.setMax(max);
+                                }}
+
+                                /* Preserve your value masking (scientific notation pair) */
+                                transform={(x) => x / a + b}
+                                inverse={(y) => a * y - a * b}
+
+                                /* Optional tuning to feel closer to TestKarts */
+                                step={0.001}
+                                precision={3}
+                                accentColor="#580f8b"
                             />
 
-
-                    
-
                             {/* Gamma */}
-                            <div style={{ marginTop: 25, marginBottom: 20 }}>
+                            <div style={{ marginTop: 20, marginBottom: 15 }}>
                                 <label htmlFor="gamma" style={{ display: 'block', marginBottom: 6 }}>
                                     Gamma: {props.gamma.toFixed(2)}
                                 </label>
