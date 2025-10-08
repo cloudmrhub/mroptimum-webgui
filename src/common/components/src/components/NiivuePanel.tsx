@@ -305,7 +305,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             <div style={{ marginBottom: 20 }}>
                                 {/* Label + editable field  */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                                    <label htmlFor="ySlice" style={{ fontWeight: 500 }}>
+                                    <label htmlFor="ySlice">
                                         Y Slice:
                                     </label>
                                     <input
@@ -366,7 +366,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             <div style={{ marginBottom: 20 }}>
                                 {/* Label + editable field */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                                    <label htmlFor="zSlice" style={{ fontWeight: 500 }}>
+                                    <label htmlFor="zSlice">
                                         Slice:
                                     </label>
                                     <input
