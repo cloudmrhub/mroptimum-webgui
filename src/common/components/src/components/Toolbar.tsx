@@ -355,7 +355,7 @@ export default function Toolbar(props: ToolbarProps) {
                                 <Brightness6Icon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Reset Contast'} placement={'right'}>
+                        <Tooltip title={'Reset Values'} placement={'right'}>
                             <IconButton onClick={() => props.nv.resetContrast()}>
                                 <RestartAltIcon />
                             </IconButton>

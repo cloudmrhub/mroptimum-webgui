@@ -441,7 +441,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             /> */}
 
                             <TKDualRange
-                                name="Values"
+                                name="Values:"
                                 /* Domain in REAL space: robust range for the track */
                                 minDomain={props.nv.volumes[0]?.robust_min ?? 0}
                                 maxDomain={props.nv.volumes[0]?.robust_max ?? 1}
