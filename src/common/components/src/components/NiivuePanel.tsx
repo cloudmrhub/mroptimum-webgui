@@ -88,6 +88,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
     //Transform factors are applied when scientific notation for voxel values become necessary
     const { a, b } = props.transformFactors;
 
+    const safeSpan = (i: 0 | 1 | 2) => Math.max(1e-9, maxs[i] - mins[i]);
+    const ratio = (val: number, i: 0 | 1 | 2) => (val - mins[i]) / safeSpan(i);
+
     // --- X Slice ---
     // helper to clamp and round
     const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -101,14 +104,14 @@ export function NiivuePanel(props: NiivuePanelProps) {
         setXVal(round3(mms[0]));
     }, [mms[0]]);
 
-    // Shared updater: write to Niivue, then draw
     const applyX = (val: number) => {
         const v = clamp(round3(val), mins[0], maxs[0]);
         setXVal(v);
+        // Use local yVal/zVal so we don't regress other axes
         props.nv.scene.crosshairPos = [
-            (v - mins[0]) / (maxs[0] - mins[0]),
-            (mms[1] - mins[1]) / (maxs[1] - mins[1]),
-            (mms[2] - mins[2]) / (maxs[2] - mins[2]),
+            ratio(v, 0),
+            ratio(yVal, 1),
+            ratio(zVal, 2),
         ];
         props.nv.drawScene();
     };
@@ -123,10 +126,11 @@ export function NiivuePanel(props: NiivuePanelProps) {
     const applyY = (val: number) => {
         const v = clamp(round3(val), mins[1], maxs[1]);
         setYVal(v);
+        // Use local xVal/zVal
         props.nv.scene.crosshairPos = [
-            (mms[0] - mins[0]) / (maxs[0] - mins[0]),
-            (v - mins[1]) / (maxs[1] - mins[1]),
-            (mms[2] - mins[2]) / (maxs[2] - mins[2]),
+            ratio(xVal, 0),
+            ratio(v, 1),
+            ratio(zVal, 2),
         ];
         props.nv.drawScene();
     };
@@ -141,10 +145,11 @@ export function NiivuePanel(props: NiivuePanelProps) {
     const applyZ = (val: number) => {
         const v = clamp(round3(val), mins[2], maxs[2]);
         setZVal(v);
+        // Use local xVal/yVal
         props.nv.scene.crosshairPos = [
-            (mms[0] - mins[0]) / (maxs[0] - mins[0]),
-            (mms[1] - mins[1]) / (maxs[1] - mins[1]),
-            (v - mins[2]) / (maxs[2] - mins[2]),
+            ratio(xVal, 0),
+            ratio(yVal, 1),
+            ratio(v, 2),
         ];
         props.nv.drawScene();
     };
@@ -347,7 +352,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 />
                             </div>
 
-                            <Slider name={'Slice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val: number) => {
+                            {/* <Slider name={'Slice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val: number) => {
                                 props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
                                 toRatio(mms[1], mins[1], maxs[1]),
                                 toRatio(val, mins[2], maxs[2])];
@@ -355,7 +360,55 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 // crosshair location imperatively, in the future shall be replaced with Niivue
                                 // official API if otherwise supported
                                 props.nv.drawScene();
-                            }} />
+                            }} /> */}
+
+
+                            <div style={{ marginBottom: 20 }}>
+                                {/* Label + editable field */}
+                                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                                    <label htmlFor="zSlice" style={{ fontWeight: 500 }}>
+                                        Slice:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={zVal.toFixed(3)}   // show up to 3 decimals
+                                        min={mins[2]}
+                                        max={maxs[2]}
+                                        step={0.001}
+                                        onChange={(e) => {
+                                            const next = Number(e.target.value);
+                                            if (!Number.isFinite(next)) return;
+                                            applyZ(next);
+                                        }}
+                                        onBlur={(e) => {
+                                            const next = Number(e.target.value);
+                                            applyZ(clamp(next, mins[2], maxs[2]));
+                                        }}
+                                        style={{
+                                            width: 100,
+                                            padding: "4px 6px",
+                                            borderRadius: 6,
+                                            border: "1px solid #ccc",
+                                            fontSize: "0.9rem",
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Slice Slider */}
+                                <input
+                                    id="zSlice"
+                                    type="range"
+                                    min={mins[2]}
+                                    max={maxs[2]}
+                                    step={0.001}
+                                    value={zVal}
+                                    onChange={(e) => {
+                                        const next = Number(e.target.value);
+                                        applyZ(next);
+                                    }}
+                                    style={{ width: "100%", accentColor: "#580f8b" }}
+                                />
+                            </div>
 
                             <DualSlider name={'Values'}
                                 min={props.nv.volumes[0]?.robust_min ?? 0}
