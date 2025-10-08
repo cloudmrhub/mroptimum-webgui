@@ -87,6 +87,68 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
     //Transform factors are applied when scientific notation for voxel values become necessary
     const { a, b } = props.transformFactors;
+
+    // --- X Slice ---
+    // helper to clamp and round
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+    const round3 = (v: number) => Math.round(v * 1000) / 1000;
+
+    // Local state mirrors props.mms[0]
+    const [xVal, setXVal] = React.useState(round3(mms[0]));
+
+    // Keep local state in sync when Niivue (or parent) updates mms[0]
+    React.useEffect(() => {
+        setXVal(round3(mms[0]));
+    }, [mms[0]]);
+
+    // Shared updater: write to Niivue, then draw
+    const applyX = (val: number) => {
+        const v = clamp(round3(val), mins[0], maxs[0]);
+        setXVal(v);
+        props.nv.scene.crosshairPos = [
+            (v - mins[0]) / (maxs[0] - mins[0]),
+            (mms[1] - mins[1]) / (maxs[1] - mins[1]),
+            (mms[2] - mins[2]) / (maxs[2] - mins[2]),
+        ];
+        props.nv.drawScene();
+    };
+
+    // --- Y Slice ---
+    const [yVal, setYVal] = React.useState(round3(mms[1]));
+
+    React.useEffect(() => {
+        setYVal(round3(mms[1]));
+    }, [mms[1]]);
+
+    const applyY = (val: number) => {
+        const v = clamp(round3(val), mins[1], maxs[1]);
+        setYVal(v);
+        props.nv.scene.crosshairPos = [
+            (mms[0] - mins[0]) / (maxs[0] - mins[0]),
+            (v - mins[1]) / (maxs[1] - mins[1]),
+            (mms[2] - mins[2]) / (maxs[2] - mins[2]),
+        ];
+        props.nv.drawScene();
+    };
+
+    // --- Z Slice ---
+    const [zVal, setZVal] = React.useState(round3(mms[2]));
+
+    React.useEffect(() => {
+        setZVal(round3(mms[2]));
+    }, [mms[2]]);
+
+    const applyZ = (val: number) => {
+        const v = clamp(round3(val), mins[2], maxs[2]);
+        setZVal(v);
+        props.nv.scene.crosshairPos = [
+            (mms[0] - mins[0]) / (maxs[0] - mins[0]),
+            (mms[1] - mins[1]) / (maxs[1] - mins[1]),
+            (v - mins[2]) / (maxs[2] - mins[2]),
+        ];
+        props.nv.drawScene();
+    };
+
     return (
         <Box
             sx={{
@@ -187,24 +249,104 @@ export function NiivuePanel(props: NiivuePanelProps) {
                 <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
                     <CardContent>
                         <Box style={{ display: 'flex', flex: 1, minWidth: '245px', flexDirection: 'column' }}>
-                            <Slider name={'X'} min={mins[0]} max={maxs[0]} value={mms[0]} setValue={(val: number) => {
-                                props.nv.scene.crosshairPos = [toRatio(val, mins[0], maxs[0]),
-                                toRatio(mms[1], mins[1], maxs[1]),
-                                toRatio(mms[2], mins[2], maxs[2])];
-                                // The following code are taken from Niivue source to change
-                                // crosshair location imperatively, in the future shall be replaced with Niivue
-                                // official API if otherwise supported
-                                props.nv.drawScene();
-                            }} />
-                            <Slider name={'Y'} min={mins[1]} max={maxs[1]} value={mms[1]} setValue={(val: number) => {
-                                props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
-                                toRatio(val, mins[1], maxs[1]),
-                                toRatio(mms[2], mins[2], maxs[2])];
-                                // The following code are taken from Niivue source to change
-                                // crosshair location imperatively, in the future shall be replaced with Niivue
-                                // official API if otherwise supported
-                                props.nv.drawScene();
-                            }} />
+
+                            <div style={{ marginBottom: 20 }}>
+                                {/* Label and text field */}
+                                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                                    <label htmlFor="xSlice">
+                                        X Slice:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={xVal}
+                                        min={mins[0]}
+                                        max={maxs[0]}
+                                        step={1}
+                                        onChange={(e) => {
+                                            const next = Number(e.target.value);
+                                            if (!Number.isFinite(next)) return;
+                                            applyX(next);
+                                        }}
+                                        onBlur={(e) => {
+                                            const next = Number(e.target.value);
+                                            applyX(clamp(next, mins[0], maxs[0]));
+                                        }}
+                                        style={{
+                                            width: 80,
+                                            padding: "4px 6px",
+                                            borderRadius: 6,
+                                            border: "1px solid #ccc",
+                                            fontSize: "0.9rem",
+                                        }}
+                                    />
+                                </div>
+
+                                {/* X Slider */}
+                                <input
+                                    id="xSlice"
+                                    type="range"
+                                    min={mins[0]}
+                                    max={maxs[0]}
+                                    step={1}
+                                    value={xVal}
+                                    onChange={(e) => {
+                                        const next = Number(e.target.value);
+                                        applyX(next);
+                                    }}
+                                    style={{ width: "100%", accentColor: "#580f8b" }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: 20 }}>
+                                {/* Label + editable field  */}
+                                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                                    <label htmlFor="ySlice" style={{ fontWeight: 500 }}>
+                                        Y Slice:
+                                    </label>
+                                    <input
+                                        type="number"
+                                        // keep the input's value as a number for smooth dragging,
+                                        // but still *show* 3 decimals by formatting on blur.
+                                        value={yVal}
+                                        min={mins[1]}
+                                        max={maxs[1]}
+                                        step={0.001}
+                                        onChange={(e) => {
+                                            const next = Number(e.target.value);
+                                            if (!Number.isFinite(next)) return;
+                                            applyY(next);
+                                        }}
+                                        onBlur={(e) => {
+                                            const next = Number(e.target.value);
+                                            // snap the field to 3-decimal formatting on blur
+                                            applyY(next);
+                                        }}
+                                        style={{
+                                            width: 100,
+                                            padding: "4px 6px",
+                                            borderRadius: 6,
+                                            border: "1px solid #ccc",
+                                            fontSize: "0.9rem",
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Y Slider */}
+                                <input
+                                    id="ySlice"
+                                    type="range"
+                                    min={mins[1]}
+                                    max={maxs[1]}
+                                    step={0.001}
+                                    value={yVal}
+                                    onChange={(e) => {
+                                        const next = Number(e.target.value);
+                                        applyY(next);
+                                    }}
+                                    style={{ width: "100%", accentColor: "#580f8b" }}
+                                />
+                            </div>
+
                             <Slider name={'Slice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val: number) => {
                                 props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
                                 toRatio(mms[1], mins[1], maxs[1]),
