@@ -10,7 +10,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import Brightness6Icon from '@mui/icons-material/Brightness6';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import AutoGraph from '@mui/icons-material/AutoGraph';
 
 interface ToolbarProps {
     nv: any;
@@ -352,12 +352,12 @@ export default function Toolbar(props: ToolbarProps) {
                                     // props.nv.resetContrast();
                                 }}
                             >
-                                <Brightness6Icon />
+                                <AutoGraph />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Reset Values'} placement={'right'}>
+                        <Tooltip title={'Reset Contrast'} placement={'right'}>
                             <IconButton onClick={() => props.nv.resetContrast()}>
-                                <RestartAltIcon />
+                                <Brightness6Icon />
                             </IconButton>
                         </Tooltip>
                     </Stack>

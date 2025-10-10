@@ -35,20 +35,20 @@ export default function TKDualRange({
   onChangeLow,
   onChangeHigh,
   transform = (x) => x,
-  inverse   = (y) => y,
+  inverse = (y) => y,
   step,
   precision = 3,
   accentColor = "#580f8b",
 }: Props) {
   // Map domain & current values into RENDER space (like TestKarts)
-  const tMin  = transform(minDomain);
-  const tMax  = transform(maxDomain);
-  const tLow  = transform(valueLow);
+  const tMin = transform(minDomain);
+  const tMax = transform(maxDomain);
+  const tLow = transform(valueLow);
   const tHigh = transform(valueHigh);
 
-  const span  = Math.max(1e-12, tMax - tMin);
-  const pct   = (t: number) => ((t - tMin) / span) * 100;
-  const s     = step ?? Math.max(span * 0.001, Number.EPSILON);
+  const span = Math.max(1e-12, tMax - tMin);
+  const pct = (t: number) => ((t - tMin) / span) * 100;
+  const s = step ?? Math.max(span * 0.001, Number.EPSILON);
 
   // Keep ends from crossing; clamp in REAL space against the other end
   const handleLowRender = (nextRender: number) => {
@@ -67,12 +67,13 @@ export default function TKDualRange({
     return Number.isFinite(n) ? n : NaN;
   };
 
+
   return (
     <div className="tkdr">
-      {/* Header row: label + two numeric inputs (render-space) */}
-      <div className="tkdr__row">
-        <label className="tkdr__label">{name}</label>
-        <div className="tkdr__inputs">
+      {/* Header row: two inputs at the ends with Min / Max labels */}
+      <div className="tkdr__row tkdr__row--ends">
+        <div className="tkdr__group">
+          <span className="tkdr__hint">Min</span>
           <input
             className="tkdr__num"
             type="number"
@@ -89,7 +90,10 @@ export default function TKDualRange({
               handleLowRender(n);
             }}
           />
-          <span className="tkdr__dash">–</span>
+        </div>
+
+        <div className="tkdr__group">
+          <span className="tkdr__hint">Max</span>
           <input
             className="tkdr__num"
             type="number"
@@ -109,9 +113,8 @@ export default function TKDualRange({
         </div>
       </div>
 
-      {/* Track with two native range inputs stacked (TestKarts pattern) */}
+      {/* Track with two native range inputs stacked */}
       <div className="tkdr__track" style={{ ["--tkdr-accent" as any]: accentColor }}>
-        {/* filled selection between thumbs */}
         <div
           className="tkdr__range-fill"
           style={{
@@ -120,8 +123,6 @@ export default function TKDualRange({
           }}
           aria-hidden
         />
-
-        {/* Low thumb */}
         <input
           className="tkdr__range"
           type="range"
@@ -131,8 +132,6 @@ export default function TKDualRange({
           value={tLow}
           onChange={(e) => handleLowRender(Number(e.target.value))}
         />
-
-        {/* High thumb (positioned on top to ensure drag priority) */}
         <input
           className="tkdr__range tkdr__range--top"
           type="range"

@@ -213,13 +213,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             height: "100%",
                         }}
                     />
-
-                    {/* <DrawToolkit {...props.drawToolkitProps}
-                    style={{
-                        height: '30pt',
-                        borderBottomLeftRadius: 0,
-                        borderBottomRightRadius: 0,
-                    }} /> */}
                 </Box>
 
             </Box>
@@ -245,11 +238,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     style={{
                         height: '30pt',
                         marginBottom: '10px',
-                        // borderBottomLeftRadius: 0,
-                        // borderBottomRightRadius: 0,
                     }} />
                 <Box id={"controlDock"} className={'title'} style={{ width: '100%' }} ref={sliceControl}>
-                    Controls
+                    Slice Position
                 </Box>
                 <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
                     <CardContent>
@@ -259,7 +250,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 {/* Label and text field */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                                     <label htmlFor="xSlice">
-                                        X Slice:
+                                        X:
                                     </label>
                                     <input
                                         type="number"
@@ -306,7 +297,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 {/* Label + editable field  */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                                     <label htmlFor="ySlice">
-                                        Y Slice:
+                                        Y:
                                     </label>
                                     <input
                                         type="number"
@@ -352,22 +343,11 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                 />
                             </div>
 
-                            {/* <Slider name={'Slice'} min={mins[2]} max={maxs[2]} value={mms[2]} setValue={(val: number) => {
-                                props.nv.scene.crosshairPos = [toRatio(mms[0], mins[0], maxs[0]),
-                                toRatio(mms[1], mins[1], maxs[1]),
-                                toRatio(val, mins[2], maxs[2])];
-                                // The following code are taken from Niivue source to change
-                                // crosshair location imperatively, in the future shall be replaced with Niivue
-                                // official API if otherwise supported
-                                props.nv.drawScene();
-                            }} /> */}
-
-
-                            <div style={{ marginBottom: 20 }}>
+                            <div>
                                 {/* Label + editable field */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                                     <label htmlFor="zSlice">
-                                        Slice:
+                                        Z:
                                     </label>
                                     <input
                                         type="number"
@@ -409,36 +389,16 @@ export function NiivuePanel(props: NiivuePanelProps) {
                                     style={{ width: "100%", accentColor: "#580f8b" }}
                                 />
                             </div>
+                        </Box>
+                    </CardContent>
+                </Card>
 
-                            {/* <DualSlider name={'Values'}
-                                min={props.nv.volumes[0]?.robust_min ?? 0}
-                                max={props.nv.volumes[0]?.robust_max ?? 1}
-                                valueLow={props.min}
-                                valueHigh={props.max}
-                                setMin={(min) => {
-                                    let volume = props.nv.volumes[0];
-                                    if (volume == undefined) {
-                                        return;
-                                    }
-                                    volume.cal_min = min;
-                                    props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
-                                    props.nv.drawScene()
-                                    props.setMin(min)
-                                }}
-                                key={props.rangeKey}
-                                setMax={(max) => {
-                                    let volume = props.nv.volumes[0];
-                                    if (volume == undefined) {
-                                        return;
-                                    }
-                                    volume.cal_max = max;
-                                    props.nv.refreshLayers(props.nv.volumes[0], 0, props.nv.volumes.length)
-                                    props.nv.drawScene()
-                                    props.setMax(max)
-                                }}
-                                transform={x => x / a + b}
-                                inverse={y => a * y - a * b}
-                            /> */}
+                <Box id={"controlDock"} className={'title'} style={{ width: '100%' }} ref={sliceControl}>
+                    Contrast Adjustments
+                </Box>
+                <Card variant="outlined" sx={{ mb: 2, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+                    <CardContent>
+                        <Box style={{ display: 'flex', flex: 1, minWidth: '245px', flexDirection: 'column' }}>
 
                             <TKDualRange
                                 name="Values:"

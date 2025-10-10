@@ -15,10 +15,6 @@
   margin-bottom: 6px;
 }
 
-/* .tkdr__label {
-  font-weight: 300;
-} */
-
 .tkdr__inputs {
   display: flex;
   align-items: center;
@@ -120,4 +116,22 @@
 }
 .tkdr__range--top::-moz-range-thumb {
   pointer-events: auto;
+}
+
+/* spread the two input groups to the ends */
+.tkdr__row--ends {
+  justify-content: space-between;
+}
+
+/* group wrapper for caption + input */
+.tkdr__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* small, subtle caption */
+.tkdr__hint {
+  font-size: 0.85rem;
+  opacity: 0.8;
 }

@@ -172,11 +172,11 @@ export default function Layer(props) {
           }}
         >
           <FormControl>
-            <InputLabel>Color</InputLabel>
+            <InputLabel>Colormap</InputLabel>
             <Select
               style={{ width: '200px' }}
               value={color}
-              label='Color'
+              label='Colormap'
               size='small'
               onChange={handleColorChange}
             >
