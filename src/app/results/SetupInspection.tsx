@@ -23,7 +23,7 @@ export const SetupInspection = () => {
     const slices = useAppSelector((state) => state.result.activeJob?.slices);
 
     const analysisMethodMapping = [
-        "Array Combining",
+        "Analytic Method",
         "Multiple Replica",
         "Pseudo Multiple Replica",
         "Generalized Pseudo-Replica",

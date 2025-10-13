@@ -2,7 +2,6 @@
 
 .tkdr {
   margin-top: 12px;
-  margin-bottom: 8px;
   width: 100%;
   user-select: none;
 }
@@ -133,5 +132,4 @@
 /* small, subtle caption */
 .tkdr__hint {
   font-size: 0.85rem;
-  opacity: 0.8;
 }
