@@ -59,7 +59,7 @@ export default function NiiVueport(props) {
     const [crosshair3D, setCrosshair3D] = React.useState(false)
     const [textSize, setTextSize] = React.useState(nv.opts.textHeight)
     const [colorBar, setColorBar] = React.useState(nv.opts.isColorbar)
-    const [worldSpace, setWorldSpace] = React.useState(nv.opts.isSliceMM) // track the z axis 
+    const [worldSpace, setWorldSpace] = React.useState(nv.opts.isSliceMM)
     const [clipPlane, setClipPlane] = React.useState(nv.currentClipPlaneIndex > 0 ? true : false)
     // TODO: add crosshair size state and setter
     const [opacity, setopacity] = React.useState(1.0)
@@ -68,6 +68,9 @@ export default function NiiVueport(props) {
     const [drawOpacity, setDrawOpacity] = React.useState(0.8)
     const [crosshairOpacity, setCrosshairOpacity] = React.useState(nv.opts.crosshairColor[3])
     const [clipPlaneOpacity, setClipPlaneOpacity] = React.useState(nv.opts.clipPlaneColor[3])
+
+    // Remembers the last crosshair position in millimeter space across volume switches
+    const lastMMRef = React.useRef(null);
     const [locationTableVisible, setLocationTableVisible] = React.useState(true)
     const [locationData, setLocationData] = React.useState([])
     const [decimalPrecision, setDecimalPrecision] = React.useState(2)
@@ -124,7 +127,11 @@ export default function NiiVueport(props) {
             setLayers([...nv.volumes]);
             setBoundMins(nv.frac2mm([0, 0, 0]));
             setBoundMaxs(nv.frac2mm([1, 1, 1]));
-            setMMs(nv.frac2mm([0.5, 0.5, 0.5]));
+            // setMMs(nv.frac2mm([0.5, 0.5, 0.5])); // Commented to prevent recentering on volume load; we now re-apply saved crosshair if available
+            try {
+                // Initialize sliders to the engine’s current crosshair (in mm), not a hard-coded 0.5
+                setMMs(nv.frac2mm(nv.scene.crosshairPos));
+            } catch { }
             setTimeout(args => nv.resizeListener(), 700);
         }
     }, []);
@@ -151,6 +158,7 @@ export default function NiiVueport(props) {
     //   setLayers([...nv.volumes])
     // }, [])
 
+    // values dualslider
     const [rangeKey, setRangeKey] = useState(0);
     nv.onResetContrast = () => {
         setRangeKey(rangeKey + 1);
@@ -174,25 +182,31 @@ export default function NiiVueport(props) {
         setLayers([...nv.volumes]);
         setBoundMins(nv.frac2mm([0, 0, 0]));
         setBoundMaxs(nv.frac2mm([1, 1, 1]));
-        setMMs(nv.frac2mm([0.5, 0.5, 0.5]));
+        // setMMs(nv.frac2mm([0.5, 0.5, 0.5])); // Commented to prevent recentering on volume load; we now re-apply saved crosshair if available
         if (verifyComplex(nv.volumes[0]))//Check if there are complex components
-            nvSetDisplayedVoxels('absolute')
-        // else nvSetDisplayedVoxels('real');
+            nvSetDisplayedVoxels('absolute');
         else nvSetDisplayedVoxels('absolute');
-        let volume = nv.volumes?.[0];
-        // The following actions are performed inside nvSetDisplayedVoxels,
-        // along with resizing
-        // volume.calMinMax()
-        if (volume) {
-            setMin(volume.cal_min);
-            setMax(volume.cal_max)
-        }
+        let volume = nv.volumes[0];
 
         nv.setGamma(1.0);
         nv.onResetGamma?.();
 
         nv.resetScene();
         nvSetDragMode(dragMode); // keep engine behavior in sync with dropdown
+        // Re-apply world/voxel mode and last crosshair after resets
+        nv.setSliceMM(worldSpace);
+        applySavedCrosshairIfAny();
+
+
+        // NEW: keep display mode consistent after resets
+        nvUpdateSliceType(sliceType);
+
+        if (!lastMMRef.current) {
+            try {
+                setMMs(nv.frac2mm(nv.scene.crosshairPos));
+            } catch { }
+        }
+
     }
 
 
@@ -312,7 +326,8 @@ export default function NiiVueport(props) {
 
     nv.onLocationChange = (data) => {
         if (data.values[0]) {
-            setMMs(data.values[0].mm);
+            setMMs([...data.values[0].mm]);                // ensure new array -> React re-renders
+            lastMMRef.current = [...data.values[0].mm];    // keep a fresh copy in the ref too
             data.values[0].transformA = nv.transformA;
             data.values[0].transformB = nv.transformB;
             data.values[0].power = nv.power;
@@ -334,17 +349,11 @@ export default function NiiVueport(props) {
     /**
      * Way to test all value changes
      */
-    // nv.onIntensityChange = () => {
-    //     let volume = nv.volumes[0];
-    //     setMin(volume.cal_min);
-    //     setMax(volume.cal_max);
-    // }
-    nv.onIntensityChange = (volume) => {
-        const v = volume ?? nv.volumes?.[0];
-        if (!v) return;
-        setMin(v.cal_min);
-        setMax(v.cal_max);
-    };
+    nv.onIntensityChange = () => {
+        let volume = nv.volumes[0];
+        setMin(volume.cal_min);
+        setMax(volume.cal_max);
+    }
 
     // nv.createEmptyDrawing();
 
@@ -615,6 +624,9 @@ export default function NiiVueport(props) {
         nvUpdateCrosshair3D(!worldSpace)
         setWorldSpace(!worldSpace)
         nv.setSliceMM(!worldSpace)
+
+        // keep sliders synced to the currently displayed crosshair
+        try { setMMs(nv.frac2mm(nv.scene.crosshairPos)); } catch { }
     }
 
     function nvUpdateCornerText() {
@@ -663,6 +675,23 @@ export default function NiiVueport(props) {
     function nvUpdateCrosshairSize(w) {
         nv.opts.crosshairWidth = w
         nv.drawScene()
+    }
+
+    // Re-apply a saved crosshair position (in mm) after any operation that resets Niivue state.
+    function applySavedCrosshairIfAny() {
+        try {
+            if (!lastMMRef.current) return;
+            // Ensure engine uses the currently selected coordinate system
+            nv.setSliceMM(worldSpace);
+            const frac = nv.mm2frac(lastMMRef.current);
+            if (Array.isArray(frac) && frac.length === 3) {
+                nv.scene.crosshairPos = frac;
+                nv.drawScene();
+                setMMs(nv.frac2mm(frac));     // returns a new array; guarantees a state change
+            }
+        } catch (e) {
+            // Intentionally ignore; if conversion fails we simply skip re-applying.
+        }
     }
 
     const [labelMapping, setLabelMapping] = useState({});
@@ -785,7 +814,10 @@ export default function NiiVueport(props) {
         } else if (newSliceType === '3d') {
             nv.setSliceType(nv.sliceTypeRender)
         }
-        nvSetDragMode(dragMode);
+        nvSetDragMode(dragMode); // some Niivue builds reset interaction on slice change
+        // Re-apply world/voxel mode and last crosshair after slice type changes
+        nv.setSliceMM(worldSpace);
+        applySavedCrosshairIfAny();
     }
 
     function nvUpdateLayerOpacity(a) {
@@ -816,7 +848,7 @@ export default function NiiVueport(props) {
             }, 300)
         } else {
             // nvUpdateSliceType('multi');
-            nvUpdateSliceType('axial');
+            nvUpdateSliceType(sliceType);
             setShowCrosshair(true);
             setTextsVisible(false);
             nv.opts.crosshairWidth = 1;
@@ -840,6 +872,12 @@ export default function NiiVueport(props) {
             try {
                 await nv.loadVolumes([niiToVolume(props.niis[volumeIndex])]);
                 nvSetDragMode(dragMode); // re-apply user's drag mode after Niivue resets
+                // Re-apply world/voxel mode and last crosshair after loading a new volume
+                nv.setSliceMM(worldSpace);
+                applySavedCrosshairIfAny();
+
+                // ensure engine mode matches the remembered selection
+                nvUpdateSliceType(sliceType);
             } catch (e) {
                 setWarning("Error loading results, please check internet connectivity");
                 setWarningOpen(true);
