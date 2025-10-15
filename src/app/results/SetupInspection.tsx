@@ -154,7 +154,7 @@ export const SetupInspection = () => {
                     <>
                         {/* Flip Angle Correction status */}
                         <Item>
-                            {label("Flip Angle Correction:")} {flipAngleCorrection ? "Using" : "Not Using"}
+                            {label("Flip Angle Correction:")} {flipAngleCorrection ? "True" : "False"}
                         </Item>
 
                         {/* Flip Angle Correction file (only when used) */}
@@ -180,7 +180,7 @@ export const SetupInspection = () => {
                                     ) : (
                                         <Item>
                                             {label("Coil Sensitivities Calculation Method:")}{" "}
-                                            {sensitivityMapMethod ? coilOptionAlias[sensitivityMapMethod] : "undefined"}
+                                            {sensitivityMapMethod ? coilOptionAlias[sensitivityMapMethod] : "Undefined"}
                                         </Item>
                                     )}
                                 </>
@@ -201,7 +201,7 @@ export const SetupInspection = () => {
                         {/* Decimation flags */}
                         {decimateMapping[reconstructionMethod] && (
                             <Item>
-                                {label("Decimate Data:")} {decimateData ? "true" : "false"}
+                                {label("Decimate Data:")} {decimateData ? "True" : "False"}
                             </Item>
                         )}
 
@@ -217,11 +217,11 @@ export const SetupInspection = () => {
                                 <Item>
                                     {decimateACL == null ? (
                                         <>
-                                            {label("Autocalibration Lines:")} Used All
+                                            {label("Autocalibration Lines:")} Using All
                                         </>
                                     ) : (
                                         <>
-                                            {label("Autocalibration Lines:")} Used {decimateACL}
+                                            {label("Autocalibration Lines:")} {decimateACL}
                                         </>
                                     )}
                                 </Item>

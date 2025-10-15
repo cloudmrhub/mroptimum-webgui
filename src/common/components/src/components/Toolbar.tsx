@@ -344,26 +344,20 @@ export default function Toolbar(props: ToolbarProps) {
                                 <ZoomInMapIcon />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Reset Gamma'} placement={'right'}>
-                            <IconButton
-                                onClick={() => {
-                                    props.nv.setGamma(1.0);     // engine reset
-                                    props.nv.onResetGamma?.();  // UI reset: bumps gammaKey + sets gamma=1.0
-                                    // props.nv.resetContrast();
+                        <Tooltip title={'Reset Contrast'} placement={'right'}>
+                            <IconButton onClick={() => {
+                                props.nv.resetContrast()
+                                props.nv.setGamma(1.0);     // engine reset
+                                props.nv.onResetGamma?.();  // UI reset: bumps gammaKey + sets gamma=1.0
                                 }}
                             >
-                                <AutoGraph />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title={'Reset Contrast'} placement={'right'}>
-                            <IconButton onClick={() => props.nv.resetContrast()}>
                                 <Brightness6Icon />
                             </IconButton>
                         </Tooltip>
                     </Stack>
                 </Box>
             </Fragment>}
-        </Box>
+        </Box >
     );
 }
 

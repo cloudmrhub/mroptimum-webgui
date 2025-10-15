@@ -73,7 +73,7 @@ export default function TKDualRange({
       {/* Header row: two inputs at the ends with Min / Max labels */}
       <div className="tkdr__row tkdr__row--ends">
         <div className="tkdr__group">
-          <span className="tkdr__hint">Min</span>
+          <span>Min</span>
           <input
             className="tkdr__num"
             type="number"
@@ -93,7 +93,7 @@ export default function TKDualRange({
         </div>
 
         <div className="tkdr__group">
-          <span className="tkdr__hint">Max</span>
+          <span>Max</span>
           <input
             className="tkdr__num"
             type="number"
