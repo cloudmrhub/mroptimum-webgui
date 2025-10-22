@@ -10,7 +10,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong';
 import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import Brightness6Icon from '@mui/icons-material/Brightness6';
-import AutoGraph from '@mui/icons-material/AutoGraph';
+import DeleteIcon from "@mui/icons-material/Delete";
+import { CmrConfirmation } from 'cloudmr-ux';
 
 interface ToolbarProps {
     nv: any;
@@ -65,6 +66,9 @@ export default function Toolbar(props: ToolbarProps) {
     let accessToken = useAppSelector(state => state.authenticate.accessToken);
     let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
 
+    const [roiDeleteOpen, setRoiDeleteOpen] = useState(false);
+    const [roiDeleteMsg, setRoiDeleteMsg] = useState<string | undefined>(undefined);
+    const [roiDeleteConfirm, setRoiDeleteConfirm] = useState<() => void>(() => () => { });
 
 
     return (
@@ -177,25 +181,82 @@ export default function Toolbar(props: ToolbarProps) {
                     </FormControl>
 
 
-                    <FormControl
-                        size='small'
-                        sx={{
-                            m: 2,
-                            minWidth: 120
-                        }}>
-                        <InputLabel id="slice-type-label">ROI Layer</InputLabel>
+                    <FormControl size="small" sx={{ m: 2, minWidth: 160 }}>
+                        <InputLabel id="roi-layer-label">ROI Layer</InputLabel>
                         <Select
-                            labelId="slice-type-label"
-                            id="slice-type"
+                            labelId="roi-layer-label"
+                            id="roi-layer"
                             value={props.selectedROI}
                             label="Opened ROIs"
-                        // onChange={(e)=>}
+                            // Only text in the closed preview (no icon)
+                            renderValue={(selected) => {
+                                // handle no selection or invalid index
+                                if (selected === undefined || selected === null || isNaN(Number(selected))) {
+                                    return '';
+                                }
+                                const idx = Number(selected);
+                                return props.rois?.[idx]?.filename ?? '';
+                            }}
+                            MenuProps={{
+                                // optional: nicer menu width to fit long names + icon
+                                PaperProps: { sx: { minWidth: 280 } },
+                            }}
                         >
-                            {props.rois.map((value, index) => {
-                                return <MenuItem value={index} onClick={() => props.setSelectedROI(Number(index))}>{value.filename}</MenuItem>;
-                            })}
+                            {props.rois.map((value, index) => (
+                                <MenuItem
+                                    key={index}
+                                    value={index}
+                                    onClick={() => props.setSelectedROI(Number(index))}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                    }}
+                                >
+                                    <Box sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {value.filename}
+                                    </Box>
+
+                                    {/* Icon appears only inside the dropdown menu */}
+                                    <Tooltip title="Delete">
+                                        <IconButton
+                                            size="small"
+                                            // prevent selecting/closing when clicking the icon
+                                            onMouseDown={(e) => e.stopPropagation()}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRoiDeleteMsg(`You are about to delete “${value.filename}”`);
+                                                setRoiDeleteConfirm(() => {
+                                                    // return a function executed only when user confirms
+                                                    return () => {
+                                                        // TODO: call delete endpoint here later
+                                                    };
+                                                });
+                                                setRoiDeleteOpen(true);
+                                            }}
+                                        >
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
+
+                    <CmrConfirmation
+                        name="Delete ROI Layer"
+                        message={roiDeleteMsg}
+                        open={roiDeleteOpen}
+                        setOpen={setRoiDeleteOpen}
+                        cancellable={true}
+                        cancelText="Cancel"
+                        confirmText="Delete"
+                        color="error"
+                        confirmCallback={() => {
+                            roiDeleteConfirm();
+                        }}
+                    />
+
                     <Button variant={'contained'}
                         endIcon={saving && <CircularProgress sx={{ color: 'white' }} size={20} />}
                         onClick={() => {
@@ -349,7 +410,7 @@ export default function Toolbar(props: ToolbarProps) {
                                 props.nv.resetContrast()
                                 props.nv.setGamma(1.0);     // engine reset
                                 props.nv.onResetGamma?.();  // UI reset: bumps gammaKey + sets gamma=1.0
-                                }}
+                            }}
                             >
                                 <Brightness6Icon />
                             </IconButton>

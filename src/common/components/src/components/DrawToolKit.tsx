@@ -53,7 +53,7 @@ export interface DrawToolkitProps {
 export const DrawToolkit = (props: DrawToolkitProps) => {
     const [expandedOption, setExpandedOption] = useState('n');
     const [expandOpacityOptions, setExpandOpacityOptions] = React.useState(false);
-    const rootRef = useRef<HTMLDivElement | null>(null);
+    // const rootRef = useRef<HTMLDivElement | null>(null);
     const penColor = ['red', 'green', 'blue', 'yellow', 'cyan', '#e81ce8'][(props.drawPen & 7) - 1];
     const filled = props.drawPen > 7;
     function clickPaintBrush() {

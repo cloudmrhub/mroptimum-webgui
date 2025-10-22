@@ -69,8 +69,7 @@ export default function NiiVueport(props) {
     const [crosshairOpacity, setCrosshairOpacity] = React.useState(nv.opts.crosshairColor[3])
     const [clipPlaneOpacity, setClipPlaneOpacity] = React.useState(nv.opts.clipPlaneColor[3])
 
-    // Remembers the last crosshair position in millimeter space across volume switches
-    const lastMMRef = React.useRef(null);
+    const lastMMRef = React.useRef(null); // remembers the last crosshair position in millimeter space across volume switches
     const [locationTableVisible, setLocationTableVisible] = React.useState(true)
     const [locationData, setLocationData] = React.useState([])
     const [decimalPrecision, setDecimalPrecision] = React.useState(2)
@@ -186,7 +185,7 @@ export default function NiiVueport(props) {
         if (verifyComplex(nv.volumes[0]))//Check if there are complex components
             nvSetDisplayedVoxels('absolute');
         else nvSetDisplayedVoxels('absolute');
-        let volume = nv.volumes[0];
+        // let volume = nv.volumes[0];
 
         nv.setGamma(1.0);
         nv.onResetGamma?.();
@@ -197,8 +196,7 @@ export default function NiiVueport(props) {
         nv.setSliceMM(worldSpace);
         applySavedCrosshairIfAny();
 
-
-        // NEW: keep display mode consistent after resets
+        // keep display mode consistent after resets
         nvUpdateSliceType(sliceType);
 
         if (!lastMMRef.current) {
@@ -691,7 +689,7 @@ export default function NiiVueport(props) {
             }
         } catch (e) {
             // Intentionally ignore; if conversion fails we simply skip re-applying.
-        }
+        } 
     }
 
     const [labelMapping, setLabelMapping] = useState({});
