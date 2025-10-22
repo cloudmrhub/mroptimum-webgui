@@ -218,26 +218,25 @@ export default function Toolbar(props: ToolbarProps) {
                                     </Box>
 
                                     {/* Icon appears only inside the dropdown menu */}
-                                    <Tooltip title="Delete">
-                                        <IconButton
-                                            size="small"
-                                            // prevent selecting/closing when clicking the icon
-                                            onMouseDown={(e) => e.stopPropagation()}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setRoiDeleteMsg(`You are about to delete “${value.filename}”`);
-                                                setRoiDeleteConfirm(() => {
-                                                    // return a function executed only when user confirms
-                                                    return () => {
-                                                        // TODO: call delete endpoint here later
-                                                    };
-                                                });
-                                                setRoiDeleteOpen(true);
-                                            }}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Tooltip>
+                                    <IconButton
+                                        size="small"
+                                        // prevent selecting/closing when clicking the icon
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRoiDeleteMsg(`You are about to delete “${value.filename}”`);
+                                            setRoiDeleteConfirm(() => {
+                                                // return a function executed only when user confirms
+                                                return () => {
+                                                    // TODO: call delete endpoint here later
+                                                };
+                                            });
+                                            setRoiDeleteOpen(true);
+                                        }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
+                                    </IconButton>
+
                                 </MenuItem>
                             ))}
                         </Select>
@@ -330,20 +329,6 @@ export default function Toolbar(props: ToolbarProps) {
                             onChange={props.toggleShowCrosshair}
                         />
                     </Box>
-
-                    {/* <Box
-                        sx={{
-                            display:'flex',
-                            alignItems: 'center'
-                        }}
-                        m={1}
-                    >
-                        <Typography
-                        >
-                            Vertical Layout
-                        </Typography>
-                        
-                    </Box> */}
 
                     <Box
                         sx={{
