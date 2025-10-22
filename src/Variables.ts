@@ -8,6 +8,7 @@ export const FINEGRAIN = `${API_URL}/auth`;
 
 export const ROI_GET = `${CLOUDMR_SERVER}/roi/list`;
 export const ROI_UPLOAD = `${CLOUDMR_SERVER}/roi/upload`;
+export const ROI_DELETE = `${CLOUDMR_SERVER}/roi/delete`;
 
 export const DATA_API = `${CLOUDMR_SERVER}/data/read`;
 export const DATA_DELETE_API = `${CLOUDMR_SERVER}/data/delete`;

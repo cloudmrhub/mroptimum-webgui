@@ -1403,6 +1403,8 @@ export default function NiiVueport(props) {
                 saving={saving}
                 setSaving={setSaving}
 
+                resampleImage={resampleImage} 
+
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}
                 open={confirmationOpen} setOpen={setConfirmationOpen} cancellable={true}

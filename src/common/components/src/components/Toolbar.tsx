@@ -12,6 +12,8 @@ import ZoomInMapIcon from '@mui/icons-material/ZoomInMap';
 import Brightness6Icon from '@mui/icons-material/Brightness6';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CmrConfirmation } from 'cloudmr-ux';
+import { ROI_DELETE } from '../../../../Variables';
+import axios from "axios";
 
 interface ToolbarProps {
     nv: any;
@@ -45,6 +47,8 @@ interface ToolbarProps {
 
     saving: boolean;
     setSaving: (saving: boolean) => void;
+
+    resampleImage?: () => void;
 }
 
 export default function Toolbar(props: ToolbarProps) {
@@ -69,6 +73,24 @@ export default function Toolbar(props: ToolbarProps) {
     const [roiDeleteOpen, setRoiDeleteOpen] = useState(false);
     const [roiDeleteMsg, setRoiDeleteMsg] = useState<string | undefined>(undefined);
     const [roiDeleteConfirm, setRoiDeleteConfirm] = useState<() => void>(() => () => { });
+
+
+    // const deleteROI= createAsyncThunk('DeleteROI', async (arg: { accessToken: string, jobId: string }) => {
+    //     // const data = { jobId: arg.jobId }; // No need to stringify, axios will handle it
+    //     const config = {
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': `Bearer ${arg.accessToken}`
+    //         },
+    //         params: {
+    //             id: arg.jobId // Send jobId as a query parameter
+    //         }
+    //     };
+    //     const response = await axios.delete(`${JOBS_DELETE_API}`, config);
+    //     console.log(response);
+    //     if (response.status == 200)
+    //         getUpstreamJobs(arg.accessToken);
+    // });
 
 
     return (
@@ -226,9 +248,36 @@ export default function Toolbar(props: ToolbarProps) {
                                             e.stopPropagation();
                                             setRoiDeleteMsg(`You are about to delete “${value.filename}”`);
                                             setRoiDeleteConfirm(() => {
-                                                // return a function executed only when user confirms
-                                                return () => {
-                                                    // TODO: call delete endpoint here later
+                                                return async () => {
+                                                    try {
+                                                        // Make delete call to the endpoint
+                                                        await axios.delete(ROI_DELETE, {
+                                                            headers: {
+                                                                Authorization: `Bearer ${accessToken}`,
+                                                            },
+                                                            data: {
+                                                                roi_id: value.id,
+                                                            },
+                                                        });
+
+                                                        // Refresh the ROI list
+                                                        if (pipeline) {
+                                                            await dispatch(getPipelineROI({ accessToken, pipeline }));
+                                                        }
+
+                                                        // Clear client drawing if we just deleted the applied ROI
+                                                        if (props.selectedROI === index) {
+                                                            props.nv.closeDrawing();
+                                                            props.nv.drawScene?.();
+
+                                                            // Refresh histogram + ROI table
+                                                            props.resampleImage?.();
+                                                        }
+
+                                                        console.log(`Deleted ROI: ${value.filename}`);
+                                                    } catch (error) {
+                                                        console.error("Failed to delete ROI:", error);
+                                                    }
                                                 };
                                             });
                                             setRoiDeleteOpen(true);
