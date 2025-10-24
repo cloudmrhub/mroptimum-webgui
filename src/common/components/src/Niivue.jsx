@@ -69,7 +69,6 @@ export default function NiiVueport(props) {
     const [crosshairOpacity, setCrosshairOpacity] = React.useState(nv.opts.crosshairColor[3])
     const [clipPlaneOpacity, setClipPlaneOpacity] = React.useState(nv.opts.clipPlaneColor[3])
 
-    const lastMMRef = React.useRef(null); // remembers the last crosshair position in millimeter space across volume switches
     const [locationTableVisible, setLocationTableVisible] = React.useState(true)
     const [locationData, setLocationData] = React.useState([])
     const [decimalPrecision, setDecimalPrecision] = React.useState(2)
@@ -167,14 +166,15 @@ export default function NiiVueport(props) {
     let [boundMaxs, setBoundMaxs] = useState([1, 1, 1]);
     let [mms, setMMs] = useState([0.5, 0.5, 0.5]);
     nv.onImageLoaded = () => {
+        const oldCrosshairPos = [...nv.scene.crosshairPos]
         if (nv.volumes.length > 1) {
             nv.loadVolumes([niiToVolume(props.niis[props.selectedVolume])]);
             setWarning("Error loading results, please check internet connectivity");
             setWarningOpen(true);
             setTimeout(() => {
                 setWarningOpen(false);
-                setWarning("");
             }, 2500)
+            setWarning("");
             return;
         }
         // console.log(nv.volumes);
@@ -194,17 +194,11 @@ export default function NiiVueport(props) {
         nvSetDragMode(dragMode); // keep engine behavior in sync with dropdown
         // Re-apply world/voxel mode and last crosshair after resets
         nv.setSliceMM(worldSpace);
-        applySavedCrosshairIfAny();
-
+        // applySavedCrosshairIfAny();
+        nv.scene.crosshairPos = [...oldCrosshairPos]
         // keep display mode consistent after resets
         nvUpdateSliceType(sliceType);
-
-        if (!lastMMRef.current) {
-            try {
-                setMMs(nv.frac2mm(nv.scene.crosshairPos));
-            } catch { }
-        }
-
+        setMMs(nv.frac2mm(nv.scene.crosshairPos));
     }
 
 
@@ -325,7 +319,6 @@ export default function NiiVueport(props) {
     nv.onLocationChange = (data) => {
         if (data.values[0]) {
             setMMs([...data.values[0].mm]);                // ensure new array -> React re-renders
-            lastMMRef.current = [...data.values[0].mm];    // keep a fresh copy in the ref too
             data.values[0].transformA = nv.transformA;
             data.values[0].transformB = nv.transformB;
             data.values[0].power = nv.power;
@@ -675,22 +668,6 @@ export default function NiiVueport(props) {
         nv.drawScene()
     }
 
-    // Re-apply a saved crosshair position (in mm) after any operation that resets Niivue state.
-    function applySavedCrosshairIfAny() {
-        try {
-            if (!lastMMRef.current) return;
-            // Ensure engine uses the currently selected coordinate system
-            nv.setSliceMM(worldSpace);
-            const frac = nv.mm2frac(lastMMRef.current);
-            if (Array.isArray(frac) && frac.length === 3) {
-                nv.scene.crosshairPos = frac;
-                nv.drawScene();
-                setMMs(nv.frac2mm(frac));     // returns a new array; guarantees a state change
-            }
-        } catch (e) {
-            // Intentionally ignore; if conversion fails we simply skip re-applying.
-        } 
-    }
 
     const [labelMapping, setLabelMapping] = useState({});
     function resampleImage(mapping = labelMapping) {
@@ -815,7 +792,7 @@ export default function NiiVueport(props) {
         nvSetDragMode(dragMode); // some Niivue builds reset interaction on slice change
         // Re-apply world/voxel mode and last crosshair after slice type changes
         nv.setSliceMM(worldSpace);
-        applySavedCrosshairIfAny();
+        //applySavedCrosshairIfAny();
     }
 
     function nvUpdateLayerOpacity(a) {
@@ -872,7 +849,7 @@ export default function NiiVueport(props) {
                 nvSetDragMode(dragMode); // re-apply user's drag mode after Niivue resets
                 // Re-apply world/voxel mode and last crosshair after loading a new volume
                 nv.setSliceMM(worldSpace);
-                applySavedCrosshairIfAny();
+                //applySavedCrosshairIfAny();
 
                 // ensure engine mode matches the remembered selection
                 nvUpdateSliceType(sliceType);
@@ -997,6 +974,32 @@ export default function NiiVueport(props) {
             return null;
         }
     };
+
+
+    // Normalize ROI.data.sliceMM into [number, number, number]
+    function getSavedSliceMMFromROI(roi) {
+        try {
+            const raw = roi?.data?.sliceMM;
+            if (!raw) return null;
+
+            // Case A: already an array
+            if (Array.isArray(raw)) {
+                const arr = raw.slice(0, 3).map(v => typeof v === 'string' ? parseFloat(v) : v);
+                return arr.every(Number.isFinite) ? arr : null;
+            }
+
+            // Case B: object like {0:'125.29', 1:'162.80', 2:'-18.83', 3:1}
+            if (typeof raw === 'object') {
+                const arr = [raw[0], raw[1], raw[2]].map(v => typeof v === 'string' ? parseFloat(v) : v);
+                return arr.every(Number.isFinite) ? arr : null;
+            }
+
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
     // This is a small fix that prevents the selected roi index from jumping to
     // the newest saved roi after user has performed a roi reselection during
     // roi saving
@@ -1004,7 +1007,31 @@ export default function NiiVueport(props) {
     const selectDrawingLayer = async (roiIndex) => {
         // console.log(nv.drawBitmap);
         console.log(props.rois[roiIndex].link);
+
         await unzipAndRenderDrawingLayer(props.rois[roiIndex].link);
+        // If this ROI carries a saved slice position, jump to it
+        try {
+            // Log raw & normalized for debugging
+            console.log('ROI sliceMM (raw):', props.rois?.[roiIndex]?.data?.sliceMM);
+            const sliceMM = getSavedSliceMMFromROI(props.rois?.[roiIndex]);
+            console.log('ROI sliceMM (normalized):', sliceMM);
+            if (sliceMM) {
+                // Ensure engine uses the currently selected coordinate system
+                nv.setSliceMM(worldSpace);
+                const frac = nv.mm2frac(sliceMM);
+                console.log(1,frac)
+                // if (Array.isArray(frac) && frac.length === 3) {
+                    console.log(2,frac)
+                    nv.scene.crosshairPos = frac;
+                    nv.drawScene()////;
+                    // use fresh array to guarantee React state update
+                    setMMs(nv.frac2mm(frac));
+                // }
+            }
+        } catch (e) {
+            // Intentionally ignore, if conversion fails we simply skip re-applying
+        }
+
         setSelectedDrawingLayer(roiIndex);
         setSelectedDuringSaving(true);
         setDrawingChanged(false);
@@ -1038,13 +1065,29 @@ export default function NiiVueport(props) {
                     Authorization: `Bearer ${props.accessToken}`,
                 },
             };
+
+            // Capture the current crosshair in millimeters; fall back safely if needed
+            let sliceMM = undefined;
+            try {
+                // Niivue keeps crosshair in fractional coords; convert to mm
+                sliceMM = nv.frac2mm(nv.scene.crosshairPos);
+            } catch (e) {
+                // If conversion fails, use the last known mm state if you keep one,
+                // or omit the field, sliceMM stays undefined in that case.
+                console.log("Error with saving crosshair")
+            }
+
             const response = await axios.post(ROI_UPLOAD, {
                 "filename": `${filename}`,
                 "pipeline_id": props.pipelineID,
                 "type": "image",
-                "contentType": "application/octet-stream"
+                "contentType": "application/octet-stream",
+                data: sliceMM ? { sliceMM } : {} // persist current slice position (mm) into ROI.data dictionary
             }, config);
-            // console.log(response.data);
+
+            console.log('Save ROI response:', response.data);
+            console.log('Sent ROI payload sliceMM:', sliceMM);
+
             // Monkey patch object URL creation
             // Store the original URL.createObjectURL method
             const originalCreateObjectURL = URL.createObjectURL;
@@ -1058,7 +1101,8 @@ export default function NiiVueport(props) {
                     // props.saveROICallback();
                     setDrawingChanged(false);
                     if (afterSaveCallback instanceof Function)
-                        await afterSaveCallback();
+                        await afterSaveCallback(
+                        );
                     if (!selectedDuringSaving)//Only switch to the newest roi when user hasn't performed reselection
                         // during the period
                         setSelectedDrawingLayer(props.rois.length);
@@ -1403,7 +1447,7 @@ export default function NiiVueport(props) {
                 saving={saving}
                 setSaving={setSaving}
 
-                resampleImage={resampleImage} 
+                resampleImage={resampleImage}
 
             />
             <Confirmation name={'New Changes Made'} message={"Consider saving your drawing before switching."}

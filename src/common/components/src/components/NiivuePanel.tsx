@@ -99,10 +99,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
     // Local state mirrors props.mms[0]
     const [xVal, setXVal] = React.useState(round3(mms[0]));
 
-    // Keep local state in sync when Niivue (or parent) updates mms[0]
-    React.useEffect(() => {
-        setXVal(round3(mms[0]));
-    }, [mms[0]]);
 
     const applyX = (val: number) => {
         const v = clamp(round3(val), mins[0], maxs[0]);
@@ -119,10 +115,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
     // --- Y Slice ---
     const [yVal, setYVal] = React.useState(round3(mms[1]));
 
-    React.useEffect(() => {
-        setYVal(round3(mms[1]));
-    }, [mms[1]]);
-
     const applyY = (val: number) => {
         const v = clamp(round3(val), mins[1], maxs[1]);
         setYVal(v);
@@ -138,10 +130,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
     // --- Z Slice ---
     const [zVal, setZVal] = React.useState(round3(mms[2]));
 
-    React.useEffect(() => {
-        setZVal(round3(mms[2]));
-    }, [mms[2]]);
-
     const applyZ = (val: number) => {
         const v = clamp(round3(val), mins[2], maxs[2]);
         setZVal(v);
@@ -153,6 +141,13 @@ export function NiivuePanel(props: NiivuePanelProps) {
         ];
         props.nv.drawScene();
     };
+
+    // Keep local state in sync when Niivue (or parent) updates mms[0]
+    React.useEffect(() => {
+        setXVal(round3(mms[0]));
+        setYVal(round3(mms[1]));
+        setZVal(round3(mms[2]));
+    }, [mms]);
 
     return (
         <Box
