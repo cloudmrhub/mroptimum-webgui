@@ -1,35 +1,47 @@
-import { combineReducers } from 'redux';
-import {configureStore} from "@reduxjs/toolkit";
-import {authenticateSlice} from "cloudmr-core/features/authenticate/authenticateSlice";
-import {dataSlice} from "cloudmr-core/features/data/dataSlice";
-import {jobsSlice} from "cloudmr-core/features/jobs/jobsSlice";
-import { resultSlice } from "cloudmr-core/features/rois/resultSlice"
-import {setupSlice} from "./setup/setupSlice";
-import storage from 'redux-persist/lib/storage';
-import { persistReducer, persistStore,
-    FLUSH,
-    REHYDRATE,
-    PAUSE,
-    PERSIST,
-    PURGE,
-    REGISTER, } from 'redux-persist';
+import { combineReducers } from "redux";
+import { configureStore } from "@reduxjs/toolkit";
+import { authenticateSlice } from "cloudmr-core/features/authenticate/authenticateSlice";
+import { dataSlice } from "cloudmr-core/features/data/dataSlice";
+import { jobsSlice } from "cloudmr-core/features/jobs/jobsSlice";
+import { resultSlice } from "cloudmr-core/features/rois/resultSlice";
+import { setupSlice } from "./setup/setupSlice";
+import storage from "redux-persist/lib/storage";
+import {
+  persistReducer,
+  persistStore,
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
 
-let rootReducer = combineReducers({authenticate: authenticateSlice.reducer, data: dataSlice.reducer,
-    jobs:jobsSlice.reducer, setup: setupSlice.reducer, result: resultSlice.reducer});
+let rootReducer = combineReducers({
+  authenticate: authenticateSlice.reducer,
+  data: dataSlice.reducer,
+  jobs: jobsSlice.reducer,
+  setup: setupSlice.reducer,
+  result: resultSlice.reducer,
+});
 
 const persistConfig = {
-    whitelist: ['authenticate', 'setup', 'home', 'pipeline'],
-    key: 'root',
-    storage,
+  whitelist: ["authenticate", "setup", "home", "pipeline"],
+  key: "root",
+  storage,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = configureStore({ reducer: persistedReducer, middleware: (getDefaultMiddleware) => getDefaultMiddleware({
-        serializableCheck: {
-            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-    })});
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+});
 
 export const persistor = persistStore(store);
 // persistor.purge();

@@ -1,16 +1,12 @@
-import {Navigate, useNavigate, useParams} from 'react-router-dom';
-import { useAppDispatch } from '../features/hooks';
-import {webSignin} from "cloudmr-core/features/authenticate/authenticateActionCreation";
-
-
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useAppDispatch } from "../features/hooks";
+import { webSignin } from "cloudmr-ux/core/features/authenticate/authenticateActionCreation";
 
 export default function WebSignin() {
-    const dispatch = useAppDispatch();
-    const navigate = useNavigate();
-    let { token } = useParams<{token: string}>();
-    // @ts-ignore
-    dispatch(webSignin(token));
-    return (
-        <Navigate to='/'/>
-    );
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  let { token } = useParams<{ token: string }>();
+  // @ts-ignore
+  dispatch(webSignin(token));
+  return <Navigate to="/" />;
 }

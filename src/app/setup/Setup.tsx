@@ -1,901 +1,1264 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import './Setup.scss';
-import { CmrCollapse, CmrPanel, CmrConfirmation } from 'cloudmr-ux';
-import { getUploadedData, uploadData } from 'cloudmr-core/features/data/dataActionCreation';
-import { useAppDispatch, useAppSelector } from '../../features/hooks';
-import { getFiles, setupGetters, setupSetters } from '../../features/setup/setupSlice';
-import { CMRSelectUpload } from 'cloudmr-ux';
-import { CmrLabel } from 'cloudmr-ux';
+import React, { Fragment, useEffect, useState } from "react";
+import "./Setup.scss";
+import { CmrCollapse, CmrPanel, CmrConfirmation } from "cloudmr-ux";
+import {
+  getUploadedData,
+  uploadData,
+} from "cloudmr-ux/core/features/data/dataActionCreation";
+import { useAppDispatch, useAppSelector } from "../../features/hooks";
+import {
+  getFiles,
+  setupGetters,
+  setupSetters,
+} from "../../features/setup/setupSlice";
+import { CMRSelectUpload } from "cloudmr-ux";
+import { CmrLabel } from "cloudmr-ux";
 import { Col, Row } from "antd";
-import moment from 'moment';
+import moment from "moment";
 
 import {
-    Divider,
-    FormControl,
-    FormControlLabel,
-    FormLabel,
-    RadioGroup,
-    Radio,
-    InputLabel,
-    Select, MenuItem, Tooltip, Snackbar, Alert, Typography, Button, Box
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip,
+  Snackbar,
+  Alert,
+  Typography,
+  Button,
+  Box,
 } from "@mui/material";
-import { CmrCheckbox } from 'cloudmr-ux';
+import { CmrCheckbox } from "cloudmr-ux";
 import {
-    DataGrid,
-    GridCellEditStopParams,
-    GridColDef, GridRowId,
-    GridRowsProp,
+  DataGrid,
+  GridCellEditStopParams,
+  GridColDef,
+  GridRowId,
+  GridRowsProp,
 } from "@mui/x-data-grid";
-import { CmrButton } from 'cloudmr-ux';
-import { CmrInputNumber } from 'cloudmr-ux';
+import { CmrButton } from "cloudmr-ux";
+import { CmrInputNumber } from "cloudmr-ux";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
-import { UploadedFile } from "cloudmr-core/features/data/dataSlice";
-import { formatBytes } from "cloudmr-core/common/utilities/SystemUtilities";
-import { jobActions } from "cloudmr-core/features/jobs/jobsSlice";
+import { UploadedFile } from "cloudmr-ux/core/features/data/dataSlice";
+import { formatBytes } from "cloudmr-ux/core/common/utilities/SystemUtilities";
+import { jobActions } from "cloudmr-ux/core/features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ClearIcon from '@mui/icons-material/Clear';
+import ClearIcon from "@mui/icons-material/Clear";
 import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
 import { submitJobs } from "../../features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
-import { downloadStringAsFile } from "cloudmr-core/common/utilities/DownloadFromText";
-import { uploadHandlerFactory } from "cloudmr-core/common/utilities/SystemUtilities";
-
+import { downloadStringAsFile } from "cloudmr-ux/core/common/utilities/DownloadFromText";
+import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 
 const Setup = () => {
-    useEffect(() => {
-        //@ts-ignore
-        MathJax.typeset();
-    }, []);
+  useEffect(() => {
+    //@ts-ignore
+    MathJax.typeset();
+  }, []);
 
-    const dispatch = useAppDispatch();
-    const { accessToken, level, uploadToken, queueToken } = useAppSelector((state) => state.authenticate);
-    const developer = level !== 'standard' && level !== 'pro';
-    const editActive = useAppSelector(state => state.setup.editInProgress);
-    const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
-    const newJobId = useAppSelector((state) => state.setup.idGenerator);
-    const signal = useAppSelector(setupGetters.getSignal);
-    // console.log(signal);
-    const noise = useAppSelector(setupGetters.getNoise);
-    const multiraid = useAppSelector(setupGetters.getMultiRaid);
-    // console.log(multiraid);
-    const uploadedData = useAppSelector((state) => state.data.files);
-    const setSignal = setupSetters.setSignal;
-    const setNoise = setupSetters.setNoise;
-    const [breakpoint, setBreakpoint] = useState('');
-    const analysisMethod = useAppSelector(setupGetters.getAnalysisMethod);
-    // console.log(analysisMethod);
-    const [analysisMethodChanged, setAnalysisMethodChanged] = useState(false);
-    const analysisMethodName = useAppSelector(setupGetters.getAnalysisMethodName);
-    const reconstructionMethod = useAppSelector(setupGetters.getReconstructionMethod);
-    const [reconstructionMethodChanged, setReconstructionMethodChanged] = useState(false);
-    const pseudoReplicaCount = useAppSelector(setupGetters.getPseudoReplicaCount);
-    const boxSize = useAppSelector(setupGetters.getBoxSize);
-    const flipAngleCorrection = useAppSelector(setupGetters.getFlipAngleCorrection);
-    const faMap = useAppSelector(setupGetters.getFlipAngleCorrectionFile);
-    const loadSensitivity = useAppSelector(setupGetters.getLoadSensitivity);
-    const sensitivityMapMethod = useAppSelector(setupGetters.getSensitivityMapMethod);
-    const sensitivityMapSource = useAppSelector(setupGetters.getSensitivityMapSource);
-    const decimateData = useAppSelector(setupGetters.getDecimate);
-    const decimateAcceleration1 = useAppSelector(setupGetters.getDecimateAcceleration1);
-    const decimateAcceleration2 = useAppSelector(setupGetters.getDecimateAcceleration2);
-    // const [decimateACL, setDecimateACL] = useState(useAppSelector(setupGetters.getDecimateACL) ?? null);
-    const decimateACL = useAppSelector(setupGetters.getDecimateACL);
-    const kernelSize1 = useAppSelector(setupGetters.getKernelSize1);
-    const kernelSize2 = useAppSelector(setupGetters.getKernelSize2);
-    let snrDescription = analysisMethodName ? snrDescriptions[analysisMethodName] : '';
-    const [signalFileUpdated, setSignalFileUpdated] = useState(false);
-    const [noiseFileUpdated, setNoiseFileUpdated] = useState(false);
+  const dispatch = useAppDispatch();
+  const { accessToken, level, uploadToken, queueToken } = useAppSelector(
+    (state) => state.authenticate,
+  );
+  const developer = level !== "standard" && level !== "pro";
+  const editActive = useAppSelector((state) => state.setup.editInProgress);
+  const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
+  const newJobId = useAppSelector((state) => state.setup.idGenerator);
+  const signal = useAppSelector(setupGetters.getSignal);
+  // console.log(signal);
+  const noise = useAppSelector(setupGetters.getNoise);
+  const multiraid = useAppSelector(setupGetters.getMultiRaid);
+  // console.log(multiraid);
+  const uploadedData = useAppSelector((state) => state.data.files);
+  const setSignal = setupSetters.setSignal;
+  const setNoise = setupSetters.setNoise;
+  const [breakpoint, setBreakpoint] = useState("");
+  const analysisMethod = useAppSelector(setupGetters.getAnalysisMethod);
+  // console.log(analysisMethod);
+  const [analysisMethodChanged, setAnalysisMethodChanged] = useState(false);
+  const analysisMethodName = useAppSelector(setupGetters.getAnalysisMethodName);
+  const reconstructionMethod = useAppSelector(
+    setupGetters.getReconstructionMethod,
+  );
+  const [reconstructionMethodChanged, setReconstructionMethodChanged] =
+    useState(false);
+  const pseudoReplicaCount = useAppSelector(setupGetters.getPseudoReplicaCount);
+  const boxSize = useAppSelector(setupGetters.getBoxSize);
+  const flipAngleCorrection = useAppSelector(
+    setupGetters.getFlipAngleCorrection,
+  );
+  const faMap = useAppSelector(setupGetters.getFlipAngleCorrectionFile);
+  const loadSensitivity = useAppSelector(setupGetters.getLoadSensitivity);
+  const sensitivityMapMethod = useAppSelector(
+    setupGetters.getSensitivityMapMethod,
+  );
+  const sensitivityMapSource = useAppSelector(
+    setupGetters.getSensitivityMapSource,
+  );
+  const decimateData = useAppSelector(setupGetters.getDecimate);
+  const decimateAcceleration1 = useAppSelector(
+    setupGetters.getDecimateAcceleration1,
+  );
+  const decimateAcceleration2 = useAppSelector(
+    setupGetters.getDecimateAcceleration2,
+  );
+  // const [decimateACL, setDecimateACL] = useState(useAppSelector(setupGetters.getDecimateACL) ?? null);
+  const decimateACL = useAppSelector(setupGetters.getDecimateACL);
+  const kernelSize1 = useAppSelector(setupGetters.getKernelSize1);
+  const kernelSize2 = useAppSelector(setupGetters.getKernelSize2);
+  let snrDescription = analysisMethodName
+    ? snrDescriptions[analysisMethodName]
+    : "";
+  const [signalFileUpdated, setSignalFileUpdated] = useState(false);
+  const [noiseFileUpdated, setNoiseFileUpdated] = useState(false);
 
-    const signalProgress = useAppSelector(state => state.setup.signalUploadProgress);
-    const noiseProgress = useAppSelector(state => state.setup.noiseUploadProgress);
+  const signalProgress = useAppSelector(
+    (state) => state.setup.signalUploadProgress,
+  );
+  const noiseProgress = useAppSelector(
+    (state) => state.setup.noiseUploadProgress,
+  );
 
-    const outputGFactor = useAppSelector(state => state.setup.outputSettings.gfactor);
-    const outputCoilSensitivity = useAppSelector(state => state.setup.outputSettings.coilsensitivity);
-    const outputMatlab = useAppSelector(state => state.setup.outputSettings.matlab);
+  const outputGFactor = useAppSelector(
+    (state) => state.setup.outputSettings.gfactor,
+  );
+  const outputCoilSensitivity = useAppSelector(
+    (state) => state.setup.outputSettings.coilsensitivity,
+  );
+  const outputMatlab = useAppSelector(
+    (state) => state.setup.outputSettings.matlab,
+  );
 
-    const maskMethod = useAppSelector(state => state.setup.maskOptionStore);
-    const maskThreshold = useAppSelector(state => state.setup.maskThresholdStore);
-    const { cStore, kStore, rStore, tStore } = useAppSelector(state => state.setup);
-    const maskFile = useAppSelector(state => state.setup.maskFileStore);
+  const maskMethod = useAppSelector((state) => state.setup.maskOptionStore);
+  const maskThreshold = useAppSelector(
+    (state) => state.setup.maskThresholdStore,
+  );
+  const { cStore, kStore, rStore, tStore } = useAppSelector(
+    (state) => state.setup,
+  );
+  const maskFile = useAppSelector((state) => state.setup.maskFileStore);
 
-    const [reconWarningOpen, setReconWarningOpen] = useState(false);
-    const [b1SwitchedMessage, setB1SwitchedMessage] = useState<string | undefined>(undefined);
+  const [reconWarningOpen, setReconWarningOpen] = useState(false);
+  const [b1SwitchedMessage, setB1SwitchedMessage] = useState<
+    string | undefined
+  >(undefined);
 
-    if (analysisMethodChanged) {
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            //@ts-ignore
-            MathJax.typesetPromise();
-        }, 10);
-        setAnalysisMethodChanged(false);
-    }
+  if (analysisMethodChanged) {
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      //@ts-ignore
+      MathJax.typesetPromise();
+    }, 10);
+    setAnalysisMethodChanged(false);
+  }
 
-    if (reconstructionMethodChanged) {
-        setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 10);
-        setReconstructionMethodChanged(false);
-    }
+  if (reconstructionMethodChanged) {
+    setTimeout(
+      () =>
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        }),
+      10,
+    );
+    setReconstructionMethodChanged(false);
+  }
 
-    // Option availability maps
-    const topToSecondaryMaps = [[0, 1, 2], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4]];
-    const secondaryToCoilMethodMaps = [[], ['inner'], ['inner', 'innerACL'], []];
-    const idToSecondaryOptions = ['Root sum of squares', 'B-1 Weighted', 'Sense', 'Grappa'];
-    const coilOptionAlias: { [options: string]: string } = {
-        'inner': 'Internal Reference',
-        'innerACL': 'Internal Reference with AutoCalibration Lines'
+  // Option availability maps
+  const topToSecondaryMaps = [
+    [0, 1, 2],
+    [0, 1, 2, 3, 4],
+    [0, 1, 2, 3, 4],
+    [0, 1, 2, 3, 4],
+  ];
+  const secondaryToCoilMethodMaps = [[], ["inner"], ["inner", "innerACL"], []];
+  const idToSecondaryOptions = [
+    "Root sum of squares",
+    "B-1 Weighted",
+    "Sense",
+    "Grappa",
+  ];
+  const coilOptionAlias: { [options: string]: string } = {
+    inner: "Internal Reference",
+    innerACL: "Internal Reference with AutoCalibration Lines",
+  };
+  const decimateMapping = [false, false, true, true];
+  const uploadResHandlerFactory = (
+    reducer: (payload: UploadedFile) => {
+      payload: UploadedFile | undefined;
+      type: string;
+    },
+    additionalCallbacks?: () => void,
+  ) => {
+    return (res: AxiosResponse, maskFile: File) => {
+      const submittedDatTime = moment().format("YYYY-MM-DD HH:mm:ss");
+      console.log(res.data);
+      const uploadedFile: UploadedFile = {
+        id: res.data.response.id || 0,
+        fileName: res.data.response.filename,
+        createdAt: submittedDatTime,
+        updatedAt: submittedDatTime,
+        size: formatBytes(maskFile.size),
+        link: res.data.response.onlineLink,
+        status: res.data.response.status,
+        md5: res.data.response.md5,
+        database: "s3",
+        location: res.data.response.location,
+      };
+      dispatch(reducer(uploadedFile));
+      dispatch(getUploadedData());
+      additionalCallbacks && additionalCallbacks();
     };
-    const decimateMapping = [false, false, true, true];
-    const uploadResHandlerFactory = (reducer: (payload: UploadedFile) => {
-        payload: UploadedFile | undefined,
-        type: string
-    }, additionalCallbacks?: () => void) => {
-        return (res: AxiosResponse, maskFile: File) => {
-            const submittedDatTime = moment().format('YYYY-MM-DD HH:mm:ss');
-            console.log(res.data);
-            const uploadedFile: UploadedFile = {
-                id: res.data.response.id || 0,
-                fileName: res.data.response.filename,
-                createdAt: submittedDatTime,
-                updatedAt: submittedDatTime,
-                size: formatBytes(maskFile.size),
-                link: res.data.response.onlineLink,
-                status: res.data.response.status,
-                md5: res.data.response.md5,
-                database: 's3',
-                location: res.data.response.location
-            };
-            dispatch(reducer(uploadedFile));
-            dispatch(getUploadedData());
-            (additionalCallbacks) &&
-                additionalCallbacks();
-        };
+  };
+
+  useEffect(() => {
+    //@ts-ignore
+    dispatch(getUploadedData());
+
+    const updateBreakpoint = () => {
+      if (window.innerWidth < 992) setBreakpoint("md");
+      else if (window.innerWidth < 1200) setBreakpoint("lg");
+      else if (window.innerWidth < 1400) setBreakpoint("xl");
+      else setBreakpoint("xxl");
     };
 
-    useEffect(() => {
-        //@ts-ignore
-        dispatch(getUploadedData());
-
-        const updateBreakpoint = () => {
-            if (window.innerWidth < 992) setBreakpoint('md');
-            else if (window.innerWidth < 1200) setBreakpoint('lg');
-            else if (window.innerWidth < 1400) setBreakpoint('xl');
-            else setBreakpoint('xxl');
-        };
-
-        window.addEventListener('resize', updateBreakpoint);
-        updateBreakpoint();
+    window.addEventListener("resize", updateBreakpoint);
+    updateBreakpoint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  }, []);
 
-    useEffect(() => {
-        if (
-            typeof reconstructionMethod === 'number' &&
-            decimateMapping[reconstructionMethod] &&
-            decimateData &&
-            decimateACL !== null
-        ) {
-            dispatch(setupSetters.setDecimateACL(null));
+  useEffect(() => {
+    if (
+      typeof reconstructionMethod === "number" &&
+      decimateMapping[reconstructionMethod] &&
+      decimateData &&
+      decimateACL !== null
+    ) {
+      dispatch(setupSetters.setDecimateACL(null));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decimateMapping, decimateACL, reconstructionMethod, decimateData]);
+
+  // make sure gfactor is only true when sense and checkbox are selected
+  useEffect(() => {
+    if (reconstructionMethod === 2) {
+      // If coming *into* SENSE, sync payload state to match UI checkbox
+      dispatch(setupSetters.setGFactor(outputGFactor));
+    } else {
+      // Leaving SENSE: always disable gfactor
+      dispatch(setupSetters.setGFactor(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outputGFactor, reconstructionMethod]);
+
+  const columns: GridColDef[] = [
+    { field: "type", headerName: "type", width: 180, editable: false },
+    {
+      field: "value",
+      headerName: "value",
+      type: "number",
+      editable: false,
+      align: "left",
+      headerAlign: "left",
+      width: 180,
+      renderCell: (params) => {
+        console.log(params);
+        switch (params.id) {
+          case 1:
+            return (
+              <CmrInputNumber
+                value={decimateAcceleration1}
+                min={1}
+                style={{ width: "100%" }}
+                onChange={(val) => {
+                  dispatch(
+                    setupSetters.setDecimateAccelerations1(
+                      val === null ? 1 : val,
+                    ),
+                  );
+                }}
+              ></CmrInputNumber>
+            );
+          case 2:
+            return (
+              <CmrInputNumber
+                value={decimateAcceleration2}
+                min={1}
+                style={{ width: "100%" }}
+                onChange={(val) => {
+                  dispatch(
+                    setupSetters.setDecimateAccelerations2(
+                      val === null ? 1 : val,
+                    ),
+                  );
+                }}
+              ></CmrInputNumber>
+            );
+          case 3:
+            return (
+              <CmrInputNumber
+                value={decimateACL === null ? Number.NaN : decimateACL}
+                style={{ width: "100%" }}
+                min={2}
+                disabled={decimateACL === null}
+                onChange={(val) => {
+                  dispatch(setupSetters.setDecimateACL(val === null ? 1 : val));
+                }}
+              ></CmrInputNumber>
+            );
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [decimateMapping, decimateACL, reconstructionMethod, decimateData]);
-
-    // make sure gfactor is only true when sense and checkbox are selected
-    useEffect(() => {
-        if (reconstructionMethod === 2) {
-            // If coming *into* SENSE, sync payload state to match UI checkbox
-            dispatch(setupSetters.setGFactor(outputGFactor));
-        } else {
-            // Leaving SENSE: always disable gfactor
-            dispatch(setupSetters.setGFactor(false));
+      },
+    },
+  ];
+  const rows: GridRowsProp = [
+    {
+      id: 1,
+      type: "Acceleration Factor X",
+    },
+    {
+      id: 2,
+      type: "Acceleration Factor Y",
+    },
+    {
+      id: 3,
+      type: "Autocalibration Lines",
+    },
+  ];
+  const kernelSizeColumns: GridColDef[] = [
+    { field: "type", headerName: "type", width: 180, editable: false },
+    {
+      field: "value",
+      headerName: "value",
+      type: "number",
+      editable: false,
+      align: "left",
+      headerAlign: "left",
+      width: 180,
+      renderCell: (params) => {
+        console.log(params);
+        switch (params.id) {
+          case 1:
+            return (
+              <CmrInputNumber
+                value={kernelSize1}
+                min={1}
+                style={{ width: "100%" }}
+                onChange={(val) => {
+                  dispatch(setupSetters.setKernelSize1(val === null ? 0 : val));
+                }}
+              ></CmrInputNumber>
+            );
+          case 2:
+            return (
+              <CmrInputNumber
+                value={kernelSize2}
+                min={1}
+                style={{ width: "100%" }}
+                onChange={(val) => {
+                  dispatch(setupSetters.setKernelSize2(val === null ? 0 : val));
+                }}
+              ></CmrInputNumber>
+            );
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [outputGFactor, reconstructionMethod]);
-
-    const columns: GridColDef[] = [
-        { field: 'type', headerName: 'type', width: 180, editable: false },
-        {
-            field: 'value',
-            headerName: 'value',
-            type: 'number',
-            editable: false,
-            align: 'left',
-            headerAlign: 'left',
-            width: 180,
-            renderCell: (params) => {
-                console.log(params);
-                switch (params.id) {
-                    case 1:
-                        return <CmrInputNumber value={decimateAcceleration1}
-                            min={1}
-                            style={{ width: '100%' }}
-                            onChange={(val) => {
-                                dispatch(setupSetters.setDecimateAccelerations1((val === null) ? 1 : val))
-                            }}></CmrInputNumber>;
-                    case 2:
-                        return <CmrInputNumber value={decimateAcceleration2}
-                            min={1}
-                            style={{ width: '100%' }}
-                            onChange={(val) => {
-                                dispatch(setupSetters.setDecimateAccelerations2((val === null) ? 1 : val))
-                            }}></CmrInputNumber>;
-                    case 3:
-                        return <CmrInputNumber value={decimateACL === null ? Number.NaN : decimateACL}
-                            style={{ width: '100%' }}
-                            min={2}
-                            disabled={decimateACL === null}
-                            onChange={(val) => {
-                                dispatch(setupSetters.setDecimateACL((val === null) ? 1 : val))
-                            }}></CmrInputNumber>;
-                }
-            }
-        }];
-    const rows: GridRowsProp = [
-        {
-            id: 1,
-            type: 'Acceleration Factor X',
-        },
-        {
-            id: 2,
-            type: 'Acceleration Factor Y',
-        },
-        {
-            id: 3,
-            type: 'Autocalibration Lines',
-        }];
-    const kernelSizeColumns: GridColDef[] = [
-        { field: 'type', headerName: 'type', width: 180, editable: false },
-        {
-            field: 'value',
-            headerName: 'value',
-            type: 'number',
-            editable: false,
-            align: 'left',
-            headerAlign: 'left',
-            width: 180,
-            renderCell: (params) => {
-                console.log(params);
-                switch (params.id) {
-                    case 1:
-                        return <CmrInputNumber value={kernelSize1}
-                            min={1}
-                            style={{ width: '100%' }}
-                            onChange={(val) => {
-                                dispatch(setupSetters.setKernelSize1((val === null) ? 0 : val))
-                            }}></CmrInputNumber>;
-                    case 2:
-                        return <CmrInputNumber value={kernelSize2}
-                            min={1}
-                            style={{ width: '100%' }}
-                            onChange={(val) => {
-                                dispatch(setupSetters.setKernelSize2((val === null) ? 0 : val))
-                            }}></CmrInputNumber>;
-                }
-            }
-        }];
-    const kernelSizeRows: GridRowsProp = [
-        {
-            id: 1,
-            type: 'Kernel Size X',
-        },
-        {
-            id: 2,
-            type: 'Kernel Size Y',
-        }];
-    const queuedJobsColumns: GridColDef[] = [
-        {
-            headerName: 'Job ID',
-            field: 'id',
-            flex: 1,
-        },
-        {
-            headerName: 'Alias',
-            field: 'alias',
-            flex: 3,
-        },
-        {
-            headerName: 'Date Created',
-            field: 'createdAt',
-            flex: 2,
-        },
-        {
-            headerName: 'Status',
-            field: 'status',
-            flex: 1,
-        },
-        {
-            field: 'options',
-            headerName: 'Actions',
-            sortable: false,
-            width: 160,
-            disableColumnMenu: true,
-            minWidth: 160,
-            renderHeader: () => {
-                return (
-                    <React.Fragment>
-                        <div className="MuiDataGrid-columnHeaderTitle css-t89xny-MuiDataGrid-columnHeaderTitle"> Actions
-                        </div>
-                        {/* TODO EROS MONTIN */}
-                        {/* <Tooltip title="Upload schema directly">
+      },
+    },
+  ];
+  const kernelSizeRows: GridRowsProp = [
+    {
+      id: 1,
+      type: "Kernel Size X",
+    },
+    {
+      id: 2,
+      type: "Kernel Size Y",
+    },
+  ];
+  const queuedJobsColumns: GridColDef[] = [
+    {
+      headerName: "Job ID",
+      field: "id",
+      flex: 1,
+    },
+    {
+      headerName: "Alias",
+      field: "alias",
+      flex: 3,
+    },
+    {
+      headerName: "Date Created",
+      field: "createdAt",
+      flex: 2,
+    },
+    {
+      headerName: "Status",
+      field: "status",
+      flex: 1,
+    },
+    {
+      field: "options",
+      headerName: "Actions",
+      sortable: false,
+      width: 160,
+      disableColumnMenu: true,
+      minWidth: 160,
+      renderHeader: () => {
+        return (
+          <React.Fragment>
+            <div className="MuiDataGrid-columnHeaderTitle css-t89xny-MuiDataGrid-columnHeaderTitle">
+              {" "}
+              Actions
+            </div>
+            {/* TODO EROS MONTIN */}
+            {/* <Tooltip title="Upload schema directly">
                             <IconButton style={{ marginLeft: 'auto' }} onClick={() => {
                                 setSchemaSelector(true);
                             }}>
                                 <AddIcon fontSize={'medium'} sx={{}} />
                             </IconButton>
                         </Tooltip> */}
-                    </React.Fragment>
+          </React.Fragment>
+        );
+      },
+      renderCell: (params: any) => {
+        return (
+          <div>
+            <IconButton
+              onClick={(e) => {
+                /* Edit logic here */
+                e.stopPropagation();
+                let snrPreview = params.row.setup;
+                setRowId(params.row.id);
+                setEditContent(JSON.stringify(snrPreview, null, "\t"));
+                setEditedJSON({
+                  SNR: snrPreview.task,
+                  output: snrPreview.output,
+                });
+                setEditAlias(params.row.alias);
+              }}
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              onClick={(e) => {
+                /* Download logic here */
+                e.stopPropagation();
+                let row = params.row;
+                let setup = row.setup;
+                let alias = row.alias;
+                if (alias.split(".").pop() !== "json") {
+                  alias = `${alias}.json`;
+                }
+                downloadStringAsFile(
+                  JSON.stringify(row, undefined, "\t"),
+                  alias,
                 );
-            },
-            renderCell: (params: any) => {
-                return (
-                    <div>
-                        <IconButton onClick={(e) => {/* Edit logic here */
-                            e.stopPropagation();
-                            let snrPreview = params.row.setup;
-                            setRowId(params.row.id);
-                            setEditContent(JSON.stringify(snrPreview, null, '\t'));
-                            setEditedJSON({ SNR: snrPreview.task, output: snrPreview.output });
-                            setEditAlias(params.row.alias);
-                        }}>
-                            <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={(e) => {/* Download logic here */
-                            e.stopPropagation();
-                            let row = params.row;
-                            let setup = row.setup;
-                            let alias = row.alias;
-                            if (alias.split('.').pop() !== 'json') {
-                                alias = `${alias}.json`;
-                            }
-                            downloadStringAsFile(JSON.stringify(row, undefined, '\t'), alias);
-                        }}>
-                            <GetAppIcon />
-                        </IconButton>
-                        <IconButton onClick={(e) => {/* Delete logic here */
-                            e.stopPropagation();
-                            setSNRDeleteWarning(`You are about to delete ${params.row.alias}.`);
-                            setSNRDeleteOpen(true);
-                            setSNRDeleteWarningCallback(() => {
-                                return () => dispatch(setupSetters.deleteQueuedJob(params.id));
-                            });
-                        }}>
-                            <DeleteIcon />
-                        </IconButton>
-                    </div>
+              }}
+            >
+              <GetAppIcon />
+            </IconButton>
+            <IconButton
+              onClick={(e) => {
+                /* Delete logic here */
+                e.stopPropagation();
+                setSNRDeleteWarning(
+                  `You are about to delete ${params.row.alias}.`,
                 );
-            },
-        },
-    ];
+                setSNRDeleteOpen(true);
+                setSNRDeleteWarningCallback(() => {
+                  return () =>
+                    dispatch(setupSetters.deleteQueuedJob(params.id));
+                });
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        );
+      },
+    },
+  ];
 
-    const selectStyles = {
-        control: (base: any, state: any) => ({
-            ...base,
-            borderColor: state.isFocused ? '#580F8B' : base.borderColor,
-            boxShadow: state.isFocused ? `0 0 0 1px #580F8B` : base.boxShadow,
-            '&:hover': {
-                borderColor: '#580F8B',
-            },
-            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
-            fontWeight: 400,
-        }),
-        option: (base: any, state: any) => ({
-            ...base,
-            backgroundColor: state.isFocused || state.isSelected ? '#F3E5F5' : 'white',
-            color: '#000',
-            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
-            fontWeight: 400,
-        }),
-        menuPortal: (base: any) => ({
-            ...base,
-            zIndex: 2000, // needed for portal target to body
-        }),
-        menu: (base: any) => ({
-            ...base,
-            zIndex: 9999, // ensures it renders over dialogs
-        }),
-        singleValue: (base: any) => ({
-            ...base,
-            color: '#580F8B',
-            fontWeight: 400,
-            fontFamily: 'Inter, Roboto, Helvetica, Arial, sans-serif',
-        }),
-    };
+  const selectStyles = {
+    control: (base: any, state: any) => ({
+      ...base,
+      borderColor: state.isFocused ? "#580F8B" : base.borderColor,
+      boxShadow: state.isFocused ? `0 0 0 1px #580F8B` : base.boxShadow,
+      "&:hover": {
+        borderColor: "#580F8B",
+      },
+      fontFamily: "Inter, Roboto, Helvetica, Arial, sans-serif",
+      fontWeight: 400,
+    }),
+    option: (base: any, state: any) => ({
+      ...base,
+      backgroundColor:
+        state.isFocused || state.isSelected ? "#F3E5F5" : "white",
+      color: "#000",
+      fontFamily: "Inter, Roboto, Helvetica, Arial, sans-serif",
+      fontWeight: 400,
+    }),
+    menuPortal: (base: any) => ({
+      ...base,
+      zIndex: 2000, // needed for portal target to body
+    }),
+    menu: (base: any) => ({
+      ...base,
+      zIndex: 9999, // ensures it renders over dialogs
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: "#580F8B",
+      fontWeight: 400,
+      fontFamily: "Inter, Roboto, Helvetica, Arial, sans-serif",
+    }),
+  };
 
-    const [openPanel, setOpenPanel] = useState((noise !== undefined && signal !== undefined) ? [1] : [0]);
-    let snr: any = undefined;
-    let [previewContent, setPreview] = useState<string | undefined>(undefined);
-    const [schemaSelector, setSchemaSelector] = useState(false);
-    const [sdWarning, setSDWarning] = useState<string | undefined>();
-    const [sdWarningHeader, setSDWarningHeader] = useState<string>("No Job Selected for Deletion");
-    const [missingFields, setMissingFields] = useState<string[]>([]);
-    const [sdOpen, setSDOpen] = useState(false);
+  const [openPanel, setOpenPanel] = useState(
+    noise !== undefined && signal !== undefined ? [1] : [0],
+  );
+  let snr: any = undefined;
+  let [previewContent, setPreview] = useState<string | undefined>(undefined);
+  const [schemaSelector, setSchemaSelector] = useState(false);
+  const [sdWarning, setSDWarning] = useState<string | undefined>();
+  const [sdWarningHeader, setSDWarningHeader] = useState<string>(
+    "No Job Selected for Deletion",
+  );
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [sdOpen, setSDOpen] = useState(false);
 
-    const [snrEditWarning, setSNREditWarning] = useState<string | undefined>();
-    const [snrEditWarningCallback, setSnrEditWarningCallback] = useState<() => void>(() => {
-    });
-    const [snrEditOpen, setSNREditOpen] = useState(false);
+  const [snrEditWarning, setSNREditWarning] = useState<string | undefined>();
+  const [snrEditWarningCallback, setSnrEditWarningCallback] = useState<
+    () => void
+  >(() => {});
+  const [snrEditOpen, setSNREditOpen] = useState(false);
 
-    const [snrDeleteWarning, setSNRDeleteWarning] = useState<string | undefined>();
-    const [snrDeleteWarningCallback, setSNRDeleteWarningCallback] = useState<() => void>(() => {
-    });
-    const [snrDeleteOpen, setSNRDeleteOpen] = useState(false);
+  const [snrDeleteWarning, setSNRDeleteWarning] = useState<
+    string | undefined
+  >();
+  const [snrDeleteWarningCallback, setSNRDeleteWarningCallback] = useState<
+    () => void
+  >(() => {});
+  const [snrDeleteOpen, setSNRDeleteOpen] = useState(false);
 
-    const [jobSelectionModel, setJobSelectionModel] = useState<GridRowId[]>([]);
+  const [jobSelectionModel, setJobSelectionModel] = useState<GridRowId[]>([]);
 
-    const [editedJSON, setEditedJSON] = useState<any>();
-    const [editContent, setEditContent] = useState<string | undefined>(undefined);
-    const [editAlias, setEditAlias] = useState<string>('');
-    const [rowId, setRowId] = useState<number>(-1);
-    const [editing, setEditing] = useState<number>(-1);
+  const [editedJSON, setEditedJSON] = useState<any>();
+  const [editContent, setEditContent] = useState<string | undefined>(undefined);
+  const [editAlias, setEditAlias] = useState<string>("");
+  const [rowId, setRowId] = useState<number>(-1);
+  const [editing, setEditing] = useState<number>(-1);
 
-    const [jobAlias, setJobAlias] = useState<string>('');
+  const [jobAlias, setJobAlias] = useState<string>("");
 
-    const [snackOpen, setSnackOpen] = useState(false)
-    const snackAlert = useAppSelector(state => { return state.jobs.submittingText; });
+  const [snackOpen, setSnackOpen] = useState(false);
+  const snackAlert = useAppSelector((state) => {
+    return state.jobs.submittingText;
+  });
 
-    const quotaExceeded = useAppSelector(state => state.setup.quotaExceeded);
+  const quotaExceeded = useAppSelector((state) => state.setup.quotaExceeded);
 
-    const handleSnackClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
-        setSnackOpen(false);
-        setTimeout(() => dispatch(jobActions.resetSubmissionState()), 1000);
-    };
-
-    // Validates the SNR before submitting to upstream
-    const preflightValidation = () => {
-        const missing: string[] = [];
-
-        if (!signal) {
-            missing.push("Signal");
-        }
-
-        if (!noise && !multiraid && analysisMethod !== 1) {
-            missing.push("Noise");
-        }
-
-        if (
-            maskFile === undefined &&
-            maskMethod === 4 &&
-            reconstructionMethod &&
-            secondaryToCoilMethodMaps[reconstructionMethod] &&
-            secondaryToCoilMethodMaps[reconstructionMethod].length !== 0
-        ) {
-            missing.push("Mask");
-        }
-
-        if (flipAngleCorrection && !faMap) {
-            missing.push("FA");
-        }
-
-        setMissingFields(missing);
-
-        if (missing.length > 0) {
-            setSDWarningHeader("Set Up Validation Failed");
-
-            if (missing.includes("Signal") && missing.includes("Noise")) {
-                setSDWarning("Please select or upload signal and noise files.");
-            } else if (missing.includes("Signal")) {
-                setSDWarning("Please select or upload signal file.");
-            } else if (missing.includes("Noise")) {
-                setSDWarning("The signal file is not multi-raid: please select or upload a separate noise file.");
-            } else if (missing.includes("Mask")) {
-                setSDWarning("A mask must be provided if the predefined mask option is checked. ");
-            } else if (missing.includes("FA")) {
-                setSDWarning("A flip angle map must be provided if the flip angle correction option is checked.");
-            }
-
-            setSDOpen(true);
-            return false;
-        }
-
-        return true;
+  const handleSnackClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string,
+  ) => {
+    if (reason === "clickaway") {
+      return;
     }
 
-    // logic for handling panel opening for signal and noise files
-    
-    useEffect(() => {
-        const signal = setupGetters.getSignal(store.getState());
-        const noise = setupGetters.getNoise(store.getState());
-        const multiRaid = setupGetters.getMultiRaid(store.getState());
+    setSnackOpen(false);
+    setTimeout(() => dispatch(jobActions.resetSubmissionState()), 1000);
+  };
 
-        if (signal && (noise || multiRaid)) {
-            setTimeout(() => setOpenPanel([1]), 500);
-        }
-    }, [signalFileUpdated, noiseFileUpdated]);
+  // Validates the SNR before submitting to upstream
+  const preflightValidation = () => {
+    const missing: string[] = [];
 
+    if (!signal) {
+      missing.push("Signal");
+    }
 
-    return (
-        <Fragment>
-            <CmrButton
-                variant="outlined"
-                color="warning"
-                onClick={() => {
-                    // Reset signal and noise
-                    dispatch(setSignal(undefined));
-                    dispatch(setNoise(undefined));
-                    // Reset FA file upload
-                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
-                    dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
-                    dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
-                    // Reset file updated flags
-                    setSignalFileUpdated(false);
-                    setNoiseFileUpdated(false);
-                    // Reset uploaded data
-                    // setUploadedData(null);
-                    setOpenPanel([0]);
-                    dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
-                    dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
-                    setMissingFields([]);
-                }}
-                sx={{ width: '100%', marginBottom: '10px' }}
-            >
-                Reset Signal & Noise Files
-            </CmrButton>
+    if (!noise && !multiraid && analysisMethod !== 1) {
+      missing.push("Noise");
+    }
 
-            <CmrCollapse accordion={false} expandIconPosition="right"
-                activeKey={openPanel} onChange={(key: any) => {
-                    // console.log(key);
-                    setOpenPanel(key)
-                }}>
+    if (
+      maskFile === undefined &&
+      maskMethod === 4 &&
+      reconstructionMethod &&
+      secondaryToCoilMethodMaps[reconstructionMethod] &&
+      secondaryToCoilMethodMaps[reconstructionMethod].length !== 0
+    ) {
+      missing.push("Mask");
+    }
 
-                <CmrPanel key="1" header="Signal & Noise Files" className='mb-2'>
-                    <Row>
-                        <Col>
-                            <Box display="flex" flexDirection="column">
+    if (flipAngleCorrection && !faMap) {
+      missing.push("FA");
+    }
 
-                                {/* Inline row for label, upload, clear, checkbox */}
-                                <Box display="flex" alignItems="center" gap={1}>
-                                    <CmrLabel style={{ marginRight: '50px' }}>Signal File:</CmrLabel>
+    setMissingFields(missing);
 
-                                    {/* Upload Button */}
-                                    {signalProgress < 0 ? (
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <CMRSelectUpload
-                                                fileExtension={['.dat']}
-                                                fileSelection={uploadedData}
-                                                onSelected={(signal) => {
-                                                    dispatch(setSignal(signal));
-                                                    setSignalFileUpdated(signal !== undefined);
-                                                    if (signal) {
-                                                        setMissingFields((prev) => prev.filter((field) => field !== "Signal"));
-                                                    }
-                                                }}
-                                                maxCount={1}
-                                                onUploaded={(res, file) => {
-                                                    uploadResHandlerFactory(setSignal)(res, file);
-                                                    setSignalFileUpdated(!!file);
-                                                    if (file) {
-                                                        setMissingFields((prev) => prev.filter((f) => f !== "Signal"));
-                                                    }
-                                                }}
-                                                selectStyles={selectStyles}
-                                                style={{
-                                                    height: 'fit-content',
-                                                    marginTop: 'auto',
-                                                    marginBottom: 'auto',
-                                                    marginRight: '0'
-                                                }}
-                                                uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'signal')}
-                                                chosenFile={(signal?.options.filename !== '') ? signal?.options.filename : undefined}
-                                            />
+    if (missing.length > 0) {
+      setSDWarningHeader("Set Up Validation Failed");
 
-                                            {/* Clear Button */}
-                                            {signal && (
-                                                <Tooltip title="Clear Uploaded File">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => {
-                                                            dispatch(setupSetters.setSignal(undefined));
-                                                            setSignalFileUpdated(false);
-                                                            setMissingFields((prev) => [...prev, "Signal"]);
-                                                        }}
-                                                    >
-                                                        <ClearIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                        </Box>
-                                    ) : (
-                                        <Button
-                                            variant="contained"
-                                            size="medium"
-                                            style={{ textTransform: 'none', height: 'fit-content' }}
-                                            sx={{ overflowWrap: 'inherit' }}
-                                            color="primary"
-                                            disabled
-                                        >
-                                            Uploading {+(signalProgress * 99).toFixed(2)}%
-                                        </Button>
-                                    )}
+      if (missing.includes("Signal") && missing.includes("Noise")) {
+        setSDWarning("Please select or upload signal and noise files.");
+      } else if (missing.includes("Signal")) {
+        setSDWarning("Please select or upload signal file.");
+      } else if (missing.includes("Noise")) {
+        setSDWarning(
+          "The signal file is not multi-raid: please select or upload a separate noise file.",
+        );
+      } else if (missing.includes("Mask")) {
+        setSDWarning(
+          "A mask must be provided if the predefined mask option is checked. ",
+        );
+      } else if (missing.includes("FA")) {
+        setSDWarning(
+          "A flip angle map must be provided if the flip angle correction option is checked.",
+        );
+      }
 
-                                    {/* Checkbox */}
-                                    <CmrCheckbox
-                                        sx={{ ml: 2 }}
-                                        onChange={(event) => {
-                                            dispatch(setupSetters.setMultiRaid(event.target.checked));
-                                            if (signal !== undefined && event.target.checked)
-                                                setTimeout(() => setOpenPanel([1]), 500);
-                                        }}
-                                        checked={multiraid !== undefined && multiraid}
-                                    >
-                                        Multi-Raid
-                                    </CmrCheckbox>
-                                </Box>
+      setSDOpen(true);
+      return false;
+    }
 
-                                {/* Red warning */}
-                                {missingFields.includes("Signal") && (
-                                    <Typography variant="body2" color="error">
-                                        field is required
-                                    </Typography>
-                                )}
-                            </Box>
-                        </Col>
-                    </Row>
+    return true;
+  };
 
-                    {(multiraid === undefined || !multiraid) &&
-                        <Fragment>
-                            <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                            <Row>
-                                <Col>
-                                    <Box display="flex" flexDirection="column">
-                                        {/* Inline label + uploader + clear icon */}
-                                        <Box display="flex" alignItems="center">
-                                            <CmrLabel style={{ marginTop: 'auto', marginBottom: 'auto', marginRight: '60px' }}>Noise File:</CmrLabel>
+  // logic for handling panel opening for signal and noise files
 
-                                            {noiseProgress < 0 ? (
-                                                <Box display="flex" alignItems="center" gap={1}>
-                                                    <CMRSelectUpload
-                                                        fileExtension={['.dat']}
-                                                        fileSelection={uploadedData}
-                                                        onSelected={(noise) => {
-                                                            dispatch(setNoise(noise));
-                                                            setNoiseFileUpdated(noise !== undefined);
-                                                            if (noise) {
-                                                                setMissingFields((prev) => prev.filter((field) => field !== "Noise"));
-                                                            }
-                                                        }}
-                                                        maxCount={1}
-                                                        onUploaded={(res, file) => {
-                                                            uploadResHandlerFactory(setNoise)(res, file);
-                                                            setNoiseFileUpdated(!!file);
-                                                            if (file) {
-                                                                setMissingFields((prev) => prev.filter((f) => f !== "Noise"));
-                                                            }
-                                                        }}
-                                                        selectStyles={selectStyles}
-                                                        style={{
-                                                            height: 'fit-content',
-                                                            marginTop: 'auto',
-                                                            marginBottom: 'auto',
-                                                            marginRight: '0'
-                                                        }}
-                                                        chosenFile={(noise?.options.filename !== '') ? noise?.options.filename : undefined}
-                                                        uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'noise')}
-                                                    />
+  useEffect(() => {
+    const signal = setupGetters.getSignal(store.getState());
+    const noise = setupGetters.getNoise(store.getState());
+    const multiRaid = setupGetters.getMultiRaid(store.getState());
 
-                                                    {noise && (
-                                                        <Tooltip title="Clear Uploaded File">
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => {
-                                                                    dispatch(setNoise(undefined));
-                                                                    setNoiseFileUpdated(false);
-                                                                    if (analysisMethod !== 1 && !multiraid) {
-                                                                        setMissingFields((prev) => [...prev, "Noise"]);
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <ClearIcon fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    )}
-                                                </Box>
-                                            ) : (
-                                                <Button
-                                                    variant="contained"
-                                                    size="medium"
-                                                    style={{ textTransform: 'none' }}
-                                                    sx={{ overflowWrap: 'inherit' }}
-                                                    color="primary"
-                                                    disabled
-                                                >
-                                                    Uploading {+(noiseProgress * 99).toFixed(2)}%
-                                                </Button>
-                                            )}
-                                        </Box>
+    if (signal && (noise || multiRaid)) {
+      setTimeout(() => setOpenPanel([1]), 500);
+    }
+  }, [signalFileUpdated, noiseFileUpdated]);
 
-                                        {/* Only show red error if multiraid is off and analysisMethod is not multiple replica */}
-                                        {(!multiraid && analysisMethod !== 1) && missingFields.includes("Noise") && (
-                                            <Typography variant="body2" color="error">field is required</Typography>
-                                        )}
-                                    </Box>
-                                </Col>
-                            </Row>
-                        </Fragment>}
-                </CmrPanel>
-                <CmrPanel key="2" header={editing === -1 ? "SNR Analysis" : `Editing Job ${editing}`} className='mb-2'>
-                    <FormControl style={{ width: '100%' }} className={'mb-3'} onChange={(event) => {
-                        //@ts-ignore
-                        if (event.target.value !== analysisMethod)
-                            setAnalysisMethodChanged(true);
-                        //@ts-ignore
-                        dispatch(setupSetters.setAnalysisMethod(event.target.value));
-                    }}>
-                        {/* <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel> */}
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={analysisMethod !== undefined ? analysisMethod : ''}
-                            style={{ display: 'flex', justifyContent: 'space-between' }}
+  return (
+    <Fragment>
+      <CmrButton
+        variant="outlined"
+        color="warning"
+        onClick={() => {
+          // Reset signal and noise
+          dispatch(setSignal(undefined));
+          dispatch(setNoise(undefined));
+          // Reset FA file upload
+          dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
+          dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
+          dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
+          // Reset file updated flags
+          setSignalFileUpdated(false);
+          setNoiseFileUpdated(false);
+          // Reset uploaded data
+          // setUploadedData(null);
+          setOpenPanel([0]);
+          dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
+          dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
+          setMissingFields([]);
+        }}
+        sx={{ width: "100%", marginBottom: "10px" }}
+      >
+        Reset Signal & Noise Files
+      </CmrButton>
+
+      <CmrCollapse
+        accordion={false}
+        expandIconPosition="right"
+        activeKey={openPanel}
+        onChange={(key: any) => {
+          // console.log(key);
+          setOpenPanel(key);
+        }}
+      >
+        <CmrPanel key="1" header="Signal & Noise Files" className="mb-2">
+          <Row>
+            <Col>
+              <Box display="flex" flexDirection="column">
+                {/* Inline row for label, upload, clear, checkbox */}
+                <Box display="flex" alignItems="center" gap={1}>
+                  <CmrLabel style={{ marginRight: "50px" }}>
+                    Signal File:
+                  </CmrLabel>
+
+                  {/* Upload Button */}
+                  {signalProgress < 0 ? (
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <CMRSelectUpload
+                        fileExtension={[".dat"]}
+                        fileSelection={uploadedData}
+                        onSelected={(signal) => {
+                          dispatch(setSignal(signal));
+                          setSignalFileUpdated(signal !== undefined);
+                          if (signal) {
+                            setMissingFields((prev) =>
+                              prev.filter((field) => field !== "Signal"),
+                            );
+                          }
+                        }}
+                        maxCount={1}
+                        onUploaded={(res, file) => {
+                          uploadResHandlerFactory(setSignal)(res, file);
+                          setSignalFileUpdated(!!file);
+                          if (file) {
+                            setMissingFields((prev) =>
+                              prev.filter((f) => f !== "Signal"),
+                            );
+                          }
+                        }}
+                        selectStyles={selectStyles}
+                        style={{
+                          height: "fit-content",
+                          marginTop: "auto",
+                          marginBottom: "auto",
+                          marginRight: "0",
+                        }}
+                        uploadHandler={uploadHandlerFactory(
+                          accessToken,
+                          uploadToken,
+                          dispatch,
+                          uploadData,
+                          "signal",
+                        )}
+                        chosenFile={
+                          signal?.options.filename !== ""
+                            ? signal?.options.filename
+                            : undefined
+                        }
+                      />
+
+                      {/* Clear Button */}
+                      {signal && (
+                        <Tooltip title="Clear Uploaded File">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              dispatch(setupSetters.setSignal(undefined));
+                              setSignalFileUpdated(false);
+                              setMissingFields((prev) => [...prev, "Signal"]);
+                            }}
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      style={{ textTransform: "none", height: "fit-content" }}
+                      sx={{ overflowWrap: "inherit" }}
+                      color="primary"
+                      disabled
+                    >
+                      Uploading {+(signalProgress * 99).toFixed(2)}%
+                    </Button>
+                  )}
+
+                  {/* Checkbox */}
+                  <CmrCheckbox
+                    sx={{ ml: 2 }}
+                    onChange={(event) => {
+                      dispatch(setupSetters.setMultiRaid(event.target.checked));
+                      if (signal !== undefined && event.target.checked)
+                        setTimeout(() => setOpenPanel([1]), 500);
+                    }}
+                    checked={multiraid !== undefined && multiraid}
+                  >
+                    Multi-Raid
+                  </CmrCheckbox>
+                </Box>
+
+                {/* Red warning */}
+                {missingFields.includes("Signal") && (
+                  <Typography variant="body2" color="error">
+                    field is required
+                  </Typography>
+                )}
+              </Box>
+            </Col>
+          </Row>
+
+          {(multiraid === undefined || !multiraid) && (
+            <Fragment>
+              <Divider
+                variant="middle"
+                sx={{ marginTop: "15pt", marginBottom: "15pt", color: "gray" }}
+              />
+              <Row>
+                <Col>
+                  <Box display="flex" flexDirection="column">
+                    {/* Inline label + uploader + clear icon */}
+                    <Box display="flex" alignItems="center">
+                      <CmrLabel
+                        style={{
+                          marginTop: "auto",
+                          marginBottom: "auto",
+                          marginRight: "60px",
+                        }}
+                      >
+                        Noise File:
+                      </CmrLabel>
+
+                      {noiseProgress < 0 ? (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <CMRSelectUpload
+                            fileExtension={[".dat"]}
+                            fileSelection={uploadedData}
+                            onSelected={(noise) => {
+                              dispatch(setNoise(noise));
+                              setNoiseFileUpdated(noise !== undefined);
+                              if (noise) {
+                                setMissingFields((prev) =>
+                                  prev.filter((field) => field !== "Noise"),
+                                );
+                              }
+                            }}
+                            maxCount={1}
+                            onUploaded={(res, file) => {
+                              uploadResHandlerFactory(setNoise)(res, file);
+                              setNoiseFileUpdated(!!file);
+                              if (file) {
+                                setMissingFields((prev) =>
+                                  prev.filter((f) => f !== "Noise"),
+                                );
+                              }
+                            }}
+                            selectStyles={selectStyles}
+                            style={{
+                              height: "fit-content",
+                              marginTop: "auto",
+                              marginBottom: "auto",
+                              marginRight: "0",
+                            }}
+                            chosenFile={
+                              noise?.options.filename !== ""
+                                ? noise?.options.filename
+                                : undefined
+                            }
+                            uploadHandler={uploadHandlerFactory(
+                              accessToken,
+                              uploadToken,
+                              dispatch,
+                              uploadData,
+                              "noise",
+                            )}
+                          />
+
+                          {noise && (
+                            <Tooltip title="Clear Uploaded File">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  dispatch(setNoise(undefined));
+                                  setNoiseFileUpdated(false);
+                                  if (analysisMethod !== 1 && !multiraid) {
+                                    setMissingFields((prev) => [
+                                      ...prev,
+                                      "Noise",
+                                    ]);
+                                  }
+                                }}
+                              >
+                                <ClearIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      ) : (
+                        <Button
+                          variant="contained"
+                          size="medium"
+                          style={{ textTransform: "none" }}
+                          sx={{ overflowWrap: "inherit" }}
+                          color="primary"
+                          disabled
                         >
-                            <FormControlLabel value={0} control={<Radio />} label="Analytic Method" />
-                            <FormControlLabel value={1} control={<Radio />} label="Multiple Replica" />
-                            <FormControlLabel value={2} control={<Radio />} label="Pseudo Multiple Replica" />
-                            <FormControlLabel value={3} control={<Radio />} label="Generalized Pseudo-Replica" />
-                        </RadioGroup>
-                    </FormControl>
+                          Uploading {+(noiseProgress * 99).toFixed(2)}%
+                        </Button>
+                      )}
+                    </Box>
 
-                    {analysisMethod !== undefined && snrDescription !== '' &&
-                        <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
-                            expanded={true}>
-                            {analysisMethod === 0 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
-                            )}
-                            {analysisMethod === 1 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
-                            )}
-                            {analysisMethod === 2 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
-                            )}
-                            {analysisMethod === 3 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
-                            )}
-                        </CmrPanel>}
+                    {/* Only show red error if multiraid is off and analysisMethod is not multiple replica */}
+                    {!multiraid &&
+                      analysisMethod !== 1 &&
+                      missingFields.includes("Noise") && (
+                        <Typography variant="body2" color="error">
+                          field is required
+                        </Typography>
+                      )}
+                  </Box>
+                </Col>
+              </Row>
+            </Fragment>
+          )}
+        </CmrPanel>
+        <CmrPanel
+          key="2"
+          header={editing === -1 ? "SNR Analysis" : `Editing Job ${editing}`}
+          className="mb-2"
+        >
+          <FormControl
+            style={{ width: "100%" }}
+            className={"mb-3"}
+            onChange={(event) => {
+              //@ts-ignore
+              if (event.target.value !== analysisMethod)
+                setAnalysisMethodChanged(true);
+              //@ts-ignore
+              dispatch(setupSetters.setAnalysisMethod(event.target.value));
+            }}
+          >
+            {/* <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel> */}
+            <RadioGroup
+              row
+              aria-labelledby="demo-row-radio-buttons-group-label"
+              name="row-radio-buttons-group"
+              value={analysisMethod !== undefined ? analysisMethod : ""}
+              style={{ display: "flex", justifyContent: "space-between" }}
+            >
+              <FormControlLabel
+                value={0}
+                control={<Radio />}
+                label="Analytic Method"
+              />
+              <FormControlLabel
+                value={1}
+                control={<Radio />}
+                label="Multiple Replica"
+              />
+              <FormControlLabel
+                value={2}
+                control={<Radio />}
+                label="Pseudo Multiple Replica"
+              />
+              <FormControlLabel
+                value={3}
+                control={<Radio />}
+                label="Generalized Pseudo-Replica"
+              />
+            </RadioGroup>
+          </FormControl>
 
-                    {(analysisMethod !== undefined) &&
-                        <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
-                            <CmrPanel header={'Image Reconstruction Method'} cardProps={{ className: 'ms-3 me-3 mt-4 mb-3' }}
-                                className={''}>
-                                {(analysisMethod === 2 || analysisMethod === 3) &&
-                                    <Fragment>
-                                        <Row id="reconstruction-method-section" className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
-                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                                            {/*</FormControl>*/}
-                                            <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Number of Pseudo Replica:</CmrLabel>
-                                            <CmrInputNumber value={pseudoReplicaCount ?? 10}
-                                                min={2}
-                                                max={analysisMethod === 2 ? 128 : 10}
-                                                onChange={(val) => {
-                                                    dispatch(setupSetters.setPseudoReplicaCount((val === null) ? 0 : val))
-                                                }}></CmrInputNumber>
-                                        </Row>
-                                        <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
-                                    </Fragment>}
-                                {(analysisMethod === 3) &&
-                                    <Fragment>
-                                        <Row className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
-                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                                            {/*</FormControl>*/}
-                                            <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Cubic VOI Size (Length of Side in Pixels):</CmrLabel>
-                                            <CmrInputNumber value={boxSize}
-                                                min={2}
-                                                max={20}
-                                                onChange={(val) => {
-                                                    dispatch(setupSetters.setBoxSize((val === null) ? 0 : val))
-                                                }}></CmrInputNumber>
-                                        </Row>
-                                        <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
-                                    </Fragment>}
-                                <FormControl style={{ width: '100%' }} className={'mb-3'}
-                                    onChange={(event) => {
-                                        //@ts-ignore
-                                        if (event.target.value !== reconstructionMethod)
-                                            setReconstructionMethodChanged(true);
-                                        //@ts-ignore
-                                        dispatch(setupSetters.setReconstructionMethod(event.target.value));
-                                    }}>
-                                    {/* <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel> */}
-                                    <RadioGroup
-                                        row
-                                        aria-labelledby="demo-row-radio-buttons-group-label"
-                                        name="row-radio-buttons-group"
-                                        value={(reconstructionMethod !== undefined) ? reconstructionMethod : ''}
-                                        style={{ display: 'flex', justifyContent: 'space-between' }}
-                                    >
-                                        {(analysisMethod === 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod === 1 && noise === null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+          {analysisMethod !== undefined && snrDescription !== "" && (
+            <CmrPanel
+              className="mb-3"
+              header={undefined}
+              cardProps={{ className: "mb-2 ms-2 me-2 mt-2" }}
+              expanded={true}
+            >
+              {analysisMethod === 0 && (
+                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
+              )}
+              {analysisMethod === 1 && (
+                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
+              )}
+              {analysisMethod === 2 && (
+                <div
+                  dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }}
+                />
+              )}
+              {analysisMethod === 3 && (
+                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
+              )}
+            </CmrPanel>
+          )}
 
-                                            return (analysisMethod !== undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
-                                                <FormControlLabel value={index}
-                                                    disabled={option === 'ESPIRIT'} control={<Radio />}
-                                                    label={option} />
-                                                : undefined;
-                                        })}
-                                    </RadioGroup>
-                                </FormControl>
-                                {(reconstructionMethod !== undefined) &&
-                                    <CmrPanel header={''}
-                                        expanded={true}
-                                        className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-4 mb-0' }}>
+          {analysisMethod !== undefined && (
+            <CmrCollapse
+              accordion={false}
+              defaultActiveKey={[0]}
+              expandIconPosition="right"
+            >
+              <CmrPanel
+                header={"Image Reconstruction Method"}
+                cardProps={{ className: "ms-3 me-3 mt-4 mb-3" }}
+                className={""}
+              >
+                {(analysisMethod === 2 || analysisMethod === 3) && (
+                  <Fragment>
+                    <Row
+                      id="reconstruction-method-section"
+                      className="mb-3"
+                      style={{
+                        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+                      }}
+                    >
+                      {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                      {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                      {/*</FormControl>*/}
+                      <CmrLabel
+                        style={{
+                          height: "100%",
+                          marginTop: "auto",
+                          marginBottom: "auto",
+                          color: "#580F8B",
+                        }}
+                      >
+                        Number of Pseudo Replica:
+                      </CmrLabel>
+                      <CmrInputNumber
+                        value={pseudoReplicaCount ?? 10}
+                        min={2}
+                        max={analysisMethod === 2 ? 128 : 10}
+                        onChange={(val) => {
+                          dispatch(
+                            setupSetters.setPseudoReplicaCount(
+                              val === null ? 0 : val,
+                            ),
+                          );
+                        }}
+                      ></CmrInputNumber>
+                    </Row>
+                    <Divider
+                      variant="middle"
+                      sx={{
+                        marginTop: "10pt",
+                        marginBottom: "10pt",
+                        color: "gray",
+                      }}
+                    />
+                  </Fragment>
+                )}
+                {analysisMethod === 3 && (
+                  <Fragment>
+                    <Row
+                      className="mb-3"
+                      style={{
+                        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
+                      }}
+                    >
+                      {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                      {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                      {/*</FormControl>*/}
+                      <CmrLabel
+                        style={{
+                          height: "100%",
+                          marginTop: "auto",
+                          marginBottom: "auto",
+                          color: "#580F8B",
+                        }}
+                      >
+                        Cubic VOI Size (Length of Side in Pixels):
+                      </CmrLabel>
+                      <CmrInputNumber
+                        value={boxSize}
+                        min={2}
+                        max={20}
+                        onChange={(val) => {
+                          dispatch(
+                            setupSetters.setBoxSize(val === null ? 0 : val),
+                          );
+                        }}
+                      ></CmrInputNumber>
+                    </Row>
+                    <Divider
+                      variant="middle"
+                      sx={{
+                        marginTop: "10pt",
+                        marginBottom: "10pt",
+                        color: "gray",
+                      }}
+                    />
+                  </Fragment>
+                )}
+                <FormControl
+                  style={{ width: "100%" }}
+                  className={"mb-3"}
+                  onChange={(event) => {
+                    //@ts-ignore
+                    if (event.target.value !== reconstructionMethod)
+                      setReconstructionMethodChanged(true);
+                    //@ts-ignore
+                    dispatch(
+                      setupSetters.setReconstructionMethod(event.target.value),
+                    );
+                  }}
+                >
+                  {/* <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel> */}
+                  <RadioGroup
+                    row
+                    aria-labelledby="demo-row-radio-buttons-group-label"
+                    name="row-radio-buttons-group"
+                    value={
+                      reconstructionMethod !== undefined
+                        ? reconstructionMethod
+                        : ""
+                    }
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    {(analysisMethod === 1 && noise
+                      ? [
+                          "Root Sum of Squares",
+                          "B1 Weighted",
+                          "SENSE",
+                          "GRAPPA",
+                          "ESPIRIT",
+                        ]
+                      : analysisMethod === 1 && noise === null
+                        ? ["Root Sum of Squares", "ESPIRIT"]
+                        : [
+                            "Root Sum of Squares",
+                            "B1 Weighted",
+                            "SENSE",
+                            "GRAPPA",
+                            "ESPIRIT",
+                          ]
+                    ).map((option, index) => {
+                      return analysisMethod !== undefined &&
+                        topToSecondaryMaps[analysisMethod].indexOf(index) >=
+                          0 ? (
+                        <FormControlLabel
+                          value={index}
+                          disabled={option === "ESPIRIT"}
+                          control={<Radio />}
+                          label={option}
+                        />
+                      ) : undefined;
+                    })}
+                  </RadioGroup>
+                </FormControl>
+                {reconstructionMethod !== undefined && (
+                  <CmrPanel
+                    header={""}
+                    expanded={true}
+                    className={" border-0"}
+                    cardProps={{ className: "ms-0 me-0 mt-4 mb-0" }}
+                  >
+                    <CmrCheckbox
+                      checked={!flipAngleCorrection}
+                      defaultChecked={!flipAngleCorrection}
+                      onChange={(event) => {
+                        const newValue = !event.target.checked;
+                        dispatch(setupSetters.setFlipAngleCorrection(newValue));
+                        if (!newValue) {
+                          dispatch(
+                            setupSetters.setFlipAngleCorrectionFile(undefined),
+                          );
+                          // FA correction disabled: clear FA file and remove FA from missing
+                          setMissingFields((prev) =>
+                            prev.filter((f) => f !== "FA"),
+                          );
+                        }
+                      }}
+                    >
+                      No Flip Angle Correction
+                    </CmrCheckbox>
+                    {flipAngleCorrection && (
+                      <>
+                        <CMRSelectUpload
+                          fileExtension={[
+                            ".nii",
+                            ".nii.gz",
+                            ".mha",
+                            ".mhd",
+                            ".mrd",
+                            ".png",
+                            ".jpg",
+                            ".jpeg",
+                            ".npx",
+                            ".npy",
+                          ]}
+                          fileSelection={uploadedData}
+                          onSelected={(file) => {
+                            dispatch(
+                              setupSetters.setFlipAngleCorrectionFile(file),
+                            );
+                            if (file) {
+                              setMissingFields((prev) =>
+                                prev.filter((f) => f !== "FA"),
+                              );
+                            }
+                          }}
+                          maxCount={1}
+                          uploadHandler={uploadHandlerFactory(
+                            accessToken,
+                            uploadToken,
+                            dispatch,
+                            uploadData,
+                            "faCorrection",
+                          )}
+                          onUploaded={(res, file) => {
+                            uploadResHandlerFactory(
+                              setupSetters.setFlipAngleCorrectionFile,
+                            )(res, file);
+                            if (file) {
+                              setMissingFields((prev) =>
+                                prev.filter((f) => f !== "FA"),
+                              );
+                            }
+                          }}
+                          style={{
+                            height: "fit-content",
+                            marginTop: "auto",
+                            marginBottom: "auto",
+                            marginRight: "0",
+                          }}
+                          selectStyles={selectStyles}
+                          buttonText="Choose FA Map"
+                          chosenFile={faMap?.options.filename}
+                        />
 
-                                        <CmrCheckbox checked={!flipAngleCorrection}
-                                            defaultChecked={!flipAngleCorrection}
-                                            onChange={(event) => {
-                                                const newValue = !event.target.checked;
-                                                dispatch(setupSetters.setFlipAngleCorrection(newValue));
-                                                if (!newValue) {
-                                                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined));
-                                                    // FA correction disabled: clear FA file and remove FA from missing
-                                                    setMissingFields(prev => prev.filter(f => f !== "FA"));
-                                                }
-                                            }}
-                                        >
-                                            No Flip Angle Correction
-                                        </CmrCheckbox>
-                                        {flipAngleCorrection && (
-                                            <>
-                                                <CMRSelectUpload
-                                                    fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.png', '.jpg', '.jpeg', '.npx', '.npy']}
-                                                    fileSelection={uploadedData}
-                                                    onSelected={(file) => {
-                                                        dispatch(setupSetters.setFlipAngleCorrectionFile(file));
-                                                        if (file) {
-                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
-                                                        }
-                                                    }}
-                                                    maxCount={1}
-                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
-                                                    onUploaded={(res, file) => {
-                                                        uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
-                                                        if (file) {
-                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
-                                                        }
-                                                    }}
-                                                    style={{
-                                                        height: 'fit-content',
-                                                        marginTop: 'auto',
-                                                        marginBottom: 'auto',
-                                                        marginRight: '0',
-                                                    }}
-                                                    selectStyles={selectStyles}
-                                                    buttonText="Choose FA Map"
-                                                    chosenFile={faMap?.options.filename}
-                                                />
+                        {faMap && (
+                          <Tooltip title="Clear Uploaded File">
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                dispatch(
+                                  setupSetters.setFlipAngleCorrectionFile(
+                                    undefined,
+                                  ),
+                                )
+                              }
+                              sx={{ marginLeft: "8px" }}
+                            >
+                              <ClearIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
 
-                                                {faMap && (
-                                                    <Tooltip title="Clear Uploaded File">
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => dispatch(setupSetters.setFlipAngleCorrectionFile(undefined))}
-                                                            sx={{ marginLeft: '8px' }}
-                                                        >
-                                                            <ClearIcon fontSize="small" />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                )}
+                        {/* Red text validation: mirror the Mask pattern */}
+                        {flipAngleCorrection &&
+                          !faMap &&
+                          missingFields.includes("FA") && (
+                            <Typography
+                              variant="body2"
+                              color="error"
+                              sx={{ ml: 4 }}
+                            >
+                              field is required
+                            </Typography>
+                          )}
+                      </>
+                    )}
 
-                                                {/* Red text validation: mirror the Mask pattern */}
-                                                {flipAngleCorrection && !faMap && missingFields.includes("FA") && (
-                                                    <Typography variant="body2" color="error" sx={{ ml: 4 }}>
-                                                        field is required
-                                                    </Typography>
-                                                )}
-                                            </>
-                                        )}
-
-                                        <Divider variant="middle"
-                                            sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                        {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length !== 0) &&
-                                            <Fragment>
-                                                {/* comment out for future use */}
-                                                {/* <FormControl
+                    <Divider
+                      variant="middle"
+                      sx={{
+                        marginTop: "15pt",
+                        marginBottom: "15pt",
+                        color: "gray",
+                      }}
+                    />
+                    {secondaryToCoilMethodMaps[reconstructionMethod] &&
+                      secondaryToCoilMethodMaps[reconstructionMethod].length !==
+                        0 && (
+                        <Fragment>
+                          {/* comment out for future use */}
+                          {/* <FormControl
                                                     onChange={(event) => {
                                                         //@ts-ignore
                                                         dispatch(setupSetters.setLoadSensitivity(event.target.value === 'true'));
@@ -951,488 +1314,764 @@ const Setup = () => {
                                                     </RadioGroup>
                                                 </FormControl> */}
 
-                                                {/* <Divider variant="middle"
+                          {/* <Divider variant="middle"
                                                     sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} /> */}
 
-                                                <FormControl>
-                                                    <FormLabel id="demo-radio-buttons-group-label">Object Masking</FormLabel>
-                                                    <RadioGroup
-                                                        aria-labelledby="demo-radio-buttons-group-label"
-                                                        value={maskMethod}
-                                                        name="radio-buttons-group"
-                                                        onChange={(event, value) => {
-                                                            dispatch(setupSetters.setMaskOption(Number(value)));
-                                                        }}
-                                                    >
-                                                        <FormControlLabel value="0" control={<Radio />} label="Do Not Mask Coil Sensitivities Maps" />
-                                                        <FormControlLabel value="1" control={<Radio />}
-                                                            label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                Keep Pixels Above a Percentage of Max Value
+                          <FormControl>
+                            <FormLabel id="demo-radio-buttons-group-label">
+                              Object Masking
+                            </FormLabel>
+                            <RadioGroup
+                              aria-labelledby="demo-radio-buttons-group-label"
+                              value={maskMethod}
+                              name="radio-buttons-group"
+                              onChange={(event, value) => {
+                                dispatch(
+                                  setupSetters.setMaskOption(Number(value)),
+                                );
+                              }}
+                            >
+                              <FormControlLabel
+                                value="0"
+                                control={<Radio />}
+                                label="Do Not Mask Coil Sensitivities Maps"
+                              />
+                              <FormControlLabel
+                                value="1"
+                                control={<Radio />}
+                                label={
+                                  <Box
+                                    style={{
+                                      flexDirection: "row",
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    Keep Pixels Above a Percentage of Max Value
+                                    {maskMethod === 1 && (
+                                      <>
+                                        <CmrInputNumber
+                                          value={maskThreshold}
+                                          min={1}
+                                          style={{
+                                            flex: 1,
+                                            marginLeft: "5pt",
+                                            marginRight: "5pt",
+                                          }}
+                                          onChange={(val) => {
+                                            dispatch(
+                                              setupSetters.setMaskThreshold(
+                                                val === null ? 1 : val,
+                                              ),
+                                            );
+                                          }}
+                                        />
+                                        %
+                                      </>
+                                    )}
+                                  </Box>
+                                }
+                              />
+                              {/* <FormControlLabel value="2" control={<Radio />} label="Inner reference" /> */}
+                              <FormControlLabel
+                                value="3"
+                                control={<Radio />}
+                                label={
+                                  <Box
+                                    style={{
+                                      flexDirection: "row",
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    Use Mask from ESPIRiT &nbsp;&nbsp;{" "}
+                                    {maskMethod === 3 && (
+                                      <>
+                                        k:
+                                        <CmrInputNumber
+                                          value={kStore}
+                                          style={{
+                                            flex: 1,
+                                            marginLeft: "5pt",
+                                            marginRight: "5pt",
+                                          }}
+                                          onChange={(val) => {
+                                            if (val !== null)
+                                              dispatch(
+                                                setupSetters.setMaskESPIRIT({
+                                                  k: val,
+                                                }),
+                                              );
+                                          }}
+                                        />
+                                        r:
+                                        <CmrInputNumber
+                                          value={rStore}
+                                          style={{
+                                            flex: 1,
+                                            marginLeft: "5pt",
+                                            marginRight: "5pt",
+                                          }}
+                                          onChange={(val) => {
+                                            if (val !== null)
+                                              dispatch(
+                                                setupSetters.setMaskESPIRIT({
+                                                  r: val,
+                                                }),
+                                              );
+                                          }}
+                                        />
+                                        t:
+                                        <CmrInputNumber
+                                          value={tStore}
+                                          style={{
+                                            flex: 1,
+                                            marginLeft: "5pt",
+                                            marginRight: "5pt",
+                                          }}
+                                          onChange={(val) => {
+                                            if (val !== null)
+                                              dispatch(
+                                                setupSetters.setMaskESPIRIT({
+                                                  t: val,
+                                                }),
+                                              );
+                                          }}
+                                        />
+                                        c:
+                                        <CmrInputNumber
+                                          value={cStore}
+                                          style={{
+                                            flex: 1,
+                                            marginLeft: "5pt",
+                                            marginRight: "5pt",
+                                          }}
+                                          onChange={(val) => {
+                                            if (val !== null)
+                                              dispatch(
+                                                setupSetters.setMaskESPIRIT({
+                                                  c: val,
+                                                }),
+                                              );
+                                          }}
+                                        />
+                                      </>
+                                    )}
+                                  </Box>
+                                }
+                              />
 
-                                                                {maskMethod === 1 && (
-                                                                    <>
-                                                                        <CmrInputNumber value={maskThreshold}
-                                                                            min={1}
-                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                            onChange={(val) => {
-                                                                                dispatch(setupSetters.setMaskThreshold((val === null) ? 1 : val))
-                                                                            }} />%
-                                                                    </>
-                                                                )}
-                                                            </Box>} />
-                                                        {/* <FormControlLabel value="2" control={<Radio />} label="Inner reference" /> */}
-                                                        <FormControlLabel value="3"
-                                                            control={<Radio />}
-                                                            label={<Box style={{ flexDirection: 'row', display: 'flex', alignItems: 'center' }}>
-                                                                Use Mask from ESPIRiT &nbsp;&nbsp;  {maskMethod === 3 && (
-                                                                    <>
-                                                                        k:
-                                                                        <CmrInputNumber value={kStore}
-                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                            onChange={(val) => {
-                                                                                if (val !== null)
-                                                                                    dispatch(setupSetters.setMaskESPIRIT({ k: val }));
-                                                                            }} />
-                                                                        r:
-                                                                        <CmrInputNumber value={rStore}
-                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                            onChange={(val) => {
-                                                                                if (val !== null)
-                                                                                    dispatch(setupSetters.setMaskESPIRIT({ r: val }));
-                                                                            }} />
-                                                                        t:
-                                                                        <CmrInputNumber value={tStore}
-                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                            onChange={(val) => {
-                                                                                if (val !== null)
-                                                                                    dispatch(setupSetters.setMaskESPIRIT({ t: val }));
-                                                                            }} />
-                                                                        c:
-                                                                        <CmrInputNumber value={cStore}
-                                                                            style={{ flex: 1, marginLeft: '5pt', marginRight: '5pt' }}
-                                                                            onChange={(val) => {
-                                                                                if (val !== null)
-                                                                                    dispatch(setupSetters.setMaskESPIRIT({ c: val }));
-                                                                            }} />
-                                                                    </>
-                                                                )}
-                                                            </Box>} />
-
-                                                        <Box>
-                                                            <FormControlLabel
-                                                                value="4"
-                                                                control={<Radio />}
-                                                                label={
-                                                                    <Box flexDirection="row" display="flex" alignItems="center">
-                                                                        Predefined Mask
-                                                                        {maskMethod === 4 && (
-                                                                            <>
-                                                                                <CMRSelectUpload
-                                                                                    fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.png', '.jpg', '.jpeg', '.npx', '.npy']}
-                                                                                    fileSelection={uploadedData}
-                                                                                    onSelected={(file) => {
-                                                                                        dispatch(setupSetters.setMaskStore(file));
-                                                                                        if (file) {
-                                                                                            setMissingFields((prev) => prev.filter((f) => f !== "Mask"));
-                                                                                        }
-                                                                                    }}
-                                                                                    maxCount={1}
-                                                                                    onUploaded={uploadResHandlerFactory(setupSetters.setMaskStore)}
-                                                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'mask')}
-                                                                                    style={{
-                                                                                        height: 'fit-content',
-                                                                                        marginTop: 'auto',
-                                                                                        marginBottom: 'auto',
-                                                                                        marginRight: '0',
-                                                                                        marginLeft: '20px',
-                                                                                    }}
-                                                                                    selectStyles={selectStyles}
-                                                                                    buttonText="Choose or Upload Mask"
-                                                                                    chosenFile={maskFile?.options.filename}
-                                                                                />
-
-                                                                                {/* Clear Button */}
-                                                                                {maskFile && (
-                                                                                    <Tooltip title="Clear Uploaded File">
-                                                                                        <IconButton
-                                                                                            size="small"
-                                                                                            onClick={() => {
-                                                                                                dispatch(setupSetters.setMaskStore(undefined));
-                                                                                                setMissingFields((prev) => [...prev, "Mask"]);
-                                                                                            }}
-                                                                                            sx={{ marginLeft: '8px' }}
-                                                                                        >
-                                                                                            <ClearIcon fontSize="small" />
-                                                                                        </IconButton>
-                                                                                    </Tooltip>
-                                                                                )}
-                                                                            </>
-                                                                        )}
-                                                                    </Box>
-                                                                }
-                                                            />
-
-                                                            {/* Red text validation appears below the radio option */}
-                                                            {maskMethod === 4 && missingFields.includes("Mask") && (
-                                                                <Typography variant="body2" color="error" sx={{ ml: 4 }}>
-                                                                    field is required
-                                                                </Typography>
-                                                            )}
-                                                        </Box>
-                                                    </RadioGroup>
-                                                </FormControl>
-                                                <Divider variant="middle"
-                                                    sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                            </Fragment>}
-                                        {(reconstructionMethod === 3) &&
-                                            <React.Fragment>
-                                                <div className='ms-3' style={{
-                                                    height: 'fit-content',
-                                                    marginRight: 'auto',
-                                                    marginTop: '5pt',
-                                                    width: '362px'
-                                                }}>
-                                                    <DataGrid
-                                                        rows={kernelSizeRows}
-                                                        slots={{
-                                                            columnHeaders: () => null,
-                                                        }}
-                                                        autoHeight
-                                                        hideFooterPagination
-                                                        hideFooterSelectedRowCount
-                                                        hideFooter={true}
-                                                        columns={kernelSizeColumns}
-                                                        sx={{
-                                                            '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { display: 'none' }
-                                                        }}
-                                                        onCellEditStop={(params: GridCellEditStopParams, event) => {
-                                                            // console.log(params)
-                                                            // console.log(event)
-                                                            // return;
-                                                            //@ts-ignore
-                                                            if (event.target === undefined || !isNaN(event.target.value))
-                                                                return;
-                                                        }}
-                                                    />
-                                                </div>
-                                                <Divider variant="middle"
-                                                    sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
-                                            </React.Fragment>
-                                        }
-                                        {(decimateMapping[reconstructionMethod]) &&
-                                            <Fragment>
-                                                <CmrCheckbox className='m-1' defaultChecked={decimateData}
-                                                    checked={decimateData}
-                                                    onChange={(event) => {
-                                                        const checked = event.target.checked;
-                                                        dispatch(setupSetters.setDecimate(checked));
-                                                        if (!checked) {
-                                                            dispatch(setupSetters.setDecimateACL(null));
-                                                        }
-                                                    }}
-                                                >
-                                                    Decimate Data
-                                                </CmrCheckbox>
-
-                                                <Divider variant="middle"
-                                                    sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                            </Fragment>}
-                                        {(decimateMapping[reconstructionMethod] && decimateData) &&
-                                            <div className='ms-3' style={{
-                                                height: 'fit-content',
-                                                marginRight: 'auto',
-                                                marginTop: '5pt',
-                                                width: '362px'
-                                            }}>
-                                                <DataGrid
-                                                    rows={rows}
-                                                    slots={{
-                                                        columnHeaders: () => null,
-                                                    }}
-                                                    autoHeight
-                                                    hideFooterPagination
-                                                    hideFooterSelectedRowCount
-                                                    hideFooter={true}
-                                                    columns={columns}
-                                                    sx={{
-                                                        '& .MuiDataGrid-virtualScroller::-webkit-scrollbar': { display: 'none' }
-                                                    }}
-                                                    onCellEditStop={(params: GridCellEditStopParams, event) => {
-                                                        // console.log(params)
-                                                        // console.log(event)
-                                                        // return;
-                                                        //@ts-ignore
-                                                        if (event.target === undefined || !isNaN(event.target.value))
-                                                            return;
-                                                        //@ts-ignore
-                                                        let value = Number(event.target.value);
-                                                        if (params.id === '1') {
-                                                            dispatch(setupSetters.setDecimateAccelerations1(Math.max(value, 0)));
-                                                        } else if (params.id === '2') {
-                                                            dispatch(setupSetters.setDecimateAccelerations2(Math.max(value, 0)));
-                                                        }
-                                                        else if (params.id === '3') {
-                                                            dispatch(setupSetters.setDecimateACL(value));
-                                                            // setDecimateACL(value);
-
-                                                        }
-
-                                                    }}
-                                                />
-                                                <CmrCheckbox checked={decimateACL === null} style={{ marginLeft: 0 }} onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        dispatch(setupSetters.setDecimateACL(null));
-                                                        // setDecimateACL(null);
-
-                                                        if (reconstructionMethod === 2) {
-                                                            dispatch(setupSetters.setSensitivityMapMethod('inner'));
-                                                        }
-                                                    } else {
-                                                        dispatch(setupSetters.setDecimateACL(24));
-                                                        // setDecimateACL(24);
-                                                        if (reconstructionMethod === 2) {
-                                                            dispatch(setupSetters.setSensitivityMapMethod('innerACL'));
-                                                        }
-                                                    }
-
-
-                                                }}>
-                                                    Use All Lines for Autocalibration
-                                                </CmrCheckbox>
-                                                <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                            </div>
-                                        }
-                                        <Row>
-                                            {
-                                                <CmrCheckbox className='m-1' onChange={(e) => {
-                                                    dispatch(setupSetters.setOutputMatlab(e.target.checked));
-                                                }}
-                                                    checked={outputMatlab}>
-                                                    Save .mat file
-                                                </CmrCheckbox>
+                              <Box>
+                                <FormControlLabel
+                                  value="4"
+                                  control={<Radio />}
+                                  label={
+                                    <Box
+                                      flexDirection="row"
+                                      display="flex"
+                                      alignItems="center"
+                                    >
+                                      Predefined Mask
+                                      {maskMethod === 4 && (
+                                        <>
+                                          <CMRSelectUpload
+                                            fileExtension={[
+                                              ".nii",
+                                              ".nii.gz",
+                                              ".mha",
+                                              ".mhd",
+                                              ".mrd",
+                                              ".png",
+                                              ".jpg",
+                                              ".jpeg",
+                                              ".npx",
+                                              ".npy",
+                                            ]}
+                                            fileSelection={uploadedData}
+                                            onSelected={(file) => {
+                                              dispatch(
+                                                setupSetters.setMaskStore(file),
+                                              );
+                                              if (file) {
+                                                setMissingFields((prev) =>
+                                                  prev.filter(
+                                                    (f) => f !== "Mask",
+                                                  ),
+                                                );
+                                              }
+                                            }}
+                                            maxCount={1}
+                                            onUploaded={uploadResHandlerFactory(
+                                              setupSetters.setMaskStore,
+                                            )}
+                                            uploadHandler={uploadHandlerFactory(
+                                              accessToken,
+                                              uploadToken,
+                                              dispatch,
+                                              uploadData,
+                                              "mask",
+                                            )}
+                                            style={{
+                                              height: "fit-content",
+                                              marginTop: "auto",
+                                              marginBottom: "auto",
+                                              marginRight: "0",
+                                              marginLeft: "20px",
+                                            }}
+                                            selectStyles={selectStyles}
+                                            buttonText="Choose or Upload Mask"
+                                            chosenFile={
+                                              maskFile?.options.filename
                                             }
-                                            {[1, 2].indexOf(reconstructionMethod) >= 0 && <CmrCheckbox className='m-1' onChange={(e) => {
-                                                dispatch(setupSetters.setOutputCoilSensitivity(e.target.checked));
-                                            }} defaultChecked={true}
-                                                checked={outputCoilSensitivity}>
-                                                Save Coil Sensitivities
-                                            </CmrCheckbox>}
-                                            {[2].indexOf(reconstructionMethod) >= 0 && <CmrCheckbox className='m-1' onChange={(e) => {
-                                                const val = e.target.checked;
-                                                dispatch(setupSetters.setOutputGFactor(val));
-                                                dispatch(setupSetters.setGFactor(val));
-                                            }} defaultChecked={true}
-                                                checked={outputGFactor}>
-                                                Save g Factor
-                                            </CmrCheckbox>}
-                                        </Row>
-                                        <Divider variant="middle" sx={{ marginTop: '15pt', marginBottom: '15pt', color: 'gray' }} />
-                                        <CmrButton sx={{ width: '100%' }} variant={"outlined"} color={'primary'}
-                                            onClick={() => {
-                                                if (!preflightValidation())
-                                                    return;
-                                                let state = store.getState();
-                                                snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+                                          />
 
-                                                // if decimate data is unchecked make sure to not include accelerations and acl fields
-                                                if (!decimateData && snr?.options?.reconstructor?.options) {
-                                                    delete snr.options.reconstructor.options.accelerations;
-                                                    delete snr.options.reconstructor.options.acl;
-                                                }
-
-                                                // If method is Sense or Grappa but accelerations are not applied, open a warning modal
-                                                if ((reconstructionMethod === 2 || reconstructionMethod === 3) &&
-                                                    (!decimateData || (decimateAcceleration1 === 1 && decimateAcceleration2 === 1))) {
-                                                    setReconWarningOpen(true);
-                                                    return;
-                                                }
-
-                                                // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
-                                                const method = snr?.options?.reconstructor?.id;
-
-                                                if (method === 0 || method === 3) {
-                                                    const reconstructor = snr.options.reconstructor;
-
-                                                    if (!reconstructor.options) {
-                                                        reconstructor.options = {};
-                                                    }
-
-                                                    console.log("Before delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
-
-                                                    delete reconstructor.options.sensitivityMap;
-                                                    delete reconstructor.options.loadSensitivity;
-                                                    delete reconstructor.options.sensitivityMapMethod;
-                                                    delete reconstructor.options.mask;
-
-                                                    console.log("After delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
-                                                }
-
-
-                                                getFiles(snr);
-
-                                                if (editing !== -1) {
-                                                    setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
-                                                    setEditContent(JSON.stringify(snr, undefined, '\t'));
-                                                } else {
-                                                    setPreview(JSON.stringify(snr, null, '\t'));
-                                                    setJobAlias(`${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`)
-                                                }
-                                            }}>{editing !== -1 ? 'Complete Editing' : 'Queue Job'}</CmrButton>
-                                        {(previewContent) &&
-                                            <SNRPreview previewContent={previewContent} alias={jobAlias}
-                                                developer={developer}
-                                                setAlias={(event) => {
-                                                    //@ts-ignore
-                                                    setJobAlias(event.target.value)
+                                          {/* Clear Button */}
+                                          {maskFile && (
+                                            <Tooltip title="Clear Uploaded File">
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => {
+                                                  dispatch(
+                                                    setupSetters.setMaskStore(
+                                                      undefined,
+                                                    ),
+                                                  );
+                                                  setMissingFields((prev) => [
+                                                    ...prev,
+                                                    "Mask",
+                                                  ]);
                                                 }}
-                                                edit={() => {
-                                                }} queue={(jobAlias: string) => {
-                                                    dispatch(setupSetters.compileSNRSettings(jobAlias));
-                                                    setJobSelectionModel([...jobSelectionModel, newJobId]);
-                                                    setTimeout(() => setOpenPanel([0]), 500);
-                                                    // console.log(store.getState().setup.queuedJobs.slice(-1));
-                                                    dispatch(submitJobs({ queueToken, jobQueue: store.getState().setup.queuedJobs.slice(-1) }));
-                                                    dispatch(setupSetters.bulkDeleteAllJobs());
-                                                    dispatch(setupSetters.setMaskOption(Number(0)));
-                                                    dispatch(setupSetters.setDecimateACL(null));
-                                                    // Reset masking-related state
-                                                    dispatch(setupSetters.setMaskThreshold(20));
-                                                    dispatch(setupSetters.setMaskESPIRIT({ k: 8, r: 24, t: 0.01, c: 0.995 }));
-                                                    dispatch(setupSetters.setMaskStore(undefined));
-                                                    dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
-                                                    dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
+                                                sx={{ marginLeft: "8px" }}
+                                              >
+                                                <ClearIcon fontSize="small" />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
+                                        </>
+                                      )}
+                                    </Box>
+                                  }
+                                />
 
-                                                    dispatch(jobActions.setSubmittingText("Job successfully queued!"));
-                                                    setSnackOpen(true);
+                                {/* Red text validation appears below the radio option */}
+                                {maskMethod === 4 &&
+                                  missingFields.includes("Mask") && (
+                                    <Typography
+                                      variant="body2"
+                                      color="error"
+                                      sx={{ ml: 4 }}
+                                    >
+                                      field is required
+                                    </Typography>
+                                  )}
+                              </Box>
+                            </RadioGroup>
+                          </FormControl>
+                          <Divider
+                            variant="middle"
+                            sx={{
+                              marginTop: "15pt",
+                              marginBottom: "15pt",
+                              color: "gray",
+                            }}
+                          />
+                        </Fragment>
+                      )}
+                    {reconstructionMethod === 3 && (
+                      <React.Fragment>
+                        <div
+                          className="ms-3"
+                          style={{
+                            height: "fit-content",
+                            marginRight: "auto",
+                            marginTop: "5pt",
+                            width: "362px",
+                          }}
+                        >
+                          <DataGrid
+                            rows={kernelSizeRows}
+                            slots={{
+                              columnHeaders: () => null,
+                            }}
+                            autoHeight
+                            hideFooterPagination
+                            hideFooterSelectedRowCount
+                            hideFooter={true}
+                            columns={kernelSizeColumns}
+                            sx={{
+                              "& .MuiDataGrid-virtualScroller::-webkit-scrollbar":
+                                { display: "none" },
+                            }}
+                            onCellEditStop={(
+                              params: GridCellEditStopParams,
+                              event,
+                            ) => {
+                              // console.log(params)
+                              // console.log(event)
+                              // return;
+                              //@ts-ignore
+                              if (
+                                event.target === undefined ||
+                                !isNaN(event.target.value)
+                              )
+                                return;
+                            }}
+                          />
+                        </div>
+                        <Divider
+                          variant="middle"
+                          sx={{
+                            marginTop: "10pt",
+                            marginBottom: "10pt",
+                            color: "gray",
+                          }}
+                        />
+                      </React.Fragment>
+                    )}
+                    {decimateMapping[reconstructionMethod] && (
+                      <Fragment>
+                        <CmrCheckbox
+                          className="m-1"
+                          defaultChecked={decimateData}
+                          checked={decimateData}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            dispatch(setupSetters.setDecimate(checked));
+                            if (!checked) {
+                              dispatch(setupSetters.setDecimateACL(null));
+                            }
+                          }}
+                        >
+                          Decimate Data
+                        </CmrCheckbox>
 
-                                                }}
-                                                handleClose={() => {
-                                                    setPreview(undefined);
-                                                }} />}
-                                    </CmrPanel>}
-                            </CmrPanel>
-                        </CmrCollapse>}
-                </CmrPanel>
-            </CmrCollapse>
-            <div style={{ height: '69px' }}></div>
+                        <Divider
+                          variant="middle"
+                          sx={{
+                            marginTop: "15pt",
+                            marginBottom: "15pt",
+                            color: "gray",
+                          }}
+                        />
+                      </Fragment>
+                    )}
+                    {decimateMapping[reconstructionMethod] && decimateData && (
+                      <div
+                        className="ms-3"
+                        style={{
+                          height: "fit-content",
+                          marginRight: "auto",
+                          marginTop: "5pt",
+                          width: "362px",
+                        }}
+                      >
+                        <DataGrid
+                          rows={rows}
+                          slots={{
+                            columnHeaders: () => null,
+                          }}
+                          autoHeight
+                          hideFooterPagination
+                          hideFooterSelectedRowCount
+                          hideFooter={true}
+                          columns={columns}
+                          sx={{
+                            "& .MuiDataGrid-virtualScroller::-webkit-scrollbar":
+                              { display: "none" },
+                          }}
+                          onCellEditStop={(
+                            params: GridCellEditStopParams,
+                            event,
+                          ) => {
+                            // console.log(params)
+                            // console.log(event)
+                            // return;
+                            //@ts-ignore
+                            if (
+                              event.target === undefined ||
+                              !isNaN(event.target.value)
+                            )
+                              return;
+                            //@ts-ignore
+                            let value = Number(event.target.value);
+                            if (params.id === "1") {
+                              dispatch(
+                                setupSetters.setDecimateAccelerations1(
+                                  Math.max(value, 0),
+                                ),
+                              );
+                            } else if (params.id === "2") {
+                              dispatch(
+                                setupSetters.setDecimateAccelerations2(
+                                  Math.max(value, 0),
+                                ),
+                              );
+                            } else if (params.id === "3") {
+                              dispatch(setupSetters.setDecimateACL(value));
+                              // setDecimateACL(value);
+                            }
+                          }}
+                        />
+                        <CmrCheckbox
+                          checked={decimateACL === null}
+                          style={{ marginLeft: 0 }}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              dispatch(setupSetters.setDecimateACL(null));
+                              // setDecimateACL(null);
 
-            <CmrConfirmation
-                name={sdWarningHeader}
-                message={sdWarning}
-                open={sdOpen}
-                setOpen={setSDOpen}
-                confirmText="OK"
-                color="info"
-                cancellable={false}
-            />
+                              if (reconstructionMethod === 2) {
+                                dispatch(
+                                  setupSetters.setSensitivityMapMethod("inner"),
+                                );
+                              }
+                            } else {
+                              dispatch(setupSetters.setDecimateACL(24));
+                              // setDecimateACL(24);
+                              if (reconstructionMethod === 2) {
+                                dispatch(
+                                  setupSetters.setSensitivityMapMethod(
+                                    "innerACL",
+                                  ),
+                                );
+                              }
+                            }
+                          }}
+                        >
+                          Use All Lines for Autocalibration
+                        </CmrCheckbox>
+                        <Divider
+                          variant="middle"
+                          sx={{
+                            marginTop: "15pt",
+                            marginBottom: "15pt",
+                            color: "gray",
+                          }}
+                        />
+                      </div>
+                    )}
+                    <Row>
+                      {
+                        <CmrCheckbox
+                          className="m-1"
+                          onChange={(e) => {
+                            dispatch(
+                              setupSetters.setOutputMatlab(e.target.checked),
+                            );
+                          }}
+                          checked={outputMatlab}
+                        >
+                          Save .mat file
+                        </CmrCheckbox>
+                      }
+                      {[1, 2].indexOf(reconstructionMethod) >= 0 && (
+                        <CmrCheckbox
+                          className="m-1"
+                          onChange={(e) => {
+                            dispatch(
+                              setupSetters.setOutputCoilSensitivity(
+                                e.target.checked,
+                              ),
+                            );
+                          }}
+                          defaultChecked={true}
+                          checked={outputCoilSensitivity}
+                        >
+                          Save Coil Sensitivities
+                        </CmrCheckbox>
+                      )}
+                      {[2].indexOf(reconstructionMethod) >= 0 && (
+                        <CmrCheckbox
+                          className="m-1"
+                          onChange={(e) => {
+                            const val = e.target.checked;
+                            dispatch(setupSetters.setOutputGFactor(val));
+                            dispatch(setupSetters.setGFactor(val));
+                          }}
+                          defaultChecked={true}
+                          checked={outputGFactor}
+                        >
+                          Save g Factor
+                        </CmrCheckbox>
+                      )}
+                    </Row>
+                    <Divider
+                      variant="middle"
+                      sx={{
+                        marginTop: "15pt",
+                        marginBottom: "15pt",
+                        color: "gray",
+                      }}
+                    />
+                    <CmrButton
+                      sx={{ width: "100%" }}
+                      variant={"outlined"}
+                      color={"primary"}
+                      onClick={() => {
+                        if (!preflightValidation()) return;
+                        let state = store.getState();
+                        snr = JSON.parse(
+                          JSON.stringify(state.setup.activeSetup),
+                        );
 
-            <Snackbar
-                open={snackOpen}
-                autoHideDuration={4000}
-                onClose={handleSnackClose}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <Alert onClose={handleSnackClose} severity="success" sx={{ width: '100%' }}>
-                    {snackAlert}
-                </Alert>
-            </Snackbar>
+                        // if decimate data is unchecked make sure to not include accelerations and acl fields
+                        if (
+                          !decimateData &&
+                          snr?.options?.reconstructor?.options
+                        ) {
+                          delete snr.options.reconstructor.options
+                            .accelerations;
+                          delete snr.options.reconstructor.options.acl;
+                        }
 
-            <CmrConfirmation
-                open={reconWarningOpen}
-                setOpen={setReconWarningOpen}
-                name="Warning"
-                message="The current setup assumes that the signal data was prospectively undersampled. If the data is instead fully sampled, either choose B1 reconstruction or keep editing to retrospectively decimate the data."
-                confirmText="Queue"
-                cancelText="Keep Editing"
-                cancellable={true}
-                confirmCallback={() => {
-                    let state = store.getState();
-                    snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+                        // If method is Sense or Grappa but accelerations are not applied, open a warning modal
+                        if (
+                          (reconstructionMethod === 2 ||
+                            reconstructionMethod === 3) &&
+                          (!decimateData ||
+                            (decimateAcceleration1 === 1 &&
+                              decimateAcceleration2 === 1))
+                        ) {
+                          setReconWarningOpen(true);
+                          return;
+                        }
 
-                    // if decimate data is unchecked make sure to not include accelerations and acl field
-                    if (!decimateData && snr?.options?.reconstructor?.options) {
-                        delete snr.options.reconstructor.options.accelerations;
-                        delete snr.options.reconstructor.options.acl;
-                    }
+                        // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
+                        const method = snr?.options?.reconstructor?.id;
 
-                    // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
-                    const method = snr?.options?.reconstructor?.id;
+                        if (method === 0 || method === 3) {
+                          const reconstructor = snr.options.reconstructor;
 
-                    if (method === 0 || method === 3) {
-                        const reconstructor = snr.options.reconstructor;
-
-                        if (!reconstructor.options) {
+                          if (!reconstructor.options) {
                             reconstructor.options = {};
+                          }
+
+                          console.log(
+                            "Before delete (RSS/GRAPPA):",
+                            JSON.stringify(reconstructor.options, null, 2),
+                          );
+
+                          delete reconstructor.options.sensitivityMap;
+                          delete reconstructor.options.loadSensitivity;
+                          delete reconstructor.options.sensitivityMapMethod;
+                          delete reconstructor.options.mask;
+
+                          console.log(
+                            "After delete (RSS/GRAPPA):",
+                            JSON.stringify(reconstructor.options, null, 2),
+                          );
                         }
 
-                        console.log("Before delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
+                        getFiles(snr);
 
-                        delete reconstructor.options.sensitivityMap;
-                        delete reconstructor.options.loadSensitivity;
-                        delete reconstructor.options.sensitivityMapMethod;
-                        delete reconstructor.options.mask;
-
-                        console.log("After delete (RSS/GRAPPA):", JSON.stringify(reconstructor.options, null, 2));
-                    }
-
-                    getFiles(snr);
-
-                    if (editing !== -1) {
-                        setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
-                        setEditContent(JSON.stringify(snr, undefined, '\t'));
-                    } else {
-                        setPreview(JSON.stringify(snr, null, '\t'));
-                        setJobAlias(`${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`)
-                    }
-                }}
-                cancelCallback={() => setReconWarningOpen(false)}
-                color="primary"
-                extraButtons={[
-                    {
-                        text: 'Reconstruct with B1-weighted',
-                        onClick: () => {
-                            dispatch(setupSetters.setReconstructionMethod(1));
-                            setReconWarningOpen(false);
-                            setOpenPanel([1]);
-                            setB1SwitchedMessage("Switched to B1-weighted reconstruction.");
+                        if (editing !== -1) {
+                          setEditedJSON({
+                            SNR: snr,
+                            output: state.setup.outputSettings,
+                          });
+                          setEditContent(JSON.stringify(snr, undefined, "\t"));
+                        } else {
+                          setPreview(JSON.stringify(snr, null, "\t"));
+                          setJobAlias(
+                            `${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`,
+                          );
                         }
-                    }
-                ]}
-            />
+                      }}
+                    >
+                      {editing !== -1 ? "Complete Editing" : "Queue Job"}
+                    </CmrButton>
+                    {previewContent && (
+                      <SNRPreview
+                        previewContent={previewContent}
+                        alias={jobAlias}
+                        developer={developer}
+                        setAlias={(event) => {
+                          //@ts-ignore
+                          setJobAlias(event.target.value);
+                        }}
+                        edit={() => {}}
+                        queue={(jobAlias: string) => {
+                          dispatch(setupSetters.compileSNRSettings(jobAlias));
+                          setJobSelectionModel([
+                            ...jobSelectionModel,
+                            newJobId,
+                          ]);
+                          setTimeout(() => setOpenPanel([0]), 500);
+                          // console.log(store.getState().setup.queuedJobs.slice(-1));
+                          dispatch(
+                            submitJobs({
+                              queueToken,
+                              jobQueue: store
+                                .getState()
+                                .setup.queuedJobs.slice(-1),
+                            }),
+                          );
+                          dispatch(setupSetters.bulkDeleteAllJobs());
+                          dispatch(setupSetters.setMaskOption(Number(0)));
+                          dispatch(setupSetters.setDecimateACL(null));
+                          // Reset masking-related state
+                          dispatch(setupSetters.setMaskThreshold(20));
+                          dispatch(
+                            setupSetters.setMaskESPIRIT({
+                              k: 8,
+                              r: 24,
+                              t: 0.01,
+                              c: 0.995,
+                            }),
+                          );
+                          dispatch(setupSetters.setMaskStore(undefined));
+                          dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
+                          dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
 
-            <Snackbar
-                open={Boolean(b1SwitchedMessage)}
-                autoHideDuration={4000}
-                onClose={() => setB1SwitchedMessage(undefined)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={() => setB1SwitchedMessage(undefined)}
-                    severity="info"
-                    sx={{ width: '100%' }}
-                >
-                    {b1SwitchedMessage}
-                </Alert>
-            </Snackbar>
+                          dispatch(
+                            jobActions.setSubmittingText(
+                              "Job successfully queued!",
+                            ),
+                          );
+                          setSnackOpen(true);
+                        }}
+                        handleClose={() => {
+                          setPreview(undefined);
+                        }}
+                      />
+                    )}
+                  </CmrPanel>
+                )}
+              </CmrPanel>
+            </CmrCollapse>
+          )}
+        </CmrPanel>
+      </CmrCollapse>
+      <div style={{ height: "69px" }}></div>
 
-            {/* warning for max calculations per month */}
-            <Snackbar
-                open={quotaExceeded}
-                autoHideDuration={5000}
-                onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
-                    severity="error"
-                    sx={{ width: '100%' }}
-                >
-                    Monthly quota exceeded. Please try again next month.
-                </Alert>
-            </Snackbar>
+      <CmrConfirmation
+        name={sdWarningHeader}
+        message={sdWarning}
+        open={sdOpen}
+        setOpen={setSDOpen}
+        confirmText="OK"
+        color="info"
+        cancellable={false}
+      />
 
-        </Fragment>
-    );
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackClose}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {snackAlert}
+        </Alert>
+      </Snackbar>
+
+      <CmrConfirmation
+        open={reconWarningOpen}
+        setOpen={setReconWarningOpen}
+        name="Warning"
+        message="The current setup assumes that the signal data was prospectively undersampled. If the data is instead fully sampled, either choose B1 reconstruction or keep editing to retrospectively decimate the data."
+        confirmText="Queue"
+        cancelText="Keep Editing"
+        cancellable={true}
+        confirmCallback={() => {
+          let state = store.getState();
+          snr = JSON.parse(JSON.stringify(state.setup.activeSetup));
+
+          // if decimate data is unchecked make sure to not include accelerations and acl field
+          if (!decimateData && snr?.options?.reconstructor?.options) {
+            delete snr.options.reconstructor.options.accelerations;
+            delete snr.options.reconstructor.options.acl;
+          }
+
+          // Ensure sensitivityMap is removed for RSS (0) or GRAPPA (3)
+          const method = snr?.options?.reconstructor?.id;
+
+          if (method === 0 || method === 3) {
+            const reconstructor = snr.options.reconstructor;
+
+            if (!reconstructor.options) {
+              reconstructor.options = {};
+            }
+
+            console.log(
+              "Before delete (RSS/GRAPPA):",
+              JSON.stringify(reconstructor.options, null, 2),
+            );
+
+            delete reconstructor.options.sensitivityMap;
+            delete reconstructor.options.loadSensitivity;
+            delete reconstructor.options.sensitivityMapMethod;
+            delete reconstructor.options.mask;
+
+            console.log(
+              "After delete (RSS/GRAPPA):",
+              JSON.stringify(reconstructor.options, null, 2),
+            );
+          }
+
+          getFiles(snr);
+
+          if (editing !== -1) {
+            setEditedJSON({ SNR: snr, output: state.setup.outputSettings });
+            setEditContent(JSON.stringify(snr, undefined, "\t"));
+          } else {
+            setPreview(JSON.stringify(snr, null, "\t"));
+            setJobAlias(
+              `${snr.options.reconstructor.options.signal?.options.filename}-${snr.name}`,
+            );
+          }
+        }}
+        cancelCallback={() => setReconWarningOpen(false)}
+        color="primary"
+        extraButtons={[
+          {
+            text: "Reconstruct with B1-weighted",
+            onClick: () => {
+              dispatch(setupSetters.setReconstructionMethod(1));
+              setReconWarningOpen(false);
+              setOpenPanel([1]);
+              setB1SwitchedMessage("Switched to B1-weighted reconstruction.");
+            },
+          },
+        ]}
+      />
+
+      <Snackbar
+        open={Boolean(b1SwitchedMessage)}
+        autoHideDuration={4000}
+        onClose={() => setB1SwitchedMessage(undefined)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setB1SwitchedMessage(undefined)}
+          severity="info"
+          sx={{ width: "100%" }}
+        >
+          {b1SwitchedMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* warning for max calculations per month */}
+      <Snackbar
+        open={quotaExceeded}
+        autoHideDuration={5000}
+        onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          Monthly quota exceeded. Please try again next month.
+        </Alert>
+      </Snackbar>
+    </Fragment>
+  );
 };
 
 export default Setup;
