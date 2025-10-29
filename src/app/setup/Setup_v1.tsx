@@ -60,7 +60,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useStore } from "react-redux";
 import { SNRPreview } from "./SetupPreviewer";
 import { store } from "../../features/store";
-import { submitJobs } from "../../features/setup/setupActionCreation";
+import { submitJobs } from "cloudmr-ux/core/features/setup/setupActionCreation";
 import { snrDescriptions } from "./SetupDescriptions";
 import { CmrConfirmation } from "cloudmr-ux";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";

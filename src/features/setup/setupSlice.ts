@@ -5,7 +5,7 @@ import { Job } from "cloudmr-ux/core/features/jobs/jobsSlice";
 import { uploadData } from "cloudmr-ux/core/features/data/dataActionCreation";
 
 import moment from "moment/moment";
-import { submitJobs } from "./setupActionCreation";
+import { submitJobs } from "cloudmr-ux/core/features/setup/setupActionCreation";
 
 interface SetupState {
   loading: boolean;
