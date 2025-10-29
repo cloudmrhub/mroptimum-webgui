@@ -3900,24 +3900,14 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-"cloudmr-core@file:../cloudmr-core":
-  version "1.0.0"
-  resolved "file:../cloudmr-core"
-  dependencies:
-    jszip "^3.10.1"
-    moment "^2.29.4"
-
 "cloudmr-ux@file:../cloudmr-ux":
   version "2.0.6"
   resolved "file:../cloudmr-ux"
   dependencies:
-    "@emotion/react" "^11.14.0"
-    "@emotion/styled" "^11.14.0"
     "@mui/icons-material" "^5.14.1"
     "@mui/material" "^5.14.2"
     "@mui/x-data-grid" "^6.10.1"
     antd "^5.22.1"
-    axios "1.10.0"
     css-loader "^7.1.2"
     react-select "^5.10.2"
     sass "^1.81.0"

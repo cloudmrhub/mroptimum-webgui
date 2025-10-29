@@ -16,20 +16,24 @@ import { store } from "../features/store";
 const debugging = false;
 
 const MainRouter = () => {
-  const authenticate = useAppSelector((state) => state.authenticate);
   const dispatch = useAppDispatch();
   AuthenticatedHttpClient.setAuthenticateStateGetter(
     () => store.getState().authenticate,
   );
+  const { email, logged_in_token } = useAppSelector(
+    (state) => state.authenticate,
+  );
+
   AuthenticatedHttpClient.setDispatch(dispatch);
+  const debugging_or_logged_in = debugging || logged_in_token;
 
   return (
     <React.Fragment>
       <BrowserRouter>
-        {(debugging || authenticate.accessToken) && (
+        {debugging_or_logged_in && (
           <HeaderBar
             siteTitle="CloudMR"
-            authentication={authenticate}
+            email={email}
             menuList={[]}
             handleLogout={() => {}}
           />
@@ -39,7 +43,7 @@ const MainRouter = () => {
           <Route
             path="/login"
             element={
-              authenticate.accessToken ? (
+              logged_in_token ? (
                 <Navigate to="/main" />
               ) : (
                 <Signin
@@ -54,7 +58,7 @@ const MainRouter = () => {
           <Route
             path="/"
             element={
-              debugging || authenticate.accessToken ? (
+              debugging_or_logged_in ? (
                 <Navigate to="/main" />
               ) : (
                 <Navigate to="/login" />
@@ -64,41 +68,25 @@ const MainRouter = () => {
           <Route
             path="/main"
             element={
-              debugging || authenticate.accessToken ? (
-                <Main />
-              ) : (
-                <Navigate to="/login" />
-              )
+              debugging_or_logged_in ? <Main /> : <Navigate to="/login" />
             }
           />
           <Route
             path="/about"
             element={
-              debugging || authenticate.accessToken ? (
-                <About />
-              ) : (
-                <Navigate to="/login" />
-              )
+              debugging_or_logged_in ? <About /> : <Navigate to="/login" />
             }
           />
           <Route
             path="/contact"
             element={
-              debugging || authenticate.accessToken ? (
-                <ContactUs />
-              ) : (
-                <Navigate to="/login" />
-              )
+              debugging_or_logged_in ? <ContactUs /> : <Navigate to="/login" />
             }
           />
           <Route
             path="/bug-report"
             element={
-              debugging || authenticate.accessToken ? (
-                <BugReport />
-              ) : (
-                <Navigate to="/login" />
-              )
+              debugging_or_logged_in ? <BugReport /> : <Navigate to="/login" />
             }
           />
         </Routes>

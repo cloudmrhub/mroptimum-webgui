@@ -17,12 +17,12 @@ import { Confirmation } from "cloudmr-ux";
 import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
-import { getMax, getMin } from "cloudmr-core/common/utilities/index";
+import { getMax, getMin } from "cloudmr-ux/core/common/utilities";
 import {
   AuthenticatedHttpClient,
   getPipelineROI,
   getEndpoints,
-} from "cloudmr-core";
+} from "cloudmr-ux/core";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 
 export const nv = new Niivue({

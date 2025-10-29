@@ -1,9 +1,9 @@
 import { combineReducers } from "redux";
 import { configureStore } from "@reduxjs/toolkit";
-import { authenticateSlice } from "cloudmr-core/features/authenticate/authenticateSlice";
-import { dataSlice } from "cloudmr-core/features/data/dataSlice";
-import { jobsSlice } from "cloudmr-core/features/jobs/jobsSlice";
-import { resultSlice } from "cloudmr-core/features/rois/resultSlice";
+import { authenticateSlice } from "cloudmr-ux/core/features/authenticate/authenticateSlice";
+import { dataSlice } from "cloudmr-ux/core/features/data/dataSlice";
+import { jobsSlice } from "cloudmr-ux/core/features/jobs/jobsSlice";
+import { resultSlice } from "cloudmr-ux/core/features/rois/resultSlice";
 import { setupSlice } from "./setup/setupSlice";
 import storage from "redux-persist/lib/storage";
 import {
