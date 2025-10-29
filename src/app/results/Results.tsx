@@ -66,12 +66,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
     (state) => state.result.activeJob?.pipeline_id,
   );
   const niis = useAppSelector((state) =>
-    pipelineID ? state.result.niis[pipelineID] : [],
+    pipelineID ? state.result.niis[pipelineID] : undefined,
   );
-  const rois: ROI[] = useAppSelector((state) => {
+  const rois = useAppSelector((state) => {
     return pipelineID === undefined ||
       state.result.rois[pipelineID] === undefined
-      ? []
+      ? undefined
       : state.result.rois[pipelineID];
   });
   const selectedVolume = useAppSelector((state) => state.result.selectedVolume);
@@ -202,7 +202,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                         // console.log(value);
                         // @ts-ignore
                         let volumes = value.payload.volumes;
-                        let niis = value.payload.niis;
+                        let niis = value.payload.niis || [];
                         for (let i = 0; i < niis.length; i++) {
                           let nii = niis[i];
                           if (nii.id === 0) {
@@ -523,7 +523,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
         >
           {activeJob !== undefined && (
             <NiiVue
-              niis={niis}
+              niis={niis || []}
               warn={warn}
               setWarning={setWarning}
               setWarningOpen={setWarningOpen}
@@ -532,7 +532,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               }}
               selectedVolume={selectedVolume}
               key={pipelineID}
-              rois={rois}
+              rois={rois || []}
               pipelineID={pipelineID}
               saveROICallback={() => {
                 if (pipelineID)
