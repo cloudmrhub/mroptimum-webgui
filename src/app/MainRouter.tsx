@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import HeaderBar from "../common/components/header/Header";
 import FooterBar from "cloudmr-ux/core/common/components/footer/Footer";
-import Signin from "./signin/Signin";
+import Signin from "cloudmr-ux/core/app/signin/Signin";
 import Main from "./main/Main";
 import About from "./about/About";
 import ContactUs from "./contact-us/ContactUs";
@@ -12,6 +12,7 @@ import { getLoggedInToken } from "cloudmr-ux/core/features/authenticate/authenti
 import WebSignin from "./WebSignin";
 import { AuthenticatedHttpClient } from "cloudmr-ux/core/common/utilities/AuthenticatedRequests";
 import { store } from "../features/store";
+import appIcon from "../assets/mrOptimum.png";
 
 const debugging = false;
 
@@ -32,7 +33,7 @@ const MainRouter = () => {
       <BrowserRouter>
         {debugging_or_logged_in && (
           <HeaderBar
-            siteTitle="CloudMR"
+            siteTitle="MR Optimum"
             email={email}
             menuList={[]}
             handleLogout={() => {}}
@@ -51,6 +52,8 @@ const MainRouter = () => {
                   signInCallback={(credentials) =>
                     dispatch(getLoggedInToken(credentials))
                   }
+                  appIcon={appIcon}
+                  appTitle="Optimum"
                 />
               )
             }

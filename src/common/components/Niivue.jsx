@@ -11,9 +11,8 @@ import NVSwitch from "./Switch.jsx";
 import Toolbar from "./Toolbar";
 import Layer from "./Layer.jsx";
 import "./Niivue.css";
-import { CmrEditConfirmation } from "cloudmr-ux";
+import { CmrEditConfirmation, CmrConfirmation } from "cloudmr-ux";
 import axios from "axios";
-import { Confirmation } from "cloudmr-ux";
 import Plotly from "plotly.js-dist-min";
 import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
@@ -1356,7 +1355,7 @@ export default function NiiVueport(props) {
         saving={saving}
         setSaving={setSaving}
       />
-      <Confirmation
+      <CmrConfirmation
         name={"New Changes Made"}
         message={"Consider saving your drawing before switching."}
         open={confirmationOpen}
