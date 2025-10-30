@@ -1,20 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    // "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
+    "target": "es5", // Compile TypeScript down to ES5 for maximum browser compatibility (IE11+)
+    "lib": ["dom", "dom.iterable", "esnext"], // Include type definitions for DOM APIs, DOM iteration, and latest ECMAScript features
+    "allowJs": true, // Allow JavaScript files to be imported and compiled alongside TypeScript files
+    "skipLibCheck": true, // Skip type checking of declaration files (.d.ts) to speed up compilation
+    "esModuleInterop": true, // Enable interoperability between CommonJS and ES modules
+    "allowSyntheticDefaultImports": true, // Allow default imports from modules without a default export (e.g., import React from 'react')
+    "strict": true, // Enable all strict type-checking options (noImplicitAny, strictNullChecks, etc.)
+    "forceConsistentCasingInFileNames": true, // Ensure imports reference files with correct casing to avoid issues on case-sensitive filesystems
+    "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements (missing break or return)
+    "module": "esnext", // Use ESNext module system for import/export statements
+    "moduleResolution": "nodenext", // Use Node.js's resolution strategy for modules (supports package.json exports field)
+    // "resolveJsonModule": true, // Enable importing JSON files as modules (currently commented out)
+    "isolatedModules": true, // Ensure each file can be transpiled independently (required for Babel and Vite)
+    "noEmit": true, // Don't emit compiled JavaScript files (Vite handles the build process)
+    "jsx": "react-jsx", // Use React 17+ JSX transform (no need to import React in every file)
+    "paths": {
+      // Map module paths for easier imports
+      "cloudmr-ux/*": ["../cloudmr-ux/*"]
+    },
+    "types": ["vite/client"] // Include Vite-specific type definitions for import.meta.env, etc.
   },
-  "include": ["src"]
+  "include": ["src"] // Only compile files in the src directory
 }

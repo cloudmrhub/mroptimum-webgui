@@ -471,7 +471,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 setUploaderKey(uploaderKey + 1);
               }}
               uploadHandler={uploadHandlerFactory(
-                accessToken,
                 queueToken,
                 dispatch,
                 uploadData,

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./Header.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { Toolbar, Container } from "@mui/material";
-
+import logoUrl from "../../../assets/MR Optimum_final_white.png";
 interface MenuItem {
   path: string;
   title: string;
@@ -76,7 +76,7 @@ const Header = ({
               }}
             >
               <img
-                src={process.env.PUBLIC_URL + "/MR Optimum_final_white.png"}
+                src={logoUrl}
                 alt="Logo"
                 style={{ height: "50px", width: "50px" }}
               />{" "}

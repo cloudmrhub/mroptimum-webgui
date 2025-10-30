@@ -1,17 +1,13 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import "./Home.scss";
 import { CmrTable, CmrCollapse, CmrPanel } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
-import {
-  dataSlice,
-  UploadedFile,
-} from "cloudmr-ux/core/features/data/dataSlice";
+import { UploadedFile } from "cloudmr-ux/core/features/data/dataSlice";
 import {
   deleteUploadedData,
   getUploadedData,
   renameUploadedData,
 } from "cloudmr-ux/core/features/data/dataActionCreation";
-import { jobsSlice } from "cloudmr-ux/core/features/jobs/jobsSlice";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -166,123 +162,9 @@ const Home = () => {
     },
   ];
 
-  const jobsColumns = [
-    {
-      headerName: "Job ID",
-      dataIndex: "id",
-      field: "id",
-      flex: 1,
-    },
-    {
-      headerName: "Alias",
-      dataIndex: "alias",
-      field: "alias",
-      flex: 3,
-    },
-    {
-      headerName: "Date Submitted",
-      dataIndex: "createdAt",
-      field: "createdAt",
-      flex: 2,
-    },
-    {
-      headerName: "Status",
-      dataIndex: "status",
-      field: "status",
-      flex: 1,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      sortable: false,
-      width: 160,
-      disableClickEventBubbling: true,
-      renderCell: (params: any) => {
-        let index = jobsData.findIndex((row) => row.id === params.id);
-        return (
-          <div>
-            <IconButton
-              onClick={() => {
-                setOriginalName(jobsData[index].alias);
-                setNameDialogOpen(true);
-                setRenamingCallback(() => async (newName: string) => {
-                  // In case of working API
-                  // let jobReference = jobsData[renameFileIndex];
-                  // jobReference.alias = newName;
-                  // renameUpstreamJob({accessToken, jobReference});
-
-                  // In case of non-working API, change name locally
-                  dispatch(
-                    jobsSlice.actions.renameJob({
-                      index: index,
-                      alias: newName,
-                    }),
-                  );
-                  return true;
-                });
-              }}
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
-              onClick={(e) => {
-                /* Download logic here */
-                e.stopPropagation();
-                e.preventDefault();
-                console.log(params.row.files);
-                params.row.files.forEach((file: UploadedFile) => {
-                  let url = file.link;
-                  if (url === "unknown") return;
-                  // Create an anchor element
-                  const a = document.createElement("a");
-                  a.href = url;
-
-                  // Extract the file name from the URL, if possible
-                  a.download = `${file.fileName}.${url.split(".").pop()}`;
-
-                  // Append the anchor to the body (this is necessary to programmatically trigger the click event)
-                  document.body.appendChild(a);
-
-                  // Trigger a click event to start the download
-                  a.click();
-
-                  // Remove the anchor from the body
-                  document.body.removeChild(a);
-                });
-              }}
-            >
-              <GetAppIcon />
-            </IconButton>
-            <IconButton
-              onClick={() => {
-                setName(`Deleting Data`);
-                setMessage(
-                  `Please confirm that you are deleting data ${params.row.id}.`,
-                );
-                setColor("error");
-                setConfirmCallback(() => () => {
-                  console.log(index);
-                  dispatch(deleteUpstreamJob({ jobId: params.row.id }));
-                  dispatch(jobsSlice.actions.deleteJob({ index }));
-                });
-                setCancelCallback(() => {});
-                setOpen(true);
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        );
-      },
-    },
-  ];
-
   const dispatch = useAppDispatch();
-  const { accessToken, uploadToken } = useAppSelector(
-    (state) => state.authenticate,
-  );
+  const { uploadToken } = useAppSelector((state) => state.authenticate);
   const { files } = useAppSelector((state) => state.data);
-  const jobsData = useAppSelector((state) => state.jobs.jobs);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [renamingCallback, setRenamingCallback] = useState<
     (alias: string) => Promise<boolean>
@@ -310,19 +192,13 @@ const Home = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     //@ts-ignore
-    dispatch(getUploadedData(accessToken));
+    dispatch(getUploadedData());
     //@ts-ignore
-    dispatch(getUpstreamJobs(accessToken));
+    dispatch(getUpstreamJobs());
     console.log("dispatched");
-  }, [accessToken]);
+  }, []);
 
   const [uploadKey, setUploadKey] = useState(0);
-  const UploadHeaders: AxiosRequestConfig = {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  };
 
   function downloadSelectedValues() {
     let downloadPending: UploadedFile[] = [];
@@ -393,7 +269,7 @@ const Home = () => {
                       let index = files.findIndex((row) => row.id === id);
                       // dispatch(jobsSlice.actions.deleteJob({index}));
                       // @ts-ignore
-                      dispatch(deleteUploadedData({ accessToken, fileId: id }));
+                      dispatch(deleteUploadedData({ fileId: id }));
                     }
                   });
                   setOpen(true);
@@ -450,7 +326,6 @@ const Home = () => {
                   setUploadKey(uploadKey + 1);
                 }}
                 uploadHandler={uploadHandlerFactory(
-                  accessToken,
                   uploadToken,
                   dispatch,
                   uploadData,

@@ -726,7 +726,6 @@ const Setup = () => {
                           marginRight: "0",
                         }}
                         uploadHandler={uploadHandlerFactory(
-                          accessToken,
                           uploadToken,
                           dispatch,
                           uploadData,
@@ -850,7 +849,6 @@ const Setup = () => {
                                 : undefined
                             }
                             uploadHandler={uploadHandlerFactory(
-                              accessToken,
                               uploadToken,
                               dispatch,
                               uploadData,
@@ -1079,12 +1077,13 @@ const Setup = () => {
                   style={{ width: "100%" }}
                   className={"mb-3"}
                   onChange={(event) => {
-                    //@ts-ignore
-                    if (event.target.value !== reconstructionMethod)
+                    const target = event.target as HTMLInputElement;
+                    if (parseInt(target.value) !== reconstructionMethod)
                       setReconstructionMethodChanged(true);
-                    //@ts-ignore
                     dispatch(
-                      setupSetters.setReconstructionMethod(event.target.value),
+                      setupSetters.setReconstructionMethod(
+                        parseInt(target.value),
+                      ),
                     );
                   }}
                 >
@@ -1185,7 +1184,6 @@ const Setup = () => {
                           }}
                           maxCount={1}
                           uploadHandler={uploadHandlerFactory(
-                            accessToken,
                             uploadToken,
                             dispatch,
                             uploadData,
@@ -1505,7 +1503,6 @@ const Setup = () => {
                                               setupSetters.setMaskStore,
                                             )}
                                             uploadHandler={uploadHandlerFactory(
-                                              accessToken,
                                               uploadToken,
                                               dispatch,
                                               uploadData,
@@ -1609,10 +1606,10 @@ const Setup = () => {
                               // console.log(params)
                               // console.log(event)
                               // return;
-                              //@ts-ignore
+                              const target = (event as any).target as HTMLInputElement;
                               if (
-                                event.target === undefined ||
-                                !isNaN(event.target.value)
+                                target === undefined ||
+                                !isNaN(Number(target.value))
                               )
                                 return;
                             }}
@@ -1681,19 +1678,18 @@ const Setup = () => {
                           }}
                           onCellEditStop={(
                             params: GridCellEditStopParams,
-                            event,
+                            event: any,
                           ) => {
                             // console.log(params)
                             // console.log(event)
                             // return;
-                            //@ts-ignore
+                            const target = event.target as HTMLInputElement;
                             if (
-                              event.target === undefined ||
-                              !isNaN(event.target.value)
+                              target === undefined ||
+                              !isNaN(Number(target.value))
                             )
                               return;
-                            //@ts-ignore
-                            let value = Number(event.target.value);
+                            let value = Number(target.value);
                             if (params.id === "1") {
                               dispatch(
                                 setupSetters.setDecimateAccelerations1(
@@ -1900,7 +1896,6 @@ const Setup = () => {
                           // console.log(store.getState().setup.queuedJobs.slice(-1));
                           dispatch(
                             submitJobs({
-                              queueToken,
                               jobQueue: store
                                 .getState()
                                 .setup.queuedJobs.slice(-1),
