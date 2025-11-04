@@ -271,7 +271,7 @@ export default function Toolbar(props: ToolbarProps) {
                                                             props.nv.drawScene?.();
 
                                                             // Refresh histogram + ROI table
-                                                            props.resampleImage?.();
+                                                            // props.resampleImage?.();
                                                         }
 
                                                         console.log(`Deleted ROI: ${value.filename}`);
