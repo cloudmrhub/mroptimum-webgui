@@ -25,8 +25,9 @@ import { CMRUpload, LambdaFile } from "cloudmr-ux";
 import { AxiosRequestConfig } from "axios";
 import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 const Home = () => {
-  const renamingProxy = (newName: string, proxyCallback: () => void) => {
+  const renamingProxy = (newName: string, isDemoData: boolean | undefined, proxyCallback: () => void) => {
     return new Promise<boolean>((resolve) => {
+      console.log("renamingProxy", { newName, isDemoData })
       let originalExt = originalName.split(".").pop();
       if (newName.split(".").length === 1) {
         setMessage(`Missing file extension in '${newName}'.`);
@@ -89,10 +90,13 @@ const Home = () => {
           <div>
             <IconButton
               onClick={() => {
+                console.log(files[index]);
+                console.log(!!files[index].is_demo_data);
                 setOriginalName(files[index].fileName);
                 setNameDialogOpen(true);
-                setRenamingCallback(() => (newName: string) => {
-                  return renamingProxy(newName, () => {
+                setSelectedFileIsDemoData(isAdmin ? (!!files[index].is_demo_data) : undefined);
+                setRenamingCallback(() => (newName: string, isDemoData?: boolean) => {
+                  return renamingProxy(newName, isDemoData, () => {
                     // In case of working API
                     let dataReference = files[index];
                     //@ts-ignore
@@ -100,6 +104,7 @@ const Home = () => {
                       renameUploadedData({
                         fileId: dataReference.id,
                         newName: newName,
+                        ...(isAdmin && isDemoData !== undefined && { is_demo_data: isDemoData })
                       }),
                     );
                   });
@@ -163,13 +168,15 @@ const Home = () => {
   ];
 
   const dispatch = useAppDispatch();
-  const { uploadToken } = useAppSelector((state) => state.authenticate);
+  const { uploadToken, level } = useAppSelector((state) => state.authenticate);
   const { files } = useAppSelector((state) => state.data);
+  const isAdmin = true//level == "admin";
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [renamingCallback, setRenamingCallback] = useState<
-    (alias: string) => Promise<boolean>
+    (alias: string, isDemoData?: boolean) => Promise<boolean>
   >(async () => true);
   const [originalName, setOriginalName] = useState("");
+  const [selectedFileIsDemoData, setSelectedFileIsDemoData] = useState<boolean | undefined>(undefined);
 
   const [name, setName] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState<string | undefined>(undefined);
@@ -340,6 +347,7 @@ const Home = () => {
           setOpen={setNameDialogOpen}
           originalName={originalName}
           renamingCallback={renamingCallback}
+          isDemoData={selectedFileIsDemoData}
         />
 
         <CmrConfirmation
