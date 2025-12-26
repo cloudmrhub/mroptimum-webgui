@@ -25,10 +25,10 @@ import { CMRUpload, LambdaFile } from "cloudmr-ux";
 import { AxiosRequestConfig } from "axios";
 import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 const Home = () => {
-  const renamingProxy = (newName: string, isDemoData: boolean | undefined, proxyCallback: () => void) => {
+  const renamingProxy = (originalFileName: string, newName: string, isDemoData: boolean | undefined, proxyCallback: () => void) => {
     return new Promise<boolean>((resolve) => {
       console.log("renamingProxy", { newName, isDemoData })
-      let originalExt = originalName.split(".").pop();
+      let originalExt = originalFileName.split(".").pop();
       if (newName.split(".").length === 1) {
         setMessage(`Missing file extension in '${newName}'.`);
         setColor("error");
@@ -90,13 +90,14 @@ const Home = () => {
           <div>
             <IconButton
               onClick={() => {
+                const currentFileName = files[index].fileName;
                 console.log(files[index]);
                 console.log(!!files[index].is_demo_data);
-                setOriginalName(files[index].fileName);
+                setOriginalName(currentFileName);
                 setNameDialogOpen(true);
                 setSelectedFileIsDemoData(isAdmin ? (!!files[index].is_demo_data) : undefined);
                 setRenamingCallback(() => (newName: string, isDemoData?: boolean) => {
-                  return renamingProxy(newName, isDemoData, () => {
+                  return renamingProxy(currentFileName, newName, isDemoData, () => {
                     // In case of working API
                     let dataReference = files[index];
                     //@ts-ignore
