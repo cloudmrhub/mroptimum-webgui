@@ -194,7 +194,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                     }
                     dispatch(
                       loadResult({
-                        accessToken,
                         job: params.row,
                       }),
                     ).then(async (value: any) => {
