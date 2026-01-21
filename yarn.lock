@@ -3974,7 +3974,7 @@ cliui@^7.0.2:
     wrap-ansi "^7.0.0"
 
 cloudmr-ux@^3.0.0:
-  version "3.0.0"
+  version "3.0.1"
   resolved "file:../cloudmr-ux"
   dependencies:
     "@mui/icons-material" "^5.14.1"
