@@ -44,6 +44,9 @@ amplify-gradle-config.json
 amplifytools.xcconfig
 .secret-*
 **.sample
-#amplify-do-not-edit-end
 samconfig.toml
 .aws-sam/build.toml
+.env
+#amplify-do-not-edit-end
+
+.env

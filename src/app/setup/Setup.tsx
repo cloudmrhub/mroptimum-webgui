@@ -1580,6 +1580,7 @@ const Setup = () => {
                           className="ms-3"
                           style={{
                             height: "fit-content",
+                            minHeight: "80px",
                             marginRight: "auto",
                             marginTop: "5pt",
                             width: "362px",
@@ -1657,6 +1658,7 @@ const Setup = () => {
                         className="ms-3"
                         style={{
                           height: "fit-content",
+                          minHeight: "80px",
                           marginRight: "auto",
                           marginTop: "5pt",
                           width: "362px",

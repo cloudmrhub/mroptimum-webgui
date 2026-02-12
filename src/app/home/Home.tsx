@@ -199,11 +199,25 @@ const Home = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    //@ts-ignore
-    dispatch(getUploadedData());
-    //@ts-ignore
-    dispatch(getUpstreamJobs());
-    console.log("dispatched");
+    (async () => {
+      try {
+        // Attempt to load initial data; unwrap thunks where available to catch rejections
+        //@ts-ignore
+        const p1 = dispatch(getUploadedData());
+        //@ts-ignore
+        const p2 = dispatch(getUpstreamJobs());
+        // Wait for both to settle; if either rejects we'll handle in catch
+        await Promise.all([p1, p2]);
+        console.log("dispatched");
+      } catch (err) {
+        console.error("Initial data load failed:", err);
+        setMessage(
+          "Could not load initial application data. Some features may be unavailable.",
+        );
+        setColor("error");
+        setOpen(true);
+      }
+    })();
   }, []);
 
   const [uploadKey, setUploadKey] = useState(0);
