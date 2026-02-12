@@ -1,5 +1,46 @@
 import React, { Fragment, useEffect, useState } from "react";
 import "./Setup.scss";
+import { CLOUDMR_SERVER } from "../../env";
+
+// Helper: extract numeric count from various response shapes
+function extractCount(resp: any): number {
+  if (resp == null) return 0;
+  if (typeof resp === "number") return resp;
+  if (typeof resp.count === "number") return resp.count;
+  if (resp.data && typeof resp.data.count === "number") return resp.data.count;
+  if (resp.results && typeof resp.results.count === "number") return resp.results.count;
+  return 0;
+}
+
+// Helper: normalize computing unit list from different payload shapes
+function normalizeUnitsPayload(payload: any, mode?: string): any[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.computingUnits)) return payload.computingUnits;
+  if (Array.isArray(payload.items)) return payload.items;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (mode && Array.isArray(payload[mode])) return payload[mode];
+  if (Array.isArray(payload.mode_1) || Array.isArray(payload.mode_2)) {
+    return Array.isArray(payload[mode ?? "mode_1"]) ? payload[mode ?? "mode_1"] : [];
+  }
+  return [];
+}
+
+// Fetch available computing units for a given mode using bearer token
+async function fetchComputingUnitsForSetup(appName: string, mode: string, token: string, apiServer = CLOUDMR_SERVER) {
+  if (!token) throw new Error("Authentication token not found. Please login.");
+  const params = new URLSearchParams({ app_name: appName, mode });
+  const base = apiServer.replace(/\/$/, "");
+  const url = `${base}/computing-unit/list?${params.toString()}`;
+  const resp = await fetch(url, {
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`API error: ${resp.status} - ${text}`);
+  }
+  return resp.json();
+}
 import { CmrCollapse, CmrPanel, CmrConfirmation } from "cloudmr-ux";
 import {
   getUploadedData,
@@ -69,6 +110,13 @@ const Setup = () => {
   const { accessToken, level, uploadToken, queueToken } = useAppSelector(
     (state) => state.authenticate,
   );
+  // Computing unit / counts state (for Setup UI)
+  const [cuCounts, setCuCounts] = useState({ mode_1: null as number | null, mode_2: null as number | null });
+  // Combined list of computing units (items annotated with `.mode` = 'mode_1'|'mode_2')
+  const [cuUnits, setCuUnits] = useState([] as any[]);
+  const [cuSelected, setCuSelected] = useState("");
+  const [cuLoading, setCuLoading] = useState(true);
+  const [cuError, setCuError] = useState<string | null>(null);
   const developer = level !== "standard" && level !== "pro";
   const editActive = useAppSelector((state) => state.setup.editInProgress);
   const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
@@ -235,6 +283,43 @@ const Setup = () => {
     updateBreakpoint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load computing units for Setup (mode_1 and mode_2)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCUs() {
+      setCuLoading(true);
+      setCuError(null);
+      try {
+        if (!accessToken) {
+          setCuError("No authentication token found. Please login.");
+          setCuLoading(false);
+          return;
+        }
+        const appName = "MR Optimum";
+        const [r1, r2] = await Promise.all([
+          fetchComputingUnitsForSetup(appName, "mode_1", accessToken),
+          fetchComputingUnitsForSetup(appName, "mode_2", accessToken),
+        ]);
+        if (cancelled) return;
+        const n1 = normalizeUnitsPayload(r1, "mode_1");
+        const n2 = normalizeUnitsPayload(r2, "mode_2");
+        // annotate with mode and combine into single list
+        const annotated1 = n1.map((x: any) => ({ ...(x || {}), mode: "mode_1" }));
+        const annotated2 = n2.map((x: any) => ({ ...(x || {}), mode: "mode_2" }));
+        const combined = [...annotated1, ...annotated2];
+        setCuUnits(combined);
+        const pickValue = (u: any, idx: number) => String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? idx);
+        setCuSelected(combined[0] ? pickValue(combined[0], 0) : "");
+      } catch (err: any) {
+        if (!cancelled) setCuError(err?.message || String(err));
+      } finally {
+        if (!cancelled) setCuLoading(false);
+      }
+    }
+    loadCUs();
+    return () => { cancelled = true; };
+  }, [accessToken]);
 
   useEffect(() => {
     if (
@@ -673,6 +758,64 @@ const Setup = () => {
       >
         Reset Signal & Noise Files
       </CmrButton>
+
+      {/* Computing units selectors (Setup) */}
+      <div style={{ margin: '1em 0', padding: '1em', border: '1px solid #ccc', borderRadius: 8 }}>
+        <h3 style={{ margin: '0 0 8px 0' }}>Computing Units</h3>
+        {cuLoading ? (
+          <div>Loading computing units...</div>
+        ) : cuError ? (
+          <div style={{ color: 'red' }}>Error: {cuError}</div>
+        ) : (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ minWidth: 320 }}>
+              <label style={{ display: 'block', marginBottom: 4 }}>Computing Unit (Mode 1 + Mode 2)</label>
+              <select
+                value={cuSelected}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCuSelected(val);
+                  try {
+                    const found = cuUnits.find((u: any) => {
+                      const key = String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? "");
+                      return key === val;
+                    });
+                    const mode = found?.mode ?? "";
+                    // persist selection to setup slice so queued jobs created afterwards include it
+                    dispatch(
+                      // @ts-ignore
+                      setupSetters.setSelectedComputingUnit({ id: val, mode }),
+                    );
+                  } catch (err) {
+                    // ignore
+                  }
+                }}
+                style={{ width: '100%' }}
+              >
+                <option value="">-- select --</option>
+                {cuUnits.map((u: any, i: number) => {
+                  const val = String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? i);
+                  const modeLabel = u.mode ?? u.mode_1 ?? u.mode_2 ?? '';
+                  let label = (modeLabel ? `[${modeLabel}] ` : '') + (u.alias ?? u.name ?? u.label ?? u.computingUnitId ?? u.id ?? 'Unknown');
+                  if (!label) {
+                    try {
+                      const j = JSON.stringify(u);
+                      label = j.length > 60 ? j.slice(0, 57) + "..." : j;
+                    } catch (e) {
+                      label = String(u);
+                    }
+                  }
+                  return (
+                    <option key={`s-all-${i}`} value={val}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
 
       <CmrCollapse
         accordion={false}
@@ -1896,13 +2039,42 @@ const Setup = () => {
                           ]);
                           setTimeout(() => setOpenPanel([0]), 500);
                           // console.log(store.getState().setup.queuedJobs.slice(-1));
-                          dispatch(
-                            submitJobs({
-                              jobQueue: store
-                                .getState()
-                                .setup.queuedJobs.slice(-1),
-                            }),
-                          );
+                          // Enhance queued jobs with selected computing unit and mode
+                          try {
+                            const rawJobs = store.getState().setup.queuedJobs.slice(-1);
+                            const selectedId = cuSelected; // string id chosen in the single select
+                            const findCU = cuUnits.find((u: any) => {
+                              const key = String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? "");
+                              return key === selectedId;
+                            });
+                            const selectedMode = findCU?.mode ?? "";
+                            const computing_unit_id = (findCU?.computingUnitId ?? findCU?.computing_unit_id ?? findCU?.id ?? selectedId) || "";
+
+                            // If we have a queued job id, annotate the queued job in Redux so submitJobs (which may read state)
+                            // picks up the added fields. This ensures the final POST reflects the user's selection.
+                            const lastJob = rawJobs[0];
+                            if (lastJob && typeof lastJob.id === "number") {
+                              dispatch(
+                                // @ts-ignore - action added in setupSlice
+                                setupSetters.setQueuedJobComputingUnit({ id: lastJob.id, mode: selectedMode, computing_unit_id: String(computing_unit_id) }),
+                              );
+                            }
+
+                            // Still dispatch submitJobs with enhanced queue for compatibility with implementations
+                            const enhanced = rawJobs.map((j: any) => ({
+                              ...j,
+                              mode: selectedMode || "",
+                              computing_unit_id: String(computing_unit_id),
+                            }));
+                            dispatch(submitJobs({ jobQueue: enhanced }));
+                          } catch (err) {
+                            // Fallback: dispatch without enhancement
+                            dispatch(
+                              submitJobs({
+                                jobQueue: store.getState().setup.queuedJobs.slice(-1),
+                              }),
+                            );
+                          }
                           dispatch(setupSetters.bulkDeleteAllJobs());
                           dispatch(setupSetters.setMaskOption(Number(0)));
                           dispatch(setupSetters.setDecimateACL(null));
