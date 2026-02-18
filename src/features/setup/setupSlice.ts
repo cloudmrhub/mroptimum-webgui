@@ -11,6 +11,9 @@ interface SetupState {
   loading: boolean;
   activeSetup: SNR;
   editInProgress: boolean;
+  // Persist user's computing unit selection so queued jobs include it
+  selectedComputingUnitId?: string;
+  selectedComputingUnitMode?: string;
   queuedJobs: Job[];
   idGenerator: number;
   signalUploadProgress: number;
@@ -573,7 +576,28 @@ export const setupSlice = createSlice({
       let signalCache = SNRSpec.options.reconstructor.options.signal;
       let noiseCache = SNRSpec.options.reconstructor.options.noise;
       postProcessSNR(SNRSpec);
-      state.queuedJobs.push(createJob(SNRSpec, state, action.payload));
+      // Create job and attach any selected computing unit info stored in state
+      const job = createJob(SNRSpec, state, action.payload);
+      if (state.selectedComputingUnitId) {
+        // annotate top-level job
+        // @ts-ignore
+        job.mode = state.selectedComputingUnitMode ?? "";
+        // @ts-ignore
+        job.computing_unit_id = state.selectedComputingUnitId;
+        // also attach inside setup.task (where the backend often expects task details)
+        if (job.setup && job.setup.task) {
+          // @ts-ignore
+          job.setup.task.mode = state.selectedComputingUnitMode ?? "";
+          // @ts-ignore
+          job.setup.task.computing_unit_id = state.selectedComputingUnitId;
+          // Also attach at the same level as `setup` (sibling to `task`) so consumers expecting it there will find it
+          // @ts-ignore
+          job.setup.mode = state.selectedComputingUnitMode ?? "";
+          // @ts-ignore
+          job.setup.computing_unit_id = state.selectedComputingUnitId;
+        }
+      }
+      state.queuedJobs.push(job);
       //Deep copy default SNR
       state.activeSetup = JSON.parse(JSON.stringify(defaultSNR)) as SNR;
       state.outputSettings = {
@@ -693,6 +717,45 @@ export const setupSlice = createSlice({
         }
       }
       state.queuedJobs.splice(index, 1);
+    },
+    // Annotate a queued job with computing unit information (mode + computing_unit_id)
+    setQueuedJobComputingUnit(
+      state: SetupState,
+      action: PayloadAction<{ id: number; mode: string; computing_unit_id: string }>,
+    ) {
+      const { id, mode, computing_unit_id } = action.payload;
+      for (let i = 0; i < state.queuedJobs.length; i++) {
+        if (state.queuedJobs[i].id === id) {
+          // Attach at top level of job and also inside setup.task (if desired)
+          // This keeps backward compatibility while making data available to submitJobs
+          // and downstream consumers.
+          // @ts-ignore
+          state.queuedJobs[i].mode = mode;
+          // @ts-ignore
+          state.queuedJobs[i].computing_unit_id = computing_unit_id;
+          // Also annotate inside the setup.task (mirror location)
+          if (state.queuedJobs[i].setup && state.queuedJobs[i].setup.task) {
+            // @ts-ignore
+            state.queuedJobs[i].setup.task.mode = mode;
+            // @ts-ignore
+            state.queuedJobs[i].setup.task.computing_unit_id = computing_unit_id;
+            // Also attach at the same level as `setup` (sibling to `task`) if callers expect it there
+            // @ts-ignore
+            state.queuedJobs[i].setup.mode = mode;
+            // @ts-ignore
+            state.queuedJobs[i].setup.computing_unit_id = computing_unit_id;
+          }
+          break;
+        }
+      }
+    },
+    // Persist selected computing unit in state (used when creating queued job)
+    setSelectedComputingUnit(
+      state: SetupState,
+      action: PayloadAction<{ id: string; mode: string }>,
+    ) {
+      state.selectedComputingUnitId = action.payload.id;
+      state.selectedComputingUnitMode = action.payload.mode;
     },
     bulkDeleteQueuedJobs(state: SetupState, action: PayloadAction<number[]>) {
       for (let i = 0; i < state.queuedJobs.length; ) {
