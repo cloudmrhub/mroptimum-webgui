@@ -1,13 +1,13 @@
 /**
  * This file patches the original NiiVue library to produce customized behaviors and effects.
  */
-import {Niivue,NVImage,NVImageFromUrlOptions} from "@niivue/niivue";
-import { mat4, vec3 } from 'gl-matrix'
-import {tickSpacing} from "./util";
-import {nv} from "./Niivue";
+import { Niivue, NVImage, NVImageFromUrlOptions } from "@niivue/niivue";
+import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
+import { tickSpacing } from "./util";
+import { nv } from "./Niivue";
 
 
-var NiivueObject3D = function(id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
+var NiivueObject3D = function (id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
     this.BLEND = 1;
     this.CULL_FACE = 2;
     this.CULL_FRONT = 4;
@@ -111,24 +111,24 @@ const MULTIPLANAR_TYPE = Object.freeze({
 });
 
 const labelVisibility = {};
-Niivue.prototype.getLabelVisibility = function(label){
-    if(labelVisibility[label]===undefined){
+Niivue.prototype.getLabelVisibility = function (label) {
+    if (labelVisibility[label] === undefined) {
         labelVisibility[label] = true;
         return true;
     }
-    else{
+    else {
         return labelVisibility[label];
     }
 }
 
-Niivue.prototype.setLabelVisibility = function(label, visible){
+Niivue.prototype.setLabelVisibility = function (label, visible) {
     console.log(label);
     labelVisibility[label] = visible;
-    if(this.hiddenBitmap===undefined||this.hiddenBitmap === null||this.hiddenBitmap.length===0)
+    if (this.hiddenBitmap === undefined || this.hiddenBitmap === null || this.hiddenBitmap.length === 0)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    if(!visible) {
-        for(let i = 0; i<this.drawBitmap.length; i++){
-            if(this.drawBitmap[i]===label){
+    if (!visible) {
+        for (let i = 0; i < this.drawBitmap.length; i++) {
+            if (this.drawBitmap[i] === label) {
                 console.log(this.drawBitmap[i])
                 this.hiddenBitmap[i] = label;
                 this.drawBitmap[i] = 0;
@@ -136,10 +136,10 @@ Niivue.prototype.setLabelVisibility = function(label, visible){
         }
         this.refreshDrawing(false);
     } else {
-        for(let i = 0; i<this.hiddenBitmap.length; i++){
-            if(this.hiddenBitmap[i]===label){
+        for (let i = 0; i < this.hiddenBitmap.length; i++) {
+            if (this.hiddenBitmap[i] === label) {
                 this.hiddenBitmap[i] = 0;
-                if(this.drawBitmap[i] === 0){
+                if (this.drawBitmap[i] === 0) {
                     this.drawBitmap[i] = label;
                 }
             }
@@ -147,6 +147,17 @@ Niivue.prototype.setLabelVisibility = function(label, visible){
         this.refreshDrawing(false);
     }
 }
+
+// whether the user drags, resets, or changes contrast programmatically, React will be notified
+const _refreshLayers = Niivue.prototype.refreshLayers;
+Niivue.prototype.refreshLayers = function (...args) {
+    const r = _refreshLayers.apply(this, args);
+    if (typeof this.onIntensityChange === "function") {
+        this.onIntensityChange(this.volumes?.[0]);
+    }
+    return r;
+};
+
 
 // const drawAddUndoBitmap = Niivue.prototype.drawAddUndoBitmap;
 // // This patching adds visibility filtering to drawings
@@ -160,10 +171,10 @@ const closeDrawing = Niivue.prototype.closeDrawing;
 /**
  * This patch to closeDrawing clears invisible bitmapCache when applied
  */
-Niivue.prototype.closeDrawing = function(){
-    if(this.drawBitmap !== undefined && this.drawBitmap !== null)
+Niivue.prototype.closeDrawing = function () {
+    if (this.drawBitmap !== undefined && this.drawBitmap !== null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    else if(this.hiddenBitmap !== undefined)
+    else if (this.hiddenBitmap !== undefined)
         this.hiddenBitmap = [];
     closeDrawing.call(this);
 }
@@ -172,8 +183,8 @@ Niivue.prototype.closeDrawing = function(){
  * The difference between clear drawing and close drawing is that
  * clear drawing retains itself in the undo stack.
  */
-Niivue.prototype.clearDrawing = function(){
-    if(this.drawBitmap !== undefined && this.drawBitmap !== null){
+Niivue.prototype.clearDrawing = function () {
+    if (this.drawBitmap != undefined && this.drawBitmap != null) {
         this.drawBitmap = new Uint8Array(this.drawBitmap.length);
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     }
@@ -278,8 +289,8 @@ Niivue.prototype.drawSceneCore = function () {
             let ltwh2x2 = this.scaleSlice(
                 // volScale[0] + volScale[1],
                 // volScale[1] + volScale[2],
-                vScaleMax*2,
-                vScaleMax*2,
+                vScaleMax * 2,
+                vScaleMax * 2,
                 pad * 1,
                 pad * 1
             );
@@ -370,18 +381,18 @@ Niivue.prototype.drawSceneCore = function () {
                 let sX = volScale[0] * ltwh[4];
                 let sY = volScale[1] * ltwh[4];
                 let sZ = volScale[2] * ltwh[4];
-                let sS = vScaleMax*ltwh[4];
-                let px = (sS-sX)/2;
-                let py = (sS-sY)/2;
-                let pz = (sS-sZ)/2;
+                let sS = vScaleMax * ltwh[4];
+                let px = (sS - sX) / 2;
+                let py = (sS - sY) / 2;
+                let pz = (sS - sZ) / 2;
                 //draw axial
-                this.draw2D([ltwh[0], ltwh[1] + sZ + pad+pz*2, sX, sY,sS], 0);
+                this.draw2D([ltwh[0], ltwh[1] + sZ + pad + pz * 2, sX, sY, sS], 0);
                 //draw coronal
-                this.draw2D([ltwh[0], ltwh[1], sX, sZ,sS], 1);
+                this.draw2D([ltwh[0], ltwh[1], sX, sZ, sS], 1);
                 //draw sagittal
-                this.draw2D([ltwh[0] + sX + pad+px*2+py, ltwh[1], sY, sZ,sS], 2);
+                this.draw2D([ltwh[0] + sX + pad + px * 2 + py, ltwh[1], sY, sZ, sS], 2);
                 if (isDraw3D)
-                    this.draw3D([ltwh[0] + sX + pad+2*px+py, ltwh[1] + sZ + pad+2*pz+py, sY, sY]);
+                    this.draw3D([ltwh[0] + sX + pad + 2 * px + py, ltwh[1] + sZ + pad + 2 * pz + py, sY, sY]);
             } //if isDrawGrid
         } //if multiplanar
     } //if mosaic not 2D
@@ -452,12 +463,12 @@ Niivue.prototype.drawSceneCore = function () {
     return posString;
 }; // drawSceneCore()
 
-Niivue.prototype.drawColorbarCore=function(layer = 0,
-                                           leftTopWidthHeight = [0, 0, 0, 0],
-                                           isNegativeColor = false,
-                                           min = 0,
-                                           max = 1,
-                                           isAlphaThreshold
+Niivue.prototype.drawColorbarCore = function (layer = 0,
+    leftTopWidthHeight = [0, 0, 0, 0],
+    isNegativeColor = false,
+    min = 0,
+    max = 1,
+    isAlphaThreshold
 ) {
     if (leftTopWidthHeight[2] <= 0 || leftTopWidthHeight[3] <= 0) {
         return
@@ -533,7 +544,7 @@ Niivue.prototype.drawColorbarCore=function(layer = 0,
     while (tic <= max) {
         ticLTWH[0] = barLTWH[0] + ((tic - min) / range) * barLTWH[2]
         this.drawRect(ticLTWH)
-        const str = humanize(isNeg * tic)+(this.power?`E-${this.power}`+((this.transformB&&this.transformB!==0)?`+${this.transformB}`:''):'');
+        const str = humanize(isNeg * tic) + (this.power ? `E-${this.power}` + ((this.transformB && this.transformB !== 0) ? `+${this.transformB}` : '') : '');
         // if (fntSize > 0)
         this.drawTextBelow([ticLTWH[0], txtTop], str)
         // this.drawTextRight([plotLTWH[0], y], str, fntScale)
@@ -792,17 +803,17 @@ Niivue.prototype.draw2D = function (leftTopWidthHeight, axCorSag, customMM = NaN
  * @param z
  * @param penValue
  */
-Niivue.prototype.drawPt=function (x, y, z, penValue) {
-    const penBounds = this.opts.penBounds?this.opts.penBounds:0;
+Niivue.prototype.drawPt = function (x, y, z, penValue) {
+    const penBounds = this.opts.penBounds ? this.opts.penBounds : 0;
     const dx = this.back.dims[1]
     const dy = this.back.dims[2]
     const dz = this.back.dims[3]
     //Sweep through cubic area, filter by radius
-    for(let i = x-penBounds; i<=x+penBounds; i++){
-        for(let j = y-penBounds; j<=y+penBounds; j++){
-            for(let k = z-penBounds; k<=z+penBounds; k++){
+    for (let i = x - penBounds; i <= x + penBounds; i++) {
+        for (let j = y - penBounds; j <= y + penBounds; j++) {
+            for (let k = z - penBounds; k <= z + penBounds; k++) {
                 // (penBounds+1)*(penBounds) as radius filter makes better circles in discrete case
-                if((i-x)*(i-x)+(j-y)*(j-y)+(k-z)*(k-z)<=(penBounds+1)*(penBounds)){
+                if ((i - x) * (i - x) + (j - y) * (j - y) + (k - z) * (k - z) <= (penBounds + 1) * (penBounds)) {
                     let xn = Math.min(Math.max(i, 0), dx - 1)
                     let yn = Math.min(Math.max(j, 0), dy - 1)
                     let zn = Math.min(Math.max(k, 0), dz - 1)
@@ -818,7 +829,7 @@ Niivue.prototype.drawPt=function (x, y, z, penValue) {
 // voxel and fill the interior of the line segments
 // yuelong: fill volumetric interior of the paint space,
 // if active draw pen set to invisible
-Niivue.prototype.drawPenFilled = function() {
+Niivue.prototype.drawPenFilled = function () {
     const nPts = this.drawPenFillPts.length
     if (nPts < 2) {
         // can not fill single line
@@ -838,23 +849,23 @@ Niivue.prototype.drawPenFilled = function() {
         h = 1
         v = 2
     }
-    const penBounds = this.opts.penBounds?this.opts.penBounds:0;
-    const w = penBounds*2+1; // Yuelong: paint fill with thickness
+    const penBounds = this.opts.penBounds ? this.opts.penBounds : 0;
+    const w = penBounds * 2 + 1; // Yuelong: paint fill with thickness
     const dims3D = [this.back.dims[h + 1], this.back.dims[v + 1], w] // +1: dims indexed from 0!
     // create bitmap of horizontal*vertical voxels:
     const img3D = new Uint8Array(dims3D[0] * dims3D[1] * dims3D[2])
     let pen = 1 // do not use this.opts.penValue, as "erase" is zero
-    function drawPt3D(x,y,penValue){
+    function drawPt3D(x, y, penValue) {
         const dx = dims3D[0]
         const dy = dims3D[1]
         const dz = w
-        const z = (w-1)/2;
+        const z = (w - 1) / 2;
         //Sweep through cubic area, filter by radius
-        for(let i = x-penBounds; i<=x+penBounds; i++){
-            for(let j = y-penBounds; j<=y+penBounds; j++){
-                for(let k = z-penBounds; k<=z+penBounds; k++){
+        for (let i = x - penBounds; i <= x + penBounds; i++) {
+            for (let j = y - penBounds; j <= y + penBounds; j++) {
+                for (let k = z - penBounds; k <= z + penBounds; k++) {
                     // (penBounds+1)*(penBounds) as radius filter makes better circles in discrete case
-                    if((i-x)*(i-x)+(j-y)*(j-y)+(k-z)*(k-z)<=(penBounds+1)*(penBounds)){
+                    if ((i - x) * (i - x) + (j - y) * (j - y) + (k - z) * (k - z) <= (penBounds + 1) * (penBounds)) {
                         let xn = Math.min(Math.max(i, 0), dx - 1)
                         let yn = Math.min(Math.max(j, 0), dy - 1)
                         let zn = Math.min(Math.max(k, 0), dz - 1)
@@ -869,8 +880,8 @@ Niivue.prototype.drawPenFilled = function() {
         const dy = Math.abs(ptA[1] - ptB[1])
         // img2D[ptA[0] + ptA[1] * dims2D[0]] = pen
         // img2D[ptB[0] + ptB[1] * dims2D[0]] = pen
-        drawPt3D(ptA[0],ptA[1],pen);
-        drawPt3D(ptB[0],ptB[1],pen);
+        drawPt3D(ptA[0], ptA[1], pen);
+        drawPt3D(ptB[0], ptB[1], pen);
         let xs = -1
         let ys = -1
         if (ptB[0] > ptA[0]) {
@@ -893,7 +904,7 @@ Niivue.prototype.drawPenFilled = function() {
                     p1 -= 2 * dx
                 }
                 p1 += 2 * dy
-                drawPt3D(x1,y1,pen);
+                drawPt3D(x1, y1, pen);
             }
         } else {
             // Driving axis is Y-axis"
@@ -905,7 +916,7 @@ Niivue.prototype.drawPenFilled = function() {
                     p1 -= 2 * dy
                 }
                 p1 += 2 * dx
-                drawPt3D(x1,y1,pen);
+                drawPt3D(x1, y1, pen);
             }
         }
     }
@@ -920,7 +931,7 @@ Niivue.prototype.drawPenFilled = function() {
     // flood fill
     const seeds = []
     function setSeed(pt) { // pt 2D -> 3D
-        if (pt[0] < 0 || pt[1] < 0 || pt[2] < 0 || pt[0] >= dims3D[0] || pt[1] >= dims3D[1] || pt[3]>=dims3D[2]) {
+        if (pt[0] < 0 || pt[1] < 0 || pt[2] < 0 || pt[0] >= dims3D[0] || pt[1] >= dims3D[1] || pt[3] >= dims3D[2]) {
             return
         }
         const pxl = pt[0] + pt[1] * dims3D[0] + pt[2] * dims3D[0] * dims3D[1]
@@ -949,14 +960,14 @@ Niivue.prototype.drawPenFilled = function() {
     //     setSeed([dims2D[0] - 1, i])
     // }
     // Yuelong: Instead of seeding all edges, seed eight corners of the bounding box,
-    setSeed([0,0,0]);
-    setSeed([dims3D[0]-1,0,0]);
-    setSeed([0,dims3D[1]-1,0]);
-    setSeed([dims3D[0]-1,dims3D[1]-1,0]);
-    setSeed([0,0,dims3D[2]-1]);
-    setSeed([dims3D[0]-1,0,dims3D[2]-1]);
-    setSeed([0,dims3D[1]-1,dims3D[2]-1]);
-    setSeed([dims3D[0]-1,dims3D[1]-1,dims3D[2]-1]);
+    setSeed([0, 0, 0]);
+    setSeed([dims3D[0] - 1, 0, 0]);
+    setSeed([0, dims3D[1] - 1, 0]);
+    setSeed([dims3D[0] - 1, dims3D[1] - 1, 0]);
+    setSeed([0, 0, dims3D[2] - 1]);
+    setSeed([dims3D[0] - 1, 0, dims3D[2] - 1]);
+    setSeed([0, dims3D[1] - 1, dims3D[2] - 1]);
+    setSeed([dims3D[0] - 1, dims3D[1] - 1, dims3D[2] - 1]);
     // now retire first in first out
     while (seeds.length > 0) {
         // always remove one seed, plant 0..4 new ones
@@ -1001,16 +1012,16 @@ Niivue.prototype.drawPenFilled = function() {
     //     }
     // }
     // Stride with permutation symmetry
-    let strides = [1, this.back.dims[1],this.back.dims[1] * this.back.dims[2]];
+    let strides = [1, this.back.dims[1], this.back.dims[1] * this.back.dims[2]];
     // xStride = s0 for axial and coronal, s1 for sagital
-    let xStride = (axCorSag === 2)?strides[1]:strides[0];
+    let xStride = (axCorSag == 2) ? strides[1] : strides[0];
     // yStride = s1 for axial, s2 for coronal and sagital
-    const yStride = (axCorSag === 0)?strides[1]:strides[2];
+    const yStride = (axCorSag == 0) ? strides[1] : strides[2];
     // zStride = s2 for axial, s1 for coronal, s0 for sagital
-    const zStride = strides[2-axCorSag];
+    const zStride = strides[2 - axCorSag];
     const zOffset = slice * zStride;
     let i = 0
-    for(let z = -penBounds; z<=penBounds; z++){
+    for (let z = -penBounds; z <= penBounds; z++) {
         for (let y = 0; y < dims3D[1]; y++) {
             for (let x = 0; x < dims3D[0]; x++) {
                 if (img3D[i] !== 2) {
@@ -1035,39 +1046,39 @@ Niivue.prototype.drawPenFilled = function() {
     this.drawPenFillPts = []
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
-    if(this.hiddenBitmap)
-        this.hiddenBitmap.forEach((value,index)=>{
-            if(value !== 0 && this.drawBitmap[index] === 0){
+    if (this.hiddenBitmap)
+        this.hiddenBitmap.map((value, index) => {
+            if (value !== 0 && this.drawBitmap[index] === 0) {
                 this.drawBitmap[index] = value;
             }
         })
     this.drawAddUndoBitmap()
     // Post-processing to hide hidden voxels
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    for(let i = 0; i<this.drawBitmap.length; i++){
+    for (let i = 0; i < this.drawBitmap.length; i++) {
         let pen = this.drawBitmap[i];
-        if(!this.getLabelVisibility(pen)){
+        if (!this.getLabelVisibility(pen)) {
             this.hiddenBitmap[i] = this.drawBitmap[i];
-            this.drawBitmap[i]=0;
+            this.drawBitmap[i] = 0;
         }
     }
     this.refreshDrawing(false)
 }
 
-Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
-                                    original=undefined,setOriginal=(original)=>{}){
+Niivue.prototype.fillRange = function (min, max, penValue, inverted = false,
+    original = undefined, setOriginal = (original) => { }) {
     console.log(this.volumes);
     let volume = this.volumes[0];
-    if(volume === undefined){
+    if (volume == undefined) {
         return;
     }
     if (!this.drawBitmap) {
         this.createEmptyDrawing();
     }
     // First load underlying imprinting
-    if(original === undefined){
+    if (original == undefined) {
         setOriginal([...this.drawBitmap]);
-    }else{
+    } else {
         this.drawBitmap = new Uint8Array(original);
     }
     console.log(volume.img.length);
@@ -1079,61 +1090,61 @@ Niivue.prototype.fillRange=function(min,max,penValue,inverted=false,
     const dx = this.back.dims[1]
     const dy = this.back.dims[2]
     const dz = this.back.dims[3]
-    for(let x = 0; x<dx; x++)
-        for(let y = 0; y<dy; y++)
-            for(let z = 0; z<dz; z++){
-                let i = x + y*dx + z*dx*dy;
-                let val = volume.getValue(x,y,z);
-                if((!inverted&&(min<=val&&max>=val))||
+    for (let x = 0; x < dx; x++)
+        for (let y = 0; y < dy; y++)
+            for (let z = 0; z < dz; z++) {
+                let i = x + y * dx + z * dx * dy;
+                let val = volume.getValue(x, y, z);
+                if ((!inverted && (min <= val && max >= val)) ||
                     //Note here that e-4 is not a trivial value,
                     // we can do this here because ranges beneath e-4 will be rescaled inside
                     // the checkRange function inside Niivue.jsx. It is still not entirely safe
                     // but a necessary step for inclusive range checking under float inprecisions
-                    (inverted&&(min>=val||max<val))){
+                    (inverted && (min >= val || max < val))) {
                     // console.log('filling');
-                    this.drawBitmap[i]=penValue;
+                    this.drawBitmap[i] = penValue;
                 }
             }
     // Next update drawUndoBitmaps pipeline
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
-    if(this.hiddenBitmap)
-        this.hiddenBitmap.forEach((value,index)=>{
-            if(value !== 0 &&this.drawBitmap[index] === 0){
+    if (this.hiddenBitmap)
+        this.hiddenBitmap.map((value, index) => {
+            if (value !== 0 && this.drawBitmap[index] === 0) {
                 this.drawBitmap[index] = value;
             }
         })
     // Post-processing to hide invisible voxels
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    for(let i = 0; i<this.drawBitmap.length; i++){
+    for (let i = 0; i < this.drawBitmap.length; i++) {
         let pen = this.drawBitmap[i];
-        if(!this.getLabelVisibility(pen)){
+        if (!this.getLabelVisibility(pen)) {
             this.hiddenBitmap[i] = this.drawBitmap[i];
-            this.drawBitmap[i]=0;
+            this.drawBitmap[i] = 0;
         }
     }
     this.refreshDrawing(true)
     // props.nv.drawScene()
 }
 
-Niivue.prototype.drawAddUndoBitmapWithHiddenVoxels = function(){
-// Next update drawUndoBitmaps pipeline
+Niivue.prototype.drawAddUndoBitmapWithHiddenVoxels = function () {
+    // Next update drawUndoBitmaps pipeline
     // First imprint all hiddenBitmaps into the draw bitmap,
     // visible voxels take precedence
-    if(this.hiddenBitmap)
-        this.hiddenBitmap.forEach((value,index)=>{
-            if(value !== 0 && this.drawBitmap[index] === 0){
+    if (this.hiddenBitmap)
+        this.hiddenBitmap.map((value, index) => {
+            if (value !== 0 && this.drawBitmap[index] === 0) {
                 this.drawBitmap[index] = value;
             }
         })
     this.drawAddUndoBitmap()
     // Post-processing to hide invisible voxels
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    for(let i = 0; i<this.drawBitmap.length; i++){
+    for (let i = 0; i < this.drawBitmap.length; i++) {
         let pen = this.drawBitmap[i];
-        if(!this.getLabelVisibility(pen)){
+        if (!this.getLabelVisibility(pen)) {
             this.hiddenBitmap[i] = this.drawBitmap[i];
-            this.drawBitmap[i]=0;
+            this.drawBitmap[i] = 0;
         }
     }
 }
@@ -1144,7 +1155,7 @@ Niivue.prototype.drawAddUndoBitmapWithHiddenVoxels = function(){
  * @see {@link https://niivue.github.io/niivue/features/draw.ui.html|live demo usage}
  * Yuelong: drawundo hides invisible rois in post processing
  */
-Niivue.prototype.drawUndo = function(){
+Niivue.prototype.drawUndo = function () {
     if (this.drawUndoBitmaps.length < 1) {
         console.debug('undo bitmaps not loaded')
         return
@@ -1163,11 +1174,11 @@ Niivue.prototype.drawUndo = function(){
     this.drawBitmap = decodeRLE(this.drawUndoBitmaps[this.currentDrawUndoBitmap], this.drawBitmap.length)
     // Post-processing to hide invisible region and reveal hidden ones
     this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
-    for(let i = 0; i<this.drawBitmap.length; i++){
+    for (let i = 0; i < this.drawBitmap.length; i++) {
         let pen = this.drawBitmap[i];
-        if(!this.getLabelVisibility(pen)){
+        if (!this.getLabelVisibility(pen)) {
             this.hiddenBitmap[i] = this.drawBitmap[i];
-            this.drawBitmap[i]=0;
+            this.drawBitmap[i] = 0;
         }
     }
     this.refreshDrawing(true)
@@ -1182,7 +1193,7 @@ Niivue.prototype.drawUndo = function(){
  * @example niivue.saveImage('test.nii', true);
  * @see {@link https://niivue.github.io/niivue/features/draw.ui.html|live demo usage}
  */
-Niivue.prototype.saveImageByLabels = async function(fnm, labels=[1]) {
+Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
     if (this.back.dims === undefined) {
         console.debug('No voxelwise image open')
         return false
@@ -1241,7 +1252,7 @@ Niivue.prototype.saveImageByLabels = async function(fnm, labels=[1]) {
                 for (let x = 0; x < dims[1]; x++) {
                     let bit = inVs[xlut[x] + ylut[y] + zlut[z]]
                     //Only fill matched bits
-                    outVs[j] = (labels.indexOf(bit)>=0)?bit:0
+                    outVs[j] = (labels.indexOf(bit) >= 0) ? bit : 0
                     j++
                 }
             }
@@ -1251,9 +1262,9 @@ Niivue.prototype.saveImageByLabels = async function(fnm, labels=[1]) {
     }
 }
 
-Niivue.prototype.deleteDrawingByLabel=function(labels=[0]){
-    for (let i = 0; i< this.drawBitmap.length; i++){
-        this.drawBitmap[i] = (labels.indexOf(this.drawBitmap[i])<0)?this.drawBitmap[i]:0;
+Niivue.prototype.deleteDrawingByLabel = function (labels = [0]) {
+    for (let i = 0; i < this.drawBitmap.length; i++) {
+        this.drawBitmap[i] = (labels.indexOf(this.drawBitmap[i]) < 0) ? this.drawBitmap[i] : 0;
     }
     this.refreshDrawing(false);
 }
@@ -1267,39 +1278,39 @@ Niivue.prototype.deleteDrawingByLabel=function(labels=[0]){
  */
 const bitmapOverlay = [];
 
-Niivue.prototype.groupLabelsInto=function(sourceLabels=[0],targetLabel = 7){
-    for (let i = 0; i< this.drawBitmap.length; i++){
-        if(sourceLabels.indexOf(this.drawBitmap[i])>=0){
-            bitmapOverlay.push([i,this.drawBitmap[i]]);
+Niivue.prototype.groupLabelsInto = function (sourceLabels = [0], targetLabel = 7) {
+    for (let i = 0; i < this.drawBitmap.length; i++) {
+        if (sourceLabels.indexOf(this.drawBitmap[i]) >= 0) {
+            bitmapOverlay.push([i, this.drawBitmap[i]]);
             this.drawBitmap[i] = targetLabel;
         }
     }
     this.refreshDrawing(false);
 }
 
-Niivue.prototype.ungroup = function(){
-    for(let tuple of bitmapOverlay){
+Niivue.prototype.ungroup = function () {
+    for (let tuple of bitmapOverlay) {
         this.drawBitmap[tuple[0]] = tuple[1];
     }
     bitmapOverlay.length = 0;
     this.refreshDrawing(false);
 }
 
-Niivue.prototype.resetScene = function(){
+Niivue.prototype.resetScene = function () {
     this.scene.pan2Dxyzmm = [0, 0, 0, 1]
     this.drawScene();
 }
 
-Niivue.prototype.recenter = function(){
+Niivue.prototype.recenter = function () {
     // this.scene.pan2Dxyzmm[0] = 0;
     // this.scene.pan2Dxyzmm[1] = 0;
     // this.scene.pan2Dxyzmm[2] = 0;
 
     const zoom = this.scene.pan2Dxyzmm[3];
-    this.scene.pan2Dxyzmm = [0,0,0,1];
+    this.scene.pan2Dxyzmm = [0, 0, 0, 1];
     const zoomChange = this.scene.pan2Dxyzmm[3] - zoom
     this.scene.pan2Dxyzmm[3] = zoom;
-    const mm = this.frac2mm([0.5,0.5,0.5])
+    const mm = this.frac2mm([0.5, 0.5, 0.5])
     this.scene.pan2Dxyzmm[0] += zoomChange * mm[0]
     this.scene.pan2Dxyzmm[1] += zoomChange * mm[1]
     this.scene.pan2Dxyzmm[2] += zoomChange * mm[2]
@@ -1307,7 +1318,7 @@ Niivue.prototype.recenter = function(){
 }
 
 
-Niivue.prototype.resetZoom = function(){
+Niivue.prototype.resetZoom = function () {
     // this.scene.pan2Dxyzmm[0] = 0;
     // this.scene.pan2Dxyzmm[1] = 0;
     // this.scene.pan2Dxyzmm[2] = 0;
@@ -1323,7 +1334,7 @@ Niivue.prototype.resetZoom = function(){
     this.drawScene()
 }
 
-Niivue.prototype.setCenteredZoom = function(zoom){
+Niivue.prototype.setCenteredZoom = function (zoom) {
     this.scene.pan2Dxyzmm[0] = 0;
     this.scene.pan2Dxyzmm[1] = 0;
     this.scene.pan2Dxyzmm[2] = 0;
@@ -1337,26 +1348,26 @@ Niivue.prototype.setCenteredZoom = function(zoom){
     this.drawScene()
 }
 
-Niivue.prototype.resetContrast = function(){
+Niivue.prototype.resetContrast = function () {
     this.volumes[0].cal_min = this.volumes[0].robust_min;
     this.volumes[0].cal_max = this.volumes[0].robust_max;
     this.onIntensityChange(this.volumes[0]);
     this.refreshLayers(this.volumes[0], 0);
     this.drawScene();
-    if(this.onResetContrast)
+    if (this.onResetContrast)
         this.onResetContrast();
 }
 
-Niivue.prototype.relabelROIs = function(source=0, target = 0){
-    for (let i = 0; i< this.drawBitmap.length; i++){
-        if(this.drawBitmap[i] === source){
+Niivue.prototype.relabelROIs = function (source = 0, target = 0) {
+    for (let i = 0; i < this.drawBitmap.length; i++) {
+        if (this.drawBitmap[i] === source) {
             this.drawBitmap[i] = target;
         }
     }
     this.refreshDrawing(true);
 }
 
-Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
+Niivue.prototype.loadDrawingFromBase64 = async function (fnm, base64) {
     if (this.drawBitmap) {
         console.debug('Overwriting open drawing!')
     }
@@ -1365,7 +1376,7 @@ Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
         // const volume = await NVImage.loadFromUrl()
         if (base64) {
             let imageOptions = NVImageFromUrlOptions(fnm);
-            const drawingBitmap = NVImage.loadFromBase64({name:fnm,base64})
+            const drawingBitmap = NVImage.loadFromBase64({ name: fnm, base64 })
             if (drawingBitmap) {
                 this.loadDrawing(drawingBitmap)
             }
@@ -1375,13 +1386,13 @@ Niivue.prototype.loadDrawingFromBase64 = async function(fnm,base64) {
         console.error('loadDrawingFromBlob() failed to load ' + fnm)
         this.drawClearAllUndoBitmaps()
     }
-    return base64!==undefined;
+    return base64 !== undefined;
 }
 
 // not included in public docs
 // show text labels for L/R, A/P, I/S dimensions
-Niivue.prototype.drawSliceOrientationText = function(leftTopWidthHeight, axCorSag) {
-    if(this.hideText){
+Niivue.prototype.drawSliceOrientationText = function (leftTopWidthHeight, axCorSag) {
+    if (this.hideText) {
         return;
     }
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height)
@@ -1405,7 +1416,7 @@ Niivue.prototype.drawSliceOrientationText = function(leftTopWidthHeight, axCorSa
 // not included in public docs
 // draw line (can be diagonal)
 // unless Alpha is > 0, default color is opts.crosshairColor
-Niivue.prototype.drawLine = function(startXYendXY, thickness = 1, lineColor = [1, 0, 0, -1]) {
+Niivue.prototype.drawLine = function (startXYendXY, thickness = 1, lineColor = [1, 0, 0, -1]) {
     console.log(startXYendXY);
     this.gl.bindVertexArray(this.genericVAO)
     if (!this.lineShader) {
@@ -1426,7 +1437,7 @@ Niivue.prototype.drawLine = function(startXYendXY, thickness = 1, lineColor = [1
 
 // not included in public docs
 // note: no test yet
-Niivue.prototype.calculateNewRange = function({ volIdx = 0 } = {}) {
+Niivue.prototype.calculateNewRange = function ({ volIdx = 0 } = {}) {
     if (this.opts.sliceType === SLICE_TYPE.RENDER && this.sliceMosaicString.length < 1) {
         return
     }
@@ -1513,7 +1524,7 @@ function swizzleVec3(vec, order = [0, 1, 2]) {
     return vout;
 }
 
-Niivue.prototype.drawCrossLinesMM=function(sliceIndex, axCorSag, axiMM, corMM, sagMM) {
+Niivue.prototype.drawCrossLinesMM = function (sliceIndex, axCorSag, axiMM, corMM, sagMM) {
     console.log('method called');
     if (sliceIndex < 0 || this.screenSlices.length <= sliceIndex) {
         return;
@@ -1705,4 +1716,4 @@ Niivue.prototype.drawCrossLinesMM=function(sliceIndex, axCorSag, axiMM, corMM, s
 //     );
 //     gl.bindVertexArray(this.unusedVAO);
 // }
-export {Niivue};
+export { Niivue };

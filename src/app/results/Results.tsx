@@ -83,25 +83,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
 
   const [showingLogs, setShowingLogs] = useState(false);
 
-  const [name, setName] = useState<string | undefined>(undefined);
-  const [message, setMessage] = useState<string | undefined>(undefined);
-  const [color, setColor] = useState<
-    | "inherit"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "error"
-    | "info"
-    | "warning"
-    | undefined
-  >(undefined);
-  const [open, setOpen] = useState<boolean>(false);
-  const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(
-    () => {},
-  );
-  const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(
-    () => {},
-  );
+    const [name, setName] = useState<string | undefined>(undefined);
+    const [message, setMessage] = useState<string | undefined>(undefined);
+    const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
+    const [open, setOpen] = useState<boolean>(false);
+    const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
+    const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -269,15 +256,15 @@ const Results = ({ visible }: { visible?: boolean }) => {
                       // Trigger a click event to start the download
                       a.click();
 
-                      // Remove the anchor from the body
-                      document.body.removeChild(a);
-                    });
-                  }}
-                >
-                  <GetAppIcon />
-                </IconButton>
-              </Tooltip>
-            )}
+                                        // Remove the anchor from the body
+                                        document.body.removeChild(a);
+                                    });
+
+                                }}>
+                                    <GetAppIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
 
             <Tooltip title={`Delete job ${params.row.alias}`}>
               <IconButton

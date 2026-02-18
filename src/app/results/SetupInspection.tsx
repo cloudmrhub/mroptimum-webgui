@@ -1,13 +1,14 @@
 import {
     Box,
-    Divider,
+    List, ListItem, ListItemIcon, ListItemText, Typography
 } from "@mui/material";
-import {resultGetters} from "../../features/rois/resultSlice";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import { resultGetters } from "../../features/rois/resultSlice";
 import { CmrInputNumber } from "cloudmr-ux";
-import {GridColDef, GridRowsProp} from "@mui/x-data-grid";
-import {useAppSelector} from "../../features/hooks";
+import { GridColDef, GridRowsProp } from "@mui/x-data-grid";
+import { useAppSelector } from "../../features/hooks";
 
-export const SetupInspection = ()=>{
+export const SetupInspection = () => {
     const analysisMethod = useAppSelector(resultGetters.getAnalysisMethod);
     const analysisMethodName = useAppSelector(resultGetters.getAnalysisMethodName);
     const pseudoReplicaCount = useAppSelector(resultGetters.getPseudoReplicaCount);
@@ -15,229 +16,220 @@ export const SetupInspection = ()=>{
     const reconstructionMethod = useAppSelector(resultGetters.getReconstructionMethod);
     const flipAngleCorrection = useAppSelector(resultGetters.getFlipAngleCorrection);
     const flipAngleCorrectionFile = useAppSelector(resultGetters.getFlipAngleCorrectionFile);
-    const secondaryToCoilMethodMaps = [[], ['inner'], ['inner', 'innerACL'], []];
+    const secondaryToCoilMethodMaps = [[], ["inner"], ["inner", "innerACL"], []];
     const loadSensitivity = useAppSelector(resultGetters.getLoadSensitivity);
     const sensitivityMapSource = useAppSelector(resultGetters.getSensitivityMapSource);
     const sensitivityMapMethod = useAppSelector(resultGetters.getSensitivityMapMethod);
-    const slices = useAppSelector(state => state.result.activeJob?.slices);
+    const slices = useAppSelector((state) => state.result.activeJob?.slices);
+
     const analysisMethodMapping = [
-        "Array Combining",
+        "Analytic Method",
         "Multiple Replica",
         "Pseudo Multiple Replica",
-        "Generalized Pseudo-Replica"
+        "Generalized Pseudo-Replica",
     ];
-
-    const idToSecondaryOptions = ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA'];
+    const idToSecondaryOptions = ["Root Sum of Squares", "B1 Weighted", "SENSE", "GRAPPA"];
     const coilOptionAlias: { [options: string]: string } = {
-        'inner': 'Internal Reference',
-        'innerACL': 'Internal Reference with AutoCalibration Lines'
+        inner: "Internal Reference",
+        innerACL: "Internal Reference with AutoCalibration Lines",
     };
+
+    // (kept from your file; not used in this visual-only layout change)
     const kernelSize1 = useAppSelector(resultGetters.getKernelSize1);
     const kernelSize2 = useAppSelector(resultGetters.getKernelSize2);
     const decimateAcceleration1 = useAppSelector(resultGetters.getDecimateAcceleration1);
     const decimateAcceleration2 = useAppSelector(resultGetters.getDecimateAcceleration2);
     const decimateACL = useAppSelector(resultGetters.getDecimateACL);
     const kernelSizeRows: GridRowsProp = [
-        {
-            id: 1,
-            type: 'Kernel Size 1',
-        },
-        {
-            id: 2,
-            type: 'Kernel Size 2',
-        }];
+        { id: 1, type: "Kernel Size 1" },
+        { id: 2, type: "Kernel Size 2" },
+    ];
     const kernelSizeColumns: GridColDef[] = [
-        {field: 'type', headerName: 'type', width: 180, editable: false},
+        { field: "type", headerName: "type", width: 180, editable: false },
         {
-            field: 'value',
-            headerName: 'value',
-            type: 'number',
+            field: "value",
+            headerName: "value",
+            type: "number",
             editable: false,
-            align: 'left',
-            headerAlign: 'left',
+            align: "left",
+            headerAlign: "left",
             width: 180,
-            renderCell: (params)=>{
-                console.log(params);
-                switch(params.id){
+            renderCell: (params) => {
+                switch (params.id) {
                     case 1:
-                        return <CmrInputNumber value={kernelSize1}
-                                               min={1}
-                                               style={{width:'100%'}}></CmrInputNumber>;
+                        return <CmrInputNumber value={kernelSize1} min={1} style={{ width: "100%" }} />;
                     case 2:
-                        return <CmrInputNumber value={kernelSize2}
-                                               min={1}
-                                               style={{width:'100%'}}></CmrInputNumber>;
+                        return <CmrInputNumber value={kernelSize2} min={1} style={{ width: "100%" }} />;
                 }
-            }
-        }];
+            },
+        },
+    ];
     const decimateMapping = [false, false, true, true];
     const decimateData = useAppSelector(resultGetters.getDecimate);
     const rows: GridRowsProp = [
-        {
-            id: 1,
-            type: 'Acceleration Factor 1',
-        },
-        {
-            id: 2,
-            type: 'Acceleration Factor 2',
-        },
-        {
-            id: 3,
-            type: 'Autocalibration Lines',
-        }];
+        { id: 1, type: "Acceleration Factor 1" },
+        { id: 2, type: "Acceleration Factor 2" },
+        { id: 3, type: "Autocalibration Lines" },
+    ];
     const columns: GridColDef[] = [
-        {field: 'type', headerName: 'type', width: 180, editable: false},
+        { field: "type", headerName: "type", width: 180, editable: false },
         {
-            field: 'value',
-            headerName: 'value',
-            type: 'number',
+            field: "value",
+            headerName: "value",
+            type: "number",
             editable: false,
-            align: 'left',
-            headerAlign: 'left',
+            align: "left",
+            headerAlign: "left",
             width: 180,
-            renderCell: (params)=>{
-                console.log(params);
-                switch(params.id){
+            renderCell: (params) => {
+                switch (params.id) {
                     case 1:
-                        return <CmrInputNumber value={decimateAcceleration1}
-                                               min={0}
-                                               style={{width:'100%'}}></CmrInputNumber>;
+                        return <CmrInputNumber value={decimateAcceleration1} min={0} style={{ width: "100%" }} />;
                     case 2:
-                        return <CmrInputNumber value={decimateAcceleration2}
-                                               min={0}
-                                               style={{width:'100%'}}></CmrInputNumber>;
+                        return <CmrInputNumber value={decimateAcceleration2} min={0} style={{ width: "100%" }} />;
                     case 3:
-                        return <CmrInputNumber value={decimateACL==null?Number.NaN:decimateACL}
-                                               style={{width:'100%'}}
-                                               min={0}
-                                               disabled={decimateACL==null}></CmrInputNumber>;
+                        return (
+                            <CmrInputNumber
+                                value={decimateACL == null ? Number.NaN : decimateACL}
+                                style={{ width: "100%" }}
+                                min={0}
+                                disabled={decimateACL == null}
+                            />
+                        );
                 }
-            }
-        }]
-    return <Box>
-        <Box className={'setting-box'}>
-            <span>
-                {'Number of Slices: '}
-            </span>
-            <SettingsText>
-                {slices}
-            </SettingsText>
+            },
+        },
+    ];
+
+    const label = (text: string) => (
+        <strong style={{ color: "#580F8B" }}>{text}</strong>
+    );
+
+    const Item = ({ children }: { children: React.ReactNode }) => (
+        <ListItem sx={{ py: 0.25, px: 0, }}>
+            <ListItemIcon sx={{ minWidth: 28 }}>
+                <ArrowRightIcon sx={{ color: "#580F8B" }} />
+            </ListItemIcon>
+            <ListItemText
+                primary={<Typography sx={{ fontSize: 16 }}>{children}</Typography>}
+            />
+        </ListItem>
+    );
+
+    return (
+        <Box>
+            <List sx={{ py: 0 }}>
+                {/* Number of Slices */}
+                <Item>
+                    {label("Number of Slices:")} {slices}
+                </Item>
+
+                {/* SNR Analysis Method */}
+                <Item>
+                    {label("SNR Analysis Method:")} {analysisMethodMapping[Number(analysisMethod)]}
+                </Item>
+
+                {/* Pseudo Replica Count (only for analysisMethod 2 or 3) */}
+                {(analysisMethod == 2 || analysisMethod == 3) && (
+                    <Item>
+                        {label("Number of Pseudo Replica:")} {pseudoReplicaCount}
+                    </Item>
+                )}
+
+                {/* Cubic VOI Size (only for analysisMethod 3) */}
+                {analysisMethod == 3 && (
+                    <Item>
+                        {label("Cubic VOI Size (Length of Side in Pixels):")} {boxSize}
+                    </Item>
+                )}
+
+                {/* Image Reconstruction Method */}
+                <Item>
+                    {label("Image Reconstruction Method:")}{" "}
+                    {idToSecondaryOptions[Number(reconstructionMethod)]}
+                </Item>
+
+                {/* Everything depending on reconstructionMethod */}
+                {reconstructionMethod != undefined && (
+                    <>
+                        {/* Flip Angle Correction status */}
+                        <Item>
+                            {label("Flip Angle Correction:")} {flipAngleCorrection ? "True" : "False"}
+                        </Item>
+
+                        {/* Flip Angle Correction file (only when used) */}
+                        {flipAngleCorrection && (
+                            <Item>
+                                {label("Flip Angle Correction File:")}{" "}
+                                {flipAngleCorrectionFile?.options.filename}
+                            </Item>
+                        )}
+
+                        {/* Coil sensitivities (only for specific recon methods) */}
+                        {secondaryToCoilMethodMaps[reconstructionMethod] &&
+                            secondaryToCoilMethodMaps[reconstructionMethod].length != 0 && (
+                                <>
+                                    <Item>
+                                        {label("Coil Sensitivities:")} {loadSensitivity ? "Loaded" : "Calculated"}
+                                    </Item>
+
+                                    {loadSensitivity ? (
+                                        <Item>
+                                            {label("Coil Sensitivity File:")} {sensitivityMapSource?.options.filename}
+                                        </Item>
+                                    ) : (
+                                        <Item>
+                                            {label("Coil Sensitivities Calculation Method:")}{" "}
+                                            {sensitivityMapMethod ? coilOptionAlias[sensitivityMapMethod] : "Undefined"}
+                                        </Item>
+                                    )}
+                                </>
+                            )}
+
+                        {/* GRAPPA kernel sizes */}
+                        {reconstructionMethod == 3 && (
+                            <>
+                                <Item>
+                                    {label("Kernel Size 1:")} {kernelSize1}
+                                </Item>
+                                <Item>
+                                    {label("Kernel Size 2:")} {kernelSize2}
+                                </Item>
+                            </>
+                        )}
+
+                        {/* Decimation flags */}
+                        {decimateMapping[reconstructionMethod] && (
+                            <Item>
+                                {label("Decimate Data:")} {decimateData ? "True" : "False"}
+                            </Item>
+                        )}
+
+                        {/* Decimation details */}
+                        {decimateMapping[reconstructionMethod] && decimateData && (
+                            <>
+                                <Item>
+                                    {label("Acceleration Factor 1:")} {decimateAcceleration1}
+                                </Item>
+                                <Item>
+                                    {label("Acceleration Factor 2:")} {decimateAcceleration2}
+                                </Item>
+                                <Item>
+                                    {decimateACL == null ? (
+                                        <>
+                                            {label("Autocalibration Lines:")} Using All
+                                        </>
+                                    ) : (
+                                        <>
+                                            {label("Autocalibration Lines:")} {decimateACL}
+                                        </>
+                                    )}
+                                </Item>
+                            </>
+                        )}
+                    </>
+                )}
+            </List>
         </Box>
-        <Divider variant="middle" sx={{marginTop: '5pt', marginBottom: '5pt', color: 'gray'}}/>
-        <Box className={'setting-box'}>
-            <span>{`SNR Analysis Method: `}</span>
-            <SettingsText>
-                {analysisMethodMapping[Number(analysisMethod)]}
-            </SettingsText>
-        </Box>
-        <Divider variant="middle" sx={{marginTop: '5pt', marginBottom: '5pt', color: 'darkgray'}}/>
-        {(analysisMethod !== undefined) &&
-            <>
-                    {(analysisMethod === 2 || analysisMethod === 3) &&
-                        <SettingsBox>
-                            <span>{'Number of Pseudo Replica: '}</span>
-                            <SettingsText>{pseudoReplicaCount}</SettingsText>
-                        </SettingsBox>}
-                    {(analysisMethod === 3) &&
-                        <SettingsBox>
-                            <span>{'Cubic VOI Size (Length of Side in Pixels): '}</span>
-                            <SettingsText>{boxSize}</SettingsText>
-                        </SettingsBox>}
-                <SettingsBox>
-                    <span>{'Image Reconstruction Method: '}</span>
-                    <SettingsText>{idToSecondaryOptions[Number(reconstructionMethod)]}</SettingsText>
-                </SettingsBox>
-                    {(reconstructionMethod !== undefined) &&
-                        <Box>
-                           <SettingsBox>
-                               <SettingsText>
-                                   {(flipAngleCorrection)?'Using ':'Not Using '}
-                               </SettingsText>
-                               <span>
-                                   {(flipAngleCorrection)?'Flip Angle Correction,':'Flip Angle Correction'}
-                               </span>
-                               {(flipAngleCorrection) &&
-                                   <>
-                                       Flip Angle Correction File:
-                                       <SettingsText>
-                                           {flipAngleCorrectionFile?.options.filename}
-                                       </SettingsText>
-                                   </>
-                               }
-                           </SettingsBox>
-
-                            {(secondaryToCoilMethodMaps[reconstructionMethod] && secondaryToCoilMethodMaps[reconstructionMethod].length  !== 0) &&
-                                <SettingsBox
-                                >
-                                    <p>
-                                        Using
-                                    <SettingsText>
-                                        {loadSensitivity?' Loaded ':' Calculated '}
-                                    </SettingsText>
-                                        {'Coil Sensitivities; '}
-                                    </p>
-
-                                    {(loadSensitivity) ?
-                                        <span>
-                                                    Coil Sensitvitiy File <SettingsText>{sensitivityMapSource?.options.filename}</SettingsText>
-                                                </span> : <span>
-                                                    
-                                                
-                                                    Coil Sensitivities Calculation Method: <SettingsText>
-                                                    {sensitivityMapMethod?coilOptionAlias[sensitivityMapMethod]:'undefined'}
-                                                    
-                                                </SettingsText>
-                                                </span>}
-                                    {/*<InputLabel id="css-label">Age</InputLabel>*/}
-                                </SettingsBox>}
-                            {(reconstructionMethod === 3) &&
-                                <SettingsBox>
-                                    <p style={{marginBottom:'10pt'}}>
-                                        Kernel Size 1: <SettingsText>{kernelSize1}</SettingsText>
-                                    </p>
-                                    <p>
-                                        Kernel Size 2: <SettingsText>{kernelSize2}</SettingsText>
-                                    </p>
-                                </SettingsBox>
-                            }
-                            {(decimateMapping[reconstructionMethod]) &&
-                                <SettingsBox>
-                                    Decimate Data:
-                                    <SettingsText>
-                                        {decimateData?' true.':' false.'}
-                                    </SettingsText>
-                                </SettingsBox>}
-                            {(decimateMapping[reconstructionMethod] && decimateData) &&
-                                <SettingsBox>
-                                    <p style={{marginBottom:'10pt'}}>
-                                        Acceleration Factor 1: <SettingsText>{decimateAcceleration1}</SettingsText>
-                                        </p>
-                                        <p >
-                                        Acceleration Factor 2: <SettingsText>{decimateAcceleration2}</SettingsText>
-                                    </p>
-                                    <p>
-                                        Used {decimateACL === null?
-                                        <SettingsText>
-                                            {' All '}
-                                        </SettingsText>
-                                        :<SettingsText>
-                                            {decimateACL}
-                                        </SettingsText>} Autocalibration Lines
-                                    </p>
-                                </SettingsBox>
-                            }
-                        </Box>}
-                </>}
-    </Box>
-}
-
-const SettingsText = (props:any)=>{
-    return <span  {...props}/>
-}
-
-const SettingsBox = (props:any)=>{
-    return <>
-        <Box className={'setting-box'} {...props}/>
-        <Divider variant="middle" sx={{marginTop: '10pt', marginBottom: '10pt', color: 'gray'}}/>
-    </>
-}
+    );
+};

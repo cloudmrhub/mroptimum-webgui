@@ -15,6 +15,47 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
 
     const [jobName, setJobName] = useState("");
 
+    // Disallow spaces, comma, colon, percent, greater-than, less-than for Job Name
+    const INVALID_JOB_ALIAS_REGEX = /[ ,:%><]/;
+
+    const [aliasError, setAliasError] = useState(false);
+    const [aliasErrorText, setAliasErrorText] = useState("");
+
+    // live validation while typing
+    const handleAliasChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setAliasError(false);
+        setAliasErrorText("");
+
+        const v = event.target.value;
+        if (INVALID_JOB_ALIAS_REGEX.test(v)) {
+            setAliasError(true);
+            setAliasErrorText("Job name contains invalid characters ( , : % > < )");
+        }
+
+        setJobName(v);     // keep local state in sync
+        setAlias(event);   // keep parent state in sync (your prop expects the event)
+    };
+
+    // queue-time validation
+    const handleQueueClick = async () => {
+        const candidate = (jobName || alias).trim();
+
+        if (!candidate) {
+            setAliasError(true);
+            setAliasErrorText("Job name is required.");
+            return;
+        }
+
+        if (INVALID_JOB_ALIAS_REGEX.test(candidate)) {
+            setAliasError(true);
+            setAliasErrorText("Job name contains invalid characters ( , : % > < )");
+            return;
+        }
+
+        await queue(candidate);
+        handleClose();
+    };
+
     return <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
         <DialogContent sx={{ m: 2, mt: 0, mb: 1, p: 1 }} dividers>
@@ -38,7 +79,7 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
                     disableUnderline: true, // <== added this
                 }}
             />}
-            <TextField
+            {/* <TextField
                 fullWidth
                 required
                 label="Set Job Name:"
@@ -49,6 +90,17 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
                     setJobName(e.target.value);  // keep local state in sync
                     setAlias(e);                 // keep parent state in sync
                 }}
+            /> */}
+            <TextField
+                fullWidth
+                required
+                label="Set Job Name:"
+                placeholder={alias}
+                value={jobName}
+                variant="standard"
+                onChange={handleAliasChange}
+                error={aliasError}
+                helperText={aliasError ? aliasErrorText : ""}
             />
         </DialogContent>
 

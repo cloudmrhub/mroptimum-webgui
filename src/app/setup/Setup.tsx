@@ -732,33 +732,33 @@ const Setup = () => {
     }
   }, [signalFileUpdated, noiseFileUpdated]);
 
-  return (
-    <Fragment>
-      <CmrButton
-        variant="outlined"
-        color="warning"
-        onClick={() => {
-          // Reset signal and noise
-          dispatch(setSignal(undefined));
-          dispatch(setNoise(undefined));
-          // Reset FA file upload
-          dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
-          dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
-          dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
-          // Reset file updated flags
-          setSignalFileUpdated(false);
-          setNoiseFileUpdated(false);
-          // Reset uploaded data
-          // setUploadedData(null);
-          setOpenPanel([0]);
-          dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
-          dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
-          setMissingFields([]);
-        }}
-        sx={{ width: "100%", marginBottom: "10px" }}
-      >
-        Reset Signal & Noise Files
-      </CmrButton>
+    return (
+        <Fragment>
+            <CmrButton
+                variant="outlined"
+                color="warning"
+                onClick={() => {
+                    // Reset signal and noise
+                    dispatch(setSignal(undefined));
+                    dispatch(setNoise(undefined));
+                    // Reset FA file upload
+                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined)); // reset FA file
+                    dispatch(setupSetters.setFlipAngleCorrection(false)); // reset FA checkbox
+                    dispatch(setupSetters.setMaskStore(undefined)); // Reset mask file
+                    // Reset file updated flags
+                    setSignalFileUpdated(false);
+                    setNoiseFileUpdated(false);
+                    // Reset uploaded data
+                    // setUploadedData(null);
+                    setOpenPanel([0]);
+                    dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
+                    dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
+                    setMissingFields([]);
+                }}
+                sx={{ width: '100%', marginBottom: '10px' }}
+            >
+                Reset Signal & Noise Files
+            </CmrButton>
 
       {/* Computing units selectors (Setup) */}
 
@@ -1165,264 +1165,133 @@ const Setup = () => {
             </RadioGroup>
           </FormControl>
 
-          {analysisMethod !== undefined && snrDescription !== "" && (
-            <CmrPanel
-              className="mb-3"
-              header={undefined}
-              cardProps={{ className: "mb-2 ms-2 me-2 mt-2" }}
-              expanded={true}
-            >
-              {analysisMethod === 0 && (
-                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
-              )}
-              {analysisMethod === 1 && (
-                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
-              )}
-              {analysisMethod === 2 && (
-                <div
-                  dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }}
-                />
-              )}
-              {analysisMethod === 3 && (
-                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
-              )}
-            </CmrPanel>
-          )}
+                    {analysisMethod != undefined && snrDescription != '' &&
+                        <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
+                            expanded={true}>
+                            {analysisMethod === 0 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
+                            )}
+                            {analysisMethod === 1 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
+                            )}
+                            {analysisMethod === 2 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
+                            )}
+                            {analysisMethod === 3 && (
+                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
+                            )}
+                        </CmrPanel>}
 
-          {analysisMethod !== undefined && (
-            <CmrCollapse
-              accordion={false}
-              defaultActiveKey={[0]}
-              expandIconPosition="right"
-            >
-              <CmrPanel
-                header={"Image Reconstruction Method"}
-                cardProps={{ className: "ms-3 me-3 mt-4 mb-3" }}
-                className={""}
-              >
-                {(analysisMethod === 2 || analysisMethod === 3) && (
-                  <Fragment>
-                    <Row
-                      id="reconstruction-method-section"
-                      className="mb-3"
-                      style={{
-                        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                      }}
-                    >
-                      {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                      {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                      {/*</FormControl>*/}
-                      <CmrLabel
-                        style={{
-                          height: "100%",
-                          marginTop: "auto",
-                          marginBottom: "auto",
-                          color: "#580F8B",
-                        }}
-                      >
-                        Number of Pseudo Replica:
-                      </CmrLabel>
-                      <CmrInputNumber
-                        value={pseudoReplicaCount ?? 10}
-                        min={2}
-                        max={analysisMethod === 2 ? 128 : 10}
-                        onChange={(val) => {
-                          dispatch(
-                            setupSetters.setPseudoReplicaCount(
-                              val === null ? 0 : val,
-                            ),
-                          );
-                        }}
-                      ></CmrInputNumber>
-                    </Row>
-                    <Divider
-                      variant="middle"
-                      sx={{
-                        marginTop: "10pt",
-                        marginBottom: "10pt",
-                        color: "gray",
-                      }}
-                    />
-                  </Fragment>
-                )}
-                {analysisMethod === 3 && (
-                  <Fragment>
-                    <Row
-                      className="mb-3"
-                      style={{
-                        fontFamily: "Roboto, Helvetica, Arial, sans-serif",
-                      }}
-                    >
-                      {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
-                      {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
-                      {/*</FormControl>*/}
-                      <CmrLabel
-                        style={{
-                          height: "100%",
-                          marginTop: "auto",
-                          marginBottom: "auto",
-                          color: "#580F8B",
-                        }}
-                      >
-                        Cubic VOI Size (Length of Side in Pixels):
-                      </CmrLabel>
-                      <CmrInputNumber
-                        value={boxSize}
-                        min={2}
-                        max={20}
-                        onChange={(val) => {
-                          dispatch(
-                            setupSetters.setBoxSize(val === null ? 0 : val),
-                          );
-                        }}
-                      ></CmrInputNumber>
-                    </Row>
-                    <Divider
-                      variant="middle"
-                      sx={{
-                        marginTop: "10pt",
-                        marginBottom: "10pt",
-                        color: "gray",
-                      }}
-                    />
-                  </Fragment>
-                )}
-                <FormControl
-                  style={{ width: "100%" }}
-                  className={"mb-3"}
-                  onChange={(event) => {
-                    const target = event.target as HTMLInputElement;
-                    if (parseInt(target.value) !== reconstructionMethod)
-                      setReconstructionMethodChanged(true);
-                    dispatch(
-                      setupSetters.setReconstructionMethod(
-                        parseInt(target.value),
-                      ),
-                    );
-                  }}
-                >
-                  {/* <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel> */}
-                  <RadioGroup
-                    row
-                    aria-labelledby="demo-row-radio-buttons-group-label"
-                    name="row-radio-buttons-group"
-                    value={
-                      reconstructionMethod !== undefined
-                        ? reconstructionMethod
-                        : ""
-                    }
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    {(analysisMethod === 1 && noise
-                      ? [
-                        "Root Sum of Squares",
-                        "B1 Weighted",
-                        "SENSE",
-                        "GRAPPA",
-                        "ESPIRIT",
-                      ]
-                      : analysisMethod === 1 && noise === null
-                        ? ["Root Sum of Squares", "ESPIRIT"]
-                        : [
-                          "Root Sum of Squares",
-                          "B1 Weighted",
-                          "SENSE",
-                          "GRAPPA",
-                          "ESPIRIT",
-                        ]
-                    ).map((option, index) => {
-                      return analysisMethod !== undefined &&
-                        topToSecondaryMaps[analysisMethod].indexOf(index) >=
-                        0 ? (
-                        <FormControlLabel
-                          value={index}
-                          disabled={option === "ESPIRIT"}
-                          control={<Radio />}
-                          label={option}
-                        />
-                      ) : undefined;
-                    })}
-                  </RadioGroup>
-                </FormControl>
-                {reconstructionMethod !== undefined && (
-                  <CmrPanel
-                    header={""}
-                    expanded={true}
-                    className={" border-0"}
-                    cardProps={{ className: "ms-0 me-0 mt-4 mb-0" }}
-                  >
-                    <CmrCheckbox
-                      checked={!flipAngleCorrection}
-                      defaultChecked={!flipAngleCorrection}
-                      onChange={(event) => {
-                        const newValue = !event.target.checked;
-                        dispatch(setupSetters.setFlipAngleCorrection(newValue));
-                        if (!newValue) {
-                          dispatch(
-                            setupSetters.setFlipAngleCorrectionFile(undefined),
-                          );
-                          // FA correction disabled: clear FA file and remove FA from missing
-                          setMissingFields((prev) =>
-                            prev.filter((f) => f !== "FA"),
-                          );
-                        }
-                      }}
-                    >
-                      No Flip Angle Correction
-                    </CmrCheckbox>
-                    {flipAngleCorrection && (
-                      <>
-                        <CMRSelectUpload
-                          fileExtension={[
-                            ".nii",
-                            ".nii.gz",
-                            ".mha",
-                            ".mhd",
-                            ".mrd",
-                            ".png",
-                            ".jpg",
-                            ".jpeg",
-                            ".npx",
-                            ".npy",
-                          ]}
-                          fileSelection={uploadedData}
-                          onSelected={(file) => {
-                            dispatch(
-                              setupSetters.setFlipAngleCorrectionFile(file),
-                            );
-                            if (file) {
-                              setMissingFields((prev) =>
-                                prev.filter((f) => f !== "FA"),
-                              );
-                            }
-                          }}
-                          maxCount={1}
-                          uploadHandler={uploadHandlerFactory(
-                            uploadToken,
-                            dispatch,
-                            uploadData,
-                            "faCorrection",
-                          )}
-                          onUploaded={(res, file) => {
-                            uploadResHandlerFactory(
-                              setupSetters.setFlipAngleCorrectionFile,
-                            )(res, file);
-                            if (file) {
-                              setMissingFields((prev) =>
-                                prev.filter((f) => f !== "FA"),
-                              );
-                            }
-                          }}
-                          style={{
-                            height: "fit-content",
-                            marginTop: "auto",
-                            marginBottom: "auto",
-                            marginRight: "0",
-                          }}
-                          selectStyles={selectStyles}
-                          buttonText="Choose FA Map"
-                          chosenFile={faMap?.options.filename}
-                        />
+                    {(analysisMethod != undefined) &&
+                        <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
+                            <CmrPanel header={'Image Reconstruction Method'} cardProps={{ className: 'ms-3 me-3 mt-4 mb-3' }}
+                                className={''}>
+                                {(analysisMethod == 2 || analysisMethod == 3) &&
+                                    <Fragment>
+                                        <Row id="reconstruction-method-section" className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
+                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                                            {/*</FormControl>*/}
+                                            <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Number of Pseudo Replica:</CmrLabel>
+                                            <CmrInputNumber value={pseudoReplicaCount ?? 10}
+                                                min={2}
+                                                max={analysisMethod == 2 ? 128 : 10}
+                                                onChange={(val) => {
+                                                    dispatch(setupSetters.setPseudoReplicaCount((val == null) ? 0 : val))
+                                                }}></CmrInputNumber>
+                                        </Row>
+                                        <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
+                                    </Fragment>}
+                                {(analysisMethod == 3) &&
+                                    <Fragment>
+                                        <Row className='mb-3' style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif' }}>
+                                            {/*<FormControl style={{width: '100%'}} className={'mb-3'}>*/}
+                                            {/*<FormLabel id={'replica-count-label'}>Image Reconstruction Methods</FormLabel>*/}
+                                            {/*</FormControl>*/}
+                                            <CmrLabel style={{ height: '100%', marginTop: 'auto', marginBottom: 'auto', color: '#580F8B' }}>Cubic VOI Size (Length of Side in Pixels):</CmrLabel>
+                                            <CmrInputNumber value={boxSize}
+                                                min={2}
+                                                max={20}
+                                                onChange={(val) => {
+                                                    dispatch(setupSetters.setBoxSize((val == null) ? 0 : val))
+                                                }}></CmrInputNumber>
+                                        </Row>
+                                        <Divider variant="middle" sx={{ marginTop: '10pt', marginBottom: '10pt', color: 'gray' }} />
+                                    </Fragment>}
+                                <FormControl style={{ width: '100%' }} className={'mb-3'}
+                                    onChange={(event) => {
+                                        //@ts-ignore
+                                        if (event.target.value != reconstructionMethod)
+                                            setReconstructionMethodChanged(true);
+                                        //@ts-ignore
+                                        dispatch(setupSetters.setReconstructionMethod(event.target.value));
+                                    }}>
+                                    {/* <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel> */}
+                                    <RadioGroup
+                                        row
+                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                        name="row-radio-buttons-group"
+                                        value={(reconstructionMethod != undefined) ? reconstructionMethod : ''}
+                                        style={{ display: 'flex', justifyContent: 'space-between' }}
+                                    >
+                                        {(analysisMethod == 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod == 1 && noise == null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+
+                                            return (analysisMethod != undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
+                                                <FormControlLabel value={index}
+                                                    disabled={option == 'ESPIRIT'} control={<Radio />}
+                                                    label={option} />
+                                                : undefined;
+                                        })}
+                                    </RadioGroup>
+                                </FormControl>
+                                {(reconstructionMethod != undefined) &&
+                                    <CmrPanel header={''}
+                                        expanded={true}
+                                        className={' border-0'} cardProps={{ className: 'ms-0 me-0 mt-4 mb-0' }}>
+
+                                        <CmrCheckbox checked={!flipAngleCorrection}
+                                            defaultChecked={!flipAngleCorrection}
+                                            onChange={(event) => {
+                                                const newValue = !event.target.checked;
+                                                dispatch(setupSetters.setFlipAngleCorrection(newValue));
+                                                if (!newValue) {
+                                                    dispatch(setupSetters.setFlipAngleCorrectionFile(undefined));
+                                                    // FA correction disabled: clear FA file and remove FA from missing
+                                                    setMissingFields(prev => prev.filter(f => f !== "FA"));
+                                                }
+                                            }}
+                                        >
+                                            No Flip Angle Correction
+                                        </CmrCheckbox>
+                                        {flipAngleCorrection && (
+                                            <>
+                                                <CMRSelectUpload
+                                                    fileExtension={['.nii', '.nii.gz', '.mha', '.mhd', '.mrd', '.png', '.jpg', '.jpeg', '.npx', '.npy']}
+                                                    fileSelection={uploadedData}
+                                                    onSelected={(file) => {
+                                                        dispatch(setupSetters.setFlipAngleCorrectionFile(file));
+                                                        if (file) {
+                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
+                                                        }
+                                                    }}
+                                                    maxCount={1}
+                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
+                                                    onUploaded={(res, file) => {
+                                                        uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
+                                                        if (file) {
+                                                            setMissingFields(prev => prev.filter(f => f !== "FA"));
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        height: 'fit-content',
+                                                        marginTop: 'auto',
+                                                        marginBottom: 'auto',
+                                                        marginRight: '0',
+                                                    }}
+                                                    selectStyles={selectStyles}
+                                                    buttonText="Choose FA Map"
+                                                    chosenFile={faMap?.options.filename}
+                                                />
 
                         {faMap && (
                           <Tooltip title="Clear Uploaded File">

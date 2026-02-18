@@ -20,7 +20,6 @@ The **WebGUI** is designed for researchers and clinicians to:
 
 ---
 
-
 ## Features
 
 ### Settings Tab

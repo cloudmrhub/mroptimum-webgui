@@ -272,6 +272,20 @@ function createJob(
   };
 }
 
+function ensureCorrectionNode(state: SetupState) {
+    // Ensure nested containers exist before first write
+    const activeSetup: any = state.activeSetup ?? (state.activeSetup = { options: {} } as any);
+
+    if (!activeSetup.options) activeSetup.options = {};
+    if (!activeSetup.options.reconstructor) activeSetup.options.reconstructor = { options: {} };
+    if (!activeSetup.options.reconstructor.options) activeSetup.options.reconstructor.options = {};
+    if (!activeSetup.options.reconstructor.options.correction) {
+        activeSetup.options.reconstructor.options.correction = {};
+    }
+
+    return activeSetup.options.reconstructor.options.correction as any;
+}
+
 export const setupSlice = createSlice({
   name: "setup",
   initialState,
@@ -283,6 +297,203 @@ export const setupSlice = createSlice({
         if (state.activeSetup.name === "pmr") state.activeSetup.options.NR = 20;
       if (state.activeSetup.name === "cr") state.activeSetup.options.NR = 6;
 
+            // delete state.activeSetup.options.NR;
+            if (state.activeSetup.name == 'cr')
+                state.activeSetup.options.boxSize = 9;
+            else
+                // delete state.activeSetup.options.boxSize;
+                state.editInProgress = true;
+        },
+        setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
+            console.log(action.payload);
+            state.activeSetup.options['NR'] = action.payload;
+            state.editInProgress = true;
+        },
+        setSignal(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
+                state.activeSetup.options.reconstructor.options.signal = undefined;
+                state.editInProgress = true;
+                return;
+            }
+            let fr = UFtoFR(action.payload);
+            state.activeSetup.options.reconstructor.options.signal = fr;
+            fr.options.multiraid = state.activeSetup.options.reconstructor.options.signalMultiRaid;
+            state.editInProgress = true;
+        },
+        setNoise(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
+                state.activeSetup.options.reconstructor.options.noise = undefined;
+                state.editInProgress = true;
+                return;
+            }
+            state.activeSetup.options.reconstructor.options.noise = UFtoFR(action.payload);
+            // console.log(state.activeSetup.options.reconstructor.options.noise);
+            state.activeSetup.options.reconstructor.options.signalMultiRaid = false;
+            if (state.activeSetup.options.reconstructor.options.signal) {
+                state.activeSetup.options.reconstructor.options.signal.options.multiraid = false;
+            }
+            state.editInProgress = true;
+        },
+        setMultiRaid(state: SetupState, action: PayloadAction<boolean>) {
+            state.activeSetup.options.reconstructor.options.signalMultiRaid = action.payload;
+            if (state.activeSetup.options.reconstructor.options.signal) {
+                state.activeSetup.options.reconstructor.options.signal.options.multiraid = action.payload;
+            }
+            if (action.payload) {
+                state.activeSetup.options.reconstructor.options.noise = undefined;
+            }
+            state.editInProgress = true;
+        },
+        setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
+            state.activeSetup.options.reconstructor.id = Number(action.payload);
+            state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
+            if (action.payload == 3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined) {
+                state.activeSetup.options.reconstructor.options.kernelSize = [3, 4];
+            }
+            state.outputSettings.coilsensitivity = action.payload == 2 || action.payload == 1;
+            state.outputSettings.gfactor = action.payload == 2;
+            if (action.payload == 2 || action.payload == 3) {
+                state.activeSetup.options.reconstructor.options.decimate = false;
+            } else
+                delete state.activeSetup.options.reconstructor.options.decimate;
+            state.editInProgress = true;
+        },
+        setOutputMatlab(state: SetupState, action: PayloadAction<boolean>) {
+            state.outputSettings.matlab = action.payload;
+        },
+        setOutputCoilSensitivity(state: SetupState, action: PayloadAction<boolean>) {
+            state.outputSettings.coilsensitivity = action.payload;
+        },
+        setOutputGFactor(state: SetupState, action: PayloadAction<boolean>) {
+            state.outputSettings.gfactor = action.payload;
+        },
+        setGFactor(state: SetupState, action: PayloadAction<boolean>) {
+            state.activeSetup.options.reconstructor.options.gfactor = action.payload;
+        },
+        // setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
+        //     state.activeSetup.options.reconstructor.options.correction.useCorrection = action.payload;
+        //     state.editInProgress = true;
+        // },
+        setFlipAngleCorrection(state: SetupState, action: PayloadAction<boolean>) {
+            const correction: any = ensureCorrectionNode(state);
+            correction.useCorrection = action.payload;
+
+            // clear any lingering file
+            if (!action.payload) {
+                correction.faCorrection = undefined;
+            }
+            state.editInProgress = true;
+        },
+        setFlipAngleCorrectionFile(
+            state: SetupState,
+            action: PayloadAction<UploadedFile | undefined>
+        ) {
+            const correction: any = ensureCorrectionNode(state);
+
+            if (action.payload === undefined) {
+                // Clear file (this is what your reset button wants)
+                correction.faCorrection = undefined;
+                state.editInProgress = true; // <-- make sure this still flips on clear
+                return;
+            }
+
+            correction.faCorrection = UFtoFR(action.payload);
+            state.editInProgress = true;
+        },
+        setLoadSensitivity(state: SetupState, action: PayloadAction<boolean>) {
+            state.activeSetup.options.reconstructor.options.sensitivityMap.options.loadSensitivity = action.payload;
+            state.editInProgress = true;
+        },
+        setSensitivityMapMethod(state: SetupState, action: PayloadAction<string>) {
+            state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapMethod = action.payload;
+            state.activeSetup.options.reconstructor.options.sensitivityMap.id = ['innerACL', 'inner'].indexOf((action.payload));
+            state.activeSetup.options.reconstructor.options.sensitivityMap.name = action.payload;
+            state.editInProgress = true;
+        },
+        setSensitivityMapSource(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            if (action.payload == undefined) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = undefined;
+                state.editInProgress = true;
+                return;
+            }
+            state.activeSetup.options.reconstructor.options.sensitivityMap.options.sensitivityMapSource = UFtoFR(action.payload);
+            state.editInProgress = true;
+        },
+        setDecimate(state: SetupState, action: PayloadAction<boolean>) {
+            state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
+            if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
+                state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
+            state.activeSetup.options.reconstructor.options.acl = [24, 24];
+            state.editInProgress = true;
+        },
+        setDecimateAccelerations1(state: SetupState, action: PayloadAction<number>) {
+            if (state.activeSetup.options.reconstructor.options.accelerations)
+                state.activeSetup.options.reconstructor.options.accelerations[0] = action.payload;
+            state.editInProgress = true;
+        },
+        setDecimateAccelerations2(state: SetupState, action: PayloadAction<number>) {
+            if (state.activeSetup.options.reconstructor.options.accelerations)
+                state.activeSetup.options.reconstructor.options.accelerations[1] = action.payload;
+            state.editInProgress = true;
+        },
+        setKernelSize1(state: SetupState, action: PayloadAction<number>) {
+            console.log(state.activeSetup.options.reconstructor.options.kernelSize);
+            if (state.activeSetup.options.reconstructor.options.kernelSize)
+                state.activeSetup.options.reconstructor.options.kernelSize[0] = action.payload;
+            state.editInProgress = true;
+        },
+        setKernelSize2(state: SetupState, action: PayloadAction<number>) {
+            if (state.activeSetup.options.reconstructor.options.kernelSize)
+                state.activeSetup.options.reconstructor.options.kernelSize[1] = action.payload;
+            state.editInProgress = true;
+        },
+        setMaskThreshold(state: SetupState, action: PayloadAction<number>) {
+            state.maskThresholdStore = action.payload;
+            if (state.maskOptionStore == 1) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
+                    = state.maskThresholdStore;
+            }
+        },
+        setMaskStore(state: SetupState, action: PayloadAction<UploadedFile | undefined>) {
+            state.maskFileStore = action.payload ? UFtoMaskFR(action.payload) : undefined;
+            if (state.maskOptionStore == 4) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.file = state.maskFileStore;
+            }
+        },
+        setMaskESPIRIT(state: SetupState, action: PayloadAction<{ k?: number, c?: number, r?: number, t?: number }>) {
+            if (action.payload.k) {
+                state.kStore = action.payload.k;
+            }
+            if (action.payload.c) {
+                state.cStore = action.payload.c;
+            }
+            if (action.payload.r) {
+                state.rStore = action.payload.r;
+            }
+            if (action.payload.t) {
+                state.tStore = action.payload.t;
+            }
+            if (state.maskOptionStore == 3) {
+                const { mask } = state.activeSetup.options.reconstructor.options.sensitivityMap.options;
+                mask.k = state.kStore;
+                mask.r = state.rStore;
+                mask.t = state.tStore;
+                mask.c = state.cStore;
+            }
+        },
+        setMaskOption(state: SetupState, action: PayloadAction<number>) {
+            state.maskOptionStore = action.payload;
+            if (state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask == undefined) {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask = { method: 'no' };
+            }
+            state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.method =
+                ['no', 'percentage', 'reference', 'espirit', 'upload'][action.payload];
+            if (action.payload == 1)
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value
+                    = state.maskThresholdStore;
+            else {
+                state.activeSetup.options.reconstructor.options.sensitivityMap.options.mask.value = undefined;
+            }
       // delete state.activeSetup.options.NR;
       if (state.activeSetup.name === "cr")
         state.activeSetup.options.boxSize = 9;
