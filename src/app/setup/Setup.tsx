@@ -310,7 +310,8 @@ const Setup = () => {
         const combined = [...annotated1, ...annotated2];
         setCuUnits(combined);
         const pickValue = (u: any, idx: number) => String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? idx);
-        setCuSelected(combined[0] ? pickValue(combined[0], 0) : "");
+        // setCuSelected(combined[0] ? pickValue(combined[0], 0) : "");
+        setCuSelected("");
       } catch (err: any) {
         if (!cancelled) setCuError(err?.message || String(err));
       } finally {
@@ -623,7 +624,7 @@ const Setup = () => {
   const [snrEditWarning, setSNREditWarning] = useState<string | undefined>();
   const [snrEditWarningCallback, setSnrEditWarningCallback] = useState<
     () => void
-  >(() => {});
+  >(() => { });
   const [snrEditOpen, setSNREditOpen] = useState(false);
 
   const [snrDeleteWarning, setSNRDeleteWarning] = useState<
@@ -631,7 +632,7 @@ const Setup = () => {
   >();
   const [snrDeleteWarningCallback, setSNRDeleteWarningCallback] = useState<
     () => void
-  >(() => {});
+  >(() => { });
   const [snrDeleteOpen, setSNRDeleteOpen] = useState(false);
 
   const [jobSelectionModel, setJobSelectionModel] = useState<GridRowId[]>([]);
@@ -760,62 +761,132 @@ const Setup = () => {
       </CmrButton>
 
       {/* Computing units selectors (Setup) */}
-      <div style={{ margin: '1em 0', padding: '1em', border: '1px solid #ccc', borderRadius: 8 }}>
-        <h3 style={{ margin: '0 0 8px 0' }}>Computing Units</h3>
-        {cuLoading ? (
-          <div>Loading computing units...</div>
-        ) : cuError ? (
-          <div style={{ color: 'red' }}>Error: {cuError}</div>
-        ) : (
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <div style={{ minWidth: 320 }}>
-              <label style={{ display: 'block', marginBottom: 4 }}>Computing Unit (Mode 1 + Mode 2)</label>
-              <select
-                value={cuSelected}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setCuSelected(val);
-                  try {
-                    const found = cuUnits.find((u: any) => {
-                      const key = String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? "");
-                      return key === val;
-                    });
-                    const mode = found?.mode ?? "";
-                    // persist selection to setup slice so queued jobs created afterwards include it
-                    dispatch(
-                      // @ts-ignore
-                      setupSetters.setSelectedComputingUnit({ id: val, mode }),
-                    );
-                  } catch (err) {
-                    // ignore
-                  }
-                }}
-                style={{ width: '100%' }}
-              >
-                <option value="">-- select --</option>
-                {cuUnits.map((u: any, i: number) => {
-                  const val = String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? i);
-                  const modeLabel = u.mode ?? u.mode_1 ?? u.mode_2 ?? '';
-                  let label = (modeLabel ? `[${modeLabel}] ` : '') + (u.alias ?? u.name ?? u.label ?? u.computingUnitId ?? u.id ?? 'Unknown');
-                  if (!label) {
-                    try {
-                      const j = JSON.stringify(u);
-                      label = j.length > 60 ? j.slice(0, 57) + "..." : j;
-                    } catch (e) {
-                      label = String(u);
+
+      <CmrCollapse
+        accordion={false}
+        defaultActiveKey={[0]}
+        expandIconPosition="right"
+      >
+        <CmrPanel key="0" header="Computing Units" className="mb-2">
+          {cuLoading ? (
+            <div>Loading computing units...</div>
+          ) : cuError ? (
+            <div style={{ color: 'red' }}>Error: {cuError}</div>
+          ) : (
+            <Box
+              sx={{
+                maxWidth: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <CmrLabel style={{ minWidth: 300 }}>
+                Computing Unit (Mode 1 + Mode 2):
+              </CmrLabel>
+
+              <FormControl fullWidth size="small">
+                <Select
+                  value={cuSelected || ""}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <span style={{ color: "#999" }}>Select</span>;
                     }
-                  }
-                  return (
-                    <option key={`s-all-${i}`} value={val}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
+
+                    const found = cuUnits.find((u: any) => {
+                      const key = String(
+                        u.computingUnitId ??
+                        u.computing_unit_id ??
+                        u.id ??
+                        u.appId ??
+                        u.name ??
+                        ""
+                      );
+                      return key === selected;
+                    });
+
+                    if (!found) return selected;
+
+                    const modeLabel = found.mode ?? found.mode_1 ?? found.mode_2 ?? "";
+
+                    return (
+                      (modeLabel ? `[${modeLabel}] ` : "") +
+                      (found.alias ??
+                        found.name ??
+                        found.label ??
+                        found.computingUnitId ??
+                        found.id ??
+                        "Unknown")
+                    );
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCuSelected(val);
+
+                    try {
+                      const found = cuUnits.find((u: any) => {
+                        const key = String(
+                          u.computingUnitId ??
+                          u.computing_unit_id ??
+                          u.id ??
+                          u.appId ??
+                          u.name ??
+                          ""
+                        );
+                        return key === val;
+                      });
+
+                      const mode = found?.mode ?? "";
+
+                      dispatch(
+                        // @ts-ignore
+                        setupSetters.setSelectedComputingUnit({ id: val, mode })
+                      );
+                    } catch (err) { }
+                  }}
+                >
+                  {/* placeholder item (disabled) */}
+                  <MenuItem disabled value="">
+                    <em>Select</em>
+                  </MenuItem>
+
+                  {cuUnits.map((u: any, i: number) => {
+                    const val = String(
+                      u.computingUnitId ??
+                      u.computing_unit_id ??
+                      u.id ??
+                      u.appId ??
+                      u.name ??
+                      i
+                    );
+
+                    const modeLabel = u.mode ?? u.mode_1 ?? u.mode_2 ?? "";
+
+                    let label =
+                      (modeLabel ? `[${modeLabel}] ` : "") +
+                      (u.alias ??
+                        u.name ??
+                        u.label ??
+                        u.computingUnitId ??
+                        u.id ??
+                        "Unknown");
+
+                    return (
+                      <MenuItem key={`s-all-${i}`} value={val}>
+                        {label}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+
+            </Box>
+
+          )}
+        </CmrPanel>
+
+      </CmrCollapse>
 
       <CmrCollapse
         accordion={false}
@@ -1244,25 +1315,25 @@ const Setup = () => {
                   >
                     {(analysisMethod === 1 && noise
                       ? [
+                        "Root Sum of Squares",
+                        "B1 Weighted",
+                        "SENSE",
+                        "GRAPPA",
+                        "ESPIRIT",
+                      ]
+                      : analysisMethod === 1 && noise === null
+                        ? ["Root Sum of Squares", "ESPIRIT"]
+                        : [
                           "Root Sum of Squares",
                           "B1 Weighted",
                           "SENSE",
                           "GRAPPA",
                           "ESPIRIT",
                         ]
-                      : analysisMethod === 1 && noise === null
-                        ? ["Root Sum of Squares", "ESPIRIT"]
-                        : [
-                            "Root Sum of Squares",
-                            "B1 Weighted",
-                            "SENSE",
-                            "GRAPPA",
-                            "ESPIRIT",
-                          ]
                     ).map((option, index) => {
                       return analysisMethod !== undefined &&
                         topToSecondaryMaps[analysisMethod].indexOf(index) >=
-                          0 ? (
+                        0 ? (
                         <FormControlLabel
                           value={index}
                           disabled={option === "ESPIRIT"}
@@ -1396,7 +1467,7 @@ const Setup = () => {
                     />
                     {secondaryToCoilMethodMaps[reconstructionMethod] &&
                       secondaryToCoilMethodMaps[reconstructionMethod].length !==
-                        0 && (
+                      0 && (
                         <Fragment>
                           {/* comment out for future use */}
                           {/* <FormControl
@@ -2030,7 +2101,7 @@ const Setup = () => {
                           //@ts-ignore
                           setJobAlias(event.target.value);
                         }}
-                        edit={() => {}}
+                        edit={() => { }}
                         queue={(jobAlias: string) => {
                           dispatch(setupSetters.compileSNRSettings(jobAlias));
                           setJobSelectionModel([

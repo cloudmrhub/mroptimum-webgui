@@ -9,7 +9,7 @@
     "strict": true, // Enable all strict type-checking options (noImplicitAny, strictNullChecks, etc.)
     "forceConsistentCasingInFileNames": true, // Ensure imports reference files with correct casing to avoid issues on case-sensitive filesystems
     "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statements (missing break or return)
-    "module": "esnext", // Use ESNext module system for import/export statements
+    "module": "nodenext", // Use ESNext module system for import/export statements
     "moduleResolution": "nodenext", // Use Node.js's resolution strategy for modules (supports package.json exports field)
     // "resolveJsonModule": true, // Enable importing JSON files as modules (currently commented out)
     "isolatedModules": true, // Ensure each file can be transpiled independently (required for Babel and Vite)
