@@ -2045,10 +2045,10 @@ const Setup = () => {
                       />
                     )}
                   </CmrPanel>
-                )}
+                }
               </CmrPanel>
             </CmrCollapse>
-          )}
+          }
         </CmrPanel>
       </CmrCollapse>
       <div style={{ height: "69px" }}></div>
