@@ -10,7 +10,7 @@
 
 export const CLOUDMR_SERVER =
   import.meta.env.VITE_CLOUDMR_SERVER ||
-  "https://7gbqt0rf0l.execute-api.us-east-1.amazonaws.com/Prod/api"; //'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
+  "https://brain.aws.cloudmrhub.com/Prod/api"; //'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
 
 // export const MRO_SERVER = process.env.MRO_SERVER || 'https://aaaz629pyg.execute-api.us-east-1.amazonaws.com/Prod'; // https://3ip95tbnkf.execute-api.us-east-1.amazonaws.com/Prod
 
