@@ -83,12 +83,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
 
   const [showingLogs, setShowingLogs] = useState(false);
 
-    const [name, setName] = useState<string | undefined>(undefined);
-    const [message, setMessage] = useState<string | undefined>(undefined);
-    const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
-    const [open, setOpen] = useState<boolean>(false);
-    const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
-    const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
+  const [name, setName] = useState<string | undefined>(undefined);
+  const [message, setMessage] = useState<string | undefined>(undefined);
+  const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
+  const [open, setOpen] = useState<boolean>(false);
+  const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
+  const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -215,7 +215,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   }}
                 >
                   {resultLoading === params.row.id ||
-                  params.row.status === "pending" ? (
+                    params.row.status === "pending" ? (
                     <div
                       className="spinner-border spinner-border-sm"
                       style={{ aspectRatio: "1 / 1" }}
@@ -256,15 +256,15 @@ const Results = ({ visible }: { visible?: boolean }) => {
                       // Trigger a click event to start the download
                       a.click();
 
-                                        // Remove the anchor from the body
-                                        document.body.removeChild(a);
-                                    });
+                      // Remove the anchor from the body
+                      document.body.removeChild(a);
+                    });
 
-                                }}>
-                                    <GetAppIcon />
-                                </IconButton>
-                            </Tooltip>
-                        )}
+                  }}>
+                  <GetAppIcon />
+                </IconButton>
+              </Tooltip>
+            )}
 
             <Tooltip title={`Delete job ${params.row.alias}`}>
               <IconButton
@@ -386,6 +386,16 @@ const Results = ({ visible }: { visible?: boolean }) => {
     () => async (val: string) => true,
   );
 
+  useEffect(() => {
+    console.log("jobs.jobs length", results?.length, results);
+  }, [results]);
+
+  const jobsState = useAppSelector((state) => state.jobs);
+  useEffect(() => {
+    console.log("jobs state keys", Object.keys(jobsState));
+    console.log("jobs state snapshot", jobsState);
+  }, [jobsState]);
+
   return (
     <Fragment>
       <Snackbar
@@ -453,6 +463,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               onUploaded={() => {
                 //Refresh job list after successful upload
                 dispatch(getUpstreamJobs());
+
                 // console.log(uploaderKey);
                 setUploaderKey(uploaderKey + 1);
               }}
