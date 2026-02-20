@@ -8,9 +8,7 @@
 
 // export const API_TOKEN = 'yPWaWARdLvaKZd0blo3cjBcZBNwZE3t2ghzSs6Rf';
 
-export const CLOUDMR_SERVER =
-  import.meta.env.VITE_CLOUDMR_SERVER ||
-  "https://brain.aws.cloudmrhub.com/Prod/api"; //'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
+export const CLOUDMR_SERVER ="https://brain.aws.cloudmrhub.com/Prod/api"; //'https://ewjjq013u0.execute-api.us-east-1.amazonaws.com';
 
 // export const MRO_SERVER = process.env.MRO_SERVER || 'https://aaaz629pyg.execute-api.us-east-1.amazonaws.com/Prod'; // https://3ip95tbnkf.execute-api.us-east-1.amazonaws.com/Prod
 

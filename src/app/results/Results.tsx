@@ -7,7 +7,7 @@ import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import NiiVue, { nv } from "../../common/components/Niivue";
 import { Job } from "cloudmr-ux/core/features/jobs/jobsSlice";
-import { getUpstreamJobs } from "cloudmr-ux/core/features/jobs/jobActionCreation";
+import { getUpstreamJobs, uploadJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
 import {
   uploadData,
   getUploadedData,
@@ -386,15 +386,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
     () => async (val: string) => true,
   );
 
-  useEffect(() => {
-    console.log("jobs.jobs length", results?.length, results);
-  }, [results]);
-
-  const jobsState = useAppSelector((state) => state.jobs);
-  useEffect(() => {
-    console.log("jobs state keys", Object.keys(jobsState));
-    console.log("jobs state snapshot", jobsState);
-  }, [jobsState]);
 
   return (
     <Fragment>
@@ -466,11 +457,14 @@ const Results = ({ visible }: { visible?: boolean }) => {
 
                 // console.log(uploaderKey);
                 setUploaderKey(uploaderKey + 1);
+
+                console.log("jobs.jobs length", results?.length, results);
               }}
               uploadHandler={uploadHandlerFactory(
                 queueToken,
                 dispatch,
-                uploadData,
+                // uploadData,
+                uploadJob,
               )}
             >
               Upload Results
