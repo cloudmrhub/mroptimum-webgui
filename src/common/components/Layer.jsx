@@ -44,7 +44,7 @@ export default function Layer(props) {
   const nii = props.nii
   const [detailsOpen, setDetailsOpen] = React.useState(true)
   const [color, setColor] = React.useState(image.colormap)
-  const [opacity, setOpacity] = React.useState(1.0)
+  const opacity = props.opacity ?? 1.0
   let ArrowIcon = detailsOpen ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />
   // console.log(props.colorMapValues)
   let allColors = props.nv.colormaps().filter((colorName) => allowedColorMaps.includes(colorName)).map((colorName) => {
@@ -102,7 +102,6 @@ export default function Layer(props) {
   }
 
   function handleOpacityChanged(a) {
-    setOpacity(a)
     image.opacity = a
     props.onOpacityChange(a)
   }

@@ -7,6 +7,7 @@ import { DrawToolkit, DrawToolkitProps } from "./DrawToolKit";
 import "./Toolbar.scss";
 // import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
 import TKDualRange from "./Cmr-components/tk-dualrange/TKDualRange";
+import { CmrLabel } from "cloudmr-ux";
 
 interface NiivuePanelProps {
   nv: any;
@@ -435,9 +436,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
               {/* Gamma */}
               <div style={{ marginTop: 20, marginBottom: 15 }}>
-                <label htmlFor="gamma" style={{ display: 'block', marginBottom: 6 }}>
+                <CmrLabel style={{ display: 'block', marginBottom: 6 }}>
                   Gamma: {props.gamma.toFixed(2)}
-                </label>
+                </CmrLabel>
                 <input
                   id="gamma"
                   type="range"

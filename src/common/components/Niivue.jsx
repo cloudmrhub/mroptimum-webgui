@@ -27,6 +27,7 @@ export const nv = new Niivue({
   textHeight: 0.04,
   colorbarHeight: 0.02,
   dragMode: 'pan',
+  crosshairWidth: 0,
   // crosshairColor: [0.098,0.453,0.824]
   crosshairColor: [1, 1, 0],
   fontColor: [0.00, 0.94, 0.37, 1],
@@ -88,7 +89,10 @@ export default function NiiVueport(props) {
   const histoRef = React.useRef(null);
   const [rois, setROIs] = React.useState([]);
 
-  const [showCrosshair, setShowCrosshair] = React.useState(true);
+  // Persists zoom, gamma and opacity across volume/channel switches so they are not reset
+  const savedViewStateRef = React.useRef(null);
+
+  const [showCrosshair, setShowCrosshair] = React.useState(false);
 
   const [brushSize, setBrushSize] = useState(1);
   const [complexMode, setComplexMode] = useState('absolute');
@@ -178,6 +182,29 @@ export default function NiiVueport(props) {
       return;
     }
     // console.log(nv.volumes);
+
+    // Restore zoom, gamma, opacity and colormap if switching channels/volumes, otherwise reset to defaults.
+    // Do this BEFORE setLayers so that Layer mounts with the correct opacity already on the volume object.
+    const saved = savedViewStateRef.current;
+    if (saved) {
+      nv.scene.pan2Dxyzmm = [...saved.pan2Dxyzmm];
+      nv.setGamma(saved.gamma);
+      setGamma(saved.gamma);
+      setGammaKey(k => k + 1);
+      const vol = nv.volumes[0];
+      if (vol) {
+        nv.setColorMap(vol.id, saved.colormap);
+        vol.opacity = saved.opacity;
+        nv.updateGLVolume();
+      }
+      setopacity(saved.opacity);
+      savedViewStateRef.current = null;
+    } else {
+      nv.setGamma(1.0);
+      nv.onResetGamma?.();
+      nv.resetScene();
+    }
+
     setLayers([...nv.volumes]);
     setBoundMins(nv.frac2mm([0, 0, 0]));
     setBoundMaxs(nv.frac2mm([1, 1, 1]));
@@ -187,10 +214,6 @@ export default function NiiVueport(props) {
     else nvSetDisplayedVoxels('absolute');
     // let volume = nv.volumes[0];
 
-    nv.setGamma(1.0);
-    nv.onResetGamma?.();
-
-    nv.resetScene();
     nvSetDragMode(dragMode); // keep engine behavior in sync with dropdown
     // Re-apply world/voxel mode and last crosshair after resets
     nv.setSliceMM(worldSpace);
@@ -198,6 +221,7 @@ export default function NiiVueport(props) {
     nv.scene.crosshairPos = [...oldCrosshairPos]
     // keep display mode consistent after resets
     nvUpdateSliceType(sliceType);
+    nv.opts.crosshairWidth = showCrosshair ? 1 : 0;
     setMMs(nv.frac2mm(nv.scene.crosshairPos));
   }
 
@@ -359,6 +383,7 @@ export default function NiiVueport(props) {
         onColorMapChange={nvUpdateColorMap}
         onRemoveLayer={nvRemoveLayer}
         onOpacityChange={nvUpdateLayerOpacity}
+        opacity={opacity}
         colorMapValues={nv.colormapFromKey(layer.colormap)}
         getColorMapValues={(colorMapName) => {
           return nv.colormapFromKey(colorMapName)
@@ -796,6 +821,7 @@ export default function NiiVueport(props) {
   }
 
   function nvUpdateLayerOpacity(a) {
+    setopacity(a)
     nv.updateGLVolume()
   }
 
@@ -824,9 +850,9 @@ export default function NiiVueport(props) {
     } else {
       // nvUpdateSliceType('multi');
       nvUpdateSliceType(sliceType);
-      setShowCrosshair(true);
+      setShowCrosshair(false);
       setTextsVisible(false);
-      nv.opts.crosshairWidth = 1;
+      nv.opts.crosshairWidth = 0;
       nv.hideText = true;
     }
   }
@@ -841,6 +867,17 @@ export default function NiiVueport(props) {
       setDrawingChanged(false);
       if (drawingEnabled)
         nvUpdateDrawingEnabled();
+
+      // Snapshot zoom, gamma, opacity and colormap so onImageLoaded can restore them
+      // Read gamma and opacity from React state — they are always kept in sync with the engine
+      const vol = nv.volumes[0];
+      savedViewStateRef.current = {
+        pan2Dxyzmm: [...nv.scene.pan2Dxyzmm],
+        gamma,
+        opacity,
+        colormap: vol?.colormap ?? 'gray',
+      };
+
       if (props.niis[selectVolume] !== undefined) {
         nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
       }
@@ -853,6 +890,7 @@ export default function NiiVueport(props) {
 
         // ensure engine mode matches the remembered selection
         nvUpdateSliceType(sliceType);
+        nv.opts.crosshairWidth = showCrosshair ? 1 : 0;
       } catch (e) {
         setWarning("Error loading results, please check internet connectivity");
         setWarningOpen(true);
