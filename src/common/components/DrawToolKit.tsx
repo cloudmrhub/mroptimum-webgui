@@ -26,6 +26,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import MaskPlatte from "./MaskPlatte";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 
 export interface DrawToolkitProps {
   nv: any;
@@ -107,19 +108,26 @@ export const DrawToolkit = (props: DrawToolkitProps) => {
   ];
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        width: "100%",
-        flexDirection: "row",
-        justifyItems: "center",
-        alignItems: "center",
-        borderRadius: "4px",
-        height: "20pt",
-        backgroundColor: "#333",
+    <ClickAwayListener
+      onClickAway={() => {
+        setExpandedOption("n");
+        setExpandOpacityOptions(false);
+        props.setDrawingEnabled(false);
       }}
-      style={props.style}
     >
+      <Box
+        sx={{
+          display: "flex",
+          width: "100%",
+          flexDirection: "row",
+          justifyItems: "center",
+          alignItems: "center",
+          borderRadius: "4px",
+          height: "20pt",
+          backgroundColor: "#333",
+        }}
+        style={props.style}
+      >
       {/* <FormControl>
             <Button className={'ms-2'} variant='contained' disabled={!props.changesMade} onClick={props.saveROI}>
                 Save ROI
@@ -289,6 +297,7 @@ export const DrawToolkit = (props: DrawToolkitProps) => {
         />
       </FormControl>
     </Box>
+    </ClickAwayListener>
   );
 };
 

@@ -429,11 +429,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
           <Row
             style={{
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "flex-end",
               marginBottom: "20px",
             }}
           >
-            <CMRUpload
+            {/* temporarily disabled for beta testing */}
+            {/* <CMRUpload
               style={{ marginTop: "auto", marginBottom: "auto" }}
               uploadButtonName={"Upload Results"}
               maxCount={1}
@@ -468,7 +469,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               )}
             >
               Upload Results
-            </CMRUpload>
+            </CMRUpload> */}
             <CmrCheckbox
               defaultChecked={true}
               onChange={(e) => {

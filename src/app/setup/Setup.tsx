@@ -310,8 +310,8 @@ const Setup = () => {
         const combined = [...annotated1, ...annotated2];
         setCuUnits(combined);
         const pickValue = (u: any, idx: number) => String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? idx);
-        // setCuSelected(combined[0] ? pickValue(combined[0], 0) : "");
-        setCuSelected("");
+        const firstMode1 = combined[0] ? pickValue(combined[0], 0) : "";
+        setCuSelected(firstMode1);
       } catch (err: any) {
         if (!cancelled) setCuError(err?.message || String(err));
       } finally {
@@ -753,11 +753,13 @@ const Setup = () => {
                     setOpenPanel([0]);
                     dispatch(setupSetters.setPseudoReplicaCount(6)); // reset replica count to default value
                     dispatch(setupSetters.setBoxSize(9)); // reset  Cubic VOI Size to default value
+                    dispatch(setupSetters.setKernelSize1(3)); // reset Kernel Size X to default
+                    dispatch(setupSetters.setKernelSize2(4)); // reset Kernel Size Y to default
                     setMissingFields([]);
                 }}
                 sx={{ width: '100%', marginBottom: '10px' }}
             >
-                Reset Signal & Noise Files
+                Reset
             </CmrButton>
 
       {/* Computing units selectors (Setup) */}
@@ -791,7 +793,7 @@ const Setup = () => {
                   displayEmpty
                   renderValue={(selected) => {
                     if (!selected) {
-                      return <span style={{ color: "#999" }}>Select</span>;
+                      return <span style={{ color: "#999" }}>No computing units</span>;
                     }
 
                     const found = cuUnits.find((u: any) => {
@@ -846,11 +848,6 @@ const Setup = () => {
                     } catch (err) { }
                   }}
                 >
-                  {/* placeholder item (disabled) */}
-                  <MenuItem disabled value="">
-                    <em>Select</em>
-                  </MenuItem>
-
                   {cuUnits.map((u: any, i: number) => {
                     const val = String(
                       u.computingUnitId ??
@@ -1275,7 +1272,7 @@ const Setup = () => {
                                                         }
                                                     }}
                                                     maxCount={1}
-                                                    uploadHandler={uploadHandlerFactory(accessToken, uploadToken, dispatch, uploadData, 'faCorrection')}
+                                                    uploadHandler={uploadHandlerFactory(uploadToken, dispatch, uploadData, 'faCorrection')}
                                                     onUploaded={(res, file) => {
                                                         uploadResHandlerFactory(setupSetters.setFlipAngleCorrectionFile)(res, file);
                                                         if (file) {
