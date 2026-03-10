@@ -980,7 +980,8 @@ const Setup = () => {
 
                   {/* Checkbox */}
                   <CmrCheckbox
-                    sx={{ ml: 2 }}
+                    // sx={{ ml: 2 }}
+                    style={{ marginLeft: "16px"}}
                     onChange={(event) => {
                       dispatch(setupSetters.setMultiRaid(event.target.checked));
                       if (signal !== undefined && event.target.checked)
