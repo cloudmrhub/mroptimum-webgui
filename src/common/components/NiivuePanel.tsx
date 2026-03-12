@@ -92,8 +92,57 @@ export function NiivuePanel(props: NiivuePanelProps) {
   const safeSpan = (i: 0 | 1 | 2) => Math.max(1e-9, maxs[i] - mins[i]);
   const ratio = (val: number, i: 0 | 1 | 2) => (val - mins[i]) / safeSpan(i);
 
+  // Voxel sizes and dimensions - snap slider to same positions as Niivue scroll
+  const vol = props.nv?.volumes?.[0];
+  const meta = vol?.getImageMetadata?.();
+  const nx = Math.max(1, meta?.nx ?? 1);
+  const ny = Math.max(1, meta?.ny ?? 1);
+  const nz = Math.max(1, meta?.nz ?? 1);
+  // Step and slider range: align so range values = voxel centers exactly
+  const stepX = nx > 1 ? safeSpan(0) / nx : safeSpan(0) * 0.01;
+  const stepY = ny > 1 ? safeSpan(1) / ny : safeSpan(1) * 0.01;
+  const stepZ = nz > 1 ? safeSpan(2) / nz : safeSpan(2) * 0.01;
+  const sliderMinX = nx > 1 ? mins[0] + 0.5 * stepX : mins[0];
+  const sliderMaxX = nx > 1 ? maxs[0] - 0.5 * stepX : maxs[0];
+  const sliderMinY = ny > 1 ? mins[1] + 0.5 * stepY : mins[1];
+  const sliderMaxY = ny > 1 ? maxs[1] - 0.5 * stepY : maxs[1];
+  const sliderMinZ = nz > 1 ? mins[2] + 0.5 * stepZ : mins[2];
+  const sliderMaxZ = nz > 1 ? maxs[2] - 0.5 * stepZ : maxs[2];
+
+  // Snap to nearest slice using Niivue's mm2frac/frac2mm so values match scroll exactly
+  const snapToVoxel = (mm: number, axis: 0 | 1 | 2): number => {
+    const n = axis === 0 ? nx : axis === 1 ? ny : nz;
+    const mm3 = [mms[0], mms[1], mms[2]];
+    mm3[axis] = mm;
+    let frac: number[];
+    try {
+      frac = props.nv.mm2frac(mm3);
+    } catch {
+      const f = (mm - mins[axis]) / safeSpan(axis);
+      frac = [ratio(mms[0], 0), ratio(mms[1], 1), ratio(mms[2], 2)];
+      frac[axis] = f;
+    }
+    // Niivue scroll uses voxel centers: frac = (i + 0.5) / n for i=0..n-1
+    const idx = Math.round(frac[axis] * n - 0.5);
+    const fracSnapped = n > 1 ? (Math.max(0, Math.min(n - 1, idx)) + 0.5) / n : 0.5;
+    frac[axis] = fracSnapped;
+    try {
+      return props.nv.frac2mm(frac)[axis];
+    } catch {
+      return mins[axis] + fracSnapped * safeSpan(axis);
+    }
+  };
+
+  // Use Niivue's mm2frac for crosshairPos so display matches onLocationChange
+  const mmToFrac = (x: number, y: number, z: number): [number, number, number] => {
+    try {
+      return props.nv.mm2frac([x, y, z]);
+    } catch {
+      return [ratio(x, 0), ratio(y, 1), ratio(z, 2)];
+    }
+  };
+
   // --- X Slice ---
-  // helper to clamp and round
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
   const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
@@ -102,14 +151,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
 
   const applyX = (val: number) => {
-    const v = clamp(round3(val), mins[0], maxs[0]);
+    const v = clamp(snapToVoxel(val, 0), sliderMinX, sliderMaxX);
     setXVal(v);
-    // Use local yVal/zVal so we don't regress other axes
-    props.nv.scene.crosshairPos = [
-      ratio(v, 0),
-      ratio(yVal, 1),
-      ratio(zVal, 2),
-    ];
+    props.nv.scene.crosshairPos = mmToFrac(v, yVal, zVal);
     props.nv.drawScene();
   };
 
@@ -117,14 +161,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
   const [yVal, setYVal] = React.useState(round3(mms[1]));
 
   const applyY = (val: number) => {
-    const v = clamp(round3(val), mins[1], maxs[1]);
+    const v = clamp(snapToVoxel(val, 1), sliderMinY, sliderMaxY);
     setYVal(v);
-    // Use local xVal/zVal
-    props.nv.scene.crosshairPos = [
-      ratio(xVal, 0),
-      ratio(v, 1),
-      ratio(zVal, 2),
-    ];
+    props.nv.scene.crosshairPos = mmToFrac(xVal, v, zVal);
     props.nv.drawScene();
   };
 
@@ -132,22 +171,18 @@ export function NiivuePanel(props: NiivuePanelProps) {
   const [zVal, setZVal] = React.useState(round3(mms[2]));
 
   const applyZ = (val: number) => {
-    const v = clamp(round3(val), mins[2], maxs[2]);
+    const v = clamp(snapToVoxel(val, 2), sliderMinZ, sliderMaxZ);
     setZVal(v);
-    // Use local xVal/yVal
-    props.nv.scene.crosshairPos = [
-      ratio(xVal, 0),
-      ratio(yVal, 1),
-      ratio(v, 2),
-    ];
+    props.nv.scene.crosshairPos = mmToFrac(xVal, yVal, v);
     props.nv.drawScene();
   };
 
-  // Keep local state in sync when Niivue (or parent) updates mms[0]
+  // Keep local state in sync when Niivue updates mms (e.g. from scroll)
   React.useEffect(() => {
-    setXVal(round3(mms[0]));
-    setYVal(round3(mms[1]));
-    setZVal(round3(mms[2]));
+    const fmt = (x: number) => (Number.isFinite(x) ? Math.round(x * 1000) / 1000 : 0);
+    setXVal(fmt(mms[0]));
+    setYVal(fmt(mms[1]));
+    setZVal(fmt(mms[2]));
   }, [mms]);
 
   return (
@@ -250,10 +285,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                   </label>
                   <input
                     type="number"
-                    value={xVal}
-                    min={mins[0]}
-                    max={maxs[0]}
-                    step={1}
+                    value={xVal.toFixed(3)}
+                    min={sliderMinX}
+                    max={sliderMaxX}
+                    step={stepX}
                     onChange={(e) => {
                       const next = Number(e.target.value);
                       if (!Number.isFinite(next)) return;
@@ -261,7 +296,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     }}
                     onBlur={(e) => {
                       const next = Number(e.target.value);
-                      applyX(clamp(next, mins[0], maxs[0]));
+                      applyX(clamp(next, sliderMinX, sliderMaxX));
                     }}
                     style={{
                       width: 80,
@@ -277,10 +312,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                 <input
                   id="xSlice"
                   type="range"
-                  min={mins[0]}
-                  max={maxs[0]}
-                  step={1}
-                  value={xVal}
+                  min={sliderMinX}
+                  max={sliderMaxX}
+                  step={stepX}
+                  value={Math.max(sliderMinX, Math.min(sliderMaxX, xVal))}
                   onChange={(e) => {
                     const next = Number(e.target.value);
                     applyX(next);
@@ -297,12 +332,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                   </label>
                   <input
                     type="number"
-                    // keep the input's value as a number for smooth dragging,
-                    // but still *show* 3 decimals by formatting on blur.
-                    value={yVal}
-                    min={mins[1]}
-                    max={maxs[1]}
-                    step={0.001}
+                    value={yVal.toFixed(3)}
+                    min={sliderMinY}
+                    max={sliderMaxY}
+                    step={stepY}
                     onChange={(e) => {
                       const next = Number(e.target.value);
                       if (!Number.isFinite(next)) return;
@@ -310,8 +343,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     }}
                     onBlur={(e) => {
                       const next = Number(e.target.value);
-                      // snap the field to 3-decimal formatting on blur
-                      applyY(next);
+                      applyY(clamp(next, sliderMinY, sliderMaxY));
                     }}
                     style={{
                       width: 100,
@@ -327,10 +359,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                 <input
                   id="ySlice"
                   type="range"
-                  min={mins[1]}
-                  max={maxs[1]}
-                  step={0.001}
-                  value={yVal}
+                  min={sliderMinY}
+                  max={sliderMaxY}
+                  step={stepY}
+                  value={Math.max(sliderMinY, Math.min(sliderMaxY, yVal))}
                   onChange={(e) => {
                     const next = Number(e.target.value);
                     applyY(next);
@@ -347,10 +379,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                   </label>
                   <input
                     type="number"
-                    value={zVal.toFixed(3)}   // show up to 3 decimals
-                    min={mins[2]}
-                    max={maxs[2]}
-                    step={0.001}
+                    value={zVal.toFixed(3)}
+                    min={sliderMinZ}
+                    max={sliderMaxZ}
+                    step={stepZ}
                     onChange={(e) => {
                       const next = Number(e.target.value);
                       if (!Number.isFinite(next)) return;
@@ -358,7 +390,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                     }}
                     onBlur={(e) => {
                       const next = Number(e.target.value);
-                      applyZ(clamp(next, mins[2], maxs[2]));
+                      applyZ(clamp(next, sliderMinZ, sliderMaxZ));
                     }}
                     style={{
                       width: 100,
@@ -374,10 +406,10 @@ export function NiivuePanel(props: NiivuePanelProps) {
                 <input
                   id="zSlice"
                   type="range"
-                  min={mins[2]}
-                  max={maxs[2]}
-                  step={0.001}
-                  value={zVal}
+                  min={sliderMinZ}
+                  max={sliderMaxZ}
+                  step={stepZ}
+                  value={Math.max(sliderMinZ, Math.min(sliderMaxZ, zVal))}
                   onChange={(e) => {
                     const next = Number(e.target.value);
                     applyZ(next);

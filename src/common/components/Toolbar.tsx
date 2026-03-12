@@ -65,9 +65,9 @@ export default function Toolbar(props: ToolbarProps) {
   // let dragModes = ["Pan","Measurement","Contrast",'None'];
   let dragModes = [
     { value: "pan", label: "Pan and Zoom" },
-    { value: "measurement", label: "Measurement" },
+    { value: "measurement", label: "Slice and Measurement" },
     { value: "contrast", label: "Contrast" },
-    { value: "none", label: "None" }
+    { value: "none", label: "Slice and None" }
   ];
   let accessToken = useAppSelector(state => state.authenticate.accessToken);
   let pipeline = useAppSelector(state => state.result.activeJob?.pipeline_id);
@@ -143,12 +143,12 @@ export default function Toolbar(props: ToolbarProps) {
               m: 2,
               minWidth: 120
             }}>
-            <InputLabel id="slice-type-label">Display Mode</InputLabel>
+            <InputLabel id="slice-type-label">Orientation</InputLabel>
             <Select
               labelId="slice-type-label"
               id="slice-type"
               value={props.sliceType}
-              label="Display Mode"
+              label="Orientation"
               onChange={handleSliceTypeChange}
             >
               <MenuItem value={'axial'}>Axial</MenuItem>
@@ -163,14 +163,14 @@ export default function Toolbar(props: ToolbarProps) {
             size='small'
             sx={{
               m: 2,
-              minWidth: 120
+              minWidth: 180
             }}>
-            <InputLabel id="drag-mode-label">Drag Mode</InputLabel>
+            <InputLabel id="drag-mode-label">Scroll and Right Click</InputLabel>
             <Select
               labelId="drag-mode-label"
               id="drag-mode"
               value={props.dragMode}
-              label="Display mode"
+              label="Scroll and Right Click"
               onChange={e => {
                 console.log(e.target.value);
                 props.setDragMode(e.target.value);
@@ -190,12 +190,12 @@ export default function Toolbar(props: ToolbarProps) {
               m: 2,
               minWidth: 120
             }}>
-            <InputLabel id="slice-type-label">Complex Mode</InputLabel>
+            <InputLabel id="slice-type-label">Display Mode</InputLabel>
             <Select
               labelId="slice-type-label"
               id="slice-type"
               value={props.complexMode}
-              label="Opened ROIs"
+              label="Display Mode"
               onChange={(e) => props.setComplexMode(e.target.value)}
             >
               {props.complexOptions.map(value => {
