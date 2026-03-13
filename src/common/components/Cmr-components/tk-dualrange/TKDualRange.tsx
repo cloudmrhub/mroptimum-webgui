@@ -60,8 +60,15 @@ export default function TKDualRange({
     onChangeHigh(nextReal);
   };
 
-  // Editable inputs show RENDER values (like the article)
-  const fmt = (v: number) => (Number.isFinite(v) ? v.toFixed(precision) : "");
+  // Editable inputs show RENDER values; use scientific notation for small non-zero
+  // values so they don't display as "0.000". Use type="text" because type="number"
+  // can show "0" for very small values instead of scientific notation.
+  const fmt = (v: number) =>
+    Number.isFinite(v)
+      ? v !== 0 && Math.abs(v) < 0.01
+        ? Number(v).toExponential(precision)
+        : v.toFixed(precision)
+      : "";
   const parse = (s: string) => {
     const n = Number(s);
     return Number.isFinite(n) ? n : NaN;
@@ -76,8 +83,8 @@ export default function TKDualRange({
           <span className="tkdr__hint">Min</span>
           <input
             className="tkdr__num"
-            type="number"
-            step={s}
+            type="text"
+            inputMode="decimal"
             value={fmt(tLow)}
             onChange={(e) => {
               const n = parse(e.target.value);
@@ -96,8 +103,8 @@ export default function TKDualRange({
           <span className="tkdr__hint">Max</span>
           <input
             className="tkdr__num"
-            type="number"
-            step={s}
+            type="text"
+            inputMode="decimal"
             value={fmt(tHigh)}
             onChange={(e) => {
               const n = parse(e.target.value);
