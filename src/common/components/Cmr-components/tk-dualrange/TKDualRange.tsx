@@ -40,29 +40,27 @@ export default function TKDualRange({
   precision = 3,
   accentColor = "#580f8b",
 }: Props) {
-  // Map domain & current values into RENDER space (like TestKarts)
-  const tMin = transform(minDomain);
-  const tMax = transform(maxDomain);
-  const tLow = transform(valueLow);
-  const tHigh = transform(valueHigh);
-
-  const span = Math.max(1e-12, tMax - tMin);
-  const pct = (t: number) => ((t - tMin) / span) * 100;
+  // Values from Niivue are already in transformed space (post-checkRange).
+  // Slider works directly with these transformed values.
+  const span = Math.max(1e-12, maxDomain - minDomain);
+  const pct = (t: number) => ((t - minDomain) / span) * 100;
   const s = step ?? Math.max(span * 0.001, Number.EPSILON);
 
-  // Keep ends from crossing; clamp in REAL space against the other end
-  const handleLowRender = (nextRender: number) => {
-    const nextReal = clamp(inverse(nextRender), minDomain, valueHigh);
-    onChangeLow(nextReal);
+  // Slider values are in transformed space; clamp and send directly
+  const handleLowSlider = (next: number) => {
+    onChangeLow(clamp(next, minDomain, valueHigh));
   };
-  const handleHighRender = (nextRender: number) => {
-    const nextReal = clamp(inverse(nextRender), valueLow, maxDomain);
-    onChangeHigh(nextReal);
+  const handleHighSlider = (next: number) => {
+    onChangeHigh(clamp(next, valueLow, maxDomain));
   };
 
-  // Editable inputs show RENDER values; use scientific notation for small non-zero
-  // values so they don't display as "0.000". Use type="text" because type="number"
-  // can show "0" for very small values instead of scientific notation.
+  // Display ORIGINAL (pre-transform) values with scientific notation for small numbers.
+  // Apply inverse() to recover the original values for display (e.g. 6.921e-11).
+  const realLow = inverse(valueLow);
+  const realHigh = inverse(valueHigh);
+  const realMinDomain = inverse(minDomain);
+  const realMaxDomain = inverse(maxDomain);
+
   const fmt = (v: number) =>
     Number.isFinite(v)
       ? v !== 0 && Math.abs(v) < 0.01
@@ -77,7 +75,7 @@ export default function TKDualRange({
 
   return (
     <div className="tkdr">
-      {/* Header row: two inputs at the ends with Min / Max labels */}
+      {/* Header row: inputs show ORIGINAL values in scientific notation (e.g. 6.921e-11) */}
       <div className="tkdr__row tkdr__row--ends">
         <div className="tkdr__group">
           <span className="tkdr__hint">Min</span>
@@ -85,16 +83,17 @@ export default function TKDualRange({
             className="tkdr__num"
             type="text"
             inputMode="decimal"
-            value={fmt(tLow)}
+            value={fmt(realLow)}
             onChange={(e) => {
               const n = parse(e.target.value);
               if (!Number.isFinite(n)) return;
-              handleLowRender(n);
+              // User enters original value; transform it back for the callback
+              onChangeLow(transform(clamp(n, realMinDomain, realHigh)));
             }}
             onBlur={(e) => {
               const n = parse(e.target.value);
               if (!Number.isFinite(n)) return;
-              handleLowRender(n);
+              onChangeLow(transform(clamp(n, realMinDomain, realHigh)));
             }}
           />
         </div>
@@ -105,48 +104,49 @@ export default function TKDualRange({
             className="tkdr__num"
             type="text"
             inputMode="decimal"
-            value={fmt(tHigh)}
+            value={fmt(realHigh)}
             onChange={(e) => {
               const n = parse(e.target.value);
               if (!Number.isFinite(n)) return;
-              handleHighRender(n);
+              // User enters original value; transform it back for the callback
+              onChangeHigh(transform(clamp(n, realLow, realMaxDomain)));
             }}
             onBlur={(e) => {
               const n = parse(e.target.value);
               if (!Number.isFinite(n)) return;
-              handleHighRender(n);
+              onChangeHigh(transform(clamp(n, realLow, realMaxDomain)));
             }}
           />
         </div>
       </div>
 
-      {/* Track with two native range inputs stacked */}
+      {/* Track with two native range inputs stacked (using transformed values directly) */}
       <div className="tkdr__track" style={{ ["--tkdr-accent" as any]: accentColor }}>
         <div
           className="tkdr__range-fill"
           style={{
-            left: `${pct(Math.min(tLow, tHigh))}%`,
-            width: `${Math.abs(pct(tHigh) - pct(tLow))}%`,
+            left: `${pct(Math.min(valueLow, valueHigh))}%`,
+            width: `${Math.abs(pct(valueHigh) - pct(valueLow))}%`,
           }}
           aria-hidden
         />
         <input
           className="tkdr__range"
           type="range"
-          min={tMin}
-          max={tMax}
+          min={minDomain}
+          max={maxDomain}
           step={s}
-          value={tLow}
-          onChange={(e) => handleLowRender(Number(e.target.value))}
+          value={valueLow}
+          onChange={(e) => handleLowSlider(Number(e.target.value))}
         />
         <input
           className="tkdr__range tkdr__range--top"
           type="range"
-          min={tMin}
-          max={tMax}
+          min={minDomain}
+          max={maxDomain}
           step={s}
-          value={tHigh}
-          onChange={(e) => handleHighRender(Number(e.target.value))}
+          value={valueHigh}
+          onChange={(e) => handleHighSlider(Number(e.target.value))}
         />
       </div>
     </div>

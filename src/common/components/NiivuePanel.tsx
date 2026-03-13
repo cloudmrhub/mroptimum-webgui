@@ -456,9 +456,9 @@ export function NiivuePanel(props: NiivuePanelProps) {
                   props.setMax(max);
                 }}
 
-                /* Preserve your value masking (scientific notation pair) */
-                transform={(x) => x / a + b}
-                inverse={(y) => a * y - a * b}
+                /* Transform to render space: matches checkRange() in Niivue.jsx */
+                transform={(x) => a * x - a * b}
+                inverse={(y) => y / a + b}
 
                 /* Optional tuning to feel closer to TestKarts */
                 step={0.001}
