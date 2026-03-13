@@ -2164,17 +2164,19 @@ const Setup = () => {
 
       {/* warning for max calculations per month */}
       <Snackbar
-        open={quotaExceeded}
+        open={quotaExceeded.exceeded}
         autoHideDuration={5000}
-        onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+        onClose={() => dispatch(setupSetters.setQuotaExceeded({ exceeded: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
-          onClose={() => dispatch(setupSetters.setQuotaExceeded(false))}
+          onClose={() => dispatch(setupSetters.setQuotaExceeded({ exceeded: false }))}
           severity="error"
           sx={{ width: "100%" }}
         >
-          Monthly quota exceeded. Please try again next month.
+          {quotaExceeded.limit && quotaExceeded.mode
+            ? `Monthly limit of ${quotaExceeded.limit} ${quotaExceeded.mode} calculations reached.`
+            : 'Monthly calculation limit reached.'}
         </Alert>
       </Snackbar>
     </Fragment>

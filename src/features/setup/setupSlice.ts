@@ -26,7 +26,11 @@ interface SetupState {
   cStore: number;
   tStore: number;
   maskFileStore?: FileReference;
-  quotaExceeded: boolean;
+  quotaExceeded: {
+    exceeded: boolean;
+    limit?: number;
+    mode?: string;
+  };
 }
 interface OutputInterface {
   coilsensitivity: boolean;
@@ -173,7 +177,7 @@ const initialState: SetupState = {
   tStore: 0.01,
   cStore: 0.995,
   maskFileStore: undefined,
-  quotaExceeded: false,
+  quotaExceeded: { exceeded: false },
 };
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
@@ -735,7 +739,7 @@ export const setupSlice = createSlice({
       }
     },
     // set maximum monthly calculation quota
-    setQuotaExceeded(state, action: PayloadAction<boolean>) {
+    setQuotaExceeded(state, action: PayloadAction<{ exceeded: boolean; limit?: number; mode?: string }>) {
       state.quotaExceeded = action.payload;
     },
   },
@@ -754,6 +758,35 @@ export const setupSlice = createSlice({
               job.status = "failed to submit";
             }
           }
+        }
+      }
+    });
+    builder.addCase(submitJobs.rejected, (state, action) => {
+      const error = action.error;
+      const payload = action.payload as any;
+      
+      // Check for monthly limit error in various possible locations
+      const errorMessage = 
+        error?.message || 
+        payload?.error || 
+        payload?.response?.data?.error ||
+        '';
+      
+      // Extract mode from error message (e.g., "mode_1 calculations" or "mode_2 calculations")
+      const modeMatch = errorMessage.match(/(mode_[12])\s+calculations/);
+      const mode = modeMatch ? modeMatch[1] : payload?.mode;
+      const limit = payload?.limit;
+      
+      if (errorMessage.includes('Monthly limit') && (errorMessage.includes('mode_1') || errorMessage.includes('mode_2'))) {
+        state.quotaExceeded = { exceeded: true, limit, mode };
+      } else if (payload?.current_count !== undefined && payload?.limit !== undefined) {
+        state.quotaExceeded = { exceeded: true, limit, mode };
+      }
+      
+      // Mark any pending jobs as failed
+      for (let job of state.queuedJobs) {
+        if (job.status === 'not submitted') {
+          job.status = 'failed to submit';
         }
       }
     });
