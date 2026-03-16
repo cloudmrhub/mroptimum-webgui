@@ -99,18 +99,3 @@ Open [http://localhost:4001](http://localhost:4001) to view it in the browser.
 
 ## License
 This project is licensed under the MIT License.
-
-For detailed information on the theory behind MR Optimum and its computation methods, see:
-
-1. Montin E., Lattanzi R. "Seeking a Widely Adoptable Practical Standard to Estimate Signal-to-Noise Ratio in Magnetic Resonance Imaging for Multiple-Coil Reconstructions". Journal of Magnetic Resonance Imaging, 2021.
-1. [ISMRM 27<sup>th</sup> Annual Meeting & Exhibition, 11-16 May 2019](https://cds.ismrm.org/protected/19MProceedings/PDFfiles/4617.html) Palais des congrès de Montréal, 1001 Place Jean-Paul-Riopelle, Montréal, QC, Canada\
-Abstract #4617 MR Optimum – A web-based application for signal-to-noise ratio evaluation. 
-
-
-
-
-
-
-[*Dr. Eros Montin, PhD*]\
-(http://me.biodimensional.com)\
-**46&2 just ahead of me!**
