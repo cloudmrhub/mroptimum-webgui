@@ -71,7 +71,7 @@ Additional dependencies are included to support interactive plots and file uploa
 1. Clone the repository:
    ```bash
    git clone https://github.com/cloudmrhub/mroptimum-webgui
-   cd mr-optimum-frontend
+   cd mroptimum-webgui
    ````
 1. Install dependencies
    ``` bash
