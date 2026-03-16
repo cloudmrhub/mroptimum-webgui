@@ -24,7 +24,7 @@ The **WebGUI** is designed for researchers and clinicians to:
 
 ### Settings Tab
 - Select SNR calculation methods:
-  - Array Combining (AC)
+  - Analytic methods (AM)
   - Multiple Replicas
   - Pseudo Multiple Replicas
   - Pseudo multiple Replicas Wien version
