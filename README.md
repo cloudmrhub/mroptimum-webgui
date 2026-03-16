@@ -24,10 +24,10 @@ The **WebGUI** is designed for researchers and clinicians to:
 
 ### Settings Tab
 - Select SNR calculation methods:
-  - Analytic methods (AM)
+  - Analytic Methods (AM)
   - Multiple Replicas
   - Pseudo Multiple Replicas
-  - Pseudo multiple Replicas Wien version
+  - Pseudo Multiple Replicas Wien
 - Seleect reconstruciton methods:
   - Root Sum of Squares (RSS)
   - B1
