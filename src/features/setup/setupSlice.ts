@@ -121,11 +121,13 @@ interface CorrectionOptions {
 // Defaults can be defined as constant objects:
 
 export const defaultSNR: SNR = {
-  name: "Default init",
+  // Default SNR analysis method is Analytic ("ac")
+  name: "ac",
   queued: false,
   version: "v0",
   acquisition: 2,
   type: "snr",
+  id: 0,
   options: {
     reconstructor: {
       type: "recon",
@@ -157,28 +159,32 @@ export const defaultSNR: SNR = {
   files: [],
 };
 
-const initialState: SetupState = {
-  activeSetup: JSON.parse(JSON.stringify(defaultSNR)) as SNR,
-  loading: false,
-  queuedJobs: [],
-  idGenerator: 0,
-  editInProgress: false,
-  signalUploadProgress: -1,
-  noiseUploadProgress: -1,
-  outputSettings: {
-    coilsensitivity: false,
-    gfactor: false,
-    matlab: true,
-  },
-  maskThresholdStore: 10,
-  maskOptionStore: 0,
-  kStore: 8,
-  rStore: 24,
-  tStore: 0.01,
-  cStore: 0.995,
-  maskFileStore: undefined,
-  quotaExceeded: { exceeded: false },
-};
+function makeInitialState(): SetupState {
+  return {
+    activeSetup: JSON.parse(JSON.stringify(defaultSNR)) as SNR,
+    loading: false,
+    queuedJobs: [],
+    idGenerator: 0,
+    editInProgress: false,
+    signalUploadProgress: -1,
+    noiseUploadProgress: -1,
+    outputSettings: {
+      coilsensitivity: false,
+      gfactor: false,
+      matlab: true,
+    },
+    maskThresholdStore: 10,
+    maskOptionStore: 0,
+    kStore: 8,
+    rStore: 24,
+    tStore: 0.01,
+    cStore: 0.995,
+    maskFileStore: undefined,
+    quotaExceeded: { exceeded: false },
+  };
+}
+
+const initialState: SetupState = makeInitialState();
 
 function UFtoFR(uploadedFile: UploadedFile): FileReference {
   try {
@@ -294,6 +300,7 @@ export const setupSlice = createSlice({
   name: "setup",
   initialState,
   reducers: {
+    resetSetup: () => makeInitialState(),
     setAnalysisMethod(state: SetupState, action: PayloadAction<number>) {
       state.activeSetup.id = Number(action.payload);
       state.activeSetup.name = ["ac", "mr", "pmr", "cr"][action.payload];

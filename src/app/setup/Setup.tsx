@@ -322,18 +322,6 @@ const Setup = () => {
     return () => { cancelled = true; };
   }, [accessToken]);
 
-  useEffect(() => {
-    if (
-      typeof reconstructionMethod === "number" &&
-      decimateMapping[reconstructionMethod] &&
-      decimateData &&
-      decimateACL !== null
-    ) {
-      dispatch(setupSetters.setDecimateACL(null));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [decimateMapping, decimateACL, reconstructionMethod, decimateData]);
-
   // make sure gfactor is only true when sense and checkbox are selected
   useEffect(() => {
     if (reconstructionMethod === 2) {

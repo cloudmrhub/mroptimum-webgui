@@ -5,7 +5,7 @@ import { dataSlice } from "cloudmr-ux/core/features/data/dataSlice";
 import { jobsSlice } from "cloudmr-ux/core/features/jobs/jobsSlice";
 import { resultSlice } from "cloudmr-ux/core/features/rois/resultSlice";
 import { setupSlice } from "./setup/setupSlice";
-import storage from "redux-persist/lib/storage";
+import storageSession from "redux-persist/lib/storage/session";
 import {
   persistReducer,
   persistStore,
@@ -28,7 +28,7 @@ let rootReducer = combineReducers({
 const persistConfig = {
   whitelist: ["authenticate", "setup", "home", "pipeline"],
   key: "root",
-  storage,
+  storage: storageSession,
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

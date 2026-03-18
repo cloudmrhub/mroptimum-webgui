@@ -11,8 +11,9 @@ import { useAppDispatch, useAppSelector } from "../features/hooks";
 import { getLoggedInToken, signOut } from "cloudmr-ux/core/features/authenticate/authenticateActionCreation";
 import WebSignin from "./WebSignin";
 import { AuthenticatedHttpClient } from "cloudmr-ux/core/common/utilities/AuthenticatedRequests";
-import { store } from "../features/store";
+import { persistor, store } from "../features/store";
 import appIcon from "../assets/mrOptimum.png";
+import { setupSetters } from "../features/setup/setupSlice";
 
 const debugging = false;
 
@@ -36,7 +37,11 @@ const MainRouter = () => {
             siteTitle="MR Optimum"
             email={email}
             menuList={[]}
-            handleLogout={() => dispatch(signOut())}
+            handleLogout={() => {
+              dispatch(signOut());
+              dispatch(setupSetters.resetSetup());
+              persistor.purge();
+            }}
           />
         )}
         <Routes>

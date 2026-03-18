@@ -1,6 +1,6 @@
 import { CmrTable } from "cloudmr-ux";
 import { CSSProperties, useState } from "react";
-import { Tooltip, IconButton } from "@mui/material";
+import { Tooltip, IconButton, Snackbar, Alert } from "@mui/material";
 import { CMRUpload, LambdaFile } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 import { GridRowSelectionModel, GridValueSetterParams } from "@mui/x-data-grid";
@@ -15,7 +15,6 @@ import {
   faDownload,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import { CmrConfirmation } from "cloudmr-ux";
 import { getPipelineROI } from "cloudmr-ux/core";
 import { AuthenticatedHttpClient } from "cloudmr-ux/core";
 import { getEndpoints } from "cloudmr-ux/core";
@@ -206,6 +205,10 @@ export const ROITable = (props: {
         <Tooltip title="Group">
           <IconButton
             onClick={() => {
+              if (selectedData.length === 0) {
+                warnEmptySelection("Please select an ROI to group");
+                return;
+              }
               props.nv.groupLabelsInto(
                 selectedData.map((value) => Number(value)),
               );
@@ -223,6 +226,10 @@ export const ROITable = (props: {
         <Tooltip title="Ungroup">
           <IconButton
             onClick={() => {
+              if (selectedData.length === 0) {
+                warnEmptySelection("Please select an ROI to ungroup");
+                return;
+              }
               props.nv.ungroup();
               props.nv.drawScene();
               props.resampleImage();
@@ -246,7 +253,7 @@ export const ROITable = (props: {
               }
               fileName += ".nii";
               if (selectedLabels.length === 0) {
-                warnEmptySelection("No ROI selected for download");
+                warnEmptySelection("Please select an ROI to download");
                 return;
               }
               await props.nv.saveImageByLabels(fileName, selectedLabels);
@@ -259,6 +266,10 @@ export const ROITable = (props: {
         <Tooltip title="Delete">
           <IconButton
             onClick={() => {
+              if (selectedData.length === 0) {
+                warnEmptySelection("Please select an ROI to delete");
+                return;
+              }
               props.nv.deleteDrawingByLabel(
                 selectedData.map((value) => Number(value)),
               );
@@ -308,15 +319,20 @@ export const ROITable = (props: {
           maxCount={1}
         ></CMRUpload>
       </Box>
-      <CmrConfirmation
-        name={"Warning"}
-        message={warningMessage}
-        color={"error"}
-        width={400}
+      <Snackbar
         open={warningVisible}
-        setOpen={(open) => setWarningVisible(open)}
-        confirmText={"OK"}
-      />
+        autoHideDuration={3000}
+        onClose={() => setWarningVisible(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="warning"
+          sx={{ width: "100%" }}
+          onClose={() => setWarningVisible(false)}
+        >
+          {warningMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

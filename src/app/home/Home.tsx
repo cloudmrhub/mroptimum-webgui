@@ -347,7 +347,7 @@ const Home = () => {
   const dispatch = useAppDispatch();
   const { uploadToken, level } = useAppSelector((state) => state.authenticate);
   const { files } = useAppSelector((state) => state.data);
-  const isAdmin = true//level == "admin";
+  const isAdmin = level === "admin";
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [renamingCallback, setRenamingCallback] = useState<
     (alias: string, isDemoData?: boolean) => Promise<boolean>
