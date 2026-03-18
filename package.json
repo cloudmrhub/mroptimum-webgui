@@ -53,7 +53,10 @@
     "build:clean": "rm -rf dist && tsc && vite build",
     "preview": "vite build && vite preview --port 4001",
     "lint": "eslint . ",
-    "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx ."
+    "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx .",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "eslintConfig": {
     "extends": [
@@ -85,6 +88,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@playwright/test": "^1.58.2",
     "@types/babel__core": "^7.20.5",
     "@types/babel__generator": "^7.27.0",
     "@types/babel__template": "^7.4.4",
