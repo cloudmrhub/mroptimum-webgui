@@ -19,19 +19,17 @@ function normalizeToken(t: any) {
 }
 
 // Fetch calculation count using provided token and server URL
-async function fetchCalculationCount(appName, mode, token, apiServer = CLOUDMR_SERVER) {
+async function fetchCalculationCount(
+  appName: string,
+  mode: string,
+  token: any,
+  apiServer = CLOUDMR_SERVER,
+) {
   const tokenStr = normalizeToken(token);
   if (!tokenStr) throw new Error("Authentication token not found or in unknown shape. Please login.");
   const params = new URLSearchParams({ cloudapp_name: appName, mode });
   const base = apiServer.replace(/\/$/, "");
   const url = `${base}/pipeline/count_calculations?${params.toString()}`;
-  if (import.meta.env && import.meta.env.DEV) {
-    try {
-      const masked = tokenStr ? `${tokenStr.slice(0, 6)}...(${tokenStr.length})` : String(tokenStr);
-      // eslint-disable-next-line no-console
-      console.debug("fetchCalculationCount ->", { url, tokenSample: masked });
-    } catch (e) { }
-  }
   const resp = await fetch(url, {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenStr}` },
   });
@@ -66,7 +64,12 @@ function normalizeUnitsPayload(payload: any, mode?: string): any[] {
 }
 
 // Fetch available computing units for a given mode
-async function fetchComputingUnits(appName, mode, token, apiServer = CLOUDMR_SERVER) {
+async function fetchComputingUnits(
+  appName: string,
+  mode: string,
+  token: any,
+  apiServer = CLOUDMR_SERVER,
+) {
   const tokenStr = normalizeToken(token);
   if (!tokenStr) throw new Error("Authentication token not found or in unknown shape. Please login.");
   // Note: correct endpoint is /api/computing-unit/list and parameter name is `app_name`
@@ -74,13 +77,6 @@ async function fetchComputingUnits(appName, mode, token, apiServer = CLOUDMR_SER
   const base = apiServer.replace(/\/$/, "");
   // CLOUDMR_SERVER already contains the `/api` prefix in this project, so append the path
   const url = `${base}/computing-unit/list?${params.toString()}`;
-  if (import.meta.env && import.meta.env.DEV) {
-    try {
-      const masked = tokenStr ? `${tokenStr.slice(0, 6)}...(${tokenStr.length})` : String(tokenStr);
-      // eslint-disable-next-line no-console
-      console.debug("fetchComputingUnits ->", { url, tokenSample: masked });
-    } catch (e) { }
-  }
   const resp = await fetch(url, {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenStr}` },
   });
@@ -117,9 +113,12 @@ import { AxiosRequestConfig } from "axios";
 import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 const Home = () => {
   // Calculation count state
-  const [counts, setCounts] = useState({ mode_1: null, mode_2: null });
+  const [counts, setCounts] = useState<{ mode_1: number | null; mode_2: number | null }>({
+    mode_1: null,
+    mode_2: null,
+  });
   const [loadingCounts, setLoadingCounts] = useState(true);
-  const [errorCounts, setErrorCounts] = useState(null);
+  const [errorCounts, setErrorCounts] = useState<string | null>(null);
   // Computing units state
   const [units, setUnits] = useState({ mode_1: [] as any[], mode_2: [] as any[] });
 
@@ -191,8 +190,8 @@ const Home = () => {
           const n2 = normalizeUnitsPayload(units2, "mode_2");
           setUnits({ mode_1: n1, mode_2: n2 });
         }
-      } catch (e) {
-        if (!cancelled) setErrorCounts(e.message || String(e));
+      } catch (e: any) {
+        if (!cancelled) setErrorCounts(e?.message || String(e));
       } finally {
         if (!cancelled) setLoadingCounts(false);
       }
@@ -480,8 +479,10 @@ const Home = () => {
           ) : (
             // <Alert severity="info" icon={false}>
             <>
-              <Typography variant="body2"><b>Mode 1</b>: {counts.mode_1} </Typography>
-              <Typography variant="body2"><b>Mode 2</b>: {counts.mode_2}</Typography>
+              <Typography variant="body2"><b>Mode 1 (Cloud MR AWS)</b>: {counts.mode_1} </Typography>
+              {counts.mode_2 !== null && counts.mode_2 > 0 && (
+                <Typography variant="body2"><b>Mode 2</b>: {counts.mode_2}</Typography>
+              )}
             </>
             //  </Alert>
           )}
@@ -494,7 +495,7 @@ const Home = () => {
         defaultActiveKey={[0]}
         expandIconPosition="right"
       >
-        <CmrPanel header="Mode 1 Computing Units" className="mb-2">
+        <CmrPanel header="Mode 1 (Cloud MR AWS) Computing Units" className="mb-2">
           {/* MODE 1 */}
           {units.mode_1.length === 0 ? (
             <Typography variant="body2">No computing units found for mode 1.</Typography>
@@ -582,151 +583,193 @@ const Home = () => {
         </CmrPanel>
       </CmrCollapse>
 
-      <CmrCollapse
-        accordion={false}
-        defaultActiveKey={[0]}
-        expandIconPosition="right"
-      >
-        <CmrPanel header="Mode 2 Computing Units" className="mb-2">
-          {/* MODE 2 */}
-          {units.mode_2.length === 0 ? (
-            <Typography variant="body2">No computing units found for mode 2.</Typography>
-          ) : (
-            <Box>
-              {units.mode_2.map((u: any, idx: number) => {
-                const unitId = getUnitId(u, idx);
-                const isDeleting = !!deletingUnitIds[unitId];
-                return (
-                  <Card variant="outlined">
-                    <CardHeader
-                      subheader={
-                        <span>
-                          <strong>{u.alias}</strong>{" "}
-                          <span style={{ color: "#777", fontWeight: 400 }}>
-                            ({getUnitTitle(u, idx)})
-                          </span>
-                        </span>
-                      }
-                      sx={{
-                        backgroundColor: "#F7F7F9",
-                        borderBottom: "1px solid #E6E6EA",
-                        "& .MuiCardHeader-subheader": {
-                          color: "#333",
-                          fontWeight: 600,
-                          fontSize: "14px"
-                        }
-                      }}
-                      action={
-                        <Tooltip title="Delete">
+      {units.mode_2.length > 0 && (
+        <CmrCollapse
+          accordion={false}
+          defaultActiveKey={[0]}
+          expandIconPosition="right"
+        >
+          <CmrPanel header="Mode 2 Computing Units" className="mb-2">
+            {/* MODE 2 */}
+            {units.mode_2.length === 0 ? (
+              <Typography variant="body2">
+                No computing units found for mode 2.
+              </Typography>
+            ) : (
+              <Box>
+                {units.mode_2.map((u: any, idx: number) => {
+                  const unitId = getUnitId(u, idx);
+                  const isDeleting = !!deletingUnitIds[unitId];
+                  return (
+                    <Card variant="outlined">
+                      <CardHeader
+                        subheader={
                           <span>
-                            <IconButton
-                              aria-label="delete"
-                              size="small"
-                              disabled={isDeleting}
-                              onClick={async () => {
-                                const computingUnitId =
-                                  u.computingUnitId ?? u.computing_unit_id ?? u.id;
-
-                                const label = u.alias ?? computingUnitId ?? "this unit";
-
-                                if (!computingUnitId) {
-                                  setMessage("Missing computingUnitId on this computing unit.");
-                                  setColor("error");
-                                  setOpen(true);
-                                  return;
-                                }
-
-                                if (!confirm(`Are you sure you want to delete computing unit ${label}?`)) return;
-
-                                try {
-                                  setDeletingUnitIds((s) => ({ ...s, [String(computingUnitId)]: true }));
-
-                                  await deleteComputingUnitById(String(computingUnitId), apiToken);
-
-                                  // refresh mode_2 list only (same behavior you already do)
-                                  const appName = "MR Optimum";
-                                  const units2 = await fetchComputingUnits(appName, "mode_2", apiToken);
-                                  const n2 = normalizeUnitsPayload(units2, "mode_2");
-                                  setUnits((prev) => ({ ...prev, mode_2: n2 }));
-                                } catch (e: any) {
-                                  setMessage(e?.message ?? String(e));
-                                  setColor("error");
-                                  setOpen(true);
-                                } finally {
-                                  setDeletingUnitIds((s) => {
-                                    const next = { ...s };
-                                    delete next[String(computingUnitId)];
-                                    return next;
-                                  });
-                                }
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
+                            <strong>{u.alias}</strong>{" "}
+                            <span style={{ color: "#777", fontWeight: 400 }}>
+                              ({getUnitTitle(u, idx)})
+                            </span>
                           </span>
-                        </Tooltip>
-                      }
+                        }
+                        sx={{
+                          backgroundColor: "#F7F7F9",
+                          borderBottom: "1px solid #E6E6EA",
+                          "& .MuiCardHeader-subheader": {
+                            color: "#333",
+                            fontWeight: 600,
+                            fontSize: "14px"
+                          }
+                        }}
+                        action={
+                          <Tooltip title="Delete">
+                            <span>
+                              <IconButton
+                                aria-label="delete"
+                                size="small"
+                                disabled={isDeleting}
+                                onClick={async () => {
+                                  const computingUnitId =
+                                    u.computingUnitId ??
+                                    u.computing_unit_id ??
+                                    u.id;
 
-                    />
-                    <CardContent>
-                      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1 }}>
-                        {u.alias && (
+                                  const label =
+                                    u.alias ?? computingUnitId ?? "this unit";
+
+                                  if (!computingUnitId) {
+                                    setMessage(
+                                      "Missing computingUnitId on this computing unit.",
+                                    );
+                                    setColor("error");
+                                    setOpen(true);
+                                    return;
+                                  }
+
+                                  if (
+                                    !confirm(
+                                      `Are you sure you want to delete computing unit ${label}?`,
+                                    )
+                                  )
+                                    return;
+
+                                  try {
+                                    setDeletingUnitIds((s) => ({
+                                      ...s,
+                                      [String(computingUnitId)]: true,
+                                    }));
+
+                                    await deleteComputingUnitById(
+                                      String(computingUnitId),
+                                      apiToken,
+                                    );
+
+                                    // refresh mode_2 list only (same behavior you already do)
+                                    const appName = "MR Optimum";
+                                    const units2 = await fetchComputingUnits(
+                                      appName,
+                                      "mode_2",
+                                      apiToken,
+                                    );
+                                    const n2 =
+                                      normalizeUnitsPayload(units2, "mode_2");
+                                    setUnits((prev) => ({
+                                      ...prev,
+                                      mode_2: n2,
+                                    }));
+                                  } catch (e: any) {
+                                    setMessage(e?.message ?? String(e));
+                                    setColor("error");
+                                    setOpen(true);
+                                  } finally {
+                                    setDeletingUnitIds((s) => {
+                                      const next = { ...s };
+                                      delete next[String(computingUnitId)];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        }
+                      />
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "repeat(auto-fit, minmax(200px, 1fr))",
+                            gap: 1,
+                          }}
+                        >
+                          {u.alias && (
+                            <Typography variant="body2">
+                              <strong>Alias:</strong>{" "}
+                              {String(
+                                u.alias ??
+                                  u.computingUnitAlias ??
+                                  u.computing_unit_alias,
+                              )}
+                            </Typography>
+                          )}
+                          {u.status && (
+                            <Typography variant="body2">
+                              <strong>Status:</strong> {String(u.status)}
+                            </Typography>
+                          )}
                           <Typography variant="body2">
-                            <strong>Alias:</strong> {String(u.alias ?? u.computingUnitAlias ?? u.computing_unit_alias)}
+                            <strong>Mode:</strong> {String(u.mode ?? "mode_2")}
                           </Typography>
-                        )}
-                        {u.status && <Typography variant="body2"><strong>Status:</strong> {String(u.status)}</Typography>}
-                        <Typography variant="body2"><strong>Mode:</strong> {String(u.mode ?? "mode_2")}</Typography>
-                        {u.provider && <Typography variant="body2"><strong>Provider:</strong> {String(u.provider)}</Typography>}
-                        {u.region && <Typography variant="body2"><strong>Region:</strong> {String(u.region)}</Typography>}
-                        {(u.awsAccountId || u.aws_account_id) && (
-                          <Typography variant="body2">
-                            <strong>AWS Account:</strong> {String(u.awsAccountId ?? u.aws_account_id)}
-                          </Typography>
-                        )}
-                        {(u.isDefault !== undefined) && (
-                          <Typography variant="body2"><strong>Default:</strong> {u.isDefault ? "Yes" : "No"}</Typography>
-                        )}
-                        {(u.createdAt || u.created_at) && (
-                          <Typography variant="body2"><strong>Created:</strong> {new Date(u.createdAt ?? u.created_at).toLocaleDateString()}</Typography>
-                        )}
-                        {(u.updatedAt || u.updated_at) && (
-                          <Typography variant="body2"><strong>Updated:</strong> {new Date(u.updatedAt ?? u.updated_at).toLocaleDateString()}</Typography>
-                        )}
-                      </Box>
-
-                      {(u.stateMachineArn || u.state_machine_arn) && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2"><strong>State Machine ARN:</strong></Typography>
-                          <Typography variant="body2" sx={{ wordBreak: "break-all" }}>
-                            {String(u.stateMachineArn ?? u.state_machine_arn)}
-                          </Typography>
+                          {u.provider && (
+                            <Typography variant="body2">
+                              <strong>Provider:</strong> {String(u.provider)}
+                            </Typography>
+                          )}
+                          {u.region && (
+                            <Typography variant="body2">
+                              <strong>Region:</strong> {String(u.region)}
+                            </Typography>
+                          )}
+                          {(u.awsAccountId || u.aws_account_id) && (
+                            <Typography variant="body2">
+                              <strong>AWS Account:</strong>{" "}
+                              {String(u.awsAccountId ?? u.aws_account_id)}
+                            </Typography>
+                          )}
+                          {u.isDefault !== undefined && (
+                            <Typography variant="body2">
+                              <strong>Default:</strong>{" "}
+                              {u.isDefault ? "Yes" : "No"}
+                            </Typography>
+                          )}
+                          {(u.createdAt || u.created_at) && (
+                            <Typography variant="body2">
+                              <strong>Created:</strong>{" "}
+                              {new Date(
+                                u.createdAt ?? u.created_at,
+                              ).toLocaleDateString()}
+                            </Typography>
+                          )}
+                          {(u.updatedAt || u.updated_at) && (
+                            <Typography variant="body2">
+                              <strong>Updated:</strong>{" "}
+                              {new Date(
+                                u.updatedAt ?? u.updated_at,
+                              ).toLocaleDateString()}
+                            </Typography>
+                          )}
                         </Box>
-                      )}
-
-                      {(u.resultsBucket || u.failedBucket || u.dataBucket) && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2"><strong>Buckets:</strong></Typography>
-                          {u.resultsBucket && <Typography variant="body2">Results: {String(u.resultsBucket)}</Typography>}
-                          {u.failedBucket && <Typography variant="body2">Failed: {String(u.failedBucket)}</Typography>}
-                          {u.dataBucket && <Typography variant="body2">Data: {String(u.dataBucket)}</Typography>}
-                        </Box>
-                      )}
-                      {u.crossAccountRoleArn && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2"><strong>Cross Account Role:</strong></Typography>
-                          <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>{u.crossAccountRoleArn}</Typography>
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                );
-              })}
-            </Box>
-          )}
-        </CmrPanel>
-      </CmrCollapse>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </Box>
+            )}
+          </CmrPanel>
+        </CmrCollapse>
+      )}
 
       {/* </Box> */}
 

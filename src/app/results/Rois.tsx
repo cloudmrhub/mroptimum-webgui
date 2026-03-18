@@ -10,11 +10,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faObjectGroup,
-  faObjectUngroup,
-  faDownload,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
+import { Icon as WpIcon, group as wpGroup, ungroup as wpUngroup, download as wpDownload, trash as wpTrash } from "@wordpress/icons";
 import { getPipelineROI } from "cloudmr-ux/core";
 import { AuthenticatedHttpClient } from "cloudmr-ux/core";
 import { getEndpoints } from "cloudmr-ux/core";
@@ -202,7 +199,7 @@ export const ROITable = (props: {
           borderRadius: "0 0 4px 4px",
         }}
       >
-        <Tooltip title="Group">
+        <Tooltip title="Group selected ROIs">
           <IconButton
             onClick={() => {
               if (selectedData.length === 0) {
@@ -216,14 +213,11 @@ export const ROITable = (props: {
               props.resampleImage();
             }}
           >
-            <FontAwesomeIcon
-              icon={faObjectGroup}
-              style={{ fontSize: "16px" }}
-            />
+            <WpIcon icon={wpGroup} size={24} style={{ color: "#9e9e9e" }} />
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Ungroup">
+        <Tooltip title="Ungroup ROIs">
           <IconButton
             onClick={() => {
               if (selectedData.length === 0) {
@@ -235,10 +229,7 @@ export const ROITable = (props: {
               props.resampleImage();
             }}
           >
-            <FontAwesomeIcon
-              icon={faObjectUngroup}
-              style={{ fontSize: "16px" }}
-            />
+            <WpIcon icon={wpUngroup} size={24} style={{ color: "#9e9e9e" }} />
           </IconButton>
         </Tooltip>
 
@@ -259,7 +250,7 @@ export const ROITable = (props: {
               await props.nv.saveImageByLabels(fileName, selectedLabels);
             }}
           >
-            <FontAwesomeIcon icon={faDownload} style={{ fontSize: "16px" }} />
+            <WpIcon icon={wpDownload} size={24} style={{ color: "#9e9e9e" }} />
           </IconButton>
         </Tooltip>
 
@@ -277,7 +268,7 @@ export const ROITable = (props: {
               props.nv.drawScene();
             }}
           >
-            <FontAwesomeIcon icon={faTrash} style={{ fontSize: "16px" }} />
+            <WpIcon icon={wpTrash} size={24} style={{ color: "#9e9e9e" }} />
           </IconButton>
         </Tooltip>
 

@@ -23,6 +23,7 @@
     "@types/react-color": "^3.0.6",
     "@types/react-dom": "^18.0.0",
     "@vitejs/plugin-react-swc": "^4.2.0",
+    "@wordpress/icons": "^11.8.0",
     "antd": "^5.7.3",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.1",
