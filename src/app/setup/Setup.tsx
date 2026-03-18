@@ -1914,20 +1914,20 @@ const Setup = () => {
                             reconstructor.options = {};
                           }
 
-                          console.log(
-                            "Before delete (RSS/GRAPPA):",
-                            JSON.stringify(reconstructor.options, null, 2),
-                          );
+                          // console.log(
+                          //   "Before delete (RSS/GRAPPA):",
+                          //   JSON.stringify(reconstructor.options, null, 2),
+                          // );
 
                           delete reconstructor.options.sensitivityMap;
                           delete reconstructor.options.loadSensitivity;
                           delete reconstructor.options.sensitivityMapMethod;
                           delete reconstructor.options.mask;
 
-                          console.log(
-                            "After delete (RSS/GRAPPA):",
-                            JSON.stringify(reconstructor.options, null, 2),
-                          );
+                          // console.log(
+                          //   "After delete (RSS/GRAPPA):",
+                          //   JSON.stringify(reconstructor.options, null, 2),
+                          // );
                         }
 
                         getFiles(snr);
@@ -2093,20 +2093,20 @@ const Setup = () => {
               reconstructor.options = {};
             }
 
-            console.log(
-              "Before delete (RSS/GRAPPA):",
-              JSON.stringify(reconstructor.options, null, 2),
-            );
+            // console.log(
+            //   "Before delete (RSS/GRAPPA):",
+            //   JSON.stringify(reconstructor.options, null, 2),
+            // );
 
             delete reconstructor.options.sensitivityMap;
             delete reconstructor.options.loadSensitivity;
             delete reconstructor.options.sensitivityMapMethod;
             delete reconstructor.options.mask;
 
-            console.log(
-              "After delete (RSS/GRAPPA):",
-              JSON.stringify(reconstructor.options, null, 2),
-            );
+            // console.log(
+            //   "After delete (RSS/GRAPPA):",
+            //   JSON.stringify(reconstructor.options, null, 2),
+            // );
           }
 
           getFiles(snr);
