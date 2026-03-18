@@ -345,9 +345,12 @@ const Home = () => {
   ];
 
   const dispatch = useAppDispatch();
-  const { uploadToken, level } = useAppSelector((state) => state.authenticate);
+  const { uploadToken, level, isAdmin: isAdminFlag } = useAppSelector(
+    (state) => state.authenticate,
+  );
   const { files } = useAppSelector((state) => state.data);
-  const isAdmin = level === "admin";
+  // Demo Data checkbox should only be available for admin users
+  const isAdmin = Boolean(isAdminFlag) || level === "admin";
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [renamingCallback, setRenamingCallback] = useState<
     (alias: string, isDemoData?: boolean) => Promise<boolean>
