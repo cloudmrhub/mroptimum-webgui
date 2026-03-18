@@ -107,9 +107,8 @@ const Setup = () => {
   }, []);
 
   const dispatch = useAppDispatch();
-  const { accessToken, level, uploadToken, queueToken } = useAppSelector(
-    (state) => state.authenticate,
-  );
+  const { accessToken, level, uploadToken, queueToken, isAdmin } =
+    useAppSelector((state) => state.authenticate);
   // Computing unit / counts state (for Setup UI)
   const [cuCounts, setCuCounts] = useState({ mode_1: null as number | null, mode_2: null as number | null });
   // Combined list of computing units (items annotated with `.mode` = 'mode_1'|'mode_2')
@@ -117,7 +116,9 @@ const Setup = () => {
   const [cuSelected, setCuSelected] = useState("");
   const [cuLoading, setCuLoading] = useState(true);
   const [cuError, setCuError] = useState<string | null>(null);
-  const developer = level !== "standard" && level !== "pro";
+  // Show JSON preview for developers and admins.
+  // `level` can be undefined until profile loads; treat that as non-developer unless admin flag is set.
+  const developer = Boolean(isAdmin) || level === "developer";
   const editActive = useAppSelector((state) => state.setup.editInProgress);
   const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
   const newJobId = useAppSelector((state) => state.setup.idGenerator);
