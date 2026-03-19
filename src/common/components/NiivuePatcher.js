@@ -1279,9 +1279,13 @@ Niivue.prototype.deleteDrawingByLabel = function (labels = [0]) {
 const bitmapOverlay = [];
 
 Niivue.prototype.groupLabelsInto = function (sourceLabels = [0], targetLabel = 7) {
+    const overlayIndex = new Set(bitmapOverlay.map((t) => t[0]));
     for (let i = 0; i < this.drawBitmap.length; i++) {
         if (sourceLabels.indexOf(this.drawBitmap[i]) >= 0) {
-            bitmapOverlay.push([i, this.drawBitmap[i]]);
+            if (!overlayIndex.has(i)) {
+                bitmapOverlay.push([i, this.drawBitmap[i]]);
+                overlayIndex.add(i);
+            }
             this.drawBitmap[i] = targetLabel;
         }
     }
@@ -1295,6 +1299,46 @@ Niivue.prototype.ungroup = function () {
     bitmapOverlay.length = 0;
     this.refreshDrawing(false);
 }
+
+/**
+ * Group ROI labels from a table selection. If the selection includes the merged
+ * label (targetLabel, e.g. 7) and other labels, runs ungroup then recomputes which
+ * labels appear in the affected voxels and groups those — so the user does not need
+ * to ungroup manually (one atomic UI step).
+ */
+Niivue.prototype.groupLabelsFromSelection = function (sourceLabels = [], targetLabel = 7) {
+    if (!this.drawBitmap || !sourceLabels || sourceLabels.length < 2) {
+        return;
+    }
+    const labelSet = new Set(sourceLabels);
+    if (labelSet.size < 2) {
+        return;
+    }
+    if (labelSet.has(targetLabel)) {
+        const n = this.drawBitmap.length;
+        const mask = new Uint8Array(n);
+        for (let i = 0; i < n; i++) {
+            if (labelSet.has(this.drawBitmap[i])) {
+                mask[i] = 1;
+            }
+        }
+        this.ungroup();
+        const mergeSet = new Set();
+        for (let i = 0; i < n; i++) {
+            if (mask[i] && this.drawBitmap[i] !== 0) {
+                mergeSet.add(this.drawBitmap[i]);
+            }
+        }
+        const toMerge = Array.from(mergeSet).sort(function (a, b) { return a - b; });
+        if (toMerge.length === 0) {
+            this.refreshDrawing(false);
+            return;
+        }
+        this.groupLabelsInto(toMerge, targetLabel);
+    } else {
+        this.groupLabelsInto(sourceLabels, targetLabel);
+    }
+};
 
 Niivue.prototype.resetScene = function () {
     this.scene.pan2Dxyzmm = [0, 0, 0, 1]
