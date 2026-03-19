@@ -1,12 +1,13 @@
 import React, { useState } from "react"
 import { Box, Card, CardContent } from "@mui/material"
-import LocationTable from "./LocationTable";
+import LocationTable from "../../LocationTable";
 import { ROITable } from "../../../../app/results/Rois";
 import { DrawToolkit, DrawToolkitProps } from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
 import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
 import TKDualRange from "../../Cmr-components/tk-dualrange/TKDualRange";
+import { CmrLabel } from "cloudmr-ux";
 
 interface NiivuePanelProps {
     nv: any;
@@ -291,9 +292,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             <div style={{ marginBottom: 20 }}>
                                 {/* Label + editable field  */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                                    <label htmlFor="ySlice">
-                                        Y:
-                                    </label>
+                                    <CmrLabel style={{ fontSize: "0.9rem" }}>Y:</CmrLabel>
                                     <input
                                         type="number"
                                         // keep the input's value as a number for smooth dragging,
@@ -341,9 +340,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                             <div>
                                 {/* Label + editable field */}
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                                    <label htmlFor="zSlice">
-                                        Z:
-                                    </label>
+                                    <CmrLabel style={{ fontSize: "0.9rem" }}>Z:</CmrLabel>
                                     <input
                                         type="number"
                                         value={zVal.toFixed(3)}   // show up to 3 decimals

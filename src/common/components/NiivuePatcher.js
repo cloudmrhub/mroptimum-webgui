@@ -1389,6 +1389,192 @@ Niivue.prototype.loadDrawingFromBase64 = async function (fnm, base64) {
     return base64 !== undefined;
 }
 
+/**
+ * Merge an uploaded/loaded drawing into the current drawBitmap instead of replacing it.
+ * Non-zero import voxels overwrite the current bitmap (same as drawing a new ROI on top).
+ * Import label IDs are reused when that ID is not already on the canvas (same color as when drawn);
+ * otherwise they are remapped to the next free ID to avoid collisions.
+ * @returns {{ ok: boolean, importLabelRemap: Record<number, number>|null }}
+ *   importLabelRemap null means the full scene was loaded with loadDrawing (no prior drawing).
+ */
+Niivue.prototype.mergeDrawingFromBase64 = async function (fnm, base64) {
+    const result = { ok: false, importLabelRemap: null };
+    if (!base64) {
+        return result;
+    }
+    try {
+        if (!this.back) {
+            throw new Error('back undefined');
+        }
+        const drawingBitmap = NVImage.loadFromBase64({ name: fnm, base64 });
+        if (!drawingBitmap || !drawingBitmap.hdr || !drawingBitmap.hdr.dims) {
+            return result;
+        }
+        const dims = drawingBitmap.hdr.dims;
+        if (
+            dims[1] !== this.back.hdr.dims[1] ||
+            dims[2] !== this.back.hdr.dims[2] ||
+            dims[3] !== this.back.hdr.dims[3]
+        ) {
+            console.warn('mergeDrawingFromBase64: drawing dimensions do not match background');
+            return result;
+        }
+        const vx = dims[1] * dims[2] * dims[3];
+        const perm = drawingBitmap.permRAS;
+        const layout = [0, 0, 0];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (Math.abs(perm[i]) - 1 !== j) {
+                    continue;
+                }
+                layout[j] = i * Math.sign(perm[i]);
+            }
+        }
+        let stride = 1;
+        const instride = [1, 1, 1];
+        const inflip = [false, false, false];
+        for (let i = 0; i < layout.length; i++) {
+            for (let j = 0; j < layout.length; j++) {
+                const a = Math.abs(layout[j]);
+                if (a !== i) {
+                    continue;
+                }
+                instride[j] = stride;
+                if (layout[j] < 0 || Object.is(layout[j], -0)) {
+                    inflip[j] = true;
+                }
+                stride *= dims[j + 1];
+            }
+        }
+        const nvRange = (start, end, step) => {
+            const o = [];
+            if (step > 0) {
+                for (let i = start; i <= end; i += step) {
+                    o.push(i);
+                }
+            } else {
+                for (let i = start; i >= end; i += step) {
+                    o.push(i);
+                }
+            }
+            return o;
+        };
+        let xlut = nvRange(0, dims[1] - 1, 1);
+        if (inflip[0]) {
+            xlut = nvRange(dims[1] - 1, 0, -1);
+        }
+        for (let i = 0; i < dims[1]; i++) {
+            xlut[i] *= instride[0];
+        }
+        let ylut = nvRange(0, dims[2] - 1, 1);
+        if (inflip[1]) {
+            ylut = nvRange(dims[2] - 1, 0, -1);
+        }
+        for (let i = 0; i < dims[2]; i++) {
+            ylut[i] *= instride[1];
+        }
+        let zlut = nvRange(0, dims[3] - 1, 1);
+        if (inflip[2]) {
+            zlut = nvRange(dims[3] - 1, 0, -1);
+        }
+        for (let i = 0; i < dims[3]; i++) {
+            zlut[i] *= instride[2];
+        }
+
+        const inVs = drawingBitmap.img;
+        const importFlat = new Uint8Array(vx);
+        let ji = 0;
+        for (let z = 0; z < dims[3]; z++) {
+            for (let y = 0; y < dims[2]; y++) {
+                for (let x = 0; x < dims[1]; x++) {
+                    importFlat[xlut[x] + ylut[y] + zlut[z]] = inVs[ji];
+                    ji++;
+                }
+            }
+        }
+
+        const hasExistingDrawing =
+            this.drawBitmap &&
+            this.drawBitmap.length === vx &&
+            this.drawBitmap.some((v) => v !== 0);
+
+        if (this.drawBitmap && this.drawBitmap.length !== vx) {
+            console.warn('mergeDrawingFromBase64: drawBitmap size mismatch; replacing drawing');
+            this.loadDrawing(drawingBitmap);
+            result.ok = true;
+            result.importLabelRemap = null;
+            return result;
+        }
+
+        if (!hasExistingDrawing) {
+            this.loadDrawing(drawingBitmap);
+            result.ok = true;
+            result.importLabelRemap = null;
+            return result;
+        }
+
+        const usedOnCanvas = new Set();
+        for (let i = 0; i < this.drawBitmap.length; i++) {
+            const v = this.drawBitmap[i];
+            if (v !== 0) {
+                usedOnCanvas.add(v);
+            }
+        }
+
+        const seen = new Set();
+        for (let i = 0; i < importFlat.length; i++) {
+            const v = importFlat[i];
+            if (v !== 0) {
+                seen.add(v);
+            }
+        }
+        const sorted = Array.from(seen).sort((a, b) => a - b);
+        const importLabelRemap = {};
+        let nextSynthetic = 0;
+        for (const v of usedOnCanvas) {
+            if (v > nextSynthetic) {
+                nextSynthetic = v;
+            }
+        }
+        nextSynthetic += 1;
+
+        for (let s = 0; s < sorted.length; s++) {
+            const oldL = sorted[s];
+            if (!usedOnCanvas.has(oldL)) {
+                importLabelRemap[oldL] = oldL;
+                usedOnCanvas.add(oldL);
+            } else {
+                while (usedOnCanvas.has(nextSynthetic)) {
+                    nextSynthetic++;
+                }
+                importLabelRemap[oldL] = nextSynthetic;
+                usedOnCanvas.add(nextSynthetic);
+                nextSynthetic++;
+            }
+        }
+
+        for (let i = 0; i < vx; i++) {
+            const v = importFlat[i];
+            if (v === 0) {
+                continue;
+            }
+            // Upload wins overlaps (matches pen drawing on top of another ROI)
+            this.drawBitmap[i] = importLabelRemap[v];
+        }
+
+        this.drawAddUndoBitmap();
+        this.refreshDrawing(false);
+        this.drawScene();
+        result.ok = true;
+        result.importLabelRemap = importLabelRemap;
+        return result;
+    } catch (err) {
+        console.error(err);
+        console.error('mergeDrawingFromBase64() failed to load ' + fnm);
+        return result;
+    }
+};
+
 // not included in public docs
 // show text labels for L/R, A/P, I/S dimensions
 Niivue.prototype.drawSliceOrientationText = function (leftTopWidthHeight, axCorSag) {
