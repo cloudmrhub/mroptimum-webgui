@@ -29,6 +29,12 @@ const MainRouter = () => {
   AuthenticatedHttpClient.setDispatch(dispatch);
   const debugging_or_logged_in = debugging || logged_in_token;
 
+  const menuList = [
+    { title: 'About', path: '/about' },
+    // { title: 'Contact Us', path: '/contact' },
+    { title: 'Bug Report', path: '/bug-report' },
+  ];
+
   return (
     <React.Fragment>
       <BrowserRouter>
@@ -36,7 +42,7 @@ const MainRouter = () => {
           <HeaderBar
             siteTitle="MR Optimum"
             email={email}
-            menuList={[]}
+            menuList={menuList}
             handleLogout={() => {
               dispatch(signOut());
               dispatch(setupSetters.resetSetup());

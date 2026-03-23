@@ -1301,10 +1301,9 @@ Niivue.prototype.ungroup = function () {
 }
 
 /**
- * Group ROI labels from a table selection. If the selection includes the merged
- * label (targetLabel, e.g. 7) and other labels, runs ungroup then recomputes which
- * labels appear in the affected voxels and groups those — so the user does not need
- * to ungroup manually (one atomic UI step).
+ * Smart group from ROI table selection.
+ * - Extend: selection includes merged label(s) >= targetLabel → mask those voxels, ungroup once, merge into max(merged ids in selection) (e.g. add to 7 or 8).
+ * - New merge (primitives only): if no merged id >= targetLabel exists in the volume, merge into targetLabel (7); else merge into maxMergedInVolume + 1 (e.g. second group → 8).
  */
 Niivue.prototype.groupLabelsFromSelection = function (sourceLabels = [], targetLabel = 7) {
     if (!this.drawBitmap || !sourceLabels || sourceLabels.length < 2) {
@@ -1314,7 +1313,12 @@ Niivue.prototype.groupLabelsFromSelection = function (sourceLabels = [], targetL
     if (labelSet.size < 2) {
         return;
     }
-    if (labelSet.has(targetLabel)) {
+    const MERGE_THRESHOLD = targetLabel;
+    const mergedInSelection = sourceLabels.filter(function (l) {
+        return l >= MERGE_THRESHOLD;
+    });
+    if (mergedInSelection.length > 0) {
+        const mergeTarget = Math.max.apply(null, mergedInSelection);
         const n = this.drawBitmap.length;
         const mask = new Uint8Array(n);
         for (let i = 0; i < n; i++) {
@@ -1334,10 +1338,18 @@ Niivue.prototype.groupLabelsFromSelection = function (sourceLabels = [], targetL
             this.refreshDrawing(false);
             return;
         }
-        this.groupLabelsInto(toMerge, targetLabel);
-    } else {
-        this.groupLabelsInto(sourceLabels, targetLabel);
+        this.groupLabelsInto(toMerge, mergeTarget);
+        return;
     }
+    var sceneMaxMerged = 0;
+    for (var j = 0; j < this.drawBitmap.length; j++) {
+        var v = this.drawBitmap[j];
+        if (v >= MERGE_THRESHOLD) {
+            sceneMaxMerged = Math.max(sceneMaxMerged, v);
+        }
+    }
+    var newTarget = sceneMaxMerged >= MERGE_THRESHOLD ? sceneMaxMerged + 1 : MERGE_THRESHOLD;
+    this.groupLabelsInto(sourceLabels, newTarget);
 };
 
 Niivue.prototype.resetScene = function () {
