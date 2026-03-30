@@ -1482,6 +1482,7 @@ const Setup = () => {
                                         k:
                                         <CmrInputNumber
                                           value={kStore}
+                                          min={0}
                                           style={{
                                             flex: 1,
                                             marginLeft: "5pt",
@@ -1499,6 +1500,7 @@ const Setup = () => {
                                         r:
                                         <CmrInputNumber
                                           value={rStore}
+                                          min={0}
                                           style={{
                                             flex: 1,
                                             marginLeft: "5pt",
@@ -1516,6 +1518,7 @@ const Setup = () => {
                                         t:
                                         <CmrInputNumber
                                           value={tStore}
+                                          min={0}
                                           style={{
                                             flex: 1,
                                             marginLeft: "5pt",
@@ -1533,6 +1536,7 @@ const Setup = () => {
                                         c:
                                         <CmrInputNumber
                                           value={cStore}
+                                          min={0}
                                           style={{
                                             flex: 1,
                                             marginLeft: "5pt",
@@ -1729,9 +1733,9 @@ const Setup = () => {
                           onChange={(event) => {
                             const checked = event.target.checked;
                             dispatch(setupSetters.setDecimate(checked));
-                            if (!checked) {
-                              dispatch(setupSetters.setDecimateACL(null));
-                            }
+                            // Always reset ACL to null so "Use All Lines for Autocalibration"
+                            // is checked by default whenever Decimate Data is toggled on or off
+                            dispatch(setupSetters.setDecimateACL(null));
                           }}
                         >
                           Decimate Data

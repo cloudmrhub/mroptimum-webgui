@@ -458,7 +458,7 @@ export const setupSlice = createSlice({
             state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
             if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
                 state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
-            state.activeSetup.options.reconstructor.options.acl = [24, 24];
+            state.activeSetup.options.reconstructor.options.acl = [null, null];
             state.editInProgress = true;
         },
         setDecimateAccelerations1(state: SetupState, action: PayloadAction<number>) {
