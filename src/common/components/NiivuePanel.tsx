@@ -280,9 +280,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
               <div style={{ marginBottom: 20 }}>
                 {/* Label and text field */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                  <label htmlFor="xSlice">
-                    X:
-                  </label>
+                  <CmrLabel>X:</CmrLabel>
                   <input
                     type="number"
                     value={xVal.toFixed(3)}
@@ -299,7 +297,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
                       applyX(clamp(next, sliderMinX, sliderMaxX));
                     }}
                     style={{
-                      width: 80,
+                      width: 100,
                       padding: "4px 6px",
                       borderRadius: 6,
                       border: "1px solid #ccc",
@@ -327,9 +325,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
               <div style={{ marginBottom: 20 }}>
                 {/* Label + editable field  */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                  <label htmlFor="ySlice">
-                    Y:
-                  </label>
+                  <CmrLabel>Y:</CmrLabel>
                   <input
                     type="number"
                     value={yVal.toFixed(3)}
@@ -374,9 +370,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
               <div>
                 {/* Label + editable field */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                  <label htmlFor="zSlice">
-                    Z:
-                  </label>
+                  <CmrLabel>Z:</CmrLabel>
                   <input
                     type="number"
                     value={zVal.toFixed(3)}

@@ -296,6 +296,39 @@ function ensureCorrectionNode(state: SetupState) {
     return activeSetup.options.reconstructor.options.correction as any;
 }
 
+/** Reconstruction radio indices: 0 RSS, 1 B1, 2 SENSE, 3 GRAPPA, 4 ESPIRIT */
+const RECONSTRUCTION_NAMES = ["rss", "b1", "sense", "grappa", "espirit"] as const;
+
+/**
+ * Shared logic for `setReconstructionMethod` and for resetting to RSS when the SNR analysis method changes.
+ */
+function applyReconstructionMethodIndex(state: SetupState, index: number) {
+  const opts = state.activeSetup.options.reconstructor.options;
+  state.activeSetup.options.reconstructor.id = Number(index);
+  state.activeSetup.options.reconstructor.name =
+    RECONSTRUCTION_NAMES[index] ?? "rss";
+
+  if (index === 3 && opts.kernelSize == undefined) {
+    opts.kernelSize = [3, 4];
+  }
+  if (index !== 3) {
+    delete opts.kernelSize;
+  }
+
+  state.outputSettings.coilsensitivity = index === 2 || index === 1;
+  state.outputSettings.gfactor = index === 2;
+  if (index === 2 || index === 3) {
+    opts.decimate = false;
+  } else {
+    delete opts.decimate;
+  }
+  // Clear SENSE-specific option when leaving SENSE (UI / submit pipeline expect this)
+  if (index !== 2) {
+    opts.gfactor = false;
+  }
+  state.editInProgress = true;
+}
+
 export const setupSlice = createSlice({
   name: "setup",
   initialState,
@@ -308,13 +341,15 @@ export const setupSlice = createSlice({
         if (state.activeSetup.name === "pmr") state.activeSetup.options.NR = 20;
       if (state.activeSetup.name === "cr") state.activeSetup.options.NR = 6;
 
-            // delete state.activeSetup.options.NR;
-            if (state.activeSetup.name == 'cr')
-                state.activeSetup.options.boxSize = 9;
-            else
-                // delete state.activeSetup.options.boxSize;
-                state.editInProgress = true;
-        },
+      // delete state.activeSetup.options.NR;
+      if (state.activeSetup.name == "cr")
+        state.activeSetup.options.boxSize = 9;
+      else state.editInProgress = true;
+
+      // Switching Analytic / Multiple Replica / Pseudo / Generalized: reset reconstruction
+      // to Root Sum of Squares so stale choices (e.g. SENSE) do not carry over.
+      applyReconstructionMethodIndex(state, 0);
+    },
         setPseudoReplicaCount(state: SetupState, action: PayloadAction<number>) {
             console.log(action.payload);
             state.activeSetup.options['NR'] = action.payload;
@@ -356,18 +391,7 @@ export const setupSlice = createSlice({
             state.editInProgress = true;
         },
         setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
-            state.activeSetup.options.reconstructor.id = Number(action.payload);
-            state.activeSetup.options.reconstructor.name = ['rss', 'b1', 'sense', 'grappa'][action.payload];
-            if (action.payload == 3 && state.activeSetup.options.reconstructor.options.kernelSize == undefined) {
-                state.activeSetup.options.reconstructor.options.kernelSize = [3, 4];
-            }
-            state.outputSettings.coilsensitivity = action.payload == 2 || action.payload == 1;
-            state.outputSettings.gfactor = action.payload == 2;
-            if (action.payload == 2 || action.payload == 3) {
-                state.activeSetup.options.reconstructor.options.decimate = false;
-            } else
-                delete state.activeSetup.options.reconstructor.options.decimate;
-            state.editInProgress = true;
+            applyReconstructionMethodIndex(state, action.payload);
         },
         setOutputMatlab(state: SetupState, action: PayloadAction<boolean>) {
             state.outputSettings.matlab = action.payload;

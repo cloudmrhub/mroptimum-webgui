@@ -116,6 +116,7 @@ const Setup = () => {
   const [cuSelected, setCuSelected] = useState("");
   const [cuLoading, setCuLoading] = useState(true);
   const [cuError, setCuError] = useState<string | null>(null);
+  const [hasMode2ComputingUnits, setHasMode2ComputingUnits] = useState<boolean>(false);
   // Show JSON preview for developers and admins.
   // `level` can be undefined until profile loads; treat that as non-developer unless admin flag is set.
   const developer = Boolean(isAdmin) || level === "developer";
@@ -294,6 +295,7 @@ const Setup = () => {
       try {
         if (!accessToken) {
           setCuError("No authentication token found. Please login.");
+          setHasMode2ComputingUnits(false);
           setCuLoading(false);
           return;
         }
@@ -305,14 +307,29 @@ const Setup = () => {
         if (cancelled) return;
         const n1 = normalizeUnitsPayload(r1, "mode_1");
         const n2 = normalizeUnitsPayload(r2, "mode_2");
+        setHasMode2ComputingUnits(n2.length > 0);
         // annotate with mode and combine into single list
         const annotated1 = n1.map((x: any) => ({ ...(x || {}), mode: "mode_1" }));
         const annotated2 = n2.map((x: any) => ({ ...(x || {}), mode: "mode_2" }));
         const combined = [...annotated1, ...annotated2];
         setCuUnits(combined);
-        const pickValue = (u: any, idx: number) => String(u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? idx);
-        const firstMode1 = combined[0] ? pickValue(combined[0], 0) : "";
-        setCuSelected(firstMode1);
+
+        const pickValue = (u: any, idx: number) =>
+          String(
+            u.computingUnitId ?? u.computing_unit_id ?? u.id ?? u.appId ?? u.name ?? idx,
+          );
+
+        const first = combined[0];
+        const initialId = first ? pickValue(first, 0) : "";
+        const initialMode = first?.mode ?? "mode_1";
+
+        // Keep Redux + UI selection in sync so queued jobs always use the right computing unit
+        // even if we hide the panel when mode_2 units are unavailable.
+        setCuSelected(initialId);
+        dispatch(
+          // @ts-ignore
+          setupSetters.setSelectedComputingUnit({ id: initialId, mode: initialMode }),
+        );
       } catch (err: any) {
         if (!cancelled) setCuError(err?.message || String(err));
       } finally {
@@ -753,12 +770,13 @@ const Setup = () => {
 
       {/* Computing units selectors (Setup) */}
 
-      <CmrCollapse
-        accordion={false}
-        defaultActiveKey={[0]}
-        expandIconPosition="right"
-      >
-        <CmrPanel key="0" header="Computing Units" className="mb-2">
+      {(cuLoading || hasMode2ComputingUnits) && (
+        <CmrCollapse
+          accordion={false}
+          defaultActiveKey={[0]}
+          expandIconPosition="right"
+        >
+          <CmrPanel key="0" header="Computing Units" className="mb-2">
           {cuLoading ? (
             <div>Loading computing units...</div>
           ) : cuError ? (
@@ -772,8 +790,8 @@ const Setup = () => {
                 gap: 2,
               }}
             >
-              <CmrLabel style={{ minWidth: 300 }}>
-                Computing Unit (Mode 1 + Mode 2):
+              <CmrLabel style={{ minWidth: 220 }}>
+              Select Computing Unit:
               </CmrLabel>
 
               <FormControl fullWidth size="small">
@@ -800,6 +818,9 @@ const Setup = () => {
                     if (!found) return selected;
 
                     const modeLabel = found.mode ?? found.mode_1 ?? found.mode_2 ?? "";
+                    if (modeLabel === "mode_1") {
+                      return "[mode_1] Cloud MR AWS";
+                    }
 
                     return (
                       (modeLabel ? `[${modeLabel}] ` : "") +
@@ -850,13 +871,15 @@ const Setup = () => {
                     const modeLabel = u.mode ?? u.mode_1 ?? u.mode_2 ?? "";
 
                     let label =
-                      (modeLabel ? `[${modeLabel}] ` : "") +
-                      (u.alias ??
-                        u.name ??
-                        u.label ??
-                        u.computingUnitId ??
-                        u.id ??
-                        "Unknown");
+                      modeLabel === "mode_1"
+                        ? "[mode_1] Cloud MR AWS"
+                        : (modeLabel ? `[${modeLabel}] ` : "") +
+                          (u.alias ??
+                            u.name ??
+                            u.label ??
+                            u.computingUnitId ??
+                            u.id ??
+                            "Unknown");
 
                     return (
                       <MenuItem key={`s-all-${i}`} value={val}>
@@ -873,6 +896,7 @@ const Setup = () => {
         </CmrPanel>
 
       </CmrCollapse>
+      )}
 
       <CmrCollapse
         accordion={false}

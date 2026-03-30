@@ -429,7 +429,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           <Row
             style={{
               alignItems: "center",
-              justifyContent: "flex-end",
+              justifyContent: "flex-start",
               marginBottom: "20px",
             }}
           >
