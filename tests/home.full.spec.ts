@@ -9,8 +9,8 @@ test.describe("Home page", () => {
 
   test.beforeEach(async ({ page }) => {
     await ensureAuthenticatedSession(page);
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    // ensureAuthenticatedSession already navigates to /main and confirms the
+    // Home tab is visible — no additional navigation needed.
   });
 
   test.describe("Page sections", () => {

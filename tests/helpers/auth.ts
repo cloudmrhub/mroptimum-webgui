@@ -60,8 +60,9 @@ export async function fillLoginForm(
 }
 
 export async function waitForAuthenticatedApp(page: Page): Promise<void> {
-  await expect(page).toHaveURL(/\/main(?:\/)?(?:[?#].*)?$/);
-  await expect(page.getByRole("tab", { name: /^home$/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/main(?:\/)?(?:[?#].*)?$/, { timeout: 15000 });
+  // React may take a while to mount on cold loads — 15s covers slow CI environments.
+  await expect(page.getByRole("tab", { name: /^home$/i })).toBeVisible({ timeout: 15000 });
 }
 
 export async function ensureAuthenticatedSession(page: Page): Promise<void> {

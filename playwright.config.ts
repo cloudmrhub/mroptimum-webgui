@@ -46,16 +46,17 @@ const chromiumProject = {
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  timeout: 120_000,
+  fullyParallel: false,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : undefined,
+  workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    video: "on", // Changed from "retain-on-failure"
+    video: "on",
   },
   projects: useAuthState
     ? [

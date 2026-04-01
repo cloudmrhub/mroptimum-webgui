@@ -86,13 +86,11 @@ async function assertMinConstraint(
 // ============================================================
 
 test.describe("Setup page - comprehensive validation", () => {
-  test.setTimeout(120_000);
-
   test.beforeEach(async ({ page }) => {
     await ensureAuthenticatedSession(page);
     // There is no /setup route — Setup is a tab inside /main
     await page.getByRole("tab", { name: /^set up$/i }).click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
   });
 
   // ----------------------------------------------------------

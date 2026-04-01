@@ -77,7 +77,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const selectedVolume = useAppSelector((state) => state.result.selectedVolume);
   const resultLoading = useAppSelector((state) => state.result.resultLoading);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const openPanel = useAppSelector((state) => state.result.openPanel);
+  const [openPanel, setOpenPanel] = useState<number[]>([0]);
   const [warning, setWarning] = useState("");
   const [warningOpen, setWarningOpen] = useState(false);
 
@@ -98,7 +98,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
     dispatch(getUpstreamJobs());
 
     let interval = setInterval(() => {
-      if (visible && autoRefresh && openPanel.indexOf(0) >= 0) {
+      if (visible && autoRefresh && openPanel.includes(0)) {
         //@ts-ignore
         dispatch(getUpstreamJobs());
       }
@@ -176,7 +176,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   onClick={(event) => {
                     event.stopPropagation();
                     if (params.row.pipeline_id === activeJob?.pipeline_id) {
-                      dispatch(resultActions.setOpenPanel([1, 2]));
+                      setOpenPanel([1, 2]);
                       return;
                     }
                     dispatch(
@@ -194,7 +194,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                           if (nii.id === 0) {
                             dispatch(resultActions.selectVolume(i));
                             nv.loadVolumes([volumes[i]]);
-                            dispatch(resultActions.setOpenPanel([1, 2]));
+                            setOpenPanel([1, 2]);
                             nv.closeDrawing();
                             break;
                           }
@@ -419,13 +419,14 @@ const Results = ({ visible }: { visible?: boolean }) => {
         expandIconPosition="right"
         activeKey={openPanel}
         onChange={(key: any) => {
-          if (openPanel.indexOf(0) < 0 && key.indexOf(0) >= 0) {
+          if (!openPanel.includes(0) && [key].flat().includes(0)) {
+            //@ts-ignore
             dispatch(getUpstreamJobs());
           }
-          dispatch(resultActions.setOpenPanel(key));
+          setOpenPanel(key);
         }}
       >
-        <CmrPanel header="Job Results" className={"mb-2"} key={"0"}>
+        <CmrPanel key={"0"} header="Job Results" className={"mb-2"}>
           <Row
             style={{
               alignItems: "center",

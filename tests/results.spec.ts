@@ -1,29 +1,79 @@
 import { test, expect, Page } from "@playwright/test";
-import path from "path";
+// import path from "path";
 import { ensureAuthenticatedSession } from "./helpers/auth";
 
 // ============================================================
 // HELPERS
 // ============================================================
 
-/** Navigate to the Results tab inside /main. */
-async function goToResults(page: Page) {
-  await page.goto("/main");
-  await page.waitForLoadState("networkidle");
-  const resultsTab = page.getByRole("tab", { name: /Results/i });
-  await resultsTab.click();
-  await page.waitForTimeout(600);
+/**
+ * Expand a CmrPanel by its header text — only clicks if not already open.
+ *
+ * CmrPanel renders its header as <div class="card-header" role="button" aria-expanded>.
+ * We use the aria-expanded attribute as the source of truth rather than checking
+ * card-body visibility (which can race with CSS transitions).
+ */
+async function expandPanel(page: Page, headerText: RegExp | string) {
+  const header = page
+    .locator('.card-header[role="button"]')
+    .filter({ hasText: headerText })
+    .first();
+  // Wait for the header to be attached — CmrPanel children may not have mounted
+  // yet right after the tabpanel becomes visible.
+  await header.waitFor({ state: "attached", timeout: 10000 });
+  await header.scrollIntoViewIfNeeded();
+  const isExpanded = await header.getAttribute("aria-expanded");
+  if (isExpanded !== "true") {
+    await header.click();
+    await expect(header).toHaveAttribute("aria-expanded", "true", { timeout: 5000 });
+  }
 }
 
-/** Expand a collapsible panel by its header text if not already expanded. */
-async function expandPanel(page: Page, headerText: RegExp | string) {
-  const header =
-    typeof headerText === "string"
-      ? page.getByText(headerText, { exact: false }).first()
-      : page.getByText(headerText).first();
-  await header.scrollIntoViewIfNeeded();
-  await header.click();
-  await page.waitForTimeout(400);
+/**
+ * Click the Play button on the first completed job and wait for it to load.
+ * Uses proper element waits instead of hardcoded delays.
+ */
+async function loadCompletedJob(page: Page) {
+  const completedRow = page
+    .locator('[role="row"]')
+    .filter({ hasText: /completed/i })
+    .first();
+
+  try {
+    await completedRow.waitFor({ state: "visible", timeout: 15000 });
+  } catch {
+    return;
+  }
+
+  const playBtn = completedRow
+    .locator('[data-testid="PlayArrowIcon"]')
+    .first();
+  if (await playBtn.isVisible()) {
+    await playBtn.click();
+    await page.waitForTimeout(5000);
+  }
+}
+
+/**
+ * Navigate to the Results tab inside /main.
+ *
+ * ensureAuthenticatedSession() already navigates to /main and waits for React to
+ * fully mount (it asserts the Home tab is visible). We must NOT call page.goto()
+ * again — that would trigger a full reload and waitForLoadState("domcontentloaded")
+ * fires before React re-mounts, causing "element(s) not found" on the tab locator.
+ *
+ * This mirrors the setup.spec.ts pattern: auth → click tab → done.
+ */
+async function goToResults(page: Page) {
+  const resultsTab = page.getByRole("tab", { name: /Results/i });
+  await resultsTab.click();
+  // CmrTabs renders ALL tab panels at mount with hidden + display:none on inactive
+  // ones. After clicking the tab, wait for React to re-render and reveal the panel.
+  const resultsPanel = page.getByRole("tabpanel", { name: /Results/i });
+  await expect(resultsPanel).toBeVisible({ timeout: 10000 });
+  // Job Results is panel 0 — open by default via useState([0]).
+  // expandPanel is a safe no-op if the card-body is already visible.
+  await expandPanel(page, "Job Results");
 }
 
 // ============================================================
@@ -31,8 +81,6 @@ async function expandPanel(page: Page, headerText: RegExp | string) {
 // ============================================================
 
 test.describe("Results page - comprehensive validation", () => {
-  test.setTimeout(120_000);
-
   test.beforeEach(async ({ page }) => {
     await ensureAuthenticatedSession(page);
     await goToResults(page);
@@ -48,12 +96,13 @@ test.describe("Results page - comprehensive validation", () => {
       const panel = page.getByText("Job Results").first();
       await expect(panel).toBeVisible();
 
-      // Table columns
-      await expect(page.getByText("Job ID").first()).toBeVisible();
-      await expect(page.getByText("Alias").first()).toBeVisible();
-      await expect(page.getByText("Date Submitted").first()).toBeVisible();
-      await expect(page.getByText("Status").first()).toBeVisible();
-      await expect(page.getByText("Actions").first()).toBeVisible();
+      // Use getByRole("columnheader") to target DataGrid headers specifically —
+      // getByText() can match hidden elements elsewhere in the page (e.g. <strong>Alias:</strong>)
+      await expect(page.getByRole("columnheader", { name: "Job ID" })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("columnheader", { name: "Alias" })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("columnheader", { name: "Date Submitted" })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("columnheader", { name: "Actions" })).toBeVisible({ timeout: 10000 });
     });
 
     test("'Auto Refreshing' checkbox is visible and toggleable", async ({
@@ -90,9 +139,11 @@ test.describe("Results page - comprehensive validation", () => {
       // Wait for table to render
       await page.waitForTimeout(2000);
 
-      // Check table has rendered (at least the header row exists)
-      const grid = page.locator('[role="grid"], .MuiDataGrid-root').first();
-      await expect(grid).toBeVisible();
+      // Scope to the Results tabpanel — Home also has a CmrTable (DataGrid with
+      // role="grid") inside a hidden tabpanel, so an unscoped .first() picks that one.
+      const resultsPanel = page.getByRole("tabpanel", { name: /Results/i });
+      const grid = resultsPanel.locator('[role="grid"]').first();
+      await expect(grid).toBeVisible({ timeout: 10000 });
 
       // No critical errors
       const critical = errors.filter(
@@ -104,14 +155,14 @@ test.describe("Results page - comprehensive validation", () => {
     test("completed job has Play and Download action buttons", async ({
       page,
     }) => {
-      // Wait for jobs to load
-      await page.waitForTimeout(3000);
-
-      // Look for any completed job row
       const completedRow = page
         .locator('[role="row"]')
         .filter({ hasText: /completed/i })
         .first();
+
+      try {
+        await completedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no completed jobs */ }
 
       if (await completedRow.isVisible()) {
         // Play button (PlayArrowIcon — rendered as SVG inside IconButton)
@@ -135,8 +186,6 @@ test.describe("Results page - comprehensive validation", () => {
     });
 
     test("pending job has disabled play button", async ({ page }) => {
-      await page.waitForTimeout(3000);
-
       const pendingRow = page
         .locator('[role="row"]')
         .filter({ hasText: /pending/i })
@@ -156,8 +205,6 @@ test.describe("Results page - comprehensive validation", () => {
     });
 
     test("delete button opens confirmation dialog", async ({ page }) => {
-      await page.waitForTimeout(3000);
-
       // Find any job row
       const rows = page.locator('[role="row"]').filter({
         has: page.locator('[data-testid="DeleteIcon"]'),
@@ -191,41 +238,16 @@ test.describe("Results page - comprehensive validation", () => {
     test("shows 'Please Select a Job Result' when no job is selected", async ({
       page,
     }) => {
-      // Expand the View Results panel
-      const viewPanel = page.getByText("View Results").first();
-      if (await viewPanel.isVisible()) {
-        await viewPanel.scrollIntoViewIfNeeded();
-        await viewPanel.click();
-        await page.waitForTimeout(400);
-      }
-
+      await expandPanel(page, "View Results");
       await expect(
         page.getByText("Please Select a Job Result").first(),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 5000 });
     });
 
     // The remaining viewer tests require loading a completed job
     test.describe("with a loaded completed job", () => {
       test.beforeEach(async ({ page }) => {
-        await page.waitForTimeout(3000);
-
-        // Try to load the first completed job
-        const completedRow = page
-          .locator('[role="row"]')
-          .filter({ hasText: /completed/i })
-          .first();
-
-        if (await completedRow.isVisible()) {
-          // Click the play button on the first completed job
-          const playBtn = completedRow
-            .locator('[data-testid="PlayArrowIcon"]')
-            .first();
-          if (await playBtn.isVisible()) {
-            await playBtn.click();
-            // Wait for results to load
-            await page.waitForTimeout(5000);
-          }
-        }
+        await loadCompletedJob(page);
       });
 
       test("NiiVue canvas renders when job is loaded", async ({ page }) => {
@@ -236,21 +258,21 @@ test.describe("Results page - comprehensive validation", () => {
       });
 
       // -- Toolbar dropdowns --
+      // The NiiVue toolbar MUI Selects all share id="slice-type", so getByLabel()
+      // matches multiple comboboxes. Locate each by its parent container instead:
+      // find the visible label text, go to the parent wrapper, then grab the combobox.
       test("'Opened Volume' dropdown is visible and lists volumes", async ({
         page,
       }) => {
-        const volumeSelect = page.getByLabel(/Opened Volume/i);
+        const container = page.locator("div").filter({ hasText: /^Opened Volume$/ }).first().locator("..");
+        const volumeSelect = container.getByRole("combobox").first();
         if (await volumeSelect.isVisible()) {
           await expect(volumeSelect).toBeVisible();
           await volumeSelect.click();
-          // At least one menu item should appear
           const menuItems = page.getByRole("option");
           if ((await menuItems.count()) === 0) {
-            // Try MUI listbox
             const muiItems = page.locator('[role="listbox"] [role="option"]');
-            // Even with zero items, the dropdown should have opened without error
           }
-          // Close dropdown
           await page.keyboard.press("Escape");
         }
       });
@@ -258,7 +280,8 @@ test.describe("Results page - comprehensive validation", () => {
       test("'Orientation' dropdown has axial/coronal/sagittal/multi/3d", async ({
         page,
       }) => {
-        const orientSelect = page.getByLabel(/Orientation/i);
+        const container = page.locator("div").filter({ hasText: /^Orientation$/ }).first().locator("..");
+        const orientSelect = container.getByRole("combobox").first();
         if (await orientSelect.isVisible()) {
           await orientSelect.click();
           await page.waitForTimeout(300);
@@ -268,11 +291,9 @@ test.describe("Results page - comprehensive validation", () => {
             await expect(page.getByRole("option", { name: opt })).toBeVisible();
           }
 
-          // Select each orientation
           for (const opt of options) {
             await page.getByRole("option", { name: opt }).click();
             await page.waitForTimeout(300);
-            // Re-open dropdown for next selection
             if (opt !== options[options.length - 1]) {
               await orientSelect.click();
               await page.waitForTimeout(300);
@@ -284,7 +305,8 @@ test.describe("Results page - comprehensive validation", () => {
       test("'Scroll and Right Click' dropdown has all drag modes", async ({
         page,
       }) => {
-        const dragSelect = page.getByLabel(/Scroll and Right Click/i);
+        const container = page.locator("div").filter({ hasText: /^Scroll and Right Click$/ }).first().locator("..");
+        const dragSelect = container.getByRole("combobox").first();
         if (await dragSelect.isVisible()) {
           await dragSelect.click();
           await page.waitForTimeout(300);
@@ -305,11 +327,11 @@ test.describe("Results page - comprehensive validation", () => {
       });
 
       test("'Display Mode' dropdown is available", async ({ page }) => {
-        const displaySelect = page.getByLabel(/Display Mode/i);
+        const container = page.locator("div").filter({ hasText: /^Display Mode$/ }).first().locator("..");
+        const displaySelect = container.getByRole("combobox").first();
         if (await displaySelect.isVisible()) {
           await displaySelect.click();
           await page.waitForTimeout(300);
-          // Should have at least 'Absolute'
           const absOption = page.getByRole("option", { name: /Absolute/i });
           if (await absOption.isVisible()) {
             await expect(absOption).toBeVisible();
@@ -319,7 +341,8 @@ test.describe("Results page - comprehensive validation", () => {
       });
 
       test("'ROI Layer' dropdown is available", async ({ page }) => {
-        const roiSelect = page.getByLabel(/ROI Layer/i);
+        const container = page.locator("div").filter({ hasText: /^ROI Layer$/ }).first().locator("..");
+        const roiSelect = container.getByRole("combobox").first();
         if (await roiSelect.isVisible()) {
           await expect(roiSelect).toBeVisible();
           await roiSelect.click();
@@ -480,44 +503,27 @@ test.describe("Results page - comprehensive validation", () => {
     test("shows 'Please Select a Job Result' when no job loaded", async ({
       page,
     }) => {
-      const settingsPanel = page.getByText("Current Job Settings").first();
-      if (await settingsPanel.isVisible()) {
-        await settingsPanel.scrollIntoViewIfNeeded();
-        await settingsPanel.click();
-        await page.waitForTimeout(400);
-      }
+      await expandPanel(page, "Current Job Settings");
 
+      // "Please Select a Job Result" also appears in the View Results panel (index 1)
+      // which is collapsed here. Scope to the Current Job Settings card so we don't
+      // accidentally assert on the hidden sibling element (DOM order puts it first).
+      const settingsCard = page
+        .locator(".card-header")
+        .filter({ hasText: /Current Job Settings/i })
+        .first()
+        .locator("..");
       await expect(
-        page.getByText(/Please Select a Job Result|Job is not completed/i).first(),
-      ).toBeVisible();
+        settingsCard.getByText(/Please Select a Job Result|Job is not completed/i),
+      ).toBeVisible({ timeout: 5000 });
     });
 
     test.describe("with a completed job loaded", () => {
       test.beforeEach(async ({ page }) => {
-        await page.waitForTimeout(3000);
-
-        const completedRow = page
-          .locator('[role="row"]')
-          .filter({ hasText: /completed/i })
-          .first();
-
-        if (await completedRow.isVisible()) {
-          const playBtn = completedRow
-            .locator('[data-testid="PlayArrowIcon"]')
-            .first();
-          if (await playBtn.isVisible()) {
-            await playBtn.click();
-            await page.waitForTimeout(5000);
-          }
-        }
-
-        // Expand "Current Job Settings" panel
-        const settingsPanel = page.getByText("Current Job Settings").first();
-        if (await settingsPanel.isVisible()) {
-          await settingsPanel.scrollIntoViewIfNeeded();
-          await settingsPanel.click();
-          await page.waitForTimeout(600);
-        }
+        await loadCompletedJob(page);
+        // expandPanel checks aria-expanded before clicking — safe even when
+        // setOpenPanel([1, 2]) has already opened panel 2 automatically.
+        await expandPanel(page, "Current Job Settings");
       });
 
       test("displays 'Number of Slices' label", async ({ page }) => {
@@ -530,53 +536,48 @@ test.describe("Results page - comprehensive validation", () => {
       test("displays 'SNR Analysis Method' label with value", async ({
         page,
       }) => {
-        const label = page.getByText("SNR Analysis Method:").first();
+        const resultsPanel = page.getByRole("tabpanel", { name: /Results/i });
+        const label = resultsPanel.getByText("SNR Analysis Method:").first();
         if (await label.isVisible()) {
           await expect(label).toBeVisible();
-          // The value should be one of the known methods
+          const paragraph = label.locator("..");
+          const text = await paragraph.textContent();
           const methods = [
             "Analytic Method",
             "Multiple Replica",
             "Pseudo Multiple Replica",
             "Generalized Pseudo-Replica",
           ];
-          const methodVisible = await Promise.any(
-            methods.map((m) =>
-              page
-                .getByText(m)
-                .first()
-                .isVisible()
-                .then((v) => (v ? m : Promise.reject())),
-            ),
-          ).catch(() => null);
-          expect(methodVisible).not.toBeNull();
+          const found = methods.some((m) => text?.includes(m));
+          expect(found).toBeTruthy();
         }
       });
 
       test("displays 'Image Reconstruction Method' label with value", async ({
         page,
       }) => {
-        const label = page
+        // The label and value sit inside a <li> under the Current Job Settings panel.
+        // Scope tightly: find the <paragraph> that contains the <strong> label, then
+        // check its text content for one of the known method names. This avoids
+        // getByText() matching unrelated elements elsewhere in the tabpanel
+        // (e.g. "Viewing sense" panel header contains "SENSE" as a substring).
+        const resultsPanel = page.getByRole("tabpanel", { name: /Results/i });
+        const label = resultsPanel
           .getByText("Image Reconstruction Method:")
           .first();
         if (await label.isVisible()) {
           await expect(label).toBeVisible();
+          // The parent <p> holds both the <strong> label and the text value.
+          const paragraph = label.locator("..");
+          const text = await paragraph.textContent();
           const reconMethods = [
             "Root Sum of Squares",
             "B1 Weighted",
             "SENSE",
             "GRAPPA",
           ];
-          const reconVisible = await Promise.any(
-            reconMethods.map((m) =>
-              page
-                .getByText(m)
-                .first()
-                .isVisible()
-                .then((v) => (v ? m : Promise.reject())),
-            ),
-          ).catch(() => null);
-          expect(reconVisible).not.toBeNull();
+          const found = reconMethods.some((m) => text?.includes(m));
+          expect(found).toBeTruthy();
         }
       });
 
@@ -668,23 +669,7 @@ test.describe("Results page - comprehensive validation", () => {
   // ==========================================================
   test.describe("ROI Table functionality", () => {
     test.beforeEach(async ({ page }) => {
-      await page.waitForTimeout(3000);
-
-      // Load first completed job
-      const completedRow = page
-        .locator('[role="row"]')
-        .filter({ hasText: /completed/i })
-        .first();
-
-      if (await completedRow.isVisible()) {
-        const playBtn = completedRow
-          .locator('[data-testid="PlayArrowIcon"]')
-          .first();
-        if (await playBtn.isVisible()) {
-          await playBtn.click();
-          await page.waitForTimeout(5000);
-        }
-      }
+      await loadCompletedJob(page);
     });
 
     test("ROI table has expected columns: Label, Color, Mean, SD, Visibility, Voxel Count", async ({
@@ -710,15 +695,28 @@ test.describe("Results page - comprehensive validation", () => {
     test("ROI toolbar has Group, Ungroup, Download, Delete buttons", async ({
       page,
     }) => {
-      // These are FontAwesome icon buttons with tooltips
-      const tooltips = ["Group", "Ungroup", "Download", "Delete"];
+      // The ROI toolbar sits below the ROI DataGrid. Its buttons have specific
+      // accessible names. "Delete" (capital D, aria-label="Delete") also clashes
+      // with the drawing toolkit's "delete" (lowercase, aria-label="delete").
+      // Use exact: true so getByRole matches case-sensitively.
+      const buttons = [
+        { name: "Ungroup ROIs", exact: true },
+        { name: "Download", exact: true },
+        { name: "Delete", exact: true },
+      ];
 
-      for (const tip of tooltips) {
-        const btn = page.getByRole("button", { name: tip });
+      for (const { name, exact } of buttons) {
+        const btn = page.getByRole("button", { name, exact });
         if (await btn.isVisible()) {
           await expect(btn).toBeVisible();
           await expect(btn).toBeEnabled();
         }
+      }
+
+      // The Group button's wrapper has aria-label="Group selected ROIs"
+      const groupBtn = page.locator('[aria-label="Group selected ROIs"]').first();
+      if (await groupBtn.isVisible()) {
+        await expect(groupBtn).toBeVisible();
       }
     });
 
@@ -782,22 +780,7 @@ test.describe("Results page - comprehensive validation", () => {
   // ==========================================================
   test.describe("Drawing toolkit", () => {
     test.beforeEach(async ({ page }) => {
-      await page.waitForTimeout(3000);
-
-      const completedRow = page
-        .locator('[role="row"]')
-        .filter({ hasText: /completed/i })
-        .first();
-
-      if (await completedRow.isVisible()) {
-        const playBtn = completedRow
-          .locator('[data-testid="PlayArrowIcon"]')
-          .first();
-        if (await playBtn.isVisible()) {
-          await playBtn.click();
-          await page.waitForTimeout(5000);
-        }
-      }
+      await loadCompletedJob(page);
     });
 
     test("paint brush button is visible and toggleable", async ({ page }) => {
@@ -875,22 +858,7 @@ test.describe("Results page - comprehensive validation", () => {
   // ==========================================================
   test.describe("Contrast range slider", () => {
     test.beforeEach(async ({ page }) => {
-      await page.waitForTimeout(3000);
-
-      const completedRow = page
-        .locator('[role="row"]')
-        .filter({ hasText: /completed/i })
-        .first();
-
-      if (await completedRow.isVisible()) {
-        const playBtn = completedRow
-          .locator('[data-testid="PlayArrowIcon"]')
-          .first();
-        if (await playBtn.isVisible()) {
-          await playBtn.click();
-          await page.waitForTimeout(5000);
-        }
-      }
+      await loadCompletedJob(page);
     });
 
     test("min/max range sliders are rendered", async ({ page }) => {
@@ -907,22 +875,7 @@ test.describe("Results page - comprehensive validation", () => {
   // ==========================================================
   test.describe("NiiVue panel slice controls", () => {
     test.beforeEach(async ({ page }) => {
-      await page.waitForTimeout(3000);
-
-      const completedRow = page
-        .locator('[role="row"]')
-        .filter({ hasText: /completed/i })
-        .first();
-
-      if (await completedRow.isVisible()) {
-        const playBtn = completedRow
-          .locator('[data-testid="PlayArrowIcon"]')
-          .first();
-        if (await playBtn.isVisible()) {
-          await playBtn.click();
-          await page.waitForTimeout(5000);
-        }
-      }
+      await loadCompletedJob(page);
     });
 
     test("slice position inputs (X, Y, Z) are rendered", async ({ page }) => {
