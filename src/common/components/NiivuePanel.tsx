@@ -56,8 +56,20 @@ export function NiivuePanel(props: NiivuePanelProps) {
 
   // This hook is for initialization, called only once
   React.useEffect(() => {
-    props.nv.attachTo('niiCanvas');
-    props.nv.opts.dragMode = props.nv.dragModes.pan;
+    let cancelled = false;
+    (async () => {
+      try {
+        await props.nv.attachTo("niiCanvas");
+        if (!cancelled) {
+          props.nv.opts.dragMode = props.nv.dragModes.pan;
+        }
+      } catch (e) {
+        console.error("Niivue attachTo failed", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [canvas]);
   // This hook is called when show distribution state changed
   React.useEffect(() => {

@@ -86,7 +86,6 @@ export default function NiiVueport(props) {
   const [rulerOpacity, setRulerOpacity] = React.useState(nv.opts.rulerColor[3])
   const [highDPI, setHighDPI] = React.useState(false)
 
-  const histoRef = React.useRef(null);
   const [rois, setROIs] = React.useState([]);
 
   // Persists zoom, gamma and opacity across volume/channel switches so they are not reset
@@ -118,11 +117,9 @@ export default function NiiVueport(props) {
     setGammaKey(k => k + 1); // re-mounts the slider to reflect the reset
   };
 
-  React.useEffect(() => {
-    resampleImage();
-    // histogram.current?.addEventListener('resize',()=>props.resampleImage());
-  }, [histoRef]);
-
+  // Do not call resampleImage() here: NiivuePanel (which mounts `#histoplot`) only renders when
+  // props.niis[selectedVolume] exists — running on mount throws "No DOM element with id 'histoplot'".
+  // NiivuePanel’s own effect calls resampleImage after the histogram node exists.
 
   React.useEffect(() => {
     if (nv.volumes.length !== 0) {
@@ -139,9 +136,8 @@ export default function NiiVueport(props) {
   }, []);
 
   React.useEffect(() => {
-    // console.log(props.niis[props.selectedVolume]);
-    //Wait for other rendering processes to complete  before applying styles
-    stylingProxy(props.niis[props.selectedVolume]);
+    const nii = props.niis?.[props.selectedVolume];
+    if (nii) stylingProxy(nii);
   }, [props.selectedVolume, props.niis])
 
   // only run this when the component is mounted on the page
@@ -172,14 +168,30 @@ export default function NiiVueport(props) {
   nv.onImageLoaded = () => {
     const oldCrosshairPos = [...nv.scene.crosshairPos]
     if (nv.volumes.length > 1) {
-      nv.loadVolumes([niiToVolume(props.niis[props.selectedVolume])]);
-      setWarning("Error loading results, please check internet connectivity");
-      setWarningOpen(true);
-      setTimeout(() => {
-        setWarningOpen(false);
-      }, 2500)
-      setWarning("");
-      return;
+      const nii = props.niis?.[props.selectedVolume];
+      if (nii?.link) {
+        nv.loadVolumes([niiToVolume(nii)]);
+        setWarning("Error loading results, please check internet connectivity");
+        setWarningOpen(true);
+        setTimeout(() => {
+          setWarningOpen(false);
+        }, 2500)
+        setWarning("");
+        return;
+      }
+      // One logical job file can decode as multiple Niivue volumes (e.g. some 4D / replica layouts) while Redux
+      // still has a single `niis[]` entry (common for Multiple Replica without a separate noise channel). Drop
+      // extras and finish init on the first volume instead of bailing with a bogus network error.
+      try {
+        const extras = nv.volumes.slice(1);
+        for (const vol of extras) {
+          nv.removeVolume(vol);
+        }
+      } catch (e) {
+        console.warn("Niivue onImageLoaded: could not trim extra volumes", e);
+        return;
+      }
+      if (nv.volumes.length !== 1) return;
     }
     // console.log(nv.volumes);
 
@@ -696,6 +708,9 @@ export default function NiiVueport(props) {
 
   const [labelMapping, setLabelMapping] = useState({});
   function resampleImage(mapping = labelMapping) {
+    if (typeof document === "undefined" || !document.getElementById("histoplot")) {
+      return;
+    }
     let image = nv.volumes[0];
     let rois = [];
     let layout = {
@@ -725,10 +740,14 @@ export default function NiiVueport(props) {
     }; // Set the height of the plot here};
     // Bitmap depicts the drawn content
     if (nv.drawBitmap == null) {
-      Plotly.newPlot('histoplot', [], layout, { responsive: true });
+      Plotly.newPlot("histoplot", [], layout, { responsive: true });
       setROIs([]);
       return;
     }//If ROI (drawing) is not inside the stack
+
+    if (!image) {
+      return;
+    }
 
     let min = image.robust_min;
     let max = image.robust_max;
@@ -792,7 +811,7 @@ export default function NiiVueport(props) {
       });
       // }
     }
-    Plotly.newPlot('histoplot', traces, layout, { responsive: true });
+    Plotly.newPlot("histoplot", traces, layout, { responsive: true });
   }
 
   function nvUpdateSelectionBoxColor(rgb01) {
@@ -878,7 +897,7 @@ export default function NiiVueport(props) {
         colormap: vol?.colormap ?? 'gray',
       };
 
-      if (props.niis[selectVolume] !== undefined) {
+      if (props.niis[selectedVolume] !== undefined) {
         nv.removeVolume(niiToVolume(props.niis[selectedVolume]));
       }
       try {

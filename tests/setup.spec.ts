@@ -103,14 +103,15 @@ const B1_WEIGHTED_PREDEFINED_MASK_NII = /b1-weighted-predefined-mask\.nii/i;
 
 let e2eBrainSingleSliceJobAliasSeq = 0;
 
+/** Monotonic per process + ms timestamp so **Set Job Name** stays unique across repeated single-test runs and parallel queues. */
 function nextE2eBrainSingleSliceJobAliasSuffix() {
   e2eBrainSingleSliceJobAliasSeq += 1;
-  return e2eBrainSingleSliceJobAliasSeq;
+  return `${e2eBrainSingleSliceJobAliasSeq}-${Date.now()}`;
 }
 
 /**
- * Distinct **Set Job Name** values for BrainSingleSlice E2E queue tests (`SetupPreviewer` disallows ` ,:%><`).
- * Short numeric suffix `1`, `2`, `3`, … increments for each queued E2E job in the process so aliases stay unique on reruns.
+ * Distinct **Set Job Name** values for E2E queue tests (`SetupPreviewer` disallows ` ,:%><`).
+ * Suffix is `n-timestamp` (incrementing `n` plus `Date.now()`) so rerunning one test does not reuse the same alias as a previous run.
  */
 function e2eAnalyticRssBrainSingleSliceJobAlias() {
   return `E2E-Analytic-RSS-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;

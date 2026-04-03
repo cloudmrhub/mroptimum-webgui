@@ -50,6 +50,76 @@ export interface NiiFile {
   link: string;
 }
 
+/**
+ * Index of the NIfTI to open first in NiiVue after `loadResult`.
+ * Signal+noise jobs often mark the primary map with `id === 0`. Multiple Replica (and similar) runs with **no
+ * separate noise file** may only expose SNR maps without that id — then fall back to `name === "SNR"` or the first volume.
+ */
+function pickInitialNiiVolumeIndex(niis: NiiFile[]): number {
+  for (let i = 0; i < niis.length; i++) {
+    if (niis[i].id === 0) return i;
+  }
+  for (let i = 0; i < niis.length; i++) {
+    const label = (niis[i].name || "").toUpperCase();
+    if (label === "SNR" || label.includes("SNR")) return i;
+    const fn = (niis[i].filename || "").toUpperCase();
+    if (fn.includes("SNR")) return i;
+  }
+  return niis.length > 0 ? 0 : -1;
+}
+
+/** Avoid stacking volumes from a previous job — Niivue `loadVolumes` adds rather than replacing. */
+function nvClearAllVolumes() {
+  try {
+    const snap = [...nv.volumes];
+    for (let j = snap.length - 1; j >= 0; j--) {
+      nv.removeVolume(snap[j]);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+const WEBGL_UNREADY = /unable to get WebGL|doesn't support WebGL2/i;
+
+/**
+ * `loadResult`'s `.then` runs in a microtask before React commits, so `loadVolumes` can run while
+ * `NiivuePanel` is still unmounted (no `#niiCanvas`, `nv.gl` throws). Wait until the canvas exists
+ * and `attachTo` has created a WebGL2 context.
+ */
+async function waitForNiiVueCanvasReady(maxMs = 10000): Promise<void> {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const canvas = document.getElementById("niiCanvas");
+    if (canvas?.isConnected && nv.canvas === canvas) {
+      try {
+        void nv.gl;
+        return;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (WEBGL_UNREADY.test(msg)) {
+          throw e;
+        }
+      }
+    }
+    await new Promise<void>((r) => requestAnimationFrame(r));
+  }
+  throw new Error(
+    'The viewer did not finish opening. Expand the "View Results" panel and try Play again.',
+  );
+}
+
+function viewerOpenErrorMessage(e: unknown): string {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (WEBGL_UNREADY.test(msg)) {
+    return "Could not use the 3D viewer: WebGL2 is not available (or blocked). Try another browser or enable hardware acceleration.";
+  }
+  if (/fetch|Failed to fetch|network|401|403|404|CORS/i.test(msg)) {
+    return `Could not load the volume: ${msg}`;
+  }
+  return `Could not open the viewer: ${msg}`;
+}
+
 const Results = ({ visible }: { visible?: boolean }) => {
   const dispatch = useAppDispatch();
   const { accessToken, queueToken } = useAppSelector(
@@ -189,20 +259,18 @@ const Results = ({ visible }: { visible?: boolean }) => {
                         // @ts-ignore
                         let volumes = value.payload.volumes;
                         let niis = value.payload.niis || [];
-                        for (let i = 0; i < niis.length; i++) {
-                          let nii = niis[i];
-                          if (nii.id === 0) {
-                            dispatch(resultActions.selectVolume(i));
-                            nv.loadVolumes([volumes[i]]);
-                            setOpenPanel([1, 2]);
-                            nv.closeDrawing();
-                            break;
-                          }
+                        const i = pickInitialNiiVolumeIndex(niis);
+                        if (i >= 0 && volumes[i] !== undefined) {
+                          dispatch(resultActions.selectVolume(i));
+                          setOpenPanel([1, 2]);
+                          await waitForNiiVueCanvasReady();
+                          nvClearAllVolumes();
+                          await nv.loadVolumes([volumes[i]]);
+                          nv.closeDrawing();
                         }
                       } catch (e) {
-                        warn(
-                          "Error loading results, please check internet connectivity",
-                        );
+                        console.error(e);
+                        warn(viewerOpenErrorMessage(e));
                       }
                       setTimeout(() => nv.resizeListener(), 700);
                       //@ts-ignore
