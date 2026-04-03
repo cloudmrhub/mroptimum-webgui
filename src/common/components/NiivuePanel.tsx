@@ -101,13 +101,40 @@ export function NiivuePanel(props: NiivuePanelProps) {
   // Step and slider range: align so range values = voxel centers exactly
   const stepX = nx > 1 ? safeSpan(0) / nx : safeSpan(0) * 0.01;
   const stepY = ny > 1 ? safeSpan(1) / ny : safeSpan(1) * 0.01;
-  const stepZ = nz > 1 ? safeSpan(2) / nz : safeSpan(2) * 0.01;
   const sliderMinX = nx > 1 ? mins[0] + 0.5 * stepX : mins[0];
   const sliderMaxX = nx > 1 ? maxs[0] - 0.5 * stepX : maxs[0];
   const sliderMinY = ny > 1 ? mins[1] + 0.5 * stepY : mins[1];
   const sliderMaxY = ny > 1 ? maxs[1] - 0.5 * stepY : maxs[1];
-  const sliderMinZ = nz > 1 ? mins[2] + 0.5 * stepZ : mins[2];
-  const sliderMaxZ = nz > 1 ? maxs[2] - 0.5 * stepZ : maxs[2];
+
+  // Z: use Niivue's real first/last slice centers at the current (x,y) crosshair. Bounds from mins[2]/maxs[2] plus
+  // span/nz often span a *wider* mm interval than scroll actually uses (e.g. slices -14…-10 while min/max looked
+  // like -20…0), so the native range track is too long and the thumb never reaches the visual ends.
+  let zAtStart: number;
+  let zAtEnd: number;
+  let sliderMinZ: number;
+  let sliderMaxZ: number;
+  let stepZ: number;
+  if (nz <= 1) {
+    zAtStart = mins[2];
+    zAtEnd = maxs[2];
+    sliderMinZ = Math.min(zAtStart, zAtEnd);
+    sliderMaxZ = Math.max(zAtStart, zAtEnd);
+    stepZ = Math.max(1e-9, Math.abs(sliderMaxZ - sliderMinZ) * 0.01);
+  } else {
+    try {
+      const cx = props.nv.scene.crosshairPos[0];
+      const cy = props.nv.scene.crosshairPos[1];
+      zAtStart = props.nv.frac2mm([cx, cy, 0.5 / nz])[2];
+      zAtEnd = props.nv.frac2mm([cx, cy, (nz - 0.5) / nz])[2];
+    } catch {
+      const s = safeSpan(2) / nz;
+      zAtStart = mins[2] + 0.5 * s;
+      zAtEnd = maxs[2] - 0.5 * s;
+    }
+    sliderMinZ = Math.min(zAtStart, zAtEnd);
+    sliderMaxZ = Math.max(zAtStart, zAtEnd);
+    stepZ = Math.abs(zAtEnd - zAtStart) / (nz - 1);
+  }
 
   // Snap to nearest slice using Niivue's mm2frac/frac2mm so values match scroll exactly
   const snapToVoxel = (mm: number, axis: 0 | 1 | 2): number => {
@@ -170,11 +197,52 @@ export function NiivuePanel(props: NiivuePanelProps) {
   // --- Z Slice ---
   const [zVal, setZVal] = React.useState(round3(mms[2]));
 
-  const applyZ = (val: number) => {
-    const v = clamp(snapToVoxel(val, 2), sliderMinZ, sliderMaxZ);
-    setZVal(v);
-    props.nv.scene.crosshairPos = mmToFrac(xVal, yVal, v);
+  /** Set Z by slice index (0 … nz−1). Uses fractional Z = (k+0.5)/nz so the slider matches Niivue scroll exactly. */
+  const applyZBySliceIndex = (kRaw: number) => {
+    if (nz <= 1) {
+      const cx = props.nv.scene.crosshairPos[0];
+      const cy = props.nv.scene.crosshairPos[1];
+      props.nv.scene.crosshairPos = [cx, cy, 0.5];
+      props.nv.drawScene();
+      try {
+        setZVal(round3(props.nv.frac2mm([cx, cy, 0.5])[2]));
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    const k = clamp(Math.round(kRaw), 0, nz - 1);
+    const cx = props.nv.scene.crosshairPos[0];
+    const cy = props.nv.scene.crosshairPos[1];
+    const fz = (k + 0.5) / nz;
+    props.nv.scene.crosshairPos = [cx, cy, fz];
     props.nv.drawScene();
+    try {
+      setZVal(round3(props.nv.frac2mm([cx, cy, fz])[2]));
+    } catch {
+      const spanLen = zAtEnd - zAtStart;
+      setZVal(round3(zAtStart + (k * spanLen) / (nz - 1)));
+    }
+  };
+
+  /** Typed mm (number field): snap to nearest slice index, then same path as the slider. */
+  const applyZ = (val: number) => {
+    if (!Number.isFinite(val)) return;
+    if (nz <= 1) {
+      const v = clamp(snapToVoxel(val, 2), sliderMinZ, sliderMaxZ);
+      setZVal(round3(v));
+      props.nv.scene.crosshairPos = mmToFrac(xVal, yVal, v);
+      props.nv.drawScene();
+      return;
+    }
+    let fracZ: number;
+    try {
+      fracZ = props.nv.mm2frac([xVal, yVal, val])[2];
+    } catch {
+      fracZ = ratio(val, 2);
+    }
+    const k = clamp(Math.round(fracZ * nz - 0.5), 0, nz - 1);
+    applyZBySliceIndex(k);
   };
 
   // Keep local state in sync when Niivue updates mms (e.g. from scroll)
@@ -184,6 +252,19 @@ export function NiivuePanel(props: NiivuePanelProps) {
     setYVal(fmt(mms[1]));
     setZVal(fmt(mms[2]));
   }, [mms]);
+
+  // Z slider uses integer slice index so native <input type="range"> can reach every slice including the last;
+  // float min/max/step + snapToVoxel(mm) was snapping away from the dragged tick so the thumb could not stay at max.
+  let zSliceIndex = 0;
+  if (nz > 1) {
+    let fracZ: number;
+    try {
+      fracZ = props.nv.mm2frac([xVal, yVal, zVal])[2];
+    } catch {
+      fracZ = ratio(zVal, 2);
+    }
+    zSliceIndex = clamp(Math.round(fracZ * nz - 0.5), 0, nz - 1);
+  }
 
   return (
     <Box
@@ -400,13 +481,12 @@ export function NiivuePanel(props: NiivuePanelProps) {
                 <input
                   id="zSlice"
                   type="range"
-                  min={sliderMinZ}
-                  max={sliderMaxZ}
-                  step={stepZ}
-                  value={Math.max(sliderMinZ, Math.min(sliderMaxZ, zVal))}
+                  min={0}
+                  max={Math.max(0, nz - 1)}
+                  step={1}
+                  value={zSliceIndex}
                   onChange={(e) => {
-                    const next = Number(e.target.value);
-                    applyZ(next);
+                    applyZBySliceIndex(Number(e.target.value));
                   }}
                   style={{ width: "100%", accentColor: "#580f8b" }}
                 />

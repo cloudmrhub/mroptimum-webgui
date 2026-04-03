@@ -160,6 +160,26 @@ function e2ePmrB1DoNotMaskBrainSingleSliceJobAlias() {
   return `E2E-PMR-B1Weighted-DoNotMask-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
 }
 
+function e2ePmrSenseDecimateUseAllAclBrainSingleSliceJobAlias() {
+  return `E2E-PMR-SENSE-Decimate-UseAllACL-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2ePmrGrappaDecimateUseAllAclBrainSingleSliceJobAlias() {
+  return `E2E-PMR-GRAPPA-Decimate-UseAllACL-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eGprRssBrainMultiSliceJobAlias() {
+  return `E2E-GPR-RSS-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eGprB1KeepPixels10pctBrainMultiSliceJobAlias() {
+  return `E2E-GPR-B1Weighted-KeepPixels10pct-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eGprSenseEspiritMaskDecimateUseAllAclBrainMultiSliceJobAlias() {
+  return `E2E-GPR-SENSE-ESPIRiTmask-Decimate-UseAllACL-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
 async function trySelectPhantom100ReplicasSignalForPreflight(page: Page): Promise<boolean> {
   return trySelectLibraryDatByChooseIndexAndOptionName(page, 0, PHANTOM_100_REPLICAS);
 }
@@ -1795,6 +1815,149 @@ test.describe("Setup page - comprehensive validation", () => {
         const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
         await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
       });
+
+      test("queues Pseudo Multiple Replica SENSE job with BrainSingleSlice signal+noise (Decimate Data on, Use All Lines for Autocalibration, other defaults) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "SENSE");
+
+        const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+        await decimateCb.scrollIntoViewIfNeeded();
+        if (!(await decimateCb.isChecked())) {
+          await decimateCb.click({ force: true });
+        }
+        await expect(decimateCb).toBeChecked();
+        await page.waitForTimeout(500);
+
+        const useAllAclCb = page.getByRole("checkbox", {
+          name: /Use All Lines for Autocalibration/i,
+        });
+        await useAllAclCb.scrollIntoViewIfNeeded();
+        if (!(await useAllAclCb.isChecked())) {
+          await useAllAclCb.click({ force: true });
+        }
+        await expect(useAllAclCb).toBeChecked();
+
+        const aclInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Autocalibration Lines" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(aclInput).toBeDisabled();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2ePmrSenseDecimateUseAllAclBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Pseudo Multiple Replica GRAPPA job with BrainSingleSlice signal+noise (Decimate Data on, Use All Lines for Autocalibration, default kernel X/Y, other defaults) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "GRAPPA");
+
+        const kxInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Kernel Size X" })
+          .getByRole("spinbutton")
+          .first();
+        const kyInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Kernel Size Y" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(kxInput).toBeVisible();
+        await expect(kyInput).toBeVisible();
+        expect(await kxInput.inputValue()).toBe("3");
+        expect(await kyInput.inputValue()).toBe("4");
+
+        const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+        await decimateCb.scrollIntoViewIfNeeded();
+        if (!(await decimateCb.isChecked())) {
+          await decimateCb.click({ force: true });
+        }
+        await expect(decimateCb).toBeChecked();
+        await page.waitForTimeout(500);
+
+        const useAllAclCb = page.getByRole("checkbox", {
+          name: /Use All Lines for Autocalibration/i,
+        });
+        await useAllAclCb.scrollIntoViewIfNeeded();
+        if (!(await useAllAclCb.isChecked())) {
+          await useAllAclCb.click({ force: true });
+        }
+        await expect(useAllAclCb).toBeChecked();
+
+        const aclInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Autocalibration Lines" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(aclInput).toBeDisabled();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2ePmrGrappaDecimateUseAllAclBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
     });
   });
 
@@ -1874,6 +2037,194 @@ test.describe("Setup page - comprehensive validation", () => {
         page.getByText("Save Coil Sensitivities"),
       ).not.toBeVisible();
       await expect(page.getByText("Save g Factor").first()).not.toBeVisible();
+    });
+
+    test.describe("BrainMultiSlice job queue → Results (serial)", () => {
+      test.describe.configure({ mode: "serial" });
+
+      test("queues Generalized Pseudo-Replica RSS job with BrainMultiSlice signal+noise (all defaults) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "Root Sum of Squares");
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eGprRssBrainMultiSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Generalized Pseudo-Replica B1 Weighted job with BrainMultiSlice signal+noise (Keep Pixels Above 10% default, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const keepPixelsRadio = page.getByRole("radio", { name: /Keep Pixels Above/i }).first();
+        await keepPixelsRadio.scrollIntoViewIfNeeded();
+        await keepPixelsRadio.evaluate((el: HTMLInputElement) => el.click());
+        await expect(keepPixelsRadio).toBeChecked();
+        await page.waitForTimeout(400);
+
+        const thresholdInput = page
+          .locator("label")
+          .filter({ hasText: /Keep Pixels Above/i })
+          .getByRole("spinbutton")
+          .first();
+        await expect(thresholdInput).toBeVisible();
+        expect(await thresholdInput.inputValue()).toBe("10");
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eGprB1KeepPixels10pctBrainMultiSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Generalized Pseudo-Replica SENSE job with BrainMultiSlice signal+noise (Use Mask from ESPIRiT default k/r/t/c, Decimate Data on, Use All Lines for Autocalibration) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(450_000); // 7.5 min — job completion poll 7 min + setup/queue margin
+        await selectReconMethod(page, "SENSE");
+
+        const espiritRadio = page.getByRole("radio", { name: /Use Mask from ESPIRiT/i }).first();
+        await espiritRadio.scrollIntoViewIfNeeded();
+        await espiritRadio.evaluate((el: HTMLInputElement) => el.click());
+        await expect(espiritRadio).toBeChecked();
+        await page.waitForTimeout(400);
+
+        const espLabel = page
+          .locator("label")
+          .filter({ hasText: /Use Mask from ESPIRiT/i })
+          .first();
+        const espInputs = espLabel.getByRole("spinbutton");
+        await expect(espInputs).toHaveCount(4);
+        const espNumeric = [];
+        for (let i = 0; i < 4; i++) {
+          await expect(espInputs.nth(i)).toBeVisible();
+          espNumeric.push(Number(await espInputs.nth(i).inputValue()));
+        }
+        expect(espNumeric).toEqual([8, 24, 0.01, 0.995]);
+
+        const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+        await decimateCb.scrollIntoViewIfNeeded();
+        if (!(await decimateCb.isChecked())) {
+          await decimateCb.click({ force: true });
+        }
+        await expect(decimateCb).toBeChecked();
+        await page.waitForTimeout(500);
+
+        const useAllAclCb = page.getByRole("checkbox", {
+          name: /Use All Lines for Autocalibration/i,
+        });
+        await useAllAclCb.scrollIntoViewIfNeeded();
+        if (!(await useAllAclCb.isChecked())) {
+          await useAllAclCb.click({ force: true });
+        }
+        await expect(useAllAclCb).toBeChecked();
+
+        const aclInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Autocalibration Lines" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(aclInput).toBeDisabled();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eGprSenseEspiritMaskDecimateUseAllAclBrainMultiSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias, 420_000);
+      });
     });
 
     // -- B1 (GPR) --
