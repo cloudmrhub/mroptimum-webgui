@@ -301,29 +301,31 @@ const RECONSTRUCTION_NAMES = ["rss", "b1", "sense", "grappa", "espirit"] as cons
 
 /**
  * Shared logic for `setReconstructionMethod` and for resetting to RSS when the SNR analysis method changes.
+ * `index` may be a string from MUI `RadioGroup` (`event.target.value`); coerce before comparing to numeric indices.
  */
-function applyReconstructionMethodIndex(state: SetupState, index: number) {
+function applyReconstructionMethodIndex(state: SetupState, index: number | string) {
+  const idx = Number(index);
   const opts = state.activeSetup.options.reconstructor.options;
-  state.activeSetup.options.reconstructor.id = Number(index);
+  state.activeSetup.options.reconstructor.id = idx;
   state.activeSetup.options.reconstructor.name =
-    RECONSTRUCTION_NAMES[index] ?? "rss";
+    RECONSTRUCTION_NAMES[idx] ?? "rss";
 
-  if (index === 3 && opts.kernelSize == undefined) {
+  if (idx === 3 && opts.kernelSize == undefined) {
     opts.kernelSize = [3, 4];
   }
-  if (index !== 3) {
+  if (idx !== 3) {
     delete opts.kernelSize;
   }
 
-  state.outputSettings.coilsensitivity = index === 2 || index === 1;
-  state.outputSettings.gfactor = index === 2;
-  if (index === 2 || index === 3) {
+  state.outputSettings.coilsensitivity = idx === 2 || idx === 1;
+  state.outputSettings.gfactor = idx === 2;
+  if (idx === 2 || idx === 3) {
     opts.decimate = false;
   } else {
     delete opts.decimate;
   }
   // Clear SENSE-specific option when leaving SENSE (UI / submit pipeline expect this)
-  if (index !== 2) {
+  if (idx !== 2) {
     opts.gfactor = false;
   }
   state.editInProgress = true;
@@ -390,7 +392,7 @@ export const setupSlice = createSlice({
             }
             state.editInProgress = true;
         },
-        setReconstructionMethod(state: SetupState, action: PayloadAction<number>) {
+        setReconstructionMethod(state: SetupState, action: PayloadAction<number | string>) {
             applyReconstructionMethodIndex(state, action.payload);
         },
         setOutputMatlab(state: SetupState, action: PayloadAction<boolean>) {
@@ -457,7 +459,7 @@ export const setupSlice = createSlice({
         setDecimate(state: SetupState, action: PayloadAction<boolean>) {
             state.activeSetup.options.reconstructor.options['decimate'] = action.payload;
             if (action.payload && state.activeSetup.options.reconstructor.options.accelerations == undefined)
-                state.activeSetup.options.reconstructor.options.accelerations = [1, 1];
+                state.activeSetup.options.reconstructor.options.accelerations = [2, 3];
             state.activeSetup.options.reconstructor.options.acl = [null, null];
             state.editInProgress = true;
         },

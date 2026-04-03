@@ -19,7 +19,8 @@
       // Map module paths for easier imports
       "cloudmr-ux/*": ["../cloudmr-ux/*"]
     },
-    "types": ["vite/client"] // Include Vite-specific type definitions for import.meta.env, etc.
+    // vite/client for src; node for Playwright tests (path, __dirname, process.env)
+    "types": ["vite/client", "node"]
   },
-  "include": ["src"] // Only compile files in the src directory
+  "include": ["src", "tests"]
 }

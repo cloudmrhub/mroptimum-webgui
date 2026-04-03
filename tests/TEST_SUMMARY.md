@@ -34,35 +34,41 @@ All tests are located in the `tests/` directory and run with Playwright against 
 | Shows Calculation Counts panel | Panel header is visible |
 | Shows Mode 1 (Cloud MR AWS) Computing Units panel | Panel header is visible |
 | Shows Uploaded Data panel | Panel header is visible |
-| Shows Mode 2 Computing Units panel (conditional) | Only checks if user has Mode 2 units; skips gracefully otherwise |
-| Calculation Counts loads a numeric value | Loading spinner disappears, Mode 1 count label appears |
+| Shows Mode 2 Computing Units panel if user has mode 2 units | Only checks if user has Mode 2 units; skips gracefully otherwise |
+| Calculation Counts loads a numeric value for Mode 1 | Loading spinner disappears, Mode 1 count label appears |
 
 ### Uploaded Data Table
 | Test | What it checks |
 |------|---------------|
 | Shows correct column headers | File Name, Date Submitted, Status, Edit File Name columns visible |
-| Delete button disabled when nothing selected | Delete button is disabled by default |
-| Download button disabled when nothing selected | Download button is disabled by default |
-| Buttons enable after selecting a file | Checking a row enables both Delete and Download |
+| Delete button is disabled when no file is selected | Delete button is disabled by default |
+| Download button is disabled when no file is selected | Download button is disabled by default |
+| Delete and Download buttons enable after selecting a file | Checking a row enables both Delete and Download |
+
+### File Download
+| Test | What it checks |
+|------|---------------|
+| Download starts a browser download when a file is selected | `page.waitForEvent("download")` after clicking Download; filename or URL present on `Download` object |
 
 ### File Upload
 | Test | What it checks |
 |------|---------------|
-| Uploading a `.nii` file is rejected | `hippo.nii` does not appear in the table after upload attempt |
-| Uploading a `.dat` file succeeds | `sodium.dat` appears in the table within 10 seconds |
+| Uploading a .dat file succeeds and appears in table | `sodium.dat` appears in the table within 10 seconds |
+| Upload only accepts allowed file extensions | **`public/test0fail-upload.mp4`** — synthetic **drop** on inner drop zone; **MUI Alert** (`role="alert"`) with full allowed-extension list; **Cancel** closes without uploading |
 
 ### File Rename
 | Test | What it checks |
 |------|---------------|
-| Edit icon opens rename dialog | Clicking the edit icon opens a dialog |
-| Rename without extension shows error | "Missing file extension" error message appears |
-| Rename with changed extension shows confirmation | "Changing file extension" warning dialog appears |
+| Clicking the edit icon opens the rename dialog | Clicking the edit icon opens a dialog |
+| Renaming a file without an extension shows an error message | "Missing file extension" error message appears |
+| Renaming a file with a changed extension shows a confirmation dialog | "Changing file extension" warning dialog appears |
 
 ### File Delete
 | Test | What it checks |
 |------|---------------|
-| Delete opens confirmation dialog | "Please confirm that you are deleting" dialog appears |
-| Cancelling delete keeps the file | File remains in the table after cancelling |
+| Selecting a file and clicking Delete opens a confirmation dialog | "Please confirm that you are deleting" dialog appears |
+| Cancelling the delete confirmation keeps the file in the table | File remains in the table after cancelling |
+| Confirming delete removes the file from the table | After confirm, one fewer row for the selected file name |
 
 ---
 
@@ -74,11 +80,27 @@ All tests are located in the `tests/` directory and run with Playwright against 
 > - `selectReconMethod()` similarly uses "No Flip Angle Correction" visibility (10 s timeout) as proxy.
 > - All `getByText()` visibility assertions use `.first()` to avoid strict-mode violations from ancestor elements matching the same text.
 > - ACL (Autocalibration Lines) min=2 tests first uncheck "Use All Lines for Autocalibration" because it is **checked by default** (Redux `acl = [null, null]` on init and on every "Decimate Data" toggle).
+> - **BrainSingleSlice job queue → Results (serial)** — under **Analytic Method**, RSS, four B1 completion tests, and **two** **Analytic SENSE** jobs (Decimate on + either **Use All Lines** checked, or unchecked with **ACL = 24** from `Setup.tsx` `setDecimateACL(24)`) share one `test.describe` with `test.describe.configure({ mode: "serial" })` so they never run in parallel against the backend. Each calls `selectReconMethod` at the start (they are no longer inside the RSS / B1 / SENSE reconstruction `describe` blocks).
+> - **RSS / B1 / SENSE BrainSingleSlice → Results**: `test.setTimeout(330_000)` (~5.5 min); **Job successfully queued!** (5 s); then up to **300_000 ms** for a **completed** row; `goToResultsTabAndExpandJobResults`; skips if library pair missing. **SENSE** variants: **Use All Lines** on → ACL disabled; **Use All Lines** off → ACL spinbutton **`24`** and enabled. **Predefined Mask** E2E uses **`b1-weighted-predefined-mask.nii`** when present. **Set Job Name** aliases include `…-SENSE-Decimate-ACL24-…`, `…-SENSE-Decimate-UseAllACL-…`, etc. (`<n>` = `1`, `2`, `3`, …).
+
+### Queue Job preflight validation
+| Test | What it checks |
+|------|---------------|
+| Signal and noise both missing (Analytic) | **Queue Job** → `Set Up Validation Failed` + “Please select or upload signal and noise files.” → **OK** closes dialog |
+| Signal missing, noise present (Analytic) | Selects **`BrainSingleSliceNoise.dat`** from library (skips if missing); **Queue Job** → “Please select or upload signal file.” → **OK** |
+| Noise missing, signal present, non-multi-raid (Analytic) | Selects **`BrainSingleSliceSignal.dat`** only (skips if missing); **Queue Job** → separate noise file message → **OK** |
+| Flip angle correction on, no FA map (Multiple Replica) | **`BrainSingleSliceSignal.dat`** only (skips if missing); uncheck **No Flip Angle Correction**; **Queue Job** → FA map message → **OK** |
+| Predefined Mask, no mask file (Analytic + B1) | Signal **`nth(0)`** + noise **first remaining Choose** (after signal, only noise has **Choose**); **B1 Weighted** → **Predefined Mask**, no mask file; **Queue Job** → mask message → **OK** |
+
+### Queue Job — SENSE decimation warning
+| Test | What it checks |
+|------|---------------|
+| SENSE + Decimate Data unchecked | Canonical signal/noise `.dat`; **SENSE**; ensure **Decimate Data** off; **Queue Job** → **Warning** dialog (prospective undersampling copy) → **Keep Editing** closes it |
 
 ### Analysis Method Radio Buttons
 | Test | What it checks |
 |------|---------------|
-| All four methods are visible | Analytic Method, Multiple Replica, Pseudo Multiple Replica, Generalized Pseudo-Replica labels present |
+| all four analysis method labels are present | Analytic Method, Multiple Replica, Pseudo Multiple Replica, Generalized Pseudo-Replica labels present |
 
 ### Analytic Method
 | Test | What it checks |
@@ -88,12 +110,20 @@ All tests are located in the `tests/` directory and run with Playwright against 
 | **RSS:** Save .mat file checkbox | Checkbox visible |
 | **RSS:** No Coil Sensitivities or g Factor | These options do not appear for RSS |
 | **RSS:** No Object Masking | Section does not appear for RSS |
+| **`queues Analytic RSS job with BrainSingleSlice signal+noise and sees completion on Results`** | In **BrainSingleSlice job queue → Results (serial)**; **selectReconMethod**(RSS); then same queue / Results flow as before; **300 s** / **330 s** timeouts |
 | **B1 Weighted:** No Flip Angle + Save .mat + Save Coil Sensitivities | All three checkboxes visible |
 | **B1 Weighted:** No g Factor | Not shown for B1 |
-| **B1 Weighted:** Object Masking section with all 4 options | Do Not Mask, Keep Pixels Above %, ESPIRiT, Predefined Mask |
-| **B1 Weighted:** Keep Pixels Above % — min threshold = 1 | Cannot enter negative or zero values |
-| **B1 Weighted:** ESPIRiT — 4 inputs (k, r, t, c) all ≥ 0 | 4 spinbuttons visible; `min={0}` enforced in code, negative values rejected |
-| **B1 Weighted:** Predefined Mask — file upload available | Upload button visible, can upload `.nii` file |
+| **`Object Masking — shows section with all four options`** | Do Not Mask Coil Sensitivities Maps, Keep Pixels Above %, ESPIRiT, Predefined Mask labels visible |
+| **`Object Masking — Do Not Mask Coil Sensitivities Maps is selectable`** | Radio selects and **toBeChecked** |
+| **`Object Masking — Keep Pixels Above % reveals threshold input with min=1`** | Spinbutton visible; cannot enter negative or zero |
+| **`Object Masking — Use Mask from ESPIRiT reveals k, r, t, c inputs`** | Four spinbuttons visible |
+| **`Object Masking — Predefined Mask reveals file upload button`** | **Choose or Upload Mask** visible |
+| **`queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Do Not Mask Coil Sensitivities Maps, Save Coil Sensitivities) and sees completion on Results`** | Serial group; **selectReconMethod**(B1); **Do Not Mask** + **Save Coil Sensitivities**; alias prefix **…-DoNotMask-…**; same queue / Results flow |
+| **`queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Keep Pixels Above 10% default, Save Coil Sensitivities) and sees completion on Results`** | Serial group; **Keep Pixels Above** radio; spinbutton **`10`** (default); **Save Coil Sensitivities**; alias **…-KeepPixels10pct-…**; same queue / Results flow |
+| **`queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Use Mask from ESPIRiT default k/r/t/c, Save Coil Sensitivities) and sees completion on Results`** | Serial group; **Use Mask from ESPIRiT** radio; four spinbuttons **8 / 24 / 0.01 / 0.995**; **Save Coil Sensitivities**; alias **…-ESPIRiTmask-defaults-…**; same queue / Results flow |
+| **`queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Predefined Mask b1-weighted-predefined-mask.nii from library, Save Coil Sensitivities) and sees completion on Results`** | Serial group; **Predefined Mask** + **Choose or Upload Mask** → library **`b1-weighted-predefined-mask.nii`** (`trySelectPredefinedMaskFromLibrary`); **Save Coil Sensitivities**; alias **…-PredefinedMask-…** |
+| **`queues Analytic SENSE job with BrainSingleSlice signal+noise (Decimate Data on, Use All Lines for Autocalibration) and sees completion on Results`** | Serial group; **selectReconMethod**(SENSE); **Decimate Data** checked; **Use All Lines for Autocalibration** checked; ACL spinbutton **disabled**; alias **…-SENSE-Decimate-UseAllACL-…**; queue / Results same as RSS |
+| **`queues Analytic SENSE job with BrainSingleSlice signal+noise (Decimate Data on, Autocalibration Lines 24 — Use All Lines unchecked) and sees completion on Results`** | Serial group; **Use All Lines** unchecked (`setDecimateACL(24)` in **Setup.tsx**); ACL spinbutton **enabled**, value **`24`**; alias **…-SENSE-Decimate-ACL24-…** |
 | **SENSE:** No Flip Angle + Save .mat + Coil Sensitivities + g Factor | All checkboxes visible |
 | **SENSE:** Object Masking visible | Section appears for SENSE |
 | **SENSE:** Decimate Data checkbox | Visible and accessible |
@@ -106,6 +136,8 @@ All tests are located in the `tests/` directory and run with Playwright against 
 |------|---------------|
 | Only RSS + ESPIRIT available (no noise file) | B1, SENSE, GRAPPA not shown; ESPIRIT present but disabled |
 | RSS config matches Analytic RSS | No Flip Angle, Save .mat, no Coil Sensitivities, no g Factor, no Masking |
+| **`queues Multiple Replica RSS job with Phantom100Replicas.dat signal only and sees completion on Results`** | **`Phantom100Replicas.dat`** via first **Choose** (no separate noise); **Setup Preview** → **Queue Job**; alias **`E2E-MultipleReplica-RSS-Phantom100Replicas-<n>`**; **Results** → **completed**; skips if file missing; **330 s** / **300 s** timeouts (not in Analytic serial block — may run parallel to other queue tests) |
+| **`queues Multiple Replica RSS job with BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat and sees completion on Results`** | Matched brain multi-slice pair (`trySelectBrainMultiSlicePairForPreflight`); alias **`E2E-MultipleReplica-RSS-BrainMultiSlice-<n>`**; same queue / Results flow; skips if either `.dat` missing |
 
 ### Pseudo Multiple Replica (PMR)
 | Test | What it checks |
@@ -227,9 +259,9 @@ All tests are located in the `tests/` directory and run with Playwright against 
 
 | File | Tests |
 |------|-------|
-| `auth.setup.ts` | 1 |
+| `auth.setup.ts` | 1 (storage-state setup) |
 | `login.spec.ts` | 2 |
-| `home.full.spec.ts` | 16 |
-| `setup.spec.ts` | ~45 |
-| `results.spec.ts` | ~44 |
-| **Total** | **~108** |
+| `home.full.spec.ts` | 17 |
+| `setup.spec.ts` | 68 |
+| `results.spec.ts` | 51 |
+| **Total** | **139** |

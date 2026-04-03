@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, type Locator } from "@playwright/test";
 import path from "path";
 import { ensureAuthenticatedSession } from "./helpers/auth";
 
@@ -35,7 +35,7 @@ async function selectAnalysisMethod(page: Page, name: string) {
   // HTML name="row-radio-buttons-group", causing browser-level conflicts. Use a proxy instead
   // based on which reconstruction options appear for each analysis method (no noise file in tests):
   //   Analytic (0)            → RSS / B1 Weighted / SENSE only  — GRAPPA & ESPIRIT hidden
-  //   Multiple Replica (1)    → RSS / ESPIRIT only (noise=null)  — B1 / SENSE / GRAPPA hidden
+  //   Multiple Replica (1)    → RSS / ESPIRIT only when noise=null; with noise → same full list as PMR (B1/SENSE/GRAPPA + disabled ESPIRIT)
   //   Pseudo Multi Replica (2) → full set including GRAPPA
   //   Generalized PR (3)      → full set including GRAPPA
   if (name === "Analytic Method") {
@@ -81,6 +81,233 @@ async function assertMinConstraint(
   expect(value).toBeGreaterThanOrEqual(minAllowed);
 }
 
+/** Close react-select menu so dialog footer buttons are clickable (menu portal intercepts clicks). */
+async function closeSelectMenuIfOpen(page: Page) {
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+}
+
+/** Canonical library `.dat` names for Queue Job preflight tests (must appear in Select or Upload dropdown). */
+const BRAIN_SINGLE_SLICE_SIGNAL = /BrainSingleSliceSignal/i;
+const BRAIN_SINGLE_SLICE_NOISE = /BrainSingleSliceNoise/i;
+
+/** Multiple Replica + RSS (signal-only / embedded replicas) — must be in **Uploaded Data**. */
+const PHANTOM_100_REPLICAS = /Phantom100Replicas/i;
+
+/** Multiple Replica + RSS with separate brain multi-slice noise — must be in **Uploaded Data**. */
+const BRAIN_MULTI_SLICE_SIGNAL = /BrainMultiSliceSignal/i;
+const BRAIN_MULTI_SLICE_NOISE = /BrainMultiSliceNoise/i;
+
+/** Predefined mask for Analytic B1 E2E (must appear in **Choose or Upload Mask** library dropdown). */
+const B1_WEIGHTED_PREDEFINED_MASK_NII = /b1-weighted-predefined-mask\.nii/i;
+
+let e2eBrainSingleSliceJobAliasSeq = 0;
+
+function nextE2eBrainSingleSliceJobAliasSuffix() {
+  e2eBrainSingleSliceJobAliasSeq += 1;
+  return e2eBrainSingleSliceJobAliasSeq;
+}
+
+/**
+ * Distinct **Set Job Name** values for BrainSingleSlice E2E queue tests (`SetupPreviewer` disallows ` ,:%><`).
+ * Short numeric suffix `1`, `2`, `3`, … increments for each queued E2E job in the process so aliases stay unique on reruns.
+ */
+function e2eAnalyticRssBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-RSS-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticB1DoNotMaskBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-B1Weighted-DoNotMask-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticB1KeepPixelsBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-B1Weighted-KeepPixels10pct-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticB1ESPIRiTMaskDefaultsBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-B1Weighted-ESPIRiTmask-defaults-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticB1PredefinedMaskBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-B1Weighted-PredefinedMask-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticSenseDecimateUseAllAclBrainSingleSliceJobAlias() {
+  return `E2E-Analytic-SENSE-Decimate-UseAllACL-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eAnalyticSenseDecimateAcl24BrainSingleSliceJobAlias() {
+  return `E2E-Analytic-SENSE-Decimate-ACL24-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eMultipleReplicaRssPhantom100ReplicasJobAlias() {
+  return `E2E-MultipleReplica-RSS-Phantom100Replicas-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eMultipleReplicaRssBrainMultiSliceJobAlias() {
+  return `E2E-MultipleReplica-RSS-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2eMultipleReplicaB1DoNotMaskBrainMultiSliceJobAlias() {
+  return `E2E-MultipleReplica-B1Weighted-DoNotMask-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2ePmrRssBrainSingleSliceJobAlias() {
+  return `E2E-PMR-RSS-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+function e2ePmrB1DoNotMaskBrainSingleSliceJobAlias() {
+  return `E2E-PMR-B1Weighted-DoNotMask-BrainSingleSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
+}
+
+async function trySelectPhantom100ReplicasSignalForPreflight(page: Page): Promise<boolean> {
+  return trySelectLibraryDatByChooseIndexAndOptionName(page, 0, PHANTOM_100_REPLICAS);
+}
+
+async function trySelectBrainMultiSliceNoiseAfterSignalForPreflight(page: Page): Promise<boolean> {
+  await page.getByRole("button", { name: "Choose" }).first().click();
+  return completeSelectOrUploadWithNamedOption(page, BRAIN_MULTI_SLICE_NOISE);
+}
+
+async function trySelectBrainMultiSlicePairForPreflight(page: Page): Promise<boolean> {
+  const okSignal = await trySelectLibraryDatByChooseIndexAndOptionName(
+    page,
+    0,
+    BRAIN_MULTI_SLICE_SIGNAL,
+  );
+  if (!okSignal) return false;
+  return trySelectBrainMultiSliceNoiseAfterSignalForPreflight(page);
+}
+
+/** **Choose or Upload Mask** → same Select/Upload dialog as signal/noise; pick library row matching `optionName`. */
+async function trySelectPredefinedMaskFromLibrary(
+  page: Page,
+  optionName: RegExp,
+): Promise<boolean> {
+  await page.getByRole("button", { name: /choose or upload mask/i }).click();
+  return completeSelectOrUploadWithNamedOption(page, optionName);
+}
+
+/** After a “Choose” click: finish Select or Upload and pick an option matching `optionName`. */
+async function completeSelectOrUploadWithNamedOption(
+  page: Page,
+  optionName: RegExp,
+): Promise<boolean> {
+  const dialog = page.getByRole("dialog", { name: /select or upload/i });
+  await expect(dialog).toBeVisible({ timeout: 10000 });
+  await dialog.locator(".cmr-select__control").first().click();
+  try {
+    await page.getByRole("option").first().waitFor({ state: "visible", timeout: 10000 });
+  } catch {
+    await closeSelectMenuIfOpen(page);
+    await dialog.getByRole("button", { name: /cancel/i }).click();
+    await expect(dialog).toBeHidden({ timeout: 5000 }).catch(() => {});
+    return false;
+  }
+  const named = page.getByRole("option", { name: optionName });
+  if ((await named.count()) === 0) {
+    await closeSelectMenuIfOpen(page);
+    await dialog.getByRole("button", { name: /cancel/i }).click();
+    await expect(dialog).toBeHidden({ timeout: 5000 }).catch(() => {});
+    return false;
+  }
+  await named.first().click();
+  await dialog.getByRole("button", { name: /^OK$/ }).click();
+  await expect(dialog).toBeHidden({ timeout: 10000 });
+  return true;
+}
+
+/**
+ * Nth global “Choose”: 0 = signal, 1 = noise when **both** rows still show Choose (signal-empty + noise-empty).
+ */
+async function trySelectLibraryDatByChooseIndexAndOptionName(
+  page: Page,
+  chooseIndex: number,
+  optionName: RegExp,
+): Promise<boolean> {
+  await page.getByRole("button", { name: "Choose" }).nth(chooseIndex).click();
+  return completeSelectOrUploadWithNamedOption(page, optionName);
+}
+
+/**
+ * After signal is chosen, the signal row often has no “Choose” — only one button remains (noise).
+ * `nth(1)` then matches nothing and hangs; use the single remaining **Choose** via `.first()`.
+ */
+async function trySelectBrainSingleSliceNoiseAfterSignalForPreflight(page: Page): Promise<boolean> {
+  await page.getByRole("button", { name: "Choose" }).first().click();
+  return completeSelectOrUploadWithNamedOption(page, BRAIN_SINGLE_SLICE_NOISE);
+}
+
+async function trySelectBrainSingleSliceSignalForPreflight(page: Page): Promise<boolean> {
+  return trySelectLibraryDatByChooseIndexAndOptionName(page, 0, BRAIN_SINGLE_SLICE_SIGNAL);
+}
+
+async function trySelectBrainSingleSliceNoiseForPreflight(page: Page): Promise<boolean> {
+  return trySelectLibraryDatByChooseIndexAndOptionName(page, 1, BRAIN_SINGLE_SLICE_NOISE);
+}
+
+/**
+ * Library pair **`BrainSingleSliceSignal.dat`** + **`BrainSingleSliceNoise.dat`**
+ * (same as Analytic RSS queue / B1 Setup Preview tests).
+ */
+async function trySelectBrainSingleSlicePairForPreflight(page: Page): Promise<boolean> {
+  const okSignal = await trySelectBrainSingleSliceSignalForPreflight(page);
+  if (!okSignal) return false;
+  return trySelectBrainSingleSliceNoiseAfterSignalForPreflight(page);
+}
+
+/** Results tab → Job Results panel expanded (matches `results.spec.ts` / `goToResults`). */
+async function goToResultsTabAndExpandJobResults(page: Page) {
+  await page.getByRole("tab", { name: /results/i }).click();
+  const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+  await expect(resultsPanel).toBeVisible({ timeout: 10000 });
+  const header = page
+    .locator('.card-header[role="button"]')
+    .filter({ hasText: /job results/i })
+    .first();
+  await header.waitFor({ state: "attached", timeout: 10000 });
+  if ((await header.getAttribute("aria-expanded")) !== "true") {
+    await header.click();
+    await expect(header).toHaveAttribute("aria-expanded", "true", { timeout: 5000 });
+  }
+}
+
+/**
+ * Waits for a **Job Results** row matching `jobAlias` to reach **completed**, up to `timeoutMs`.
+ * If the row shows **failed**, throws immediately — do not return `"failed"` from `expect.poll`, or Playwright
+ * retries until `timeoutMs` because `.toBe("completed")` never matches.
+ */
+async function expectResultsJobCompletedOrFailFast(
+  resultsPanel: Locator,
+  jobAlias: string,
+  timeoutMs = 300_000,
+) {
+  await expect
+    .poll(
+      async () => {
+        const row = resultsPanel
+          .locator('[role="row"]')
+          .filter({ hasText: jobAlias })
+          .first();
+        if (!(await row.isVisible().catch(() => false))) {
+          return "waiting" as const;
+        }
+        const text = ((await row.textContent()) || "").toLowerCase();
+        if (text.includes("failed")) {
+          throw new Error(
+            `Job results row for "${jobAlias}" shows a failed status; stopping wait (fail-fast).`,
+          );
+        }
+        if (text.includes("completed")) {
+          return "completed" as const;
+        }
+        return "waiting" as const;
+      },
+      { timeout: timeoutMs },
+    )
+    .toBe("completed");
+}
+
 // ============================================================
 // TESTS
 // ============================================================
@@ -91,6 +318,201 @@ test.describe("Setup page - comprehensive validation", () => {
     // There is no /setup route — Setup is a tab inside /main
     await page.getByRole("tab", { name: /^set up$/i }).click();
     await page.waitForLoadState("domcontentloaded");
+  });
+
+  // ----------------------------------------------------------
+  // QUEUE JOB — PREFLIGHT VALIDATION (signal / noise)
+  // ----------------------------------------------------------
+  test.describe("Queue Job preflight validation", () => {
+    test("Set Up Validation Failed when signal and noise are both missing (Analytic)", async ({ page }) => {
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Analytic Method");
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const dialog = page.getByRole("dialog", { name: /set up validation failed/i });
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      await expect(dialog.getByText("Please select or upload signal and noise files.")).toBeVisible();
+      await dialog.getByRole("button", { name: /^OK$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 5000 });
+    });
+
+    test("Set Up Validation Failed when signal is missing but noise is present (Analytic)", async ({ page }) => {
+      await expect(page.getByText("Noise File:", { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      const hasNoise = await trySelectBrainSingleSliceNoiseForPreflight(page);
+      test.skip(
+        !hasNoise,
+        "BrainSingleSliceNoise.dat must be in the library — upload on Home so Noise can be selected while Signal stays empty",
+      );
+
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Analytic Method");
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const dialog = page.getByRole("dialog", { name: /set up validation failed/i });
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      await expect(dialog.getByText("Please select or upload signal file.")).toBeVisible();
+      await dialog.getByRole("button", { name: /^OK$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 5000 });
+    });
+
+    test("Set Up Validation Failed when noise is missing but signal is present, non-multi-raid (Analytic)", async ({
+      page,
+    }) => {
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      const hasSignal = await trySelectBrainSingleSliceSignalForPreflight(page);
+      test.skip(
+        !hasSignal,
+        "BrainSingleSliceSignal.dat must be in the library — upload on Home so Signal can be selected while Noise stays empty",
+      );
+
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Analytic Method");
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const dialog = page.getByRole("dialog", { name: /set up validation failed/i });
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      await expect(
+        dialog.getByText(
+          "The signal file is not multi-raid: please select or upload a separate noise file.",
+        ),
+      ).toBeVisible();
+      await dialog.getByRole("button", { name: /^OK$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 5000 });
+    });
+
+    test("Set Up Validation Failed when flip angle correction is on but no FA map is provided", async ({
+      page,
+    }) => {
+      // Multiple Replica: preflight does not require a separate noise file (analysisMethod === 1).
+      // We only set signal; noise and FA map stay unset — Queue Job should fail on missing FA only.
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      const hasSignal = await trySelectBrainSingleSliceSignalForPreflight(page);
+      test.skip(
+        !hasSignal,
+        "BrainSingleSliceSignal.dat must be in the library — upload on Home so Signal can be selected",
+      );
+
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Multiple Replica");
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      const noFaCheckbox = page.getByRole("checkbox", { name: /no flip angle correction/i });
+      await expect(noFaCheckbox).toBeChecked();
+      await noFaCheckbox.uncheck();
+      await expect(page.getByRole("button", { name: "Choose FA Map" })).toBeVisible({ timeout: 5000 });
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const dialog = page.getByRole("dialog", { name: /set up validation failed/i });
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      await expect(
+        dialog.getByText(
+          "A flip angle map must be provided if the flip angle correction option is checked.",
+        ),
+      ).toBeVisible();
+      await dialog.getByRole("button", { name: /^OK$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 5000 });
+    });
+
+    test("Set Up Validation Failed when Predefined Mask is selected but no mask file is provided", async ({
+      page,
+    }) => {
+      // Same file picks as other preflights: signal nth(0), then noise via the only remaining Choose (.first()).
+      // Object Masking (Predefined Mask) is shown for B1 / SENSE only — not RSS.
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      const hasSignal = await trySelectBrainSingleSliceSignalForPreflight(page);
+      test.skip(
+        !hasSignal,
+        "BrainSingleSliceSignal.dat must be in the library — upload on Home if missing",
+      );
+      const hasNoise = await trySelectBrainSingleSliceNoiseAfterSignalForPreflight(page);
+      test.skip(
+        !hasNoise,
+        "BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+      );
+
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Analytic Method");
+      await selectReconMethod(page, "B1 Weighted");
+
+      await expect(page.getByText("Object Masking", { exact: true }).first()).toBeVisible({
+        timeout: 10000,
+      });
+      const predefinedMaskRadio = page
+        .getByRole("radiogroup", { name: /object masking/i })
+        .getByRole("radio", { name: /predefined mask/i });
+      await predefinedMaskRadio.scrollIntoViewIfNeeded();
+      await predefinedMaskRadio.evaluate((el: HTMLInputElement) => el.click());
+      await expect(page.getByRole("button", { name: "Choose or Upload Mask" })).toBeVisible({
+        timeout: 5000,
+      });
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const dialog = page.getByRole("dialog", { name: /set up validation failed/i });
+      await expect(dialog).toBeVisible({ timeout: 10000 });
+      await expect(
+        dialog.getByText(/A mask must be provided if the predefined mask option is checked\.\s*/),
+      ).toBeVisible();
+      await dialog.getByRole("button", { name: /^OK$/i }).click();
+      await expect(dialog).toBeHidden({ timeout: 5000 });
+    });
+  });
+
+  // ----------------------------------------------------------
+  // QUEUE JOB — SENSE / GRAPPA decimation (prospective undersampling warning)
+  // ----------------------------------------------------------
+  test.describe("Queue Job — SENSE decimation warning", () => {
+    test("Warning when SENSE is selected and Decimate Data is unchecked", async ({ page }) => {
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({ timeout: 10000 });
+      const hasSignal = await trySelectBrainSingleSliceSignalForPreflight(page);
+      test.skip(
+        !hasSignal,
+        "BrainSingleSliceSignal.dat must be in the library — upload on Home if missing",
+      );
+      const hasNoise = await trySelectBrainSingleSliceNoiseAfterSignalForPreflight(page);
+      test.skip(
+        !hasNoise,
+        "BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+      );
+
+      await expandSNRPanel(page);
+      await selectAnalysisMethod(page, "Analytic Method");
+      await selectReconMethod(page, "SENSE");
+
+      const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+      await decimateCb.scrollIntoViewIfNeeded();
+      if (await decimateCb.isChecked()) {
+        await decimateCb.uncheck();
+      }
+      await expect(decimateCb).not.toBeChecked();
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const warnDialog = page.getByRole("dialog").filter({
+        hasText: /prospectively undersampled/i,
+      });
+      await expect(warnDialog).toBeVisible({ timeout: 10000 });
+      await expect(
+        warnDialog.getByText(
+          "The current setup assumes that the signal data was prospectively undersampled. If the data is instead fully sampled, either choose B1 reconstruction or keep editing to retrospectively decimate the data.",
+        ),
+      ).toBeVisible();
+      await warnDialog.getByRole("button", { name: /keep editing/i }).click();
+      await expect(warnDialog).toBeHidden({ timeout: 5000 });
+    });
   });
 
   // ----------------------------------------------------------
@@ -197,7 +619,7 @@ test.describe("Setup page - comprehensive validation", () => {
       });
 
       // -- Object Masking (values 0, 1, 3, 4 — value 2 is commented out in code) --
-      test("shows Object Masking section with four options", async ({ page }) => {
+      test("Object Masking — shows section with all four options", async ({ page }) => {
         await expect(page.getByText("Object Masking").first()).toBeVisible();
         // Check label text — not the hidden MUI radio inputs
         await expect(page.getByText("Do Not Mask Coil Sensitivities Maps", { exact: true }).first()).toBeVisible();
@@ -206,13 +628,13 @@ test.describe("Setup page - comprehensive validation", () => {
         await expect(page.getByText("Predefined Mask", { exact: true }).first()).toBeVisible();
       });
 
-      test("'Do Not Mask' option is selectable", async ({ page }) => {
+      test("Object Masking — Do Not Mask Coil Sensitivities Maps is selectable", async ({ page }) => {
         const radio = page.getByRole("radio", { name: /Do Not Mask Coil Sensitivities Maps/i }).first();
         await radio.evaluate((el: HTMLInputElement) => el.click());
         await expect(radio).toBeChecked();
       });
 
-      test("'Keep Pixels Above %' — selecting it reveals threshold input with min=1", async ({
+      test("Object Masking — Keep Pixels Above % reveals threshold input with min=1", async ({
         page,
       }) => {
         const radio = page.getByRole("radio", { name: /Keep Pixels Above/i }).first();
@@ -230,7 +652,7 @@ test.describe("Setup page - comprehensive validation", () => {
         await assertMinConstraint(thresholdInput, "0", 1);
       });
 
-      test("'Use Mask from ESPIRiT' — selecting it reveals k, r, t, c inputs", async ({
+      test("Object Masking — Use Mask from ESPIRiT reveals k, r, t, c inputs", async ({
         page,
       }) => {
         const radio = page.getByRole("radio", { name: /Use Mask from ESPIRiT/i }).first();
@@ -250,13 +672,431 @@ test.describe("Setup page - comprehensive validation", () => {
         // Note: k/r/t/c inputs have min={0} in Setup.tsx — verified in the GPR ESPIRiT mask test
       });
 
-      test("'Predefined Mask' — selecting it reveals file upload button", async ({
+      test("Object Masking — Predefined Mask reveals file upload button", async ({
         page,
       }) => {
         const radio = page.getByRole("radio", { name: /Predefined Mask/i }).first();
         await radio.evaluate((el: HTMLInputElement) => el.click());
         await page.waitForTimeout(400);
         await expect(page.getByText(/Choose or Upload Mask/i).first()).toBeVisible();
+      });
+    });
+
+    // Long-running backend jobs: run one after another (same worker order) to avoid overlapping queues.
+    test.describe("BrainSingleSlice job queue → Results (serial)", () => {
+      test.describe.configure({ mode: "serial" });
+
+      test("queues Analytic RSS job with BrainSingleSlice signal+noise and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "Root Sum of Squares");
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticRssBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Do Not Mask Coil Sensitivities Maps, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const doNotMask = page
+          .getByRole("radio", { name: /Do Not Mask Coil Sensitivities Maps/i })
+          .first();
+        await doNotMask.scrollIntoViewIfNeeded();
+        await doNotMask.evaluate((el: HTMLInputElement) => el.click());
+        await expect(doNotMask).toBeChecked();
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticB1DoNotMaskBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Keep Pixels Above 10% default, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const keepPixelsRadio = page.getByRole("radio", { name: /Keep Pixels Above/i }).first();
+        await keepPixelsRadio.scrollIntoViewIfNeeded();
+        await keepPixelsRadio.evaluate((el: HTMLInputElement) => el.click());
+        await expect(keepPixelsRadio).toBeChecked();
+        await page.waitForTimeout(400);
+
+        const thresholdInput = page
+          .locator("label")
+          .filter({ hasText: /Keep Pixels Above/i })
+          .getByRole("spinbutton")
+          .first();
+        await expect(thresholdInput).toBeVisible();
+        expect(await thresholdInput.inputValue()).toBe("10");
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticB1KeepPixelsBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Use Mask from ESPIRiT default k/r/t/c, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const espiritRadio = page.getByRole("radio", { name: /Use Mask from ESPIRiT/i }).first();
+        await espiritRadio.scrollIntoViewIfNeeded();
+        await espiritRadio.evaluate((el: HTMLInputElement) => el.click());
+        await expect(espiritRadio).toBeChecked();
+        await page.waitForTimeout(400);
+
+        const espLabel = page
+          .locator("label")
+          .filter({ hasText: /Use Mask from ESPIRiT/i })
+          .first();
+        const espInputs = espLabel.getByRole("spinbutton");
+        await expect(espInputs).toHaveCount(4);
+        const espNumeric = [];
+        for (let i = 0; i < 4; i++) {
+          await expect(espInputs.nth(i)).toBeVisible();
+          espNumeric.push(Number(await espInputs.nth(i).inputValue()));
+        }
+        expect(espNumeric).toEqual([8, 24, 0.01, 0.995]);
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticB1ESPIRiTMaskDefaultsBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic B1 Weighted job with BrainSingleSlice signal+noise (Predefined Mask b1-weighted-predefined-mask.nii from library, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const predefinedMaskRadio = page
+          .getByRole("radiogroup", { name: /object masking/i })
+          .getByRole("radio", { name: /predefined mask/i });
+        await predefinedMaskRadio.scrollIntoViewIfNeeded();
+        await predefinedMaskRadio.evaluate((el: HTMLInputElement) => el.click());
+        await expect(predefinedMaskRadio).toBeChecked();
+        await expect(page.getByRole("button", { name: /choose or upload mask/i })).toBeVisible({
+          timeout: 5000,
+        });
+
+        const okMask = await trySelectPredefinedMaskFromLibrary(page, B1_WEIGHTED_PREDEFINED_MASK_NII);
+        test.skip(
+          !okMask,
+          "b1-weighted-predefined-mask.nii must be in the library — upload on Home if missing",
+        );
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticB1PredefinedMaskBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic SENSE job with BrainSingleSlice signal+noise (Decimate Data on, Use All Lines for Autocalibration) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "SENSE");
+
+        const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+        await decimateCb.scrollIntoViewIfNeeded();
+        if (!(await decimateCb.isChecked())) {
+          await decimateCb.click({ force: true });
+        }
+        await expect(decimateCb).toBeChecked();
+        await page.waitForTimeout(500);
+
+        const useAllAclCb = page.getByRole("checkbox", {
+          name: /Use All Lines for Autocalibration/i,
+        });
+        await useAllAclCb.scrollIntoViewIfNeeded();
+        if (!(await useAllAclCb.isChecked())) {
+          await useAllAclCb.click({ force: true });
+        }
+        await expect(useAllAclCb).toBeChecked();
+
+        const aclInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Autocalibration Lines" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(aclInput).toBeDisabled();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticSenseDecimateUseAllAclBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Analytic SENSE job with BrainSingleSlice signal+noise (Decimate Data on, Autocalibration Lines 24 — Use All Lines unchecked) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "SENSE");
+
+        const decimateCb = page.getByRole("checkbox", { name: /Decimate Data/i });
+        await decimateCb.scrollIntoViewIfNeeded();
+        if (!(await decimateCb.isChecked())) {
+          await decimateCb.click({ force: true });
+        }
+        await expect(decimateCb).toBeChecked();
+        await page.waitForTimeout(500);
+
+        const useAllAclCb = page.getByRole("checkbox", {
+          name: /Use All Lines for Autocalibration/i,
+        });
+        await useAllAclCb.scrollIntoViewIfNeeded();
+        if (await useAllAclCb.isChecked()) {
+          await useAllAclCb.click({ force: true });
+        }
+        await expect(useAllAclCb).not.toBeChecked();
+
+        const aclInput = page
+          .locator('[role="row"]')
+          .filter({ hasText: "Autocalibration Lines" })
+          .getByRole("spinbutton")
+          .first();
+        await expect(aclInput).toBeEnabled();
+        expect(await aclInput.inputValue()).toBe("24");
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2eAnalyticSenseDecimateAcl24BrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
       });
     });
 
@@ -459,6 +1299,142 @@ test.describe("Setup page - comprehensive validation", () => {
       await expect(page.getByText("Save g Factor").first()).not.toBeVisible();
       await expect(page.getByText("Object Masking").first()).not.toBeVisible();
     });
+
+    test("queues Multiple Replica RSS job with Phantom100Replicas.dat signal only and sees completion on Results", async ({
+      page,
+    }) => {
+      test.setTimeout(330_000);
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+        timeout: 10000,
+      });
+      const okSignal = await trySelectPhantom100ReplicasSignalForPreflight(page);
+      test.skip(
+        !okSignal,
+        "Phantom100Replicas.dat must be in the library — upload on Home if missing",
+      );
+
+      await expandSNRPanel(page);
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+      await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+      const jobAlias = e2eMultipleReplicaRssPhantom100ReplicasJobAlias();
+      const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+      await jobNameInput.fill(jobAlias);
+
+      await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+      await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+      await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+        timeout: 5000,
+      });
+
+      await goToResultsTabAndExpandJobResults(page);
+
+      const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+      await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+    });
+
+    test("queues Multiple Replica RSS job with BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat and sees completion on Results", async ({
+      page,
+    }) => {
+      test.setTimeout(330_000);
+      await selectReconMethod(page, "Root Sum of Squares");
+
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+        timeout: 10000,
+      });
+      const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
+      test.skip(
+        !okPair,
+        "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
+      );
+
+      await expandSNRPanel(page);
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+      await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+      const jobAlias = e2eMultipleReplicaRssBrainMultiSliceJobAlias();
+      const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+      await jobNameInput.fill(jobAlias);
+
+      await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+      await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+      await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+        timeout: 5000,
+      });
+
+      await goToResultsTabAndExpandJobResults(page);
+
+      const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+      await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+    });
+
+    test("queues Multiple Replica B1 Weighted job with BrainMultiSlice signal+noise (Do Not Mask Coil Sensitivities Maps, Save Coil Sensitivities) and sees completion on Results", async ({
+      page,
+    }) => {
+      test.setTimeout(330_000);
+
+      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+        timeout: 10000,
+      });
+      const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
+      test.skip(
+        !okPair,
+        "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
+      );
+
+      // With noise set, Multiple Replica exposes B1 / SENSE / GRAPPA (Setup.tsx); select after files.
+      await selectReconMethod(page, "B1 Weighted");
+
+      const doNotMask = page
+        .getByRole("radio", { name: /Do Not Mask Coil Sensitivities Maps/i })
+        .first();
+      await doNotMask.scrollIntoViewIfNeeded();
+      await doNotMask.evaluate((el: HTMLInputElement) => el.click());
+      await expect(doNotMask).toBeChecked();
+
+      const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+      await saveCoil.scrollIntoViewIfNeeded();
+      if (!(await saveCoil.isChecked())) {
+        await saveCoil.click({ force: true });
+      }
+      await expect(saveCoil).toBeChecked();
+
+      await expandSNRPanel(page);
+
+      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+      await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+      const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+      await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+      const jobAlias = e2eMultipleReplicaB1DoNotMaskBrainMultiSliceJobAlias();
+      const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+      await jobNameInput.fill(jobAlias);
+
+      await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+      await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+      await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+        timeout: 5000,
+      });
+
+      await goToResultsTabAndExpandJobResults(page);
+
+      const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+      await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+    });
   });
 
   // ==========================================================
@@ -592,6 +1568,10 @@ test.describe("Setup page - comprehensive validation", () => {
         await expect(kxInput).toBeVisible();
         await expect(kyInput).toBeVisible();
 
+        // Defaults: Kernel X = 3, Y = 4 (see applyReconstructionMethodIndex + MUI Radio string values)
+        expect(await kxInput.inputValue()).toBe("3");
+        expect(await kyInput.inputValue()).toBe("4");
+
         // Kernel X: min=1, must be > 0
         await assertMinConstraint(kxInput, "0", 1);
         await assertMinConstraint(kxInput, "-1", 1);
@@ -715,6 +1695,105 @@ test.describe("Setup page - comprehensive validation", () => {
           page.getByText("Save Coil Sensitivities"),
         ).not.toBeVisible();
         await expect(page.getByText("Save g Factor").first()).not.toBeVisible();
+      });
+    });
+
+    // Long-running backend jobs: serial to avoid overlapping queues with other PMR queue tests.
+    test.describe("BrainSingleSlice job queue → Results (serial)", () => {
+      test.describe.configure({ mode: "serial" });
+
+      test("queues Pseudo Multiple Replica RSS job with BrainSingleSlice signal+noise (all defaults) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "Root Sum of Squares");
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2ePmrRssBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
+      });
+
+      test("queues Pseudo Multiple Replica B1 Weighted job with BrainSingleSlice signal+noise (Do Not Mask Coil Sensitivities Maps, Save Coil Sensitivities) and sees completion on Results", async ({
+        page,
+      }) => {
+        test.setTimeout(330_000);
+        await selectReconMethod(page, "B1 Weighted");
+
+        const doNotMask = page
+          .getByRole("radio", { name: /Do Not Mask Coil Sensitivities Maps/i })
+          .first();
+        await doNotMask.scrollIntoViewIfNeeded();
+        await doNotMask.evaluate((el: HTMLInputElement) => el.click());
+        await expect(doNotMask).toBeChecked();
+
+        const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
+        await saveCoil.scrollIntoViewIfNeeded();
+        if (!(await saveCoil.isChecked())) {
+          await saveCoil.click({ force: true });
+        }
+        await expect(saveCoil).toBeChecked();
+
+        await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
+          timeout: 10000,
+        });
+        const okPair = await trySelectBrainSingleSlicePairForPreflight(page);
+        test.skip(
+          !okPair,
+          "BrainSingleSliceSignal.dat and BrainSingleSliceNoise.dat must be in the library — upload on Home if missing",
+        );
+
+        await expandSNRPanel(page);
+
+        await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
+        await page.getByRole("button", { name: "Queue Job" }).first().click();
+
+        const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
+        await expect(previewDialog).toBeVisible({ timeout: 20000 });
+
+        const jobAlias = e2ePmrB1DoNotMaskBrainSingleSliceJobAlias();
+        const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
+        await jobNameInput.fill(jobAlias);
+
+        await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
+        await expect(previewDialog).toBeHidden({ timeout: 15000 });
+
+        await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
+          timeout: 5000,
+        });
+
+        await goToResultsTabAndExpandJobResults(page);
+
+        const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
+        await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
       });
     });
   });
@@ -850,6 +1929,8 @@ test.describe("Setup page - comprehensive validation", () => {
         .first();
       await expect(kxInput).toBeVisible();
       await expect(kyInput).toBeVisible();
+      expect(await kxInput.inputValue()).toBe("3");
+      expect(await kyInput.inputValue()).toBe("4");
       await assertMinConstraint(kxInput, "0", 1);
       await assertMinConstraint(kyInput, "0", 1);
 

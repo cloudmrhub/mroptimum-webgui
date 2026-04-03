@@ -66,7 +66,7 @@ All test files live in the `tests/` directory:
 |---|---|
 | `tests/auth.setup.ts` | Authenticates and saves browser storage state for reuse |
 | `tests/login.spec.ts` | Login flow — valid credentials, invalid credentials error |
-| `tests/home.full.spec.ts` | Home page — sections visible, file upload (.dat accepted, .nii rejected), calculation counts |
+| `tests/home.full.spec.ts` | Home page — sections visible, file upload (.dat), calculation counts |
 | `tests/setup.spec.ts` | Setup page — all analysis methods, reconstruction methods, checkboxes, inputs, constraints |
 | `tests/results.spec.ts` | Results page — job table, viewer controls, ROI table, drawing toolkit, settings inspection |
 | `tests/helpers/auth.ts` | Shared authentication helpers used by all test files |

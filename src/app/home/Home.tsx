@@ -780,12 +780,9 @@ const Home = () => {
       >
         <CmrPanel key="0" header="Uploaded Data" className="mb-2">
           <CmrTable
-            dataSource={[...files]
-              .filter((file) => {
-                const name = file.fileName.toLowerCase();
-                return !name.endsWith(".zip") && !name.endsWith(".nii");
-              })
-              .reverse()}
+            dataSource={
+              [...files].reverse()
+            }
             rowSelectionModel={selectedData}
             onRowSelectionModelChange={(rowSelectionModel) => {
               setSelectedData(rowSelectionModel);
