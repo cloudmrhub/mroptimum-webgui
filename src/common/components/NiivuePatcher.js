@@ -1202,9 +1202,15 @@ Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
         console.debug('No drawing open')
         return false
     }
+    const live = this.drawBitmap
+    const resolved = getResolvedDrawBitmapForExport(this)
     const perm = this.volumes[0].permRAS
     if (perm[0] === 1 && perm[1] === 2 && perm[2] === 3) {
-        await this.volumes[0].saveToDisk(fnm, this.drawBitmap) // createEmptyDrawing
+        const outFlat = new Uint8Array(live.length)
+        for (let i = 0; i < live.length; i++) {
+            outFlat[i] = labels.indexOf(live[i]) >= 0 ? resolved[i] : 0
+        }
+        await this.volumes[0].saveToDisk(fnm, outFlat)
         return true
     } else {
         const dims = this.volumes[0].hdr.dims // reverse to original
@@ -1242,17 +1248,16 @@ Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
         let zlut = range(0, dims[3] - 1, 1)
         if (inflip[2]) zlut = range(dims[3] - 1, 0, -1)
         for (let i = 0; i < dims[3]; i++) zlut[i] *= instride[2]
-        // convert data
+        // convert data — mask by current (possibly merged) label; write underlying ungrouped IDs
 
-        const inVs = new Uint8Array(this.drawBitmap)
         const outVs = new Uint8Array(dims[1] * dims[2] * dims[3])
         let j = 0
         for (let z = 0; z < dims[3]; z++) {
             for (let y = 0; y < dims[2]; y++) {
                 for (let x = 0; x < dims[1]; x++) {
-                    let bit = inVs[xlut[x] + ylut[y] + zlut[z]]
-                    //Only fill matched bits
-                    outVs[j] = (labels.indexOf(bit) >= 0) ? bit : 0
+                    const idx = xlut[x] + ylut[y] + zlut[z]
+                    const bitLive = live[idx]
+                    outVs[j] = (labels.indexOf(bitLive) >= 0) ? resolved[idx] : 0
                     j++
                 }
             }
@@ -1277,6 +1282,17 @@ Niivue.prototype.deleteDrawingByLabel = function (labels = [0]) {
     of labels
  */
 const bitmapOverlay = [];
+
+/** Clone of drawBitmap with bitmapOverlay undo applied; does not mutate the live drawing. */
+function getResolvedDrawBitmapForExport(nv) {
+    const src = nv.drawBitmap
+    const copy = new Uint8Array(src)
+    for (let i = 0; i < bitmapOverlay.length; i++) {
+        const t = bitmapOverlay[i]
+        copy[t[0]] = t[1]
+    }
+    return copy
+}
 
 Niivue.prototype.groupLabelsInto = function (sourceLabels = [0], targetLabel = 7) {
     const overlayIndex = new Set(bitmapOverlay.map((t) => t[0]));
