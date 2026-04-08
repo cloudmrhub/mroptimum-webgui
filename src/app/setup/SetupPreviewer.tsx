@@ -36,7 +36,7 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         setAlias(event);   // keep parent state in sync (your prop expects the event)
     };
 
-    // queue-time validation
+    // queue-time validation (also used to disable Queue until the name is valid)
     const handleQueueClick = async () => {
         const candidate = (jobName || alias).trim();
 
@@ -55,6 +55,10 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         await queue(candidate);
         handleClose();
     };
+
+    const candidate = (jobName || String(alias ?? "")).trim();
+    const queueDisabled =
+        !candidate || INVALID_JOB_ALIAS_REGEX.test(candidate);
 
     return <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
@@ -112,10 +116,14 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
             }}>{editText}</CmrButton>
             {/* } */}
 
-            <CmrButton variant={"contained"} fullWidth onClick={() => {
-                queue(jobName || alias);
-                handleClose();
-            }}>{queueText}</CmrButton>
+            <CmrButton
+                variant={"contained"}
+                fullWidth
+                disabled={queueDisabled}
+                onClick={handleQueueClick}
+            >
+                {queueText}
+            </CmrButton>
 
         </DialogActions>
 
