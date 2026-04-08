@@ -29,7 +29,7 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         const v = event.target.value;
         if (INVALID_JOB_ALIAS_REGEX.test(v)) {
             setAliasError(true);
-            setAliasErrorText("Job name contains invalid characters ( , : % > < )");
+            setAliasErrorText("Job name contains spaces or invalid characters ( , : % > < )");
         }
 
         setJobName(v);     // keep local state in sync
@@ -38,7 +38,8 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
 
     // queue-time validation (also used to disable Queue until the name is valid)
     const handleQueueClick = async () => {
-        const candidate = (jobName || alias).trim();
+        const raw = jobName || String(alias ?? "");
+        const candidate = raw.trim();
 
         if (!candidate) {
             setAliasError(true);
@@ -46,9 +47,10 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
             return;
         }
 
-        if (INVALID_JOB_ALIAS_REGEX.test(candidate)) {
+        // Test raw (not trimmed) so leading/trailing spaces match live validation
+        if (INVALID_JOB_ALIAS_REGEX.test(raw)) {
             setAliasError(true);
-            setAliasErrorText("Job name contains invalid characters ( , : % > < )");
+            setAliasErrorText("Job name contains spaces or invalid characters ( , : % > < )");
             return;
         }
 
@@ -56,9 +58,10 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         handleClose();
     };
 
-    const candidate = (jobName || String(alias ?? "")).trim();
+    const rawName = jobName || String(alias ?? "");
+    const candidate = rawName.trim();
     const queueDisabled =
-        !candidate || INVALID_JOB_ALIAS_REGEX.test(candidate);
+        !candidate || INVALID_JOB_ALIAS_REGEX.test(rawName);
 
     return <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
