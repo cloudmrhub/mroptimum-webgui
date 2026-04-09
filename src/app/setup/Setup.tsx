@@ -352,6 +352,17 @@ const Setup = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outputGFactor, reconstructionMethod]);
 
+  // Multiple Replica only supports RSS in the UI; drop stale B1/SENSE/GRAPPA from older sessions or noise-upload path
+  useEffect(() => {
+    if (
+      analysisMethod === 1 &&
+      reconstructionMethod != null &&
+      reconstructionMethod !== 0
+    ) {
+      dispatch(setupSetters.setReconstructionMethod(0));
+    }
+  }, [analysisMethod, reconstructionMethod, dispatch]);
+
   const columns: GridColDef[] = [
     { field: "type", headerName: "type", width: 180, editable: false },
     {
@@ -1245,7 +1256,7 @@ const Setup = () => {
                                         value={(reconstructionMethod != undefined) ? reconstructionMethod : ''}
                                         style={{ display: 'flex', justifyContent: 'space-between' }}
                                     >
-                                        {(analysisMethod == 1 && noise ? ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT'] : analysisMethod == 1 && noise == null ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+                                        {(analysisMethod == 1 ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
 
                                             return (analysisMethod != undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
                                                 <FormControlLabel value={index}
