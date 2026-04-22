@@ -102,7 +102,9 @@ async function waitForNiiVueCanvasReady(maxMs = 10000): Promise<void> {
         }
       }
     }
-    await new Promise<void>((r) => requestAnimationFrame(r));
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
   }
   throw new Error(
     'The viewer did not finish opening. Expand the "View Results" panel and try Play again.',

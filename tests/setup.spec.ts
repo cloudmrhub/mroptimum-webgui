@@ -35,13 +35,13 @@ async function selectAnalysisMethod(page: Page, name: string) {
   // HTML name="row-radio-buttons-group", causing browser-level conflicts. Use a proxy instead
   // based on which reconstruction options appear for each analysis method (no noise file in tests):
   //   Analytic (0)            → RSS / B1 Weighted / SENSE only  — GRAPPA & ESPIRIT hidden
-  //   Multiple Replica (1)    → RSS / ESPIRIT only when noise=null; with noise → same full list as PMR (B1/SENSE/GRAPPA + disabled ESPIRIT)
+  //   Multiple Replica (1)    → RSS + disabled ESPIRIT only (with or without noise file)
   //   Pseudo Multi Replica (2) → full set including GRAPPA
   //   Generalized PR (3)      → full set including GRAPPA
   if (name === "Analytic Method") {
     await expect(page.getByRole("radio", { name: "GRAPPA" })).not.toBeVisible({ timeout: 5000 });
   } else if (name === "Multiple Replica") {
-    // ESPIRIT appears for Multiple Replica (noise=null) but NOT for Analytic
+    // ESPIRIT appears for Multiple Replica (disabled) but NOT for Analytic
     await expect(page.getByRole("radio", { name: "ESPIRIT" }).first()).toBeVisible({ timeout: 5000 });
   } else {
     // PMR and GPR always render the full set — GRAPPA is the distinguishing element
@@ -147,10 +147,6 @@ function e2eMultipleReplicaRssPhantom100ReplicasJobAlias() {
 
 function e2eMultipleReplicaRssBrainMultiSliceJobAlias() {
   return `E2E-MultipleReplica-RSS-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
-}
-
-function e2eMultipleReplicaB1DoNotMaskBrainMultiSliceJobAlias() {
-  return `E2E-MultipleReplica-B1Weighted-DoNotMask-BrainMultiSlice-${nextE2eBrainSingleSliceJobAliasSuffix()}`;
 }
 
 function e2ePmrRssBrainSingleSliceJobAlias() {
@@ -1279,13 +1275,15 @@ test.describe("Setup page - comprehensive validation", () => {
       await selectAnalysisMethod(page, "Multiple Replica");
     });
 
-    test("only RSS is available (no noise uploaded)", async ({ page }) => {
+    test("only RSS and disabled ESPIRIT — B1/SENSE/GRAPPA never shown (even without noise)", async ({
+      page,
+    }) => {
       // RSS should be visible and enabled
       const rss = page.getByRole("radio", { name: "Root Sum of Squares" });
       await expect(rss).toBeVisible();
       await expect(rss).toBeEnabled();
 
-      // B1 Weighted, SENSE, GRAPPA should NOT be visible (no noise uploaded)
+      // B1 Weighted, SENSE, GRAPPA should NOT be visible for Multiple Replica
       await expect(
         page.getByRole("radio", { name: "B1 Weighted" }),
       ).not.toBeVisible();
@@ -1376,6 +1374,12 @@ test.describe("Setup page - comprehensive validation", () => {
         "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
       );
 
+      await expect(
+        page.getByRole("radio", { name: "B1 Weighted" }),
+      ).not.toBeVisible();
+      await expect(page.getByRole("radio", { name: "SENSE" })).not.toBeVisible();
+      await expect(page.getByRole("radio", { name: "GRAPPA" })).not.toBeVisible();
+
       await expandSNRPanel(page);
 
       await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
@@ -1385,62 +1389,6 @@ test.describe("Setup page - comprehensive validation", () => {
       await expect(previewDialog).toBeVisible({ timeout: 20000 });
 
       const jobAlias = e2eMultipleReplicaRssBrainMultiSliceJobAlias();
-      const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
-      await jobNameInput.fill(jobAlias);
-
-      await previewDialog.getByRole("button", { name: /^queue job$/i }).click();
-      await expect(previewDialog).toBeHidden({ timeout: 15000 });
-
-      await expect(page.getByText("Job successfully queued!", { exact: true })).toBeVisible({
-        timeout: 5000,
-      });
-
-      await goToResultsTabAndExpandJobResults(page);
-
-      const resultsPanel = page.getByRole("tabpanel", { name: /results/i });
-      await expectResultsJobCompletedOrFailFast(resultsPanel, jobAlias);
-    });
-
-    test("queues Multiple Replica B1 Weighted job with BrainMultiSlice signal+noise (Do Not Mask Coil Sensitivities Maps, Save Coil Sensitivities) and sees completion on Results", async ({
-      page,
-    }) => {
-      test.setTimeout(330_000);
-
-      await expect(page.getByText("Signal File:", { exact: true }).first()).toBeVisible({
-        timeout: 10000,
-      });
-      const okPair = await trySelectBrainMultiSlicePairForPreflight(page);
-      test.skip(
-        !okPair,
-        "BrainMultiSliceSignal.dat and BrainMultiSliceNoise.dat must be in the library — upload on Home if missing",
-      );
-
-      // With noise set, Multiple Replica exposes B1 / SENSE / GRAPPA (Setup.tsx); select after files.
-      await selectReconMethod(page, "B1 Weighted");
-
-      const doNotMask = page
-        .getByRole("radio", { name: /Do Not Mask Coil Sensitivities Maps/i })
-        .first();
-      await doNotMask.scrollIntoViewIfNeeded();
-      await doNotMask.evaluate((el: HTMLInputElement) => el.click());
-      await expect(doNotMask).toBeChecked();
-
-      const saveCoil = page.getByRole("checkbox", { name: /Save Coil Sensitivities/i }).first();
-      await saveCoil.scrollIntoViewIfNeeded();
-      if (!(await saveCoil.isChecked())) {
-        await saveCoil.click({ force: true });
-      }
-      await expect(saveCoil).toBeChecked();
-
-      await expandSNRPanel(page);
-
-      await page.getByRole("button", { name: "Queue Job" }).first().scrollIntoViewIfNeeded();
-      await page.getByRole("button", { name: "Queue Job" }).first().click();
-
-      const previewDialog = page.getByRole("dialog", { name: /setup preview/i });
-      await expect(previewDialog).toBeVisible({ timeout: 20000 });
-
-      const jobAlias = e2eMultipleReplicaB1DoNotMaskBrainMultiSliceJobAlias();
       const jobNameInput = previewDialog.getByRole("textbox", { name: /set job name/i });
       await jobNameInput.fill(jobAlias);
 

@@ -1,24 +1,23 @@
 import React from 'react';
 import './About.scss';
 //@ts-ignore
-import CBILogo from '../../assets/about-us/CBI_Logo_Final_CMYK-01.png';
+import MROptimumLogo from '/mroptimum_logo.png';
 //@ts-ignore
 import CAI from '../../assets/about-us/CAI2R_PURPLE_RGB.png';
 //@ts-ignore
 import nibib from '../../assets/about-us/nibib_logo.png';
 
 function AboutPage() {
-    const imageUrl = `${process.env.PUBLIC_URL}/MR Optimum_final_purple.png`;
-    const cbiUrl = `${process.env.PUBLIC_URL}/CBI_crop.png`;
+    const cbiUrl = `/CBI_crop.png`;
 
     return (
-        <div className="m-4 row" id={'about-root'} style={{justifyContent: 'center', display: 'flex'}}>
+        <div className="m-4 row" id={'about-root'} style={{ justifyContent: 'center', display: 'flex' }}>
             <div className="col-md-6">
                 <div className="card">
                     <div className="card-header p-2">About</div>
 
                     <div className="m-5">
-                    <img src={imageUrl} alt="MR Optimum" style={{marginBottom: '20px', height: '60px',margin:'0pt'}} />
+                        <img src={MROptimumLogo} alt="MR Optimum" style={{ marginBottom: '20px', height: '60px', margin: '0pt' }} />
 
                         <div className="container py-1">
                             <p className="cmTitle">MR Optimum</p>
@@ -44,7 +43,7 @@ function AboutPage() {
                             <p className='cmTitle'>Acknowledgment</p>
                             We are grateful to AWS for providing cloud technical support and promotional credits.
                         </div>
-                        <img src={cbiUrl} alt="CBI" style={{marginBottom: '20px', height: '60px', marginTop: '1.5em'}} />
+                        <img src={cbiUrl} alt="CBI" style={{ marginBottom: '20px', height: '60px', marginTop: '1.5em' }} />
 
                     </div>
                 </div>
@@ -56,14 +55,15 @@ function AboutPage() {
 const description = (
     <div className="cmParagraph">
         <div className="cmText">
-            MR Optimum is a web-based application for the evaluation of MR image quality in terms of signal-to-noise ratio (SNR). It provides standardized access to the most common methods for SNR calculation.
-            
-                <ul style={{ marginBottom: "0px" }}>
-                    <li>Principal Investigator: Riccardo Lattanzi, PhD</li>
-                    <li>Head of Software Development: Eros Montin, PhD</li>
-                    <li>Collaborators: Roy Wiggins, Xuan Thao Nguyen</li>
-                </ul>
-                
+            MR Optimum (pronounced “Mister Optimum”) is a web-based application for the evaluation of MR image 
+            quality in terms of signal-to-noise ratio (SNR). It provides standardized access to the most common 
+            methods for SNR calculation.
+            <ul style={{ marginBottom: "0px", marginTop: "10px" }}>
+                <li>Principal Investigator: Riccardo Lattanzi, PhD</li>
+                <li>Head of Software Development: Eros Montin, PhD</li>
+                <li>Collaborators: Roy Wiggins, Xuan Thao Nguyen</li>
+            </ul>
+
         </div>
     </div>
 );
@@ -89,40 +89,40 @@ const funding = (
 
 const refs = (
     <ul style={{ marginBottom: "0pt", listStyleType: "none" }}>
-            <li className="cmReference">
-        Montin E and Lattanzi R <em>Seeking a widely adoptable practical standard to estimate signal-to-noise ratio in magnetic resonance imaging for multiple-coil reconstructions</em>; Journal of Magnetic Resonance Imaging, vol 54(6), 2021, p. 1952-1964. <a href="https://doi.org/10.1002/jmri.27816">DOI: 10.1002/jmri.27816</a>
-    </li>
-    <li>
-    Montin E, Wiggins R, Block KT, L. R. <em> MR optimum - A web-based application for signal-to-noise ratio evaluation.</em>  27th Scientific Meeting of the International Society for Magnetic Resonance in Medicine (ISMRM). Montreal (Canada), 11-16 May 2019, 4617. <a href="https://cds.ismrm.org/protected/19MProceedings/PDFfiles/4617.html">   abstract</a>
-    </li>
+        <li className="cmReference">
+            Montin E and Lattanzi R <em>Seeking a widely adoptable practical standard to estimate signal-to-noise ratio in magnetic resonance imaging for multiple-coil reconstructions</em>; Journal of Magnetic Resonance Imaging, vol 54(6), 2021, p. 1952-1964. <a href="https://doi.org/10.1002/jmri.27816">DOI: 10.1002/jmri.27816</a>
+        </li>
+        <li>
+            Montin E, Wiggins R, Block KT, L. R. <em> MR optimum - A web-based application for signal-to-noise ratio evaluation.</em>  27th Scientific Meeting of the International Society for Magnetic Resonance in Medicine (ISMRM). Montreal (Canada), 11-16 May 2019, 4617. <a href="https://cds.ismrm.org/protected/19MProceedings/PDFfiles/4617.html">   abstract</a>
+        </li>
     </ul>
 );
 
 const publications = (
     <ul style={{ marginBottom: "0pt", listStyleType: "none" }}>
 
-    <li className="cmReference">
-        Zubkov, M. (2021). <em>Editorial for “Seeking a Widely Adoptable Practical Standard to Estimate Signal‐to‐Noise Ratio in Magnetic Resonance Imaging for Multiple‐Coil Reconstructions.”</em> In Journal of Magnetic Resonance Imaging (Vol. 54, Issue 6, pp. 1965-1966). Wiley. <a href="https://doi.org/10.1002/jmri.27819">DOI: 10.1002/jmri.27819</a>
-    </li>
-    <li className="cmReference">
-        Testagrossa, B., Ruello, E., Gurgone, S. et al. (2021). <em>Radio Frequency MRI coils and safety: how infrared thermography can support quality assurance.</em> Egypt J Radiol Nucl Med 52, 277. <a href="https://doi.org/10.1186/s43055-021-00659-y">DOI: 10.1186/s43055-021-00659-y</a>
-    </li>
-    <li className="cmReference">
-        Lakshmanan, K., Wang, B., Walczyk, J., Collins, C. M., & Brown, R. (2024). <em>Three-row MRI receive array with remote circuitry to preserve radiation transparency.</em> In Physics in Medicine & Biology (Vol. 69, Issue 9, p. 09NT02). IOP Publishing. <a href="https://doi.org/10.1088/1361-6560/ad388c">DOI: 10.1088/1361-6560/ad388c</a>
-    </li>
-    <li className="cmReference">
-        Berkarda, Z., Wiedemann, S., Wilpert, C., Strecker, R., Koerzdoerfer, G., Nickel, D., Bamberg, F., Benndorf, M., Mayrhofer, T., Frederik Russe, M., Weiss, J., & Diallo, T. D. (2024). <em>Deep learning reconstructed T2-weighted Dixon imaging of the spine: Impact on acquisition time and image quality.</em> In European Journal of Radiology (p. 111633). Elsevier BV. <a href="https://doi.org/10.1016/j.ejrad.2024.111633">DOI: 10.1016/j.ejrad.2024.111633</a>
-    </li>
-    <li className="cmReference">
-        Obermann, M., Nohava, L., Frass-Kriegl, R., Soanca, O., Ginefri, J. C., Felblinger, J., Clauser, P., Baltzer, P. A. T., & Laistler, E. (2023). <em>Panoramic Magnetic Resonance Imaging of the Breast With a Wearable Coil Vest.</em> Investigative radiology, 58(11), 799-810. <a href="https://doi.org/10.1097/RLI.0000000000000991">DOI: 10.1097/RLI.0000000000000991</a>
-    </li>
-    <li className="cmReference">
-        Wang, B., Siddiq, S.S., Walczyk, J. et al. (2022). <em>A flexible MRI coil based on a cable conductor and applied to knee imaging.</em> Sci Rep 12, 15010. <a href="https://doi.org/10.1038/s41598-022-19282-6">DOI: 10.1038/s41598-022-19282-6</a>
-    </li>
-    <li className="cmReference">
-        McKeown, Trevor. (2022). <em>Continuous MRI Coil Quality Control using Clinical Imaging Data</em>, Duke University, United States -- North Carolina. ProQuest. <a href="http://proxy.library.nyu.edu/login?qurl=https%3A%2F%2Fwww.proquest.com%2Fdissertations-theses%2Fcontinuous-mri-coil-quality-control-using%2Fdocview%2F2677619898%2Fse-2%3Faccountid%3D12768">Link to Dissertation</a>
-    </li>
-</ul>
+        <li className="cmReference">
+            Zubkov, M. (2021). <em>Editorial for “Seeking a Widely Adoptable Practical Standard to Estimate Signal‐to‐Noise Ratio in Magnetic Resonance Imaging for Multiple‐Coil Reconstructions.”</em> In Journal of Magnetic Resonance Imaging (Vol. 54, Issue 6, pp. 1965-1966). Wiley. <a href="https://doi.org/10.1002/jmri.27819">DOI: 10.1002/jmri.27819</a>
+        </li>
+        <li className="cmReference">
+            Testagrossa, B., Ruello, E., Gurgone, S. et al. (2021). <em>Radio Frequency MRI coils and safety: how infrared thermography can support quality assurance.</em> Egypt J Radiol Nucl Med 52, 277. <a href="https://doi.org/10.1186/s43055-021-00659-y">DOI: 10.1186/s43055-021-00659-y</a>
+        </li>
+        <li className="cmReference">
+            Lakshmanan, K., Wang, B., Walczyk, J., Collins, C. M., & Brown, R. (2024). <em>Three-row MRI receive array with remote circuitry to preserve radiation transparency.</em> In Physics in Medicine & Biology (Vol. 69, Issue 9, p. 09NT02). IOP Publishing. <a href="https://doi.org/10.1088/1361-6560/ad388c">DOI: 10.1088/1361-6560/ad388c</a>
+        </li>
+        <li className="cmReference">
+            Berkarda, Z., Wiedemann, S., Wilpert, C., Strecker, R., Koerzdoerfer, G., Nickel, D., Bamberg, F., Benndorf, M., Mayrhofer, T., Frederik Russe, M., Weiss, J., & Diallo, T. D. (2024). <em>Deep learning reconstructed T2-weighted Dixon imaging of the spine: Impact on acquisition time and image quality.</em> In European Journal of Radiology (p. 111633). Elsevier BV. <a href="https://doi.org/10.1016/j.ejrad.2024.111633">DOI: 10.1016/j.ejrad.2024.111633</a>
+        </li>
+        <li className="cmReference">
+            Obermann, M., Nohava, L., Frass-Kriegl, R., Soanca, O., Ginefri, J. C., Felblinger, J., Clauser, P., Baltzer, P. A. T., & Laistler, E. (2023). <em>Panoramic Magnetic Resonance Imaging of the Breast With a Wearable Coil Vest.</em> Investigative radiology, 58(11), 799-810. <a href="https://doi.org/10.1097/RLI.0000000000000991">DOI: 10.1097/RLI.0000000000000991</a>
+        </li>
+        <li className="cmReference">
+            Wang, B., Siddiq, S.S., Walczyk, J. et al. (2022). <em>A flexible MRI coil based on a cable conductor and applied to knee imaging.</em> Sci Rep 12, 15010. <a href="https://doi.org/10.1038/s41598-022-19282-6">DOI: 10.1038/s41598-022-19282-6</a>
+        </li>
+        <li className="cmReference">
+            McKeown, Trevor. (2022). <em>Continuous MRI Coil Quality Control using Clinical Imaging Data</em>, Duke University, United States -- North Carolina. ProQuest. <a href="http://proxy.library.nyu.edu/login?qurl=https%3A%2F%2Fwww.proquest.com%2Fdissertations-theses%2Fcontinuous-mri-coil-quality-control-using%2Fdocview%2F2677619898%2Fse-2%3Faccountid%3D12768">Link to Dissertation</a>
+        </li>
+    </ul>
 );
 
 export default AboutPage;

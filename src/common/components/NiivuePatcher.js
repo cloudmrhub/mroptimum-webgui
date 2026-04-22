@@ -6,6 +6,45 @@ import { mat4, vec2, vec3, vec4 } from 'gl-matrix'
 import { tickSpacing } from "./util";
 import { nv } from "./Niivue";
 
+/*
+ * bitmapOverlay — in-browser state only: remembers each voxel's label *before* Group
+ * (so Ungroup can restore red/green etc.). It is not written to NIfTI; closing the tab
+ * or loading a new drawing loses it unless the file already stores separate label ids.
+ *
+ * When to drop that saved state (so it cannot go stale):
+ * - Full reset: replace whole drawing, clear/close drawing, delete-by-label,
+ *   load from URL/base64, relabel → clear the entire array.
+ * - Merge upload: remove entries only for voxels the import overwrites (non-zero in
+ *   the imported map); other voxels keep their saved pre-merge labels for Ungroup.
+ */
+const bitmapOverlay = [];
+
+function clearBitmapOverlay() {
+    bitmapOverlay.length = 0;
+}
+
+/** Remove group-undo rows for voxels that will be / were overwritten by an import (flat indices). */
+function stripBitmapOverlayForVoxelIndices(writtenSet) {
+    if (!writtenSet || writtenSet.size === 0) {
+        return;
+    }
+    for (let k = bitmapOverlay.length - 1; k >= 0; k--) {
+        if (writtenSet.has(bitmapOverlay[k][0])) {
+            bitmapOverlay.splice(k, 1);
+        }
+    }
+}
+
+/** Clone of drawBitmap with bitmapOverlay undo applied; does not mutate the live drawing. */
+function getResolvedDrawBitmapForExport(nv) {
+    const src = nv.drawBitmap;
+    const copy = new Uint8Array(src);
+    for (let i = 0; i < bitmapOverlay.length; i++) {
+        const t = bitmapOverlay[i];
+        copy[t[0]] = t[1];
+    }
+    return copy;
+}
 
 var NiivueObject3D = function (id, vertexBuffer, mode, indexCount, indexBuffer = null, vao = null) {
     this.BLEND = 1;
@@ -172,6 +211,7 @@ const closeDrawing = Niivue.prototype.closeDrawing;
  * This patch to closeDrawing clears invisible bitmapCache when applied
  */
 Niivue.prototype.closeDrawing = function () {
+    clearBitmapOverlay();
     if (this.drawBitmap !== undefined && this.drawBitmap !== null)
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
     else if (this.hiddenBitmap !== undefined)
@@ -179,11 +219,18 @@ Niivue.prototype.closeDrawing = function () {
     closeDrawing.call(this);
 }
 
+const _loadDrawingFromUrl = Niivue.prototype.loadDrawingFromUrl;
+Niivue.prototype.loadDrawingFromUrl = async function (fnm, isBinarize) {
+    clearBitmapOverlay();
+    return _loadDrawingFromUrl.call(this, fnm, isBinarize);
+};
+
 /**
  * The difference between clear drawing and close drawing is that
  * clear drawing retains itself in the undo stack.
  */
 Niivue.prototype.clearDrawing = function () {
+    clearBitmapOverlay();
     if (this.drawBitmap != undefined && this.drawBitmap != null) {
         this.drawBitmap = new Uint8Array(this.drawBitmap.length);
         this.hiddenBitmap = new Uint8Array(this.drawBitmap.length);
@@ -1202,9 +1249,15 @@ Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
         console.debug('No drawing open')
         return false
     }
+    const live = this.drawBitmap
+    const resolved = getResolvedDrawBitmapForExport(this)
     const perm = this.volumes[0].permRAS
     if (perm[0] === 1 && perm[1] === 2 && perm[2] === 3) {
-        await this.volumes[0].saveToDisk(fnm, this.drawBitmap) // createEmptyDrawing
+        const outFlat = new Uint8Array(live.length)
+        for (let i = 0; i < live.length; i++) {
+            outFlat[i] = labels.indexOf(live[i]) >= 0 ? resolved[i] : 0
+        }
+        await this.volumes[0].saveToDisk(fnm, outFlat)
         return true
     } else {
         const dims = this.volumes[0].hdr.dims // reverse to original
@@ -1242,17 +1295,16 @@ Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
         let zlut = range(0, dims[3] - 1, 1)
         if (inflip[2]) zlut = range(dims[3] - 1, 0, -1)
         for (let i = 0; i < dims[3]; i++) zlut[i] *= instride[2]
-        // convert data
+        // convert data — mask by current (possibly merged) label; write underlying ungrouped IDs
 
-        const inVs = new Uint8Array(this.drawBitmap)
         const outVs = new Uint8Array(dims[1] * dims[2] * dims[3])
         let j = 0
         for (let z = 0; z < dims[3]; z++) {
             for (let y = 0; y < dims[2]; y++) {
                 for (let x = 0; x < dims[1]; x++) {
-                    let bit = inVs[xlut[x] + ylut[y] + zlut[z]]
-                    //Only fill matched bits
-                    outVs[j] = (labels.indexOf(bit) >= 0) ? bit : 0
+                    const idx = xlut[x] + ylut[y] + zlut[z]
+                    const bitLive = live[idx]
+                    outVs[j] = (labels.indexOf(bitLive) >= 0) ? resolved[idx] : 0
                     j++
                 }
             }
@@ -1263,29 +1315,22 @@ Niivue.prototype.saveImageByLabels = async function (fnm, labels = [1]) {
 }
 
 Niivue.prototype.deleteDrawingByLabel = function (labels = [0]) {
+    clearBitmapOverlay();
     for (let i = 0; i < this.drawBitmap.length; i++) {
         this.drawBitmap[i] = (labels.indexOf(this.drawBitmap[i]) < 0) ? this.drawBitmap[i] : 0;
     }
     this.refreshDrawing(false);
 }
 
-/*
-    For each spatial point, bitmap overlay tracks
-    the layers of bitmaps during the grouping operation.
-    For now, a single label for each voxel suffices, in future
-    entries will be replaced with bit strings of the combination
-    of labels
- */
-const bitmapOverlay = [];
-
 Niivue.prototype.groupLabelsInto = function (sourceLabels = [0], targetLabel = 7) {
-    const overlayIndex = new Set(bitmapOverlay.map((t) => t[0]));
     for (let i = 0; i < this.drawBitmap.length; i++) {
         if (sourceLabels.indexOf(this.drawBitmap[i]) >= 0) {
-            if (!overlayIndex.has(i)) {
-                bitmapOverlay.push([i, this.drawBitmap[i]]);
-                overlayIndex.add(i);
+            for (let k = bitmapOverlay.length - 1; k >= 0; k--) {
+                if (bitmapOverlay[k][0] === i) {
+                    bitmapOverlay.splice(k, 1);
+                }
             }
+            bitmapOverlay.push([i, this.drawBitmap[i]]);
             this.drawBitmap[i] = targetLabel;
         }
     }
@@ -1415,6 +1460,7 @@ Niivue.prototype.resetContrast = function () {
 }
 
 Niivue.prototype.relabelROIs = function (source = 0, target = 0) {
+    clearBitmapOverlay();
     for (let i = 0; i < this.drawBitmap.length; i++) {
         if (this.drawBitmap[i] === source) {
             this.drawBitmap[i] = target;
@@ -1428,6 +1474,7 @@ Niivue.prototype.loadDrawingFromBase64 = async function (fnm, base64) {
         console.debug('Overwriting open drawing!')
     }
     this.drawClearAllUndoBitmaps()
+    clearBitmapOverlay()
     try {
         // const volume = await NVImage.loadFromUrl()
         if (base64) {
@@ -1441,6 +1488,7 @@ Niivue.prototype.loadDrawingFromBase64 = async function (fnm, base64) {
         console.error(err);
         console.error('loadDrawingFromBlob() failed to load ' + fnm)
         this.drawClearAllUndoBitmaps()
+        clearBitmapOverlay()
     }
     return base64 !== undefined;
 }
@@ -1556,6 +1604,7 @@ Niivue.prototype.mergeDrawingFromBase64 = async function (fnm, base64) {
 
         if (this.drawBitmap && this.drawBitmap.length !== vx) {
             console.warn('mergeDrawingFromBase64: drawBitmap size mismatch; replacing drawing');
+            clearBitmapOverlay();
             this.loadDrawing(drawingBitmap);
             result.ok = true;
             result.importLabelRemap = null;
@@ -1563,6 +1612,7 @@ Niivue.prototype.mergeDrawingFromBase64 = async function (fnm, base64) {
         }
 
         if (!hasExistingDrawing) {
+            clearBitmapOverlay();
             this.loadDrawing(drawingBitmap);
             result.ok = true;
             result.importLabelRemap = null;
@@ -1608,6 +1658,14 @@ Niivue.prototype.mergeDrawingFromBase64 = async function (fnm, base64) {
                 nextSynthetic++;
             }
         }
+
+        const importWrittenVoxels = new Set();
+        for (let i = 0; i < vx; i++) {
+            if (importFlat[i] !== 0) {
+                importWrittenVoxels.add(i);
+            }
+        }
+        stripBitmapOverlayForVoxelIndices(importWrittenVoxels);
 
         for (let i = 0; i < vx; i++) {
             const v = importFlat[i];

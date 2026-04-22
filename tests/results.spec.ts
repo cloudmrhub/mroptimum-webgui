@@ -713,8 +713,8 @@ test.describe("Results page - comprehensive validation", () => {
         }
       }
 
-      // The Group button's wrapper has aria-label="Group selected ROIs"
-      const groupBtn = page.locator('[aria-label="Group selected ROIs"]').first();
+      // The Group button's wrapper has aria-label="Group Selected ROIs"
+      const groupBtn = page.locator('[aria-label="Group Selected ROIs"]').first();
       if (await groupBtn.isVisible()) {
         await expect(groupBtn).toBeVisible();
       }
