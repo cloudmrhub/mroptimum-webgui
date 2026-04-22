@@ -953,6 +953,14 @@ export default function NiiVueport(props) {
   const [warningCancelCallback, setWarningCancelCallback] = useState(() => { });
   const [drawingChanged, setDrawingChanged] = useState(false);
 
+  // When new drawing strokes are made on top of a saved ROI, reset the dropdown
+  // so it shows the "ROI Layer" placeholder instead of the stale saved name.
+  React.useEffect(() => {
+    if (drawingChanged && selectedROI !== '') {
+      setSelectedDrawingLayer('');
+    }
+  }, [drawingChanged]);
+
   const setLabelAlias = function (label, alias) {
     labelMapping[label] = alias;
     setLabelMapping(labelMapping);
