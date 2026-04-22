@@ -312,9 +312,9 @@ test.describe("Results page - comprehensive validation", () => {
           await page.waitForTimeout(300);
 
           const modes = [
-            "Pan and Zoom",
+            "Zoom and Pan",
             "Slice and Measurement",
-            "Contrast",
+            "Slice and Contrast",
             "Slice and None",
           ];
           for (const mode of modes) {

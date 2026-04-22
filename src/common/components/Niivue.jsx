@@ -18,6 +18,7 @@ import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
 import { getMax, getMin } from "cloudmr-ux/core/common/utilities";
 import { AuthenticatedHttpClient, getPipelineROI, getEndpoints } from "cloudmr-ux/core";
+import { useStore } from 'react-redux';
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 
 export const nv = new Niivue({
@@ -43,6 +44,7 @@ window.nv = nv;
 // It is exported so that it can be used in other projects easily
 export default function NiiVueport(props) {
   let endpoints = getEndpoints(); // CloudMR core endpoints (mode1/mode2 helper)
+  const store = useStore();
 
   const selectedVolume = props.selectedVolume;
   const setSelectedVolume = props.setSelectedVolume;
@@ -1085,10 +1087,6 @@ export default function NiiVueport(props) {
     }
   }
 
-  // This is a small fix that prevents the selected roi index from jumping to
-  // the newest saved roi after user has performed a roi reselection during
-  // roi saving
-  const [selectedDuringSaving, setSelectedDuringSaving] = useState(false);
   const selectDrawingLayer = async (roiIndex) => {
     // console.log(nv.drawBitmap);
     console.log(props.rois[roiIndex].link);
@@ -1118,7 +1116,6 @@ export default function NiiVueport(props) {
     }
 
     setSelectedDrawingLayer(roiIndex);
-    setSelectedDuringSaving(true);
     setDrawingChanged(false);
   }
   const unpackROI = async (accessURL) => {
@@ -1180,17 +1177,17 @@ export default function NiiVueport(props) {
       URL.createObjectURL = function (blob) {
         console.log('saving blob');
         console.log(blob);
-        setSelectedDuringSaving(false);
         zipAndSendDrawingLayer(response.data.upload_url, filename, blob).then(async () => {
           // Update available rois with this callback
           // props.saveROICallback();
           setDrawingChanged(false);
           if (afterSaveCallback instanceof Function)
-            await afterSaveCallback(
-            );
-          if (!selectedDuringSaving)//Only switch to the newest roi when user hasn't performed reselection
-            // during the period
-            setSelectedDrawingLayer(props.rois.length);
+            await afterSaveCallback();
+          // Read fresh ROI list from Redux store (afterSaveCallback already dispatched
+          // getPipelineROI, so the store is up-to-date by the time we get here)
+          const freshRois = store.getState().result.rois?.[props.pipelineID] ?? [];
+          const savedIndex = freshRois.findIndex(r => r.filename === filename);
+          setSelectedDrawingLayer(savedIndex !== -1 ? savedIndex : freshRois.length - 1);
         });
         // Call the original method and return its result
         return 'javascript:void(0);';
