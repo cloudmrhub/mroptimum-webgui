@@ -271,10 +271,10 @@ export default function Toolbar(props: ToolbarProps) {
                             if (props.selectedROI === index) {
                               props.nv.closeDrawing();
                               props.nv.drawScene?.();
-
-                              // Refresh histogram + ROI table
-                              // props.resampleImage?.();
                             }
+
+                            // Always refresh the histogram + ROI table after any deletion
+                            props.resampleImage?.();
 
                             console.log(`Deleted ROI: ${value.filename}`);
                           } catch (error) {
