@@ -50,6 +50,8 @@ interface ToolbarProps {
   saving: boolean;
   setSaving: (saving: boolean) => void;
 
+  drawingChanged: boolean;
+
   resampleImage?: () => void;
 }
 
@@ -165,12 +167,12 @@ export default function Toolbar(props: ToolbarProps) {
               m: 2,
               minWidth: 180
             }}>
-            <InputLabel id="drag-mode-label">Scroll and Right Click</InputLabel>
+            <InputLabel id="drag-mode-label">Scroll and Right Click Drag</InputLabel>
             <Select
               labelId="drag-mode-label"
               id="drag-mode"
               value={props.dragMode}
-              label="Scroll and Right Click"
+              label="Scroll and Right Click Drag"
               onChange={e => {
                 console.log(e.target.value);
                 props.setDragMode(e.target.value);
@@ -308,6 +310,7 @@ export default function Toolbar(props: ToolbarProps) {
           />
 
           <Button variant={'contained'}
+            disabled={!props.drawingChanged}
             endIcon={saving && <CircularProgress sx={{ color: 'white' }} size={20} />}
             onClick={() => {
               if (saving)

@@ -1219,6 +1219,9 @@ export default function NiiVueport(props) {
     drawUndo: () => {//To be moved and organized
       nv.drawUndo();
       resampleImage();
+      if (nv.drawBitmap && nv.drawBitmap.every(v => v === 0)) {
+        setDrawingChanged(false);
+      }
     },
     brushSize,
     updateBrushSize: nvUpdateBrushSize,
@@ -1528,6 +1531,8 @@ export default function NiiVueport(props) {
 
         saving={saving}
         setSaving={setSaving}
+
+        drawingChanged={drawingChanged}
 
         resampleImage={resampleImage}
 

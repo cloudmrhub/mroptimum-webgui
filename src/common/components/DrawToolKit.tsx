@@ -228,6 +228,7 @@ export const DrawToolkit = (props: DrawToolkitProps) => {
             // props.nv.setDrawingEnabled(true);
             props.nv.clearDrawing();
             props.resampleImage();
+            props.setDrawingChanged(false);
           }}
         >
           <DeleteIcon style={{ color: "white" }} />
