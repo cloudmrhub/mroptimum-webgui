@@ -2,12 +2,12 @@ import React, { useState } from "react"
 import { Box, Card, CardContent } from "@mui/material"
 import LocationTable from "../../LocationTable";
 import { ROITable } from "../../../../app/results/Rois";
-import { DrawToolkit, DrawToolkitProps } from "./DrawToolKit";
 import GUI from 'lil-gui';
 import "./Toolbar.scss";
 import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
 import TKDualRange from "../../Cmr-components/tk-dualrange/TKDualRange";
-import { CmrLabel } from "cloudmr-ux";
+import { CmrLabel, DrawToolkit } from "cloudmr-ux";
+import type { DrawToolkitProps } from "cloudmr-ux";
 
 interface NiivuePanelProps {
     nv: any;

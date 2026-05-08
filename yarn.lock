@@ -4062,10 +4062,10 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-cloudmr-ux@4.2.9:
-  version "4.2.9"
-  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-4.2.9.tgz"
-  integrity sha512-O0v1d0yo8WeNi8SkC8QfwX6QudnGZS3mtcYneRHMDJ69/X02joc/WFnLk0hIReehhR194OgfKMBocrV/ltgXJA==
+cloudmr-ux@4.3.3:
+  version "4.3.3"
+  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-4.3.3.tgz"
+  integrity sha512-3s+KXxdy8JlEn+K+AbwCeJp5ABBoiEGadNBNBzyy+fesd9IuoNfA86TNJF3pwTGNC3oaLLG6Taoy0n0DziHtfg==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-solid-svg-icons" "^6.7.2"
@@ -4074,6 +4074,7 @@ cloudmr-ux@4.2.9:
     "@mui/material" "^5.14.2"
     "@mui/x-data-grid" "^6.10.1"
     "@niivue/niivue" "^0.39.0"
+    "@wordpress/icons" "^11.8.0"
     antd "^5.22.1"
     css-loader "^7.1.2"
     jszip "^3.10.1"
