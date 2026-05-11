@@ -11,10 +11,8 @@ import NVSwitch from './Switch.jsx';
 import Toolbar from './Toolbar.tsx';
 import Layer from './Layer.jsx';
 import './Niivue.css';
-import { CmrEditConfirmation, CmrConfirmation } from 'cloudmr-ux';
+import { CmrEditConfirmation, CmrConfirmation, resampleNiivueRoiHistogram } from 'cloudmr-ux';
 import axios from "axios";
-import Plotly from "plotly.js-dist-min";
-import { calculateMean, calculateStandardDeviation } from "./stats.js";
 import JSZip from "jszip";
 import { getMax, getMin } from "cloudmr-ux/core/common/utilities";
 import { AuthenticatedHttpClient, getPipelineROI, getEndpoints } from "cloudmr-ux/core";
@@ -710,110 +708,16 @@ export default function NiiVueport(props) {
 
   const [labelMapping, setLabelMapping] = useState({});
   function resampleImage(mapping = labelMapping) {
-    if (typeof document === "undefined" || !document.getElementById("histoplot")) {
-      return;
+    const el =
+      typeof document !== "undefined" ? document.getElementById("histoplot") : null;
+    const next = resampleNiivueRoiHistogram({
+      nv,
+      labelMapping: mapping,
+      plotRoot: el,
+    });
+    if (next !== null) {
+      setROIs(next);
     }
-    let image = nv.volumes[0];
-    let rois = [];
-    let layout = {
-      barmode: "overlay",
-      title: 'ROI Histogram',  // Set your title here
-      // height: 100,
-      margin: {
-        l: 50,   // left margin
-        r: 50,   // right margin
-        b: 50,   // bottom margin
-        t: 60,   // top margin (set to a smaller value to reduce space)
-        pad: 4   // padding between plot area and axis lines
-      },
-      xaxis: {
-        autoscale: true,
-        title: 'Voxel value',
-        showgrid: true
-        // other x-axis properties
-      },
-      yaxis: {
-        autoscale: true,
-        title: 'Bin frequency',
-        showgrid: true
-        // other y-axis properties
-      },
-      responsive: true
-    }; // Set the height of the plot here};
-    // Bitmap depicts the drawn content
-    if (nv.drawBitmap == null) {
-      Plotly.newPlot("histoplot", [], layout, { responsive: true });
-      setROIs([]);
-      return;
-    }//If ROI (drawing) is not inside the stack
-
-    if (!image) {
-      return;
-    }
-
-    let min = image.robust_min;
-    let max = image.robust_max;
-    // find and collect in an array all the cvalues in data.img euqual to 1
-    // indexed by roi value
-    let samples = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] };
-    for (let i = 0; i < nv.drawBitmap.length; i++) {
-      //val&7-1 converts to r,g,b index through bit operations
-      if (samples[nv.drawBitmap[i]] === undefined) {
-        samples[nv.drawBitmap[i]] = [];
-      }
-      samples[nv.drawBitmap[i]].push(image.img[i]);
-    }
-    if (nv.hiddenBitmap !== undefined) {
-      for (let i = 0; i < nv.hiddenBitmap.length; i++) {
-        //val&7-1 converts to r,g,b index through bit operations
-        if (samples[nv.hiddenBitmap[i]] === undefined) {
-          samples[nv.hiddenBitmap[i]] = [];
-        }
-        samples[nv.hiddenBitmap[i]].push(image.img[i]);
-      }
-    }
-
-    const colors = ['#bbb', '#f00', '#0f0', '#00f', 'yellow', 'cyan', '#e81ce8', '#e8dbc7']
-    for (let key in samples) {
-      let sample = samples[key];
-      if (sample.length > 0 && key > 0) {
-        console.log(key);
-        rois.push({
-          label: key,
-          alias: mapping[key] ? mapping[key] : key,
-          visibility: nv.getLabelVisibility(Number(key)),
-          color: colors[key],
-          mu: calculateMean(sample),
-          std: calculateStandardDeviation(sample),
-          opacity: nv.drawOpacity,
-          count: sample.length,
-          sample: sample
-        })
-      }
-    }
-    setROIs(rois);
-    // plot a histogram of numbers
-    let traces = [];
-    for (let roi of rois) {
-      // if(roi.visibility){
-      traces.push({
-        x: roi.sample,
-        type: "histogram",
-        name: roi.alias,
-        opacity: roi.visibility ? 0.5 : 0.1,
-        marker: {
-          color: roi.color,
-        },
-        autobinx: false,
-        xbins: {
-          // end: max,
-          size: (max - min) / 100,
-          // start: min
-        }
-      });
-      // }
-    }
-    Plotly.newPlot("histoplot", traces, layout, { responsive: true });
   }
 
   function nvUpdateSelectionBoxColor(rgb01) {
