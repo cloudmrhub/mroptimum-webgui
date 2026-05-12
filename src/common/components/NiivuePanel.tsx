@@ -3,7 +3,6 @@ import { Box } from "@mui/material"
 import LocationTable from "./LocationTable";
 // import GUI from "lil-gui";
 import "./Toolbar.scss";
-// import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
 import {
   NiivueSlicePosition,
   NiivueContrastAdjustments,
