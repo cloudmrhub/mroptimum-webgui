@@ -307,7 +307,8 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 </IconButton>
               </Tooltip>
             )}
-            {params.row.status === "completed" && (
+            {(params.row.status === "completed" ||
+              params.row.status === "failed") && (
               <Tooltip title={`Download job ${params.row.alias}`}>
                 <IconButton
                   onClick={(e) => {

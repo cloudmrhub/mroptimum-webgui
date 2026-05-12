@@ -1,7 +1,6 @@
 import React from "react"
 import { Box } from "@mui/material"
 import LocationTable from "./LocationTable";
-import { ROITable } from "../../app/results/Rois";
 // import GUI from "lil-gui";
 import "./Toolbar.scss";
 // import { DualSlider } from "../../Cmr-components/double-slider/DualSlider";
@@ -9,6 +8,7 @@ import {
   NiivueSlicePosition,
   NiivueContrastAdjustments,
   DrawToolkit,
+  NiivueRoiTable,
 } from "cloudmr-ux";
 import type { DrawToolkitProps } from "cloudmr-ux";
 
@@ -34,6 +34,7 @@ interface NiivuePanelProps {
   zipAndSendROI: (url: string, filename: string, blob: Blob) => Promise<void>;
   unzipAndRenderROI: (url: string) => Promise<void>;
   setLabelAlias: (label: string | number, alias: string) => void;
+  onAfterRoiUpload?: () => void | Promise<void>;
 
   transformFactors: { a: number, b: number };
   rangeKey: number;
@@ -214,7 +215,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
           </Box>
 
           <Box sx={{ width: "100%", height: 350 }}>
-            <ROITable
+            <NiivueRoiTable
               pipelineID={props.pipelineID}
               rois={props.rois}
               style={{
@@ -228,6 +229,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
               unpackROI={props.unzipAndRenderROI}
               zipAndSendROI={props.zipAndSendROI}
               setLabelAlias={props.setLabelAlias}
+              onAfterRoiUpload={props.onAfterRoiUpload}
             />
           </Box>
         </Box>

@@ -1498,6 +1498,11 @@ export default function NiiVueport(props) {
         unzipAndRenderROI={unpackROI}
         zipAndSendROI={zipAndSendDrawingLayer}
         setLabelAlias={setLabelAlias}
+        onAfterRoiUpload={() => {
+          if (pipeline) {
+            void dispatch(getPipelineROI({ accessToken, pipeline }));
+          }
+        }}
 
         gamma={gamma}
         gammaKey={gammaKey}
