@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button } from '@mui/material';
-import { NVImage } from '@niivue/niivue';
+import { NVImage, DRAG_MODE } from '@niivue/niivue';
+import { NI_PEN_TYPE } from '../niivuePenType';
 import { SettingsPanel } from './SettingsPanel.jsx';
 import { NumberPicker } from './NumberPicker.jsx';
 import { ColorPicker } from './ColorPicker.jsx';
@@ -25,15 +26,18 @@ export const nv = new Niivue({
   isRadiologicalConvention: true,
   textHeight: 0.04,
   colorbarHeight: 0.02,
-  dragMode: 'pan',
+  dragMode: DRAG_MODE.pan,
   crosshairWidth: 0,
   // crosshairColor: [0.098,0.453,0.824]
   crosshairColor: [1, 1, 0],
   fontColor: [0.00, 0.94, 0.37, 1],
   isNearestInterpolation: true,
   isFilledPen: true,
-  drawPen: 1
+  penValue: 1,
+  penType: NI_PEN_TYPE.PEN
 });
+
+nv.opts.penBounds = 0;
 
 window.nv = nv;
 
@@ -65,7 +69,7 @@ export default function NiiVueport(props) {
   // TODO: add crosshair size state and setter
   const [opacity, setopacity] = React.useState(1.0)
   const [drawingEnabled, setDrawingEnabled] = React.useState(nv.opts.drawingEnabled);
-  const [drawPen, setDrawPen] = React.useState(nv.opts.drawPen)
+  const [drawPen, setDrawPen] = React.useState(nv.opts.penValue);
   const [drawOpacity, setDrawOpacity] = React.useState(0.8)
   const [crosshairOpacity, setCrosshairOpacity] = React.useState(nv.opts.crosshairColor[3])
   const [clipPlaneOpacity, setClipPlaneOpacity] = React.useState(nv.opts.clipPlaneColor[3])
@@ -93,7 +97,6 @@ export default function NiiVueport(props) {
 
   const [showCrosshair, setShowCrosshair] = React.useState(false);
 
-  const [brushSize, setBrushSize] = useState(1);
   const [complexMode, setComplexMode] = useState('absolute');
   const [complexOptions, setComplexOptions] = useState(['absolute']);
   const [roiVisible, setROIVisible] = useState(true);
@@ -107,7 +110,11 @@ export default function NiiVueport(props) {
 
   const [saving, setSaving] = useState(false);
 
-  // Gamma settings
+  const [drawShapeTool, setDrawShapeTool] = useState('pen');
+
+  React.useEffect(() => {
+    nv.opts.penBounds = 0;
+  }, []);
   const [gamma, setGamma] = React.useState(1.0);
   const [gammaKey, setGammaKey] = React.useState(0);
 
@@ -509,17 +516,14 @@ export default function NiiVueport(props) {
   }
 
   function nvUpdateDrawPen(a) {
-    setDrawPen(a.target.value)
-    let penValue = a.target.value
+    const raw = Number(a.target.value);
+    setDrawPen(raw);
+    let penValue = raw;
+    nv.opts.penBounds = 0;
     nv.setPenValue(penValue & 7, penValue > 0);
     if (penValue == 8) {
-      nv.setPenValue(0, true)
+      nv.setPenValue(0, true);
     }
-  }
-
-  function nvUpdateBrushSize(size) {
-    setBrushSize(size);
-    nv.opts.penBounds = (size - 1) / 2;
   }
 
   function nvUpdateDrawOpacity(a) {
@@ -1135,14 +1139,12 @@ export default function NiiVueport(props) {
         setDrawingChanged(false);
       }
     },
-    brushSize,
-    updateBrushSize: nvUpdateBrushSize,
     resampleImage: resampleImage,
     roiVisible,
     toggleROIVisible,
     drawingOpacity,
     setDrawingOpacity: nvUpdateDrawingOpacity,
-    setDrawingChanged
+    setDrawingChanged,
   };
   return (
     <Box sx={{
@@ -1262,7 +1264,7 @@ export default function NiiVueport(props) {
         >
         </NumberPicker>
         <label htmlFor="drawPen">Draw color:</label>
-        <select name="drawPen" id="drawPen" onChange={nvUpdateDrawPen} defaultValue={drawPen}>
+        <select name="drawPen" id="drawPen" onChange={nvUpdateDrawPen} value={drawPen}>
           <option value="0">Erase</option>
           <option value="1">Red</option>
           <option value="2">Green</option>
@@ -1483,7 +1485,8 @@ export default function NiiVueport(props) {
 
         drawToolkitProps={drawToolkitProps}
 
-        layerList={layerList}
+        drawShapeTool={drawShapeTool}
+        setDrawShapeTool={setDrawShapeTool}
 
         mins={boundMins}
         maxs={boundMaxs}

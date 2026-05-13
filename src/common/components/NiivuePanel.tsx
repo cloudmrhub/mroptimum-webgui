@@ -1,15 +1,19 @@
 import React from "react"
 import { Box } from "@mui/material"
+import { NI_PEN_TYPE } from "../niivuePenType";
 import LocationTable from "./LocationTable";
 // import GUI from "lil-gui";
 import "./Toolbar.scss";
 import {
   NiivueSlicePosition,
   NiivueContrastAdjustments,
-  DrawToolkit,
   NiivueRoiTable,
 } from "cloudmr-ux";
 import type { DrawToolkitProps } from "cloudmr-ux";
+import { MroDrawToolkit } from "./mro-draw-toolkit/MroDrawToolkit.jsx";
+
+/** MROptimum uses fixed 1-voxel brush (`penBounds` 0); brush size controls are omitted from the toolbar. */
+export type MroDrawToolkitProps = Omit<DrawToolkitProps, "brushSize" | "updateBrushSize">;
 
 interface NiivuePanelProps {
   nv: any;
@@ -18,7 +22,9 @@ interface NiivuePanelProps {
   locationTableVisible: boolean;
   locationData: any[];
   decimalPrecision: number;
-  drawToolkitProps: DrawToolkitProps;
+  drawToolkitProps: MroDrawToolkitProps;
+  drawShapeTool: "pen" | "rectangle" | "ellipse";
+  setDrawShapeTool: (t: "pen" | "rectangle" | "ellipse") => void;
   resampleImage: () => void;
   layerList: React.ComponentProps<any>[];
   mins: number[];
@@ -91,6 +97,21 @@ export function NiivuePanel(props: NiivuePanelProps) {
   React.useEffect(() => {
     props.resampleImage();
   }, [histogram]);
+
+  function applyDrawShapeTool(tool: "pen" | "rectangle" | "ellipse") {
+    props.setDrawShapeTool(tool);
+    const { nv } = props;
+    nv.opts.penType =
+      tool === "rectangle"
+        ? NI_PEN_TYPE.RECTANGLE
+        : tool === "ellipse"
+          ? NI_PEN_TYPE.ELLIPSE
+          : NI_PEN_TYPE.PEN;
+    nv.drawScene();
+    if ((tool === "rectangle" || tool === "ellipse") && !props.drawToolkitProps.drawingEnabled) {
+      props.drawToolkitProps.setDrawingEnabled(true);
+    }
+  }
 
   return (
     <Box
@@ -169,14 +190,20 @@ export function NiivuePanel(props: NiivuePanelProps) {
             md: 1,
           },
           minHeight: 0,
-          height: "100%"
+          height: "100%",
+          overflow: "visible",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <DrawToolkit {...props.drawToolkitProps}
+        <MroDrawToolkit
+          {...props.drawToolkitProps}
+          drawShapeTool={props.drawShapeTool}
+          onDrawShapeToolChange={applyDrawShapeTool}
           style={{
-            height: '30pt',
-            marginBottom: '10px',
-          }} />
+            marginBottom: "10px",
+          }}
+        />
 
         <NiivueSlicePosition
           nv={props.nv}
