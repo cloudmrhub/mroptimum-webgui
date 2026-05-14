@@ -24,8 +24,8 @@ export const nv = new Niivue({
   loadingText: '',
   isColorbar: true,
   isRadiologicalConvention: true,
-  textHeight: 0.04,
-  colorbarHeight: 0.02,
+  textHeight: 0.12,
+  colorbarHeight: 0.03,
   dragMode: DRAG_MODE.pan,
   crosshairWidth: 0,
   // crosshairColor: [0.098,0.453,0.824]

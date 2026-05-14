@@ -187,7 +187,12 @@ export function MroDrawToolkit(props) {
             overflow: "visible",
           }}
         >
-          <CardContent sx={{ overflow: "visible" }}>
+          <CardContent
+            sx={{
+              overflow: "visible",
+              "&:last-child": { paddingBottom: 2 },
+            }}
+          >
             <div style={{ display: "flex", flexDirection: "column", overflow: "visible" }}>
               <div
                 style={{

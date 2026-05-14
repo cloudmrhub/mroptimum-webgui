@@ -136,11 +136,23 @@ export function NiivuePanel(props: NiivuePanelProps) {
           display: "flex",
           flexDirection: "column",
           minHeight: 0,
-          alignItems: "center",
+          alignItems: "stretch",
           justifyContent: "flex-start",
           mb: { xs: 2, md: 0 },
         }}
       >
+        <MroDrawToolkit
+          {...props.drawToolkitProps}
+          drawShapeTool={props.drawShapeTool}
+          onDrawShapeToolChange={applyDrawShapeTool}
+          onExitDrawMode={() => props.setDrawShapeTool(null)}
+          style={{
+            marginBottom: 0,
+            width: "100%",
+            flexShrink: 0,
+          }}
+        />
+
         <LocationTable
           tableData={props.locationData}
           isVisible={true}
@@ -148,14 +160,21 @@ export function NiivuePanel(props: NiivuePanelProps) {
           style={{
             width: '100%', height: '30pt', paddingTop: "10px", color: 'white',
             background: "black",
+            flexShrink: 0,
           }}
         />
 
-        {/* Fixed Canvas Height */}
+        {/* Fixed Canvas Height — flexShrink: 0 so siblings (ROI toolbar) don't compress the viewer */}
         <Box
           sx={{
             position: "relative",
             width: "100%",
+            flexShrink: 0,
+            minHeight: {
+              xs: 300,
+              sm: 400,
+              md: 1035,
+            },
             height: {
               xs: 300,  // phones and very small devices
               sm: 400,  // tablets or small laptops
@@ -196,16 +215,6 @@ export function NiivuePanel(props: NiivuePanelProps) {
           zIndex: 1,
         }}
       >
-        <MroDrawToolkit
-          {...props.drawToolkitProps}
-          drawShapeTool={props.drawShapeTool}
-          onDrawShapeToolChange={applyDrawShapeTool}
-          onExitDrawMode={() => props.setDrawShapeTool(null)}
-          style={{
-            marginBottom: "10px",
-          }}
-        />
-
         <NiivueSlicePosition
           nv={props.nv}
           mins={mins}
