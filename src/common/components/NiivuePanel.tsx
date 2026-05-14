@@ -200,6 +200,7 @@ export function NiivuePanel(props: NiivuePanelProps) {
           {...props.drawToolkitProps}
           drawShapeTool={props.drawShapeTool}
           onDrawShapeToolChange={applyDrawShapeTool}
+          onExitDrawMode={() => props.setDrawShapeTool(null)}
           style={{
             marginBottom: "10px",
           }}

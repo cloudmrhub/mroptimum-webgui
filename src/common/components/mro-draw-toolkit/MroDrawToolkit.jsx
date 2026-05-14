@@ -1,7 +1,7 @@
 /**
  * MROptimum fork of cloudmr-ux DrawToolkit.
- * ClickAwayListener must NOT call setDrawingEnabled(false): the canvas is "outside" the toolbar,
- * so the stock DrawToolkit turns drawing off on every paint click (pen / rectangle / ellipse do nothing).
+ * Click-away exits drawing mode when you focus elsewhere (slice controls, histogram, etc.),
+ * but clicks on `#niiCanvas` are ignored so you can keep drawing on the viewer.
  *
  * Layout matches {@link NiivueSlicePosition}: outer wrapper → `.title` → `Card` + `CardContent` (no custom fill).
  */
@@ -32,6 +32,12 @@ import ClickAwayListener from "@mui/material/ClickAwayListener";
 import DrawColorPlatte from "./DrawColorPlatte.jsx";
 import EraserPlatte from "./EraserPlatte.jsx";
 import MaskPlatte from "./MaskPlatte.jsx";
+
+/** True if the event target is the main NiiVue canvas (drawing surface). Clicks there must not exit draw mode. */
+function clickTargetIsNiivueCanvas(target) {
+  if (typeof document === "undefined" || !(target instanceof Element)) return false;
+  return !!target.closest("#niiCanvas");
+}
 
 /** Same icon tone as typical MUI on-paper controls (matches slice panel body). */
 const ICON_COLOR = "#212121";
@@ -160,9 +166,12 @@ export function MroDrawToolkit(props) {
 
   return (
     <ClickAwayListener
-      onClickAway={() => {
+      onClickAway={(event) => {
+        if (clickTargetIsNiivueCanvas(event.target)) return;
         setExpandedOption("n");
         setExpandOpacityOptions(false);
+        props.setDrawingEnabled(false);
+        props.onExitDrawMode?.();
       }}
     >
       <div style={{ width: "100%", position: "relative", zIndex: 1080, ...props.style }}>
