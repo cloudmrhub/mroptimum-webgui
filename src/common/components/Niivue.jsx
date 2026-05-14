@@ -110,7 +110,7 @@ export default function NiiVueport(props) {
 
   const [saving, setSaving] = useState(false);
 
-  const [drawShapeTool, setDrawShapeTool] = useState('pen');
+  const [drawShapeTool, setDrawShapeTool] = useState(null);
 
   React.useEffect(() => {
     nv.opts.penBounds = 0;

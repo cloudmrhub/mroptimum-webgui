@@ -23,8 +23,8 @@ interface NiivuePanelProps {
   locationData: any[];
   decimalPrecision: number;
   drawToolkitProps: MroDrawToolkitProps;
-  drawShapeTool: "pen" | "rectangle" | "ellipse";
-  setDrawShapeTool: (t: "pen" | "rectangle" | "ellipse") => void;
+  drawShapeTool: "pen" | "rectangle" | "ellipse" | null;
+  setDrawShapeTool: (t: "pen" | "rectangle" | "ellipse" | null) => void;
   resampleImage: () => void;
   layerList: React.ComponentProps<any>[];
   mins: number[];
