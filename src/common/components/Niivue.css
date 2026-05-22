@@ -1,8 +1,0 @@
-canvas:focus {
-	outline: none;
-}
-
-.js-plotly-plot,
-.plot-container {
-	width:100%;
-}

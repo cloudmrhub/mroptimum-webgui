@@ -2,6 +2,8 @@ import React, { Fragment, useEffect, useState } from "react";
 import "./Results.scss";
 import { CmrTable, CmrCollapse, CmrPanel } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
+import { useStore } from "react-redux";
+import type { RootState } from "../../features/store";
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -40,6 +42,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import Tooltip from "@mui/material/Tooltip";
 
 import { CmrConfirmation } from "cloudmr-ux";
+
+import { ROI_DELETE } from "../../Variables";
 
 export interface NiiFile {
   filename: string;
@@ -124,6 +128,7 @@ function viewerOpenErrorMessage(e: unknown): string {
 
 const Results = ({ visible }: { visible?: boolean }) => {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const { accessToken, queueToken } = useAppSelector(
     (state) => state.authenticate,
   );
@@ -606,6 +611,21 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   );
               }}
               accessToken={accessToken}
+              roiDeleteUrl={ROI_DELETE}
+              refreshPipelineRois={async () => {
+                if (pipelineID) {
+                  await dispatch(
+                    getPipelineROI({
+                      pipeline: pipelineID,
+                    }),
+                  );
+                }
+              }}
+              getPipelineRois={() =>
+                pipelineID
+                  ? store.getState().result.rois?.[pipelineID] ?? []
+                  : []
+              }
             />
           )}
           {activeJob === undefined && (
