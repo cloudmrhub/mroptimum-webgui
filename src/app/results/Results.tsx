@@ -1,13 +1,12 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import "./Results.scss";
-import { CmrTable, CmrCollapse, CmrPanel } from "cloudmr-ux";
+import { CmrTable, CmrCollapse, CmrPanel, CloudMrNiivueViewer as NiiVue, nv } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
 import { useStore } from "react-redux";
 import type { RootState } from "../../features/store";
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import NiiVue, { nv } from "../../common/components/Niivue";
 import { Job } from "cloudmr-ux/core/features/jobs/jobsSlice";
 import { getUpstreamJobs, uploadJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
 import {
@@ -19,7 +18,7 @@ import {
   loadResult,
 } from "cloudmr-ux/core/features/rois/resultActionCreation";
 import { resultActions } from "../../features/rois/resultSlice";
-import { ROI } from "cloudmr-ux/core/features/rois/roiTypes";
+// import { ROI } from "cloudmr-ux/core/features/rois/roiTypes";
 import {
   Alert,
   Button,
@@ -32,11 +31,11 @@ import { Row } from "antd";
 import Box from "@mui/material/Box";
 import { SetupInspection } from "./SetupInspection";
 import { Logs } from "./Logs";
-import { CMRUpload } from "cloudmr-ux";
+// import { CMRUpload } from "cloudmr-ux";
 import { AxiosRequestConfig } from "axios";
-import { processJobZip } from "./PreprocessJob";
+// import { processJobZip } from "./PreprocessJob";
 import { deleteUpstreamJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
-import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
+// import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 import { CmrEditConfirmation } from "cloudmr-ux";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Tooltip from "@mui/material/Tooltip";
