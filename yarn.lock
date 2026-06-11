@@ -4064,10 +4064,10 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-cloudmr-ux@4.6.0:
-  version "4.6.0"
-  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-4.6.0.tgz"
-  integrity sha512-5enQCsepEyXZEBWokgQqTCXY8ip1yNM/q8HT2yz3YHWS3bgiNOVP6I9JSNoZ+2lv5o8Oio1nxSDgOvLHMu7Ehw==
+cloudmr-ux@4.7.0:
+  version "4.7.0"
+  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-4.7.0.tgz"
+  integrity sha512-BdaqnWHUMYWJn1gs/LxZOv3nUQjyuv5gj/01fcGm52U5HdC+Es6luFE4hhIg5Af8vHtFRpgowHogfAxaA5fhfQ==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-solid-svg-icons" "^6.7.2"
@@ -10160,9 +10160,9 @@ semver@^7.5.4:
   integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 semver@^7.6.3:
-  version "7.8.0"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.8.0.tgz"
-  integrity sha512-AcM7dV/5ul4EekoQ29Agm5vri8JNqRyj39o0qpX6vDF2GZrtutZl5RwgD1XnZjiTAfncsJhMI48QQH3sN87YNA==
+  version "7.8.4"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.8.4.tgz"
+  integrity sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==
 
 send@0.19.0:
   version "0.19.0"
