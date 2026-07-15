@@ -18,7 +18,15 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
+    include: [
+      'react',
+      'react-dom',
+      '@emotion/react',
+      '@emotion/styled',
+      'prop-types',
+      '@mui/material',
+      '@mui/system',
+    ],
   },
   css: {
     preprocessorOptions: {

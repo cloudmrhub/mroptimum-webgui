@@ -30,6 +30,102 @@ async function expandPanel(page: Page, headerText: RegExp | string) {
 }
 
 /**
+ * Scope locators to the MroDrawToolkit "ROI Tools" panel (avoids clashing with
+ * the ROI table toolbar, which uses different aria-labels e.g. "Delete").
+ */
+function roiToolsPanel(page: Page) {
+  return page.locator("div").filter({ hasText: /^ROI Tools$/ }).first().locator("..");
+}
+
+/** ROI stats table (has Voxel Count column — distinct from the Job Results grid). */
+function roiTableGrid(page: Page) {
+  return page.locator(".MuiDataGrid-root").filter({
+    has: page.getByRole("columnheader", { name: "Voxel Count" }),
+  });
+}
+
+/**
+ * Drag on the NiiVue canvas (rectangle/ellipse tools).
+ * Uses canvas-relative hover positions so coordinates map correctly to the WebGL surface.
+ */
+async function dragOnNiivueCanvas(
+  page: Page,
+  opts: { fromXRatio?: number; fromYRatio?: number; dx?: number; dy?: number } = {},
+) {
+  const { fromXRatio = 0.3, fromYRatio = 0.25, dx = 120, dy = 120 } = opts;
+  const canvas = page.locator("#niiCanvas");
+  await expect(canvas).toBeVisible({ timeout: 15000 });
+
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+
+  const fromX = box!.width * fromXRatio;
+  const fromY = box!.height * fromYRatio;
+  const toX = Math.min(box!.width - 4, fromX + dx);
+  const toY = Math.min(box!.height - 4, fromY + dy);
+
+  await canvas.hover({ position: { x: fromX, y: fromY } });
+  await page.mouse.down();
+  await canvas.hover({ position: { x: toX, y: toY } });
+  await page.mouse.up();
+}
+
+/**
+ * Draw a closed freehand loop on the NiiVue canvas.
+ * Filled pen auto-commits on mouse release (nv.onFreehandCommitted).
+ */
+async function strokeLoopOnNiivueCanvas(
+  page: Page,
+  opts: { centerXRatio?: number; centerYRatio?: number; radius?: number } = {},
+) {
+  const { centerXRatio = 0.35, centerYRatio = 0.35, radius = 50 } = opts;
+  const canvas = page.locator("#niiCanvas");
+  await expect(canvas).toBeVisible({ timeout: 15000 });
+
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+
+  const cx = box!.width * centerXRatio;
+  const cy = box!.height * centerYRatio;
+  const clamp = (x: number, y: number) => ({
+    x: Math.max(4, Math.min(box!.width - 4, x)),
+    y: Math.max(4, Math.min(box!.height - 4, y)),
+  });
+
+  const points = [
+    clamp(cx, cy - radius),
+    clamp(cx + radius, cy),
+    clamp(cx, cy + radius),
+    clamp(cx - radius, cy),
+    clamp(cx, cy - radius),
+  ];
+
+  await canvas.hover({ position: points[0] });
+  await page.mouse.down();
+  for (let i = 1; i < points.length; i++) {
+    await canvas.hover({ position: points[i] });
+  }
+  await page.mouse.up();
+}
+
+/** After a shape draw commits, the ROI table should reflect at least one labeled region. */
+async function expectCommittedRoiInTable(page: Page) {
+  await expect(page.getByRole("button", { name: /Save Drawing Layer/i })).toBeEnabled({
+    timeout: 15000,
+  });
+
+  const roiGrid = roiTableGrid(page);
+  await roiGrid.scrollIntoViewIfNeeded();
+  await expect(roiGrid.getByText("No Rows")).not.toBeVisible({ timeout: 15000 });
+
+  const dataRow = roiGrid.locator(".MuiDataGrid-virtualScroller .MuiDataGrid-row").first();
+  await expect(dataRow).toBeVisible({ timeout: 15000 });
+
+  const countCell = dataRow.locator('.MuiDataGrid-cell[data-field="count"]');
+  await expect(countCell).toHaveText(/^[1-9][\d,]*$/, { timeout: 15000 });
+}
+
+/**
  * Click the Play button on the first completed job and wait for it to load.
  * Uses proper element waits instead of hardcoded delays.
  */
@@ -783,73 +879,90 @@ test.describe("Results page - comprehensive validation", () => {
       await loadCompletedJob(page);
     });
 
-    test("paint brush button is visible and toggleable", async ({ page }) => {
-      const brushBtn = page
-        .locator('[data-testid="BrushIcon"]')
-        .first();
-      if (await brushBtn.isVisible()) {
-        await brushBtn.click();
-        await page.waitForTimeout(300);
-        // Should open draw palette or enable drawing
-        // Click again to close
-        await brushBtn.click();
-        await page.waitForTimeout(300);
-      }
+    test("freehand button is visible and toggleable", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      const freehandBtn = roiTools.getByRole("button", { name: "freehand" });
+      await expect(freehandBtn).toBeVisible({ timeout: 15000 });
+      await freehandBtn.click();
+      await expect(roiTools.getByRole("button", { name: "Color 1" })).toBeVisible({
+        timeout: 5000,
+      });
+      await freehandBtn.click();
     });
 
     test("eraser button is visible", async ({ page }) => {
-      const eraserBtn = page
-        .locator('[data-testid="AutoFixNormalOutlinedIcon"]')
-        .first();
-      if (await eraserBtn.isVisible()) {
-        await expect(eraserBtn).toBeVisible();
-      }
+      const eraserBtn = roiToolsPanel(page).getByRole("button", { name: "erase" });
+      await expect(eraserBtn).toBeVisible({ timeout: 15000 });
     });
 
     test("undo button is visible", async ({ page }) => {
-      const undoBtn = page
-        .locator('[data-testid="ReplyIcon"]')
-        .first();
-      if (await undoBtn.isVisible()) {
-        await expect(undoBtn).toBeVisible();
-      }
+      const undoBtn = roiToolsPanel(page).getByRole("button", { name: "revert" });
+      await expect(undoBtn).toBeVisible({ timeout: 15000 });
     });
 
     test("screenshot button is visible", async ({ page }) => {
-      const screenshotBtn = page
-        .locator('[data-testid="CameraAltIcon"]')
-        .first();
-      if (await screenshotBtn.isVisible()) {
-        await expect(screenshotBtn).toBeVisible();
-      }
+      const screenshotBtn = roiToolsPanel(page).getByRole("button", {
+        name: "capture",
+      });
+      await expect(screenshotBtn).toBeVisible({ timeout: 15000 });
     });
 
     test("opacity slider is available", async ({ page }) => {
-      const opacityBtn = page
-        .locator('[data-testid="OpacityIcon"]')
-        .first();
-      if (await opacityBtn.isVisible()) {
-        await opacityBtn.click();
-        await page.waitForTimeout(300);
+      const roiTools = roiToolsPanel(page);
+      const opacityBtn = roiTools.getByRole("button", { name: "opaque" });
+      await expect(opacityBtn).toBeVisible({ timeout: 15000 });
+      await opacityBtn.click();
 
-        // A slider should appear for opacity
-        const slider = page.locator('[role="slider"]').first();
-        if (await slider.isVisible()) {
-          await expect(slider).toBeVisible();
-        }
-      }
+      const slider = roiTools.locator('[role="slider"]').first();
+      await expect(slider).toBeVisible({ timeout: 5000 });
     });
 
     test("visibility toggle button is available", async ({ page }) => {
-      const visBtn = page
-        .locator(
-          '[data-testid="VisibilityIcon"], [data-testid="VisibilityOffIcon"]',
-        )
-        .first();
-      if (await visBtn.isVisible()) {
-        await visBtn.click();
-        await page.waitForTimeout(300);
-      }
+      const visBtn = roiToolsPanel(page).getByRole("button", { name: "visible" });
+      await expect(visBtn).toBeVisible({ timeout: 15000 });
+      await visBtn.click();
+    });
+  });
+
+  // ==========================================================
+  // ROI DRAWING (canvas interaction)
+  // ==========================================================
+  test.describe("ROI drawing", () => {
+    test.beforeEach(async ({ page }) => {
+      await loadCompletedJob(page);
+    });
+
+    test("rectangle drag commits shape to the ROI table", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      await expect(roiTools.getByRole("button", { name: "rectangle" })).toBeVisible({
+        timeout: 15000,
+      });
+
+      await roiTools.getByRole("button", { name: "rectangle" }).click();
+      await dragOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
+    });
+
+    test("ellipse drag commits shape to the ROI table", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      await expect(roiTools.getByRole("button", { name: "ellipse" })).toBeVisible({
+        timeout: 15000,
+      });
+
+      await roiTools.getByRole("button", { name: "ellipse" }).click();
+      await dragOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
+    });
+
+    test("freehand stroke commits shape to the ROI table", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      await expect(roiTools.getByRole("button", { name: "freehand" })).toBeVisible({
+        timeout: 15000,
+      });
+
+      await roiTools.getByRole("button", { name: "freehand" }).click();
+      await strokeLoopOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
     });
   });
 
