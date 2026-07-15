@@ -108,6 +108,75 @@ async function strokeLoopOnNiivueCanvas(
   await page.mouse.up();
 }
 
+/**
+ * Click on the NiiVue canvas at a canvas-relative position.
+ * Uses page.mouse with absolute coordinates so draft overlays (e.g. "Move shape")
+ * do not block Playwright's hover actionability checks on #niiCanvas.
+ */
+async function clickOnNiivueCanvas(
+  page: Page,
+  canvas: ReturnType<Page["locator"]>,
+  position: { x: number; y: number },
+) {
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+  await page.mouse.move(box!.x + position.x, box!.y + position.y);
+  await page.waitForTimeout(50);
+  await page.mouse.down();
+  await page.mouse.up();
+}
+
+/**
+ * Double-click on the NiiVue canvas (close polyline when >= 3 vertices exist).
+ */
+async function doubleClickOnNiivueCanvas(
+  page: Page,
+  canvas: ReturnType<Page["locator"]>,
+  position: { x: number; y: number },
+) {
+  await clickOnNiivueCanvas(page, canvas, position);
+  await page.waitForTimeout(80);
+  await clickOnNiivueCanvas(page, canvas, position);
+}
+
+/**
+ * Place polyline vertices with clicks, then double-click to close and fill.
+ * Matches UI hint: "Click to add vertices" → "Double-click to close & fill".
+ */
+async function drawPolylineTriangleOnNiivueCanvas(page: Page, roiTools: ReturnType<typeof roiToolsPanel>) {
+  const canvas = page.locator("#niiCanvas");
+  await expect(canvas).toBeVisible({ timeout: 15000 });
+
+  const box = await canvas.boundingBox();
+  expect(box).toBeTruthy();
+
+  const cx = box!.width * 0.38;
+  const cy = box!.height * 0.38;
+  const size = 55;
+  const clamp = (x: number, y: number) => ({
+    x: Math.max(4, Math.min(box!.width - 4, x)),
+    y: Math.max(4, Math.min(box!.height - 4, y)),
+  });
+
+  const top = clamp(cx, cy - size);
+  const bottomRight = clamp(cx + size, cy + size * 0.85);
+  const bottomLeft = clamp(cx - size, cy + size * 0.85);
+
+  const clickGapMs = 200;
+  await clickOnNiivueCanvas(page, canvas, top);
+  await page.waitForTimeout(clickGapMs);
+  await clickOnNiivueCanvas(page, canvas, bottomRight);
+  await page.waitForTimeout(clickGapMs);
+  await clickOnNiivueCanvas(page, canvas, bottomLeft);
+  await page.waitForTimeout(clickGapMs);
+
+  await expect(roiTools.getByText(/Double-click to close & fill/i)).toBeVisible({
+    timeout: 5000,
+  });
+
+  await doubleClickOnNiivueCanvas(page, canvas, top);
+}
+
 /** After a shape draw commits, the ROI table should reflect at least one labeled region. */
 async function expectCommittedRoiInTable(page: Page) {
   await expect(page.getByRole("button", { name: /Save Drawing Layer/i })).toBeEnabled({
@@ -123,6 +192,114 @@ async function expectCommittedRoiInTable(page: Page) {
 
   const countCell = dataRow.locator('.MuiDataGrid-cell[data-field="count"]');
   await expect(countCell).toHaveText(/^[1-9][\d,]*$/, { timeout: 15000 });
+}
+
+/** Parse the first ROI row voxel count from the stats table. */
+async function getFirstRoiVoxelCount(page: Page): Promise<number> {
+  const roiGrid = roiTableGrid(page);
+  await roiGrid.scrollIntoViewIfNeeded();
+  const countCell = roiGrid
+    .locator(".MuiDataGrid-virtualScroller .MuiDataGrid-row")
+    .first()
+    .locator('.MuiDataGrid-cell[data-field="count"]');
+  await expect(countCell).toBeVisible({ timeout: 15000 });
+  const text = (await countCell.innerText()).trim();
+  const value = Number.parseInt(text.replace(/,/g, ""), 10);
+  expect(Number.isFinite(value)).toBeTruthy();
+  return value;
+}
+
+/** Center of the default rectangle drag used by dragOnNiivueCanvas (matches its from/dx/dy defaults). */
+function defaultRectangleCenterOnCanvas(box: { width: number; height: number }) {
+  const fromX = box.width * 0.3;
+  const fromY = box.height * 0.25;
+  return {
+    x: Math.min(box.width - 4, fromX + 60),
+    y: Math.min(box.height - 4, fromY + 60),
+  };
+}
+
+/** Click an applied ROI on canvas to re-enter draft edit mode (no drag). */
+async function reopenRoiOnCanvas(page: Page, position: { x: number; y: number }) {
+  const canvas = page.locator("#niiCanvas");
+  await expect(canvas).toBeVisible({ timeout: 15000 });
+  await clickOnNiivueCanvas(page, canvas, position);
+  await page.waitForTimeout(150);
+}
+
+/** Palette Delete while a pen or shape draft is active. */
+function paletteDeleteButton(
+  roiTools: ReturnType<typeof roiToolsPanel>,
+  draftKind: "shape" | "pen",
+) {
+  return roiTools.getByTestId(`roi-palette-delete-${draftKind}-draft`);
+}
+
+/**
+ * After drawing, the ROI may already be in draft edit mode (overlay + Delete visible).
+ * Re-open via canvas click only when Delete is not already shown.
+ */
+async function ensureDraftDeleteReady(
+  page: Page,
+  roiTools: ReturnType<typeof roiToolsPanel>,
+  draftKind: "shape" | "pen",
+  reopenPosition: { x: number; y: number },
+) {
+  const deleteBtn = paletteDeleteButton(roiTools, draftKind);
+  if (!(await deleteBtn.isVisible())) {
+    await reopenRoiOnCanvas(page, reopenPosition);
+  }
+  await expect(deleteBtn).toBeVisible({ timeout: 10000 });
+}
+
+/** Click Delete in the expanded tool palette while a pen or shape draft is active. */
+async function clickDeleteInPalette(
+  roiTools: ReturnType<typeof roiToolsPanel>,
+  draftKind: "shape" | "pen",
+) {
+  const deleteBtn = paletteDeleteButton(roiTools, draftKind);
+  await expect(deleteBtn).toBeVisible({ timeout: 10000 });
+  await deleteBtn.click();
+}
+
+/** ROI stats table is empty after the last region is removed. */
+async function expectEmptyRoiTable(page: Page) {
+  const roiGrid = roiTableGrid(page);
+  await roiGrid.scrollIntoViewIfNeeded();
+  await expect(roiGrid.getByText("No Rows")).toBeVisible({ timeout: 15000 });
+}
+
+/** Set eraser brush size via the expanded eraser palette slider (range 1–15, step 2). */
+async function setEraserSize(roiTools: ReturnType<typeof roiToolsPanel>, targetSize: number) {
+  const snapped = 1 + Math.round((Math.max(1, Math.min(15, targetSize)) - 1) / 2) * 2;
+
+  const eraserPanel = roiTools.getByText(/Eraser size:/i).locator("..");
+  const slider = eraserPanel.getByRole("slider");
+  await expect(slider).toBeVisible({ timeout: 5000 });
+
+  // Prefer keyboard on the slider (MUI step=2); fall back to clicking the track on the locator itself.
+  await slider.focus();
+  const current = Number(await slider.getAttribute("aria-valuenow")) || 1;
+  const steps = (snapped - current) / 2;
+  if (steps > 0) {
+    for (let i = 0; i < steps; i++) {
+      await slider.press("ArrowRight");
+    }
+  } else if (steps < 0) {
+    for (let i = 0; i < -steps; i++) {
+      await slider.press("ArrowLeft");
+    }
+  }
+
+  const updated = await slider.getAttribute("aria-valuenow");
+  if (updated !== String(snapped)) {
+    const box = await slider.boundingBox();
+    expect(box).toBeTruthy();
+    const fraction = (snapped - 1) / (15 - 1);
+    await slider.click({ position: { x: box!.width * fraction, y: box!.height / 2 } });
+  }
+
+  await expect(slider).toHaveAttribute("aria-valuenow", String(snapped));
 }
 
 /**
@@ -541,8 +718,8 @@ test.describe("Results page - comprehensive validation", () => {
         }
       });
 
-      test("'Reset Contrast' button is clickable", async ({ page }) => {
-        const btn = page.getByRole("button", { name: /Reset Contrast/i });
+      test("'Auto Contrast' button is clickable", async ({ page }) => {
+        const btn = page.getByRole("button", { name: /Auto Contrast/i });
         if (await btn.isVisible()) {
           await expect(btn).toBeEnabled();
           await btn.click();
@@ -963,6 +1140,94 @@ test.describe("Results page - comprehensive validation", () => {
       await roiTools.getByRole("button", { name: "freehand" }).click();
       await strokeLoopOnNiivueCanvas(page);
       await expectCommittedRoiInTable(page);
+    });
+
+    test("polyline clicks commit closed shape to the ROI table", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      await expect(roiTools.getByRole("button", { name: "polyline" })).toBeVisible({
+        timeout: 15000,
+      });
+
+      await roiTools.getByRole("button", { name: "polyline" }).click();
+      await expect(roiTools.getByText(/Click to add vertices/i)).toBeVisible({
+        timeout: 5000,
+      });
+      await drawPolylineTriangleOnNiivueCanvas(page, roiTools);
+      await expectCommittedRoiInTable(page);
+    });
+
+    test("eraser reduces ROI voxel count after partial erase", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      await expect(roiTools.getByRole("button", { name: "rectangle" })).toBeVisible({
+        timeout: 15000,
+      });
+
+      await roiTools.getByRole("button", { name: "rectangle" }).click();
+      await dragOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
+
+      const beforeCount = await getFirstRoiVoxelCount(page);
+      expect(beforeCount).toBeGreaterThan(0);
+
+      await roiTools.getByRole("button", { name: "erase" }).click();
+      await expect(roiTools.getByText(/Eraser size:/i)).toBeVisible({ timeout: 5000 });
+      await setEraserSize(roiTools, 7);
+
+      // Drag through the interior of the rectangle drawn by dragOnNiivueCanvas defaults.
+      await dragOnNiivueCanvas(page, { fromXRatio: 0.32, fromYRatio: 0.28, dx: 100, dy: 100 });
+
+      await expect
+        .poll(async () => getFirstRoiVoxelCount(page), { timeout: 15000 })
+        .toBeLessThan(beforeCount);
+
+      const afterCount = await getFirstRoiVoxelCount(page);
+      expect(afterCount).toBeGreaterThan(0);
+    });
+
+    test("palette Delete removes a reopened rectangle ROI", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      const canvas = page.locator("#niiCanvas");
+
+      await roiTools.getByRole("button", { name: "rectangle" }).click();
+      await dragOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
+
+      const box = await canvas.boundingBox();
+      expect(box).toBeTruthy();
+      await ensureDraftDeleteReady(
+        page,
+        roiTools,
+        "shape",
+        defaultRectangleCenterOnCanvas(box!),
+      );
+
+      await clickDeleteInPalette(roiTools, "shape");
+      await expectEmptyRoiTable(page);
+      await expect(page.getByRole("button", { name: /Save Drawing Layer/i })).toBeEnabled({
+        timeout: 15000,
+      });
+    });
+
+    test("palette Delete removes a reopened freehand ROI", async ({ page }) => {
+      const roiTools = roiToolsPanel(page);
+      const canvas = page.locator("#niiCanvas");
+
+      await roiTools.getByRole("button", { name: "freehand" }).click();
+      await strokeLoopOnNiivueCanvas(page);
+      await expectCommittedRoiInTable(page);
+
+      const box = await canvas.boundingBox();
+      expect(box).toBeTruthy();
+      await ensureDraftDeleteReady(page, roiTools, "pen", {
+        x: box!.width * 0.35,
+        y: box!.height * 0.35,
+      });
+
+      await clickDeleteInPalette(roiTools, "pen");
+      await expectEmptyRoiTable(page);
+      await expect(page.getByRole("button", { name: /Save Drawing Layer/i })).toBeEnabled({
+        timeout: 15000,
+      });
     });
   });
 
