@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5", // Compile TypeScript down to ES5 for maximum browser compatibility (IE11+)
+    "target": "ES2020", // Type-check baseline only; Vite/esbuild handles browser transpilation at build time
     "lib": ["dom", "dom.iterable", "esnext"], // Include type definitions for DOM APIs, DOM iteration, and latest ECMAScript features
     "allowJs": true, // Allow JavaScript files to be imported and compiled alongside TypeScript files
     "skipLibCheck": true, // Skip type checking of declaration files (.d.ts) to speed up compilation
