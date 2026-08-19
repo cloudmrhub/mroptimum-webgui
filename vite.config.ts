@@ -26,6 +26,11 @@ export default defineConfig({
       'prop-types',
       '@mui/material',
       '@mui/system',
+      '@mui/icons-material/Replay',
+      '@mui/icons-material/GetApp',
+      '@mui/icons-material/PlayArrow',
+      '@mui/icons-material/Delete',
+      'jszip',
     ],
   },
   css: {

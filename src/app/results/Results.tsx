@@ -38,7 +38,9 @@ import { deleteUpstreamJob } from "cloudmr-ux/core/features/jobs/jobActionCreati
 // import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 import { CmrEditConfirmation } from "cloudmr-ux";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ReplayIcon from "@mui/icons-material/Replay";
 import Tooltip from "@mui/material/Tooltip";
+import { retryFailedJob, downloadJobResultFiles } from "./retryFailedJob";
 
 import { CmrConfirmation } from "cloudmr-ux";
 
@@ -165,6 +167,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
   const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
+  const [retryingJobId, setRetryingJobId] = useState<number | undefined>(undefined);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -240,7 +243,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
       field: "action",
       headerName: "Actions",
       sortable: false,
-      width: 256,
+      width: 280,
       disableClickEventBubbling: true,
       renderCell: (params: { row: Job }) => {
         return (
@@ -311,31 +314,64 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 </IconButton>
               </Tooltip>
             )}
+            {params.row.status === "failed" && (
+              <Tooltip title={`Retry job ${params.row.alias}`}>
+                <IconButton
+                  aria-label={`Retry job ${params.row.alias}`}
+                  disabled={retryingJobId === params.row.id}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setRetryingJobId(params.row.id);
+                    try {
+                      await dispatch(getUploadedData());
+                      const loaded = await retryFailedJob(
+                        params.row,
+                        dispatch,
+                        store.getState().data.files,
+                      );
+                      if (!loaded) {
+                        warn(
+                          "Could not read this job's setup options from its result JSON.",
+                        );
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      warn(
+                        "Could not read this job's setup options from its result JSON.",
+                      );
+                    } finally {
+                      setRetryingJobId(undefined);
+                    }
+                  }}
+                >
+                  {retryingJobId === params.row.id ? (
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      style={{ aspectRatio: "1 / 1" }}
+                      role="status"
+                    />
+                  ) : (
+                    <ReplayIcon
+                      sx={{
+                        color: "#580f8b",
+                        "&:hover": {
+                          color: "#390063",
+                        },
+                      }}
+                    />
+                  )}
+                </IconButton>
+              </Tooltip>
+            )}
             {(params.row.status === "completed" ||
               params.row.status === "failed") && (
               <Tooltip title={`Download job ${params.row.alias}`}>
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    params.row.files.forEach((file) => {
-                      let url = file.link;
-                      if (url === "unknown") return;
-                      // Create an anchor element
-                      const a = document.createElement("a");
-                      // Extract the file name from the URL, if possible
-                      a.download = `${file.fileName}.${url.split(".").pop()}`;
-                      a.href = url;
-                      // Append the anchor to the body (this is necessary to programmatically trigger the click event)
-                      document.body.appendChild(a);
-
-                      // Trigger a click event to start the download
-                      a.click();
-
-                      // Remove the anchor from the body
-                      document.body.removeChild(a);
-                    });
-
-                  }}>
+                    downloadJobResultFiles(params.row);
+                  }}
+                >
                   <GetAppIcon />
                 </IconButton>
               </Tooltip>

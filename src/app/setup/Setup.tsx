@@ -121,6 +121,10 @@ const Setup = () => {
   // `level` can be undefined until profile loads; treat that as non-developer unless admin flag is set.
   const developer = Boolean(isAdmin) || level === "developer";
   const editActive = useAppSelector((state) => state.setup.editInProgress);
+  const pendingRetry = useAppSelector((state) => state.setup.pendingRetry);
+  const selectedComputingUnitId = useAppSelector(
+    (state) => state.setup.selectedComputingUnitId,
+  );
   const queuedJobs = useAppSelector((state) => state.setup.queuedJobs);
   const newJobId = useAppSelector((state) => state.setup.idGenerator);
   const signal = useAppSelector(setupGetters.getSignal);
@@ -745,9 +749,32 @@ const Setup = () => {
     const multiRaid = setupGetters.getMultiRaid(store.getState());
 
     if (signal && (noise || multiRaid)) {
-      setTimeout(() => setOpenPanel([1]), 500);
+      setTimeout(
+        () =>
+          setOpenPanel((prev) => {
+            const list = Array.isArray(prev) ? prev : [prev];
+            return Array.from(new Set([...list.map(Number), 1]));
+          }),
+        500,
+      );
     }
   }, [signalFileUpdated, noiseFileUpdated]);
+
+  // After retrying a failed job, expand Signal & Noise and SNR Analysis so the restored inputs are visible.
+  useEffect(() => {
+    if (!pendingRetry) return;
+    setOpenPanel([1, 2]);
+    setSignalFileUpdated(true);
+    setNoiseFileUpdated(true);
+    dispatch(setupSetters.acknowledgeRetry());
+  }, [pendingRetry, dispatch]);
+
+  // Keep the computing-unit dropdown in sync when a retry restores a previous selection.
+  useEffect(() => {
+    if (selectedComputingUnitId && selectedComputingUnitId !== cuSelected) {
+      setCuSelected(selectedComputingUnitId);
+    }
+  }, [selectedComputingUnitId]);
 
     return (
         <Fragment>
@@ -1149,11 +1176,13 @@ const Setup = () => {
             style={{ width: "100%" }}
             className={"mb-3"}
             onChange={(event) => {
-              //@ts-ignore
-              if (event.target.value !== analysisMethod)
-                setAnalysisMethodChanged(true);
-              //@ts-ignore
-              dispatch(setupSetters.setAnalysisMethod(event.target.value));
+              const value = Number(
+                (event.target as HTMLInputElement).value,
+              );
+              if (![0, 1, 2, 3].includes(value)) return;
+              if (value === Number(analysisMethod)) return;
+              setAnalysisMethodChanged(true);
+              dispatch(setupSetters.setAnalysisMethod(value));
             }}
           >
             {/* <FormLabel id={'snr-label'}>SNR Analysis Methods</FormLabel> */}
@@ -1242,11 +1271,13 @@ const Setup = () => {
                                     </Fragment>}
                                 <FormControl style={{ width: '100%' }} className={'mb-3'}
                                     onChange={(event) => {
-                                        //@ts-ignore
-                                        if (event.target.value != reconstructionMethod)
-                                            setReconstructionMethodChanged(true);
-                                        //@ts-ignore
-                                        dispatch(setupSetters.setReconstructionMethod(event.target.value));
+                                        const value = Number(
+                                          (event.target as HTMLInputElement).value,
+                                        );
+                                        if (Number.isNaN(value)) return;
+                                        if (value === Number(reconstructionMethod)) return;
+                                        setReconstructionMethodChanged(true);
+                                        dispatch(setupSetters.setReconstructionMethod(value));
                                     }}>
                                     {/* <FormLabel id={'reconstruction-label'} className={'mb-3'}>Image Reconstruction Methods</FormLabel> */}
                                     <RadioGroup

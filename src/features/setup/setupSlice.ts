@@ -11,6 +11,8 @@ interface SetupState {
   loading: boolean;
   activeSetup: SNR;
   editInProgress: boolean;
+  /** True after a failed job is loaded for retry; Setup and Main consume then clear it. */
+  pendingRetry: boolean;
   // Persist user's computing unit selection so queued jobs include it
   selectedComputingUnitId?: string;
   selectedComputingUnitMode?: string;
@@ -166,6 +168,7 @@ function makeInitialState(): SetupState {
     queuedJobs: [],
     idGenerator: 0,
     editInProgress: false,
+    pendingRetry: false,
     signalUploadProgress: -1,
     noiseUploadProgress: -1,
     outputSettings: {
@@ -668,36 +671,54 @@ export const setupSlice = createSlice({
     },
     loadSNRSettings(
       state: SetupState,
-      action: PayloadAction<{ SNR: SNR; output: OutputInterface }>,
+      action: PayloadAction<{
+        SNR: SNR;
+        output: OutputInterface;
+        uploadedFiles?: UploadedFile[];
+      }>,
     ) {
-      state.activeSetup = action.payload.SNR;
-      state.outputSettings = action.payload.output;
+      const snr = sanitizeSNRForRetry(action.payload.SNR);
+      if (action.payload.uploadedFiles?.length) {
+        bindUploadedFilesToSNR(snr, action.payload.uploadedFiles);
+      }
+      state.activeSetup = snr;
+      state.outputSettings = {
+        coilsensitivity: !!action.payload.output?.coilsensitivity,
+        gfactor: !!action.payload.output?.gfactor,
+        matlab: action.payload.output?.matlab !== false,
+      };
 
-      if (
-        state.activeSetup.options.reconstructor.options.sensitivityMap.options
-          .mask !== undefined
-      ) {
-        let mask =
-          state.activeSetup.options.reconstructor.options.sensitivityMap.options
-            .mask;
-        //Also load mask stores if mask is specified
+      const mask =
+        snr.options?.reconstructor?.options?.sensitivityMap?.options?.mask;
+      if (mask) {
         state.kStore = mask.k ?? 8;
         state.cStore = mask.c ?? 0.995;
         state.tStore = mask.t ?? 0.01;
         state.rStore = mask.r ?? 24;
-        state.maskOptionStore = [
+        const maskIndex = [
           "no",
           "percentage",
           "reference",
           "espirit",
           "upload",
         ].indexOf(mask.method);
+        state.maskOptionStore = maskIndex >= 0 ? maskIndex : 0;
         state.maskThresholdStore = mask.value ?? 30;
         state.maskFileStore = mask.file;
+      } else {
+        state.kStore = 8;
+        state.cStore = 0.995;
+        state.tStore = 0.01;
+        state.rStore = 24;
+        state.maskOptionStore = 0;
+        state.maskThresholdStore = 10;
+        state.maskFileStore = undefined;
       }
-      // snr.options.reconstructor.options.signalMultiRaid
-      //     = !!(snr.options.reconstructor.options.signal?.options.multiraid);
       state.editInProgress = true;
+      state.pendingRetry = true;
+    },
+    acknowledgeRetry(state: SetupState) {
+      state.pendingRetry = false;
     },
     deleteQueuedJob(state: SetupState, action: PayloadAction<number>) {
       let index = -1;
@@ -869,6 +890,7 @@ export const setupSlice = createSlice({
       state.signalUploadProgress = -1;
       state.activeSetup = setupState.activeSetup;
       state.editInProgress = setupState.editInProgress;
+      state.pendingRetry = false;
       state.idGenerator = setupState.idGenerator;
       state.queuedJobs = setupState.queuedJobs;
       state.loading = false;
@@ -969,6 +991,255 @@ const SetupGetters = {
     return state.setup.editInProgress;
   },
 };
+
+const ANALYSIS_METHOD_NAMES = ["ac", "mr", "pmr", "cr"] as const;
+
+function fileBasename(path: string | undefined | null): string {
+  if (!path) return "";
+  return String(path).replace(/\\/g, "/").split("/").filter(Boolean).pop() ?? "";
+}
+
+/**
+ * Normalize pipeline file values (FileReference, string tmp path, or partial object)
+ * so Setup's `chosenFile={...filename}` always has a display name.
+ */
+function coerceFileRef(raw: any): FileReference | undefined {
+  if (raw == null || raw === "") return undefined;
+  if (typeof raw === "string") {
+    const name = fileBasename(raw);
+    return {
+      type: "file",
+      id: -1,
+      options: {
+        type: "local",
+        filename: name || raw,
+        bucket: "",
+        key: raw,
+        options: {},
+        vendor: "Siemens",
+      },
+    };
+  }
+  if (typeof raw !== "object") return undefined;
+  const options = raw.options ?? {};
+  const filename =
+    options.filename ||
+    raw.filename ||
+    raw.fileName ||
+    fileBasename(options.key || raw.key);
+  return {
+    type: raw.type || "file",
+    id: raw.id ?? -1,
+    options: {
+      type: options.type || "s3",
+      filename: filename || "",
+      bucket: options.bucket || raw.bucket || "",
+      key: options.key || raw.key || "",
+      options: options.options || {},
+      multiraid: options.multiraid,
+      vendor: options.vendor || "Siemens",
+    },
+  };
+}
+
+function matchDropdownFile(
+  ref: any,
+  uploaded: UploadedFile[],
+): UploadedFile | undefined {
+  if (!ref || !uploaded?.length) return undefined;
+  const coerced = coerceFileRef(ref);
+  if (coerced?.id != null && Number(coerced.id) >= 0) {
+    const byId = uploaded.find(
+      (file) => file.id === coerced.id || String(file.id) === String(coerced.id),
+    );
+    if (byId) return byId;
+  }
+
+  const names = new Set(
+    [
+      coerced?.options?.filename,
+      fileBasename(coerced?.options?.filename),
+      fileBasename(coerced?.options?.key),
+      typeof ref === "string" ? fileBasename(ref) : "",
+    ]
+      .filter(Boolean)
+      .map((name) => String(name).toLowerCase()),
+  );
+  if (!names.size) return undefined;
+
+  return uploaded.find((file) => {
+    const fileName = (file.fileName || "").toLowerCase();
+    const fileBase = fileBasename(fileName).toLowerCase();
+    let locationBase = "";
+    try {
+      locationBase = fileBasename(JSON.parse(file.location)?.Key).toLowerCase();
+    } catch {
+      /* ignore */
+    }
+    return (
+      names.has(fileName) ||
+      names.has(fileBase) ||
+      (!!locationBase && names.has(locationBase))
+    );
+  });
+}
+
+/** Replace tmp/Lambda file refs with the matching Home / Set Up dropdown uploads. */
+function bindUploadedFilesToSNR(snr: SNR, uploaded: UploadedFile[]) {
+  const recon = snr.options?.reconstructor?.options;
+  if (!recon) return;
+
+  const signal = matchDropdownFile(recon.signal, uploaded);
+  if (signal) {
+    recon.signal = UFtoFR(signal);
+    if (recon.signal && recon.signalMultiRaid) {
+      recon.signal.options.multiraid = true;
+    }
+  }
+
+  if (recon.signalMultiRaid || recon.signal?.options?.multiraid) {
+    recon.signalMultiRaid = true;
+    recon.noise = undefined;
+  } else {
+    const noise = matchDropdownFile(recon.noise, uploaded);
+    if (noise) recon.noise = UFtoFR(noise);
+  }
+
+  if (recon.correction) {
+    const fa = matchDropdownFile(recon.correction.faCorrection, uploaded);
+    if (fa) recon.correction.faCorrection = UFtoFR(fa);
+  }
+
+  const sensOpts = recon.sensitivityMap?.options;
+  if (sensOpts) {
+    const source = matchDropdownFile(sensOpts.sensitivityMapSource, uploaded);
+    if (source) sensOpts.sensitivityMapSource = UFtoFR(source);
+    if (sensOpts.mask) {
+      const mask = matchDropdownFile(sensOpts.mask.file, uploaded);
+      if (mask) sensOpts.mask.file = UFtoMaskFR(mask);
+    }
+  }
+}
+
+/**
+ * Prepare a submitted (or failed) job's SNR task for reloading into the Setup form.
+ * Compile-time annotations are stripped, ids are coerced, and multi-raid is restored
+ * from `signal.options.multiraid` because `postProcessSNR` deletes `signalMultiRaid`.
+ */
+function sanitizeSNRForRetry(loaded: SNR): SNR {
+  const raw = JSON.parse(JSON.stringify(loaded ?? {})) as any;
+  const inner = raw?.options?.reconstructor ? raw : (raw?.task ?? raw);
+  const base = JSON.parse(JSON.stringify(defaultSNR)) as SNR;
+  const snr = {
+    ...base,
+    ...inner,
+    options: {
+      ...base.options,
+      ...inner?.options,
+      reconstructor: inner?.options?.reconstructor
+        ? {
+            ...base.options.reconstructor,
+            ...inner.options.reconstructor,
+            options: {
+              ...base.options.reconstructor.options,
+              ...inner.options.reconstructor.options,
+              sensitivityMap: {
+                ...base.options.reconstructor.options.sensitivityMap,
+                ...inner.options.reconstructor.options?.sensitivityMap,
+                options: {
+                  ...base.options.reconstructor.options.sensitivityMap.options,
+                  ...inner.options.reconstructor.options?.sensitivityMap?.options,
+                  mask: {
+                    ...base.options.reconstructor.options.sensitivityMap.options.mask,
+                    ...inner.options.reconstructor.options?.sensitivityMap?.options?.mask,
+                  },
+                },
+              },
+              correction: {
+                ...base.options.reconstructor.options.correction,
+                ...inner.options.reconstructor.options?.correction,
+              },
+            },
+          }
+        : inner?.options?.signal || inner?.options?.noise
+          ? {
+              ...base.options.reconstructor,
+              options: {
+                ...base.options.reconstructor.options,
+                ...inner.options,
+              },
+            }
+          : inner?.signal || inner?.noise
+            ? {
+                ...base.options.reconstructor,
+                options: {
+                  ...base.options.reconstructor.options,
+                  signal: inner.signal,
+                  noise: inner.noise,
+                },
+              }
+            : base.options.reconstructor,
+    },
+  } as SNR & Record<string, unknown>;
+
+  delete snr.token;
+  delete snr.pipelineid;
+  delete snr.alias;
+  delete snr.mode;
+  delete snr.computing_unit_id;
+
+  if (snr.id == null && snr.name) {
+    const idx = ANALYSIS_METHOD_NAMES.indexOf(snr.name as (typeof ANALYSIS_METHOD_NAMES)[number]);
+    if (idx >= 0) snr.id = idx;
+  } else if (snr.id != null) {
+    snr.id = Number(snr.id);
+  }
+
+  const reconstructor = snr.options?.reconstructor;
+  if (reconstructor) {
+    if (reconstructor.id == null && reconstructor.name) {
+      const idx = RECONSTRUCTION_NAMES.indexOf(
+        reconstructor.name as (typeof RECONSTRUCTION_NAMES)[number],
+      );
+      if (idx >= 0) reconstructor.id = idx;
+    } else if (reconstructor.id != null) {
+      reconstructor.id = Number(reconstructor.id);
+    }
+
+    const reconOpts = reconstructor.options;
+    if (reconOpts) {
+      reconOpts.signal = coerceFileRef(reconOpts.signal);
+      reconOpts.noise = coerceFileRef(reconOpts.noise);
+      if (reconOpts.signal?.options?.multiraid) {
+        reconOpts.signalMultiRaid = true;
+      }
+      if (!reconOpts.correction) {
+        reconOpts.correction = { useCorrection: false, faCorrection: undefined };
+      } else if (reconOpts.correction.faCorrection) {
+        reconOpts.correction.faCorrection = coerceFileRef(
+          reconOpts.correction.faCorrection,
+        );
+      }
+      if (!reconOpts.sensitivityMap) {
+        reconOpts.sensitivityMap = JSON.parse(
+          JSON.stringify(defaultSNR.options.reconstructor.options.sensitivityMap),
+        );
+      } else {
+        const sensOpts = reconOpts.sensitivityMap.options;
+        if (sensOpts?.sensitivityMapSource) {
+          sensOpts.sensitivityMapSource = coerceFileRef(
+            sensOpts.sensitivityMapSource,
+          );
+        }
+        if (sensOpts?.mask?.file) {
+          sensOpts.mask.file = coerceFileRef(sensOpts.mask.file);
+        }
+      }
+    }
+  }
+
+  return snr;
+}
 
 function postProcessSNR(SNRSpec: SNR) {
   // Remove noise reference

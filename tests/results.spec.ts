@@ -1531,6 +1531,62 @@ test.describe("Results page - comprehensive validation", () => {
       }
     });
 
+    test("failed job has Retry and Download action buttons, not Play", async ({
+      page,
+    }) => {
+      const failedRow = page
+        .locator('[role="row"]')
+        .filter({ hasText: /failed/i })
+        .first();
+
+      try {
+        await failedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no failed jobs */ }
+
+      if (await failedRow.isVisible()) {
+        await expect(failedRow.locator('[data-testid="PlayArrowIcon"]')).toHaveCount(0);
+        const retry = failedRow.getByRole("button", { name: /Retry job/i });
+        const download = failedRow.locator('[data-testid="GetAppIcon"]');
+        const del = failedRow.locator('[data-testid="DeleteIcon"]');
+        await expect(retry).toBeVisible();
+        await expect(failedRow.locator('[data-testid="ReplayIcon"]')).toBeVisible();
+        await expect(download).toBeVisible();
+        await expect(del).toBeVisible();
+        const retryBox = await retry.boundingBox();
+        const downloadBox = await download.boundingBox();
+        const deleteBox = await del.boundingBox();
+        expect(retryBox && downloadBox && deleteBox).toBeTruthy();
+        if (retryBox && downloadBox && deleteBox) {
+          expect(retryBox.x).toBeLessThan(downloadBox.x);
+          expect(downloadBox.x).toBeLessThan(deleteBox.x);
+        }
+      }
+    });
+
+    test("retrying a failed job opens Set Up with restored inputs", async ({
+      page,
+    }) => {
+      const failedRow = page
+        .locator('[role="row"]')
+        .filter({ hasText: /failed/i })
+        .first();
+
+      try {
+        await failedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no failed jobs */ }
+
+      if (!(await failedRow.isVisible())) return;
+
+      await failedRow.getByRole("button", { name: /Retry job/i }).click();
+
+      const setupTab = page.getByRole("tab", { name: /^set up$/i });
+      await expect(setupTab).toHaveAttribute("aria-selected", "true", { timeout: 5000 });
+
+      const setupPanel = page.getByRole("tabpanel", { name: /set up/i });
+      await expect(setupPanel.getByText("Signal & Noise Files")).toBeVisible();
+      await expect(setupPanel.getByText("SNR Analysis")).toBeVisible();
+    });
+
     test("delete button opens confirmation dialog", async ({ page }) => {
       // Find any job row
       const rows = page.locator('[role="row"]').filter({
