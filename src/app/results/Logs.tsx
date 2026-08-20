@@ -1,46 +1,65 @@
-import {useAppSelector} from "../../features/hooks";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 
-export const Logs = () => {
-    let logs = useAppSelector(state => state.result.activeJob?.logs);
+type LogsProps = {
+  loading?: boolean;
+  errorText?: string;
+  missing?: boolean;
+};
 
-    if (logs !== undefined) {
-        return (
-            <Box
-                style={{
-                    width: '100%',
-                    height: '250pt',
-                    background: 'black',
-                    borderRadius: '5pt',
-                    marginTop: '30pt',
-                    overflow: 'auto',
-                    fontFamily: 'consolas',
-                    padding: '10pt'
-                }}
-            >
-                {logs.map((value, index) => {
-                    let logMessage = `${value.when}: ${value.what}`;
-                    const match = value.what.match(/'time': ([\d.]+),/);
-                    if (match) {
-                        const time = parseFloat(match[1]).toFixed(2);
-                        logMessage = `${value.when}: calculation time ${time} seconds`;
-                    }
+export const Logs = ({ loading, errorText, missing }: LogsProps) => {
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "120px",
+          color: "rgba(0,0,0,0.4)",
+          gap: 1,
+        }}
+      >
+        <CircularProgress size={22} />
+        Loading error.txt…
+      </Box>
+    );
+  }
 
-                    const maskMatch = value.what.match(/mask is\s*\[\s*\{([^}]+)\}/);
-                    if (maskMatch && maskMatch[1]) {
-                        const firstMethod = maskMatch[1].trim();
-                        logMessage = `${value.when}: mask is {${firstMethod}}`;
-                    }
-                    
-                    return (
-                        <Box key={index} style={{ color: 'white' }}>
-                            {logMessage}
-                        </Box>
-                    );
-                })}
-            </Box>
-        );
-    } else {
-        return null;
-    }
+  if (missing || errorText == null) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          color: "rgba(0,0,0,0.4)",
+          py: 2,
+        }}
+      >
+        No error.txt was found in this job&apos;s result files.
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      component="pre"
+      sx={{
+        width: "100%",
+        maxHeight: "420px",
+        background: "black",
+        borderRadius: "5pt",
+        overflow: "auto",
+        fontFamily: "Consolas, Menlo, Monaco, monospace",
+        fontSize: "0.85rem",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        color: "white",
+        padding: "10pt",
+        margin: 0,
+      }}
+    >
+      {errorText.length > 0 ? errorText : "(empty file)"}
+    </Box>
+  );
 };

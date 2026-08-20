@@ -1559,8 +1559,69 @@ test.describe("Results page - comprehensive validation", () => {
         if (retryBox && downloadBox && deleteBox) {
           expect(retryBox.x).toBeLessThan(downloadBox.x);
           expect(downloadBox.x).toBeLessThan(deleteBox.x);
+          const eyeBox = await failedRow
+            .locator('[data-testid="VisibilityIcon"]')
+            .boundingBox();
+          if (eyeBox) {
+            expect(deleteBox.x).toBeLessThan(eyeBox.x);
+          }
         }
       }
+    });
+
+    test("failed job has a view-logs eye button next to delete", async ({
+      page,
+    }) => {
+      const failedRow = page
+        .locator('[role="row"]')
+        .filter({ hasText: /failed/i })
+        .first();
+      try {
+        await failedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no failed jobs */ }
+      if (!(await failedRow.isVisible())) return;
+
+      await expect(failedRow.locator('[data-testid="VisibilityIcon"]')).toBeVisible();
+      await expect(
+        failedRow.getByRole("button", { name: /View logs for job/i }),
+      ).toBeVisible();
+    });
+
+    test("completed job does not show the view-logs eye button", async ({
+      page,
+    }) => {
+      const completedRow = page
+        .locator('[role="row"]')
+        .filter({ hasText: /completed/i })
+        .first();
+      try {
+        await completedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no completed jobs */ }
+      if (!(await completedRow.isVisible())) return;
+
+      await expect(completedRow.locator('[data-testid="VisibilityIcon"]')).toHaveCount(0);
+    });
+
+    test("eye icon opens the View Logs and Errors panel", async ({ page }) => {
+      const rows = page.locator('[role="row"]').filter({
+        has: page.locator('[data-testid="VisibilityIcon"]'),
+      });
+      if ((await rows.count()) === 0) return;
+
+      const logBtn = rows
+        .filter({ has: page.locator("button:not([disabled])") })
+        .first()
+        .getByRole("button", { name: /View logs for job/i });
+      if (!(await logBtn.isVisible()) || (await logBtn.isDisabled())) return;
+
+      await logBtn.click();
+      const header = page
+        .locator('.card-header[role="button"]')
+        .filter({ hasText: /Viewing Logs and Errors/i })
+        .first();
+      await expect(header).toHaveAttribute("aria-expanded", "true", {
+        timeout: 10000,
+      });
     });
 
     test("retrying a failed job opens Set Up with restored inputs", async ({
@@ -1618,12 +1679,12 @@ test.describe("Results page - comprehensive validation", () => {
   // PANEL: VIEW RESULTS (requires a loaded job)
   // ==========================================================
   test.describe("View Results panel", () => {
-    test("shows 'Please Select a Job Result' when no job is selected", async ({
+    test("shows 'Please Select a Completed Job Result' when no job is selected", async ({
       page,
     }) => {
       await expandPanel(page, "View Results");
       await expect(
-        page.getByText("Please Select a Job Result").first(),
+        page.getByText("Please Select a Completed Job Result").first(),
       ).toBeVisible({ timeout: 5000 });
     });
 
@@ -1883,12 +1944,12 @@ test.describe("Results page - comprehensive validation", () => {
   // PANEL: CURRENT JOB SETTINGS
   // ==========================================================
   test.describe("Current Job Settings panel", () => {
-    test("shows 'Please Select a Job Result' when no job loaded", async ({
+    test("shows 'Please Select a Completed Job Result' when no job loaded", async ({
       page,
     }) => {
       await expandPanel(page, "Current Job Settings");
 
-      // "Please Select a Job Result" also appears in the View Results panel (index 1)
+      // "Please Select a Completed Job Result" also appears in the View Results panel (index 1)
       // which is collapsed here. Scope to the Current Job Settings card so we don't
       // accidentally assert on the hidden sibling element (DOM order puts it first).
       const settingsCard = page
@@ -1897,7 +1958,7 @@ test.describe("Results page - comprehensive validation", () => {
         .first()
         .locator("..");
       await expect(
-        settingsCard.getByText(/Please Select a Job Result|Job is not completed/i),
+        settingsCard.getByText(/Please Select a Completed Job Result|Job is not completed/i),
       ).toBeVisible({ timeout: 5000 });
     });
 

@@ -126,6 +126,46 @@ export function downloadJobResultFiles(job: Job) {
   });
 }
 
+function isErrorTxtName(name: string | undefined): boolean {
+  if (!name) return false;
+  return name.replace(/^.*[/\\]/, "").toLowerCase() === "error.txt";
+}
+
+async function errorTxtFromBuffer(buffer: ArrayBuffer): Promise<string | undefined> {
+  const bytes = new Uint8Array(buffer);
+  const isZip = bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4b;
+  if (isZip) {
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = await JSZip.loadAsync(buffer);
+      const entry = Object.values(zip.files).find(
+        (file) => !file.dir && isErrorTxtName(file.name),
+      );
+      if (entry) return await entry.async("string");
+    } catch (e) {
+      console.error("Logs: JSZip failed while reading error.txt", e);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Fetch `error.txt` from a job's result files (zip contents or a standalone file).
+ * Returns `undefined` when the file is missing or could not be read.
+ */
+export async function fetchJobErrorTxt(job: Job): Promise<string | undefined> {
+  for (const file of downloadableResultFiles(job)) {
+    const buffer = await fetchDownloadedZip(file.link);
+    if (!buffer) continue;
+    if (isErrorTxtName(file.fileName)) {
+      return new TextDecoder().decode(buffer);
+    }
+    const fromZip = await errorTxtFromBuffer(buffer);
+    if (fromZip != null) return fromZip;
+  }
+  return undefined;
+}
+
 async function fetchDownloadedZip(
   url: string,
 ): Promise<ArrayBuffer | undefined> {
