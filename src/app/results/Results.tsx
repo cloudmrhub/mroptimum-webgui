@@ -88,6 +88,8 @@ function nvClearAllVolumes() {
 
 const LOGS_PANEL_ID = "view-logs-and-errors";
 
+const WEBGL_UNREADY = /unable to get WebGL|doesn't support WebGL2/i;
+
 function scrollToLogsPanel() {
   const el =
     document.querySelector<HTMLElement>(".view-logs-and-errors") ??
