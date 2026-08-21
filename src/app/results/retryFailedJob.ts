@@ -131,22 +131,120 @@ function isErrorTxtName(name: string | undefined): boolean {
   return name.replace(/^.*[/\\]/, "").toLowerCase() === "error.txt";
 }
 
-async function errorTxtFromBuffer(buffer: ArrayBuffer): Promise<string | undefined> {
+function isInfoJsonName(name: string | undefined): boolean {
+  if (!name) return false;
+  return name.replace(/^.*[/\\]/, "").toLowerCase() === "info.json";
+}
+
+function extractInfoLog(doc: any): unknown {
+  if (!doc || typeof doc !== "object") return undefined;
+  return (
+    doc.headers?.log ??
+    doc.headers?.logs ??
+    doc.log ??
+    doc.logs
+  );
+}
+
+function formatLogEntry(entry: unknown): string {
+  if (entry == null) return "";
+  if (typeof entry === "string") return entry;
+  if (typeof entry === "number" || typeof entry === "boolean") {
+    return String(entry);
+  }
+  if (typeof entry === "object") {
+    const item = entry as Record<string, unknown>;
+    const when = item.when ?? item.time;
+    const what = item.what ?? item.message ?? item.msg;
+    if (when != null || what != null) {
+      return [when, what].filter((part) => part != null && part !== "").join(": ");
+    }
+    try {
+      return JSON.stringify(entry);
+    } catch {
+      return String(entry);
+    }
+  }
+  return String(entry);
+}
+
+function formatInfoLogs(raw: unknown): string | undefined {
+  if (raw == null) return undefined;
+  if (typeof raw === "string") return raw.length ? raw : undefined;
+  if (Array.isArray(raw)) {
+    const lines = raw.map(formatLogEntry).filter((line) => line.length > 0);
+    return lines.length ? lines.join("\n") : undefined;
+  }
+  if (typeof raw === "object") {
+    const nested = extractInfoLog(raw);
+    if (nested != null && nested !== raw) {
+      return formatInfoLogs(nested);
+    }
+    const line = formatLogEntry(raw);
+    return line.length ? line : undefined;
+  }
+  return String(raw);
+}
+
+export type JobLogSources = {
+  errorTxt?: string;
+  infoLogText?: string;
+};
+
+async function jobLogsFromBuffer(buffer: ArrayBuffer): Promise<JobLogSources> {
+  const sources: JobLogSources = {};
   const bytes = new Uint8Array(buffer);
   const isZip = bytes.length >= 2 && bytes[0] === 0x50 && bytes[1] === 0x4b;
   if (isZip) {
     try {
       const JSZip = (await import("jszip")).default;
       const zip = await JSZip.loadAsync(buffer);
-      const entry = Object.values(zip.files).find(
-        (file) => !file.dir && isErrorTxtName(file.name),
-      );
-      if (entry) return await entry.async("string");
+      for (const entry of Object.values(zip.files)) {
+        if (entry.dir) continue;
+        const name = entry.name.replace(/^.*[/\\]/, "").toLowerCase();
+        if (name === "error.txt") {
+          sources.errorTxt = await entry.async("string");
+        } else if (name === "info.json") {
+          const parsed = parseJsonText(await entry.async("string"));
+          sources.infoLogText = formatInfoLogs(extractInfoLog(parsed));
+        }
+      }
     } catch (e) {
-      console.error("Logs: JSZip failed while reading error.txt", e);
+      console.error("Logs: JSZip failed while reading job logs", e);
     }
+    return sources;
   }
-  return undefined;
+  return sources;
+}
+
+/**
+ * Fetch `error.txt` and `info.json` `log` entries from a job's result files.
+ */
+export async function fetchJobLogSources(job: Job): Promise<JobLogSources> {
+  const combined: JobLogSources = {};
+  for (const file of downloadableResultFiles(job)) {
+    const buffer = await fetchDownloadedZip(file.link);
+    if (!buffer) continue;
+    if (isErrorTxtName(file.fileName) && combined.errorTxt == null) {
+      combined.errorTxt = new TextDecoder().decode(buffer);
+      continue;
+    }
+    if (isInfoJsonName(file.fileName) && combined.infoLogText == null) {
+      combined.infoLogText = formatInfoLogs(
+        extractInfoLog(parseJsonText(new TextDecoder().decode(buffer))),
+      );
+      continue;
+    }
+    const fromZip = await jobLogsFromBuffer(buffer);
+    if (combined.errorTxt == null && fromZip.errorTxt != null) {
+      combined.errorTxt = fromZip.errorTxt;
+    }
+    if (combined.infoLogText == null && fromZip.infoLogText != null) {
+      combined.infoLogText = fromZip.infoLogText;
+    }
+    if (combined.errorTxt != null && combined.infoLogText != null) break;
+  }
+  return combined;
 }
 
 /**
@@ -154,16 +252,8 @@ async function errorTxtFromBuffer(buffer: ArrayBuffer): Promise<string | undefin
  * Returns `undefined` when the file is missing or could not be read.
  */
 export async function fetchJobErrorTxt(job: Job): Promise<string | undefined> {
-  for (const file of downloadableResultFiles(job)) {
-    const buffer = await fetchDownloadedZip(file.link);
-    if (!buffer) continue;
-    if (isErrorTxtName(file.fileName)) {
-      return new TextDecoder().decode(buffer);
-    }
-    const fromZip = await errorTxtFromBuffer(buffer);
-    if (fromZip != null) return fromZip;
-  }
-  return undefined;
+  const sources = await fetchJobLogSources(job);
+  return sources.errorTxt;
 }
 
 async function fetchDownloadedZip(

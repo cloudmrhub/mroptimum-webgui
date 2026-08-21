@@ -41,7 +41,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReplayIcon from "@mui/icons-material/Replay";
 import Tooltip from "@mui/material/Tooltip";
-import { retryFailedJob, downloadJobResultFiles, fetchJobErrorTxt } from "./retryFailedJob";
+import { retryFailedJob, downloadJobResultFiles, fetchJobLogSources } from "./retryFailedJob";
 
 import { CmrConfirmation } from "cloudmr-ux";
 
@@ -173,6 +173,8 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const [logJobAlias, setLogJobAlias] = useState<string | undefined>(undefined);
   const [errorTxt, setErrorTxt] = useState<string | undefined>(undefined);
   const [errorTxtMissing, setErrorTxtMissing] = useState(false);
+  const [infoLogText, setInfoLogText] = useState<string | undefined>(undefined);
+  const [infoLogMissing, setInfoLogMissing] = useState(false);
   const [logsLoadingJobId, setLogsLoadingJobId] = useState<number | undefined>(undefined);
 
   const [name, setName] = useState<string | undefined>(undefined);
@@ -447,23 +449,23 @@ const Results = ({ visible }: { visible?: boolean }) => {
                       setLogJobAlias(params.row.alias);
                       setErrorTxt(undefined);
                       setErrorTxtMissing(false);
+                      setInfoLogText(undefined);
+                      setInfoLogMissing(false);
                       setOpenPanel([0, 3]);
                       window.setTimeout(scrollToLogsPanel, 50);
                       window.setTimeout(scrollToLogsPanel, 400);
                       try {
-                        const text = await fetchJobErrorTxt(params.row);
-                        if (text == null) {
-                          setErrorTxtMissing(true);
-                          setErrorTxt(undefined);
-                        } else {
-                          setErrorTxtMissing(false);
-                          setErrorTxt(text);
-                        }
+                        const sources = await fetchJobLogSources(params.row);
+                        setErrorTxt(sources.errorTxt);
+                        setErrorTxtMissing(sources.errorTxt == null);
+                        setInfoLogText(sources.infoLogText);
+                        setInfoLogMissing(sources.infoLogText == null);
                         window.setTimeout(scrollToLogsPanel, 50);
                       } catch (err) {
                         console.error(err);
                         setErrorTxtMissing(true);
-                        warn("Could not load error.txt for this job.");
+                        setInfoLogMissing(true);
+                        warn("Could not load logs for this job.");
                       } finally {
                         setLogsLoadingJobId(undefined);
                       }
@@ -774,11 +776,17 @@ const Results = ({ visible }: { visible?: boolean }) => {
             id={LOGS_PANEL_ID}
             style={{ height: 0, scrollMarginTop: 80 }}
           />
-          {logsLoadingJobId != null || errorTxt != null || errorTxtMissing ? (
+          {logsLoadingJobId != null ||
+          errorTxt != null ||
+          errorTxtMissing ||
+          infoLogText != null ||
+          infoLogMissing ? (
             <Logs
               loading={logsLoadingJobId != null}
               errorText={errorTxt}
-              missing={errorTxtMissing}
+              errorMissing={errorTxtMissing}
+              infoLogText={infoLogText}
+              infoMissing={infoLogMissing}
             />
           ) : (
             <Box
@@ -788,7 +796,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 color: "rgba(0,0,0,0.4)",
               }}
             >
-              Click the eye icon on a failed job to view its error.txt
+              Click the eye icon on a failed job to view its logs
             </Box>
           )}
         </CmrPanel>
