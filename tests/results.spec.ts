@@ -1624,6 +1624,51 @@ test.describe("Results page - comprehensive validation", () => {
       });
     });
 
+    test("play on a completed job clears leftover failed-job logs", async ({
+      page,
+    }) => {
+      const resultsPanel = page.getByRole("tabpanel", { name: /Results/i });
+      const failedRow = resultsPanel
+        .locator('[role="row"]')
+        .filter({ has: page.locator('[data-testid="VisibilityIcon"]') })
+        .first();
+      const completedRow = resultsPanel
+        .locator('[role="row"]')
+        .filter({ has: page.locator('[data-testid="PlayArrowIcon"]') })
+        .first();
+
+      try {
+        await failedRow.waitFor({ state: "visible", timeout: 15000 });
+        await completedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch {
+        return;
+      }
+      if (!(await failedRow.isVisible()) || !(await completedRow.isVisible())) {
+        return;
+      }
+
+      await failedRow.getByRole("button", { name: /View logs for job/i }).click();
+      const logsHeader = resultsPanel
+        .locator('.card-header[role="button"]')
+        .filter({ hasText: /Viewing Logs and Errors/i })
+        .first();
+      await expect(logsHeader).toBeVisible({ timeout: 10000 });
+
+      await completedRow.locator('[data-testid="PlayArrowIcon"]').click();
+
+      await expect(
+        resultsPanel
+          .locator('.card-header[role="button"]')
+          .filter({ hasText: /Viewing Logs and Errors for/i }),
+      ).toHaveCount(0);
+      const resetLogsHeader = resultsPanel
+        .locator('.card-header[role="button"]')
+        .filter({ hasText: /^View Logs and Errors$/ })
+        .first();
+      await expect(resetLogsHeader).toBeVisible({ timeout: 10000 });
+      await expect(resetLogsHeader).toHaveAttribute("aria-expanded", "false");
+    });
+
     test("retrying a failed job opens Set Up with restored inputs", async ({
       page,
     }) => {

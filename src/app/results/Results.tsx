@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./Results.scss";
 import { CmrTable, CmrCollapse, CmrPanel, CloudMrNiivueViewer as NiiVue, nv } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
@@ -178,6 +178,17 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const [infoLogText, setInfoLogText] = useState<string | undefined>(undefined);
   const [infoLogMissing, setInfoLogMissing] = useState(false);
   const [logsLoadingJobId, setLogsLoadingJobId] = useState<number | undefined>(undefined);
+  const logsRequestIdRef = useRef(0);
+
+  const clearLogsPanel = () => {
+    logsRequestIdRef.current += 1;
+    setLogsLoadingJobId(undefined);
+    setLogJobAlias(undefined);
+    setErrorTxt(undefined);
+    setErrorTxtMissing(false);
+    setInfoLogText(undefined);
+    setInfoLogMissing(false);
+  };
 
   const [name, setName] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState<string | undefined>(undefined);
@@ -272,6 +283,9 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   disabled={params.row.status === "pending"}
                   onClick={(event) => {
                     event.stopPropagation();
+                    // Play starts a completed-job viewing session: drop any
+                    // leftover failed-job logs so this panel is not confusing.
+                    clearLogsPanel();
                     if (params.row.pipeline_id === activeJob?.pipeline_id) {
                       setOpenPanel([1, 2]);
                       return;
@@ -447,6 +461,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
                           undefined as unknown as Job,
                         ),
                       );
+                      const requestId = ++logsRequestIdRef.current;
                       setLogsLoadingJobId(params.row.id);
                       setLogJobAlias(params.row.alias);
                       setErrorTxt(undefined);
@@ -458,18 +473,22 @@ const Results = ({ visible }: { visible?: boolean }) => {
                       window.setTimeout(scrollToLogsPanel, 400);
                       try {
                         const sources = await fetchJobLogSources(params.row);
+                        if (requestId !== logsRequestIdRef.current) return;
                         setErrorTxt(sources.errorTxt);
                         setErrorTxtMissing(sources.errorTxt == null);
                         setInfoLogText(sources.infoLogText);
                         setInfoLogMissing(sources.infoLogText == null);
                         window.setTimeout(scrollToLogsPanel, 50);
                       } catch (err) {
+                        if (requestId !== logsRequestIdRef.current) return;
                         console.error(err);
                         setErrorTxtMissing(true);
                         setInfoLogMissing(true);
                         warn("Could not load logs for this job.");
                       } finally {
-                        setLogsLoadingJobId(undefined);
+                        if (requestId === logsRequestIdRef.current) {
+                          setLogsLoadingJobId(undefined);
+                        }
                       }
                     }}
                   >
@@ -710,6 +729,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               key={pipelineID}
               rois={rois || []}
               pipelineID={pipelineID}
+              sliceCount={activeJob?.slices}
               saveROICallback={() => {
                 if (pipelineID)
                   dispatch(
