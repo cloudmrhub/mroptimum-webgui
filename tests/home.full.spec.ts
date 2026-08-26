@@ -34,8 +34,8 @@ test.describe("Home page", () => {
   });
 
   test.describe("Page sections", () => {
-    test("Shows Calculation Counts panel", async ({ page }) => {
-      await expect(page.getByText("Calculation Counts").first()).toBeVisible({ timeout: 10000 });
+    test("Shows Jobs Count panel", async ({ page }) => {
+      await expect(page.getByText("Jobs Count").first()).toBeVisible({ timeout: 10000 });
     });
 
     test("Shows Mode 1 (Cloud MR AWS) Computing Units panel", async ({ page }) => {
@@ -57,7 +57,7 @@ test.describe("Home page", () => {
       }
     });
 
-    test("Calculation Counts loads a numeric value for Mode 1", async ({ page }) => {
+    test("Jobs Count loads a numeric value for Mode 1", async ({ page }) => {
       // Wait for loading spinner to disappear
       await expect(page.getByText("Loading calculation counts...")).toBeHidden({ timeout: 10000 });
       // Mode 1 count label should appear with a number

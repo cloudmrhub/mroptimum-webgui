@@ -87,32 +87,10 @@ async function fetchComputingUnits(
   return resp.json();
 }
 
-async function deleteComputingUnitById(
-  computingUnitId: string,
-  token: any,
-  apiServer = CLOUDMR_SERVER,
-) {
-  const tokenStr = normalizeToken(token);
-  if (!tokenStr) throw new Error("Authentication token not found. Please login.");
-  const base = apiServer.replace(/\/$/, "");
-  const url = `${base}/computing-unit/delete`;
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenStr}` },
-    body: JSON.stringify({ computingUnitId }),
-  });
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API error: ${resp.status} - ${text}`);
-  }
-  return resp.json();
-}
-import { CmrCollapse, CmrPanel, CmrConfirmation } from "cloudmr-ux";
+import { CmrCollapse, CmrPanel } from "cloudmr-ux";
 import Upload from "cloudmr-ux/core/app/upload/Upload";
 import { useAppSelector } from "../../features/hooks";
-import { Box, Typography, Card, CardContent, CardHeader, Tooltip } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, Typography, Card, CardContent, CardHeader } from "@mui/material";
 
 const Home = () => {
   // Calculation count state
@@ -124,13 +102,6 @@ const Home = () => {
   const [errorCounts, setErrorCounts] = useState<string | null>(null);
   // Computing units state
   const [units, setUnits] = useState({ mode_1: [] as any[], mode_2: [] as any[] });
-  const [deletingUnitIds, setDeletingUnitIds] = useState<Record<string, boolean>>({});
-
-  const [message, setMessage] = useState<string | undefined>(undefined);
-  const [color, setColor] = useState<
-    "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined
-  >(undefined);
-  const [open, setOpen] = useState(false);
 
   const getUnitId = (u: any, idx: number) =>
     String(u?.computingUnitId ?? u?.computing_unit_id ?? u?.id ?? u?.appId ?? u?.name ?? idx);
@@ -177,7 +148,7 @@ const Home = () => {
     <Fragment>
       {/* Calculation counts */}
       <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
-        <CmrPanel header="Calculation Counts" className="mb-2">
+        <CmrPanel header="Jobs Count" className="mb-2">
           {loadingCounts ? (
             <div>Loading calculation counts...</div>
           ) : errorCounts ? (
@@ -260,11 +231,8 @@ const Home = () => {
         <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
           <CmrPanel header="Mode 2 Computing Units" className="mb-2">
             <Box>
-              {units.mode_2.map((u: any, idx: number) => {
-                const unitId = getUnitId(u, idx);
-                const isDeleting = !!deletingUnitIds[unitId];
-                return (
-                  <Card variant="outlined" key={unitId}>
+              {units.mode_2.map((u: any, idx: number) => (
+                <Card variant="outlined" key={getUnitId(u, idx)}>
                     <CardHeader
                       subheader={
                         <span>
@@ -277,63 +245,20 @@ const Home = () => {
                         borderBottom: "1px solid #E6E6EA",
                         "& .MuiCardHeader-subheader": { color: "#333", fontWeight: 600, fontSize: "14px" },
                       }}
-                      action={
-                        <Tooltip title="Delete">
-                          <span>
-                            <IconButton
-                              aria-label="delete"
-                              size="small"
-                              disabled={isDeleting}
-                              onClick={async () => {
-                                const computingUnitId = u.computingUnitId ?? u.computing_unit_id ?? u.id;
-                                const label = u.alias ?? computingUnitId ?? "this unit";
-                                if (!computingUnitId) {
-                                  setMessage("Missing computingUnitId on this computing unit.");
-                                  setColor("error");
-                                  setOpen(true);
-                                  return;
-                                }
-                                if (!confirm(`Are you sure you want to delete computing unit ${label}?`)) return;
-                                try {
-                                  setDeletingUnitIds((s) => ({ ...s, [String(computingUnitId)]: true }));
-                                  await deleteComputingUnitById(String(computingUnitId), apiToken);
-                                  const units2 = await fetchComputingUnits("MR Optimum", "mode_2", apiToken);
-                                  setUnits((prev) => ({ ...prev, mode_2: normalizeUnitsPayload(units2, "mode_2") }));
-                                } catch (e: any) {
-                                  setMessage(e?.message ?? String(e));
-                                  setColor("error");
-                                  setOpen(true);
-                                } finally {
-                                  setDeletingUnitIds((s) => {
-                                    const next = { ...s };
-                                    delete next[String(computingUnitId)];
-                                    return next;
-                                  });
-                                }
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      }
                     />
                     <CardContent>
                       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1 }}>
                         {u.alias && <Typography variant="body2"><strong>Alias:</strong> {String(u.alias)}</Typography>}
                         {u.status && <Typography variant="body2"><strong>Status:</strong> {String(u.status)}</Typography>}
-                        <Typography variant="body2"><strong>Mode:</strong> {String(u.mode ?? "mode_2")}</Typography>
                         {u.provider && <Typography variant="body2"><strong>Provider:</strong> {String(u.provider)}</Typography>}
                         {u.region && <Typography variant="body2"><strong>Region:</strong> {String(u.region)}</Typography>}
-                        {(u.awsAccountId || u.aws_account_id) && <Typography variant="body2"><strong>AWS Account:</strong> {String(u.awsAccountId ?? u.aws_account_id)}</Typography>}
-                        {u.isDefault !== undefined && <Typography variant="body2"><strong>Default:</strong> {u.isDefault ? "Yes" : "No"}</Typography>}
+                        {(u.awsAccountId || u.aws_account_id) && <Typography variant="body2"><strong>Account:</strong> {String(u.awsAccountId ?? u.aws_account_id)}</Typography>}
                         {(u.createdAt || u.created_at) && <Typography variant="body2"><strong>Created:</strong> {new Date(u.createdAt ?? u.created_at).toLocaleDateString()}</Typography>}
                         {(u.updatedAt || u.updated_at) && <Typography variant="body2"><strong>Updated:</strong> {new Date(u.updatedAt ?? u.updated_at).toLocaleDateString()}</Typography>}
                       </Box>
                     </CardContent>
                   </Card>
-                );
-              })}
+              ))}
             </Box>
           </CmrPanel>
         </CmrCollapse>
@@ -341,19 +266,6 @@ const Home = () => {
 
       {/* Uploaded Data — shared cloudmr-ux component */}
       <Upload />
-
-      {/* Error notifications for computing unit operations */}
-      <CmrConfirmation
-        name={undefined}
-        message={message}
-        color={color}
-        open={open}
-        setOpen={setOpen}
-        confirmCallback={() => setOpen(false)}
-        cancelCallback={() => setOpen(false)}
-        cancellable={false}
-        width={450}
-      />
 
       <div style={{ height: "69px" }}></div>
     </Fragment>
