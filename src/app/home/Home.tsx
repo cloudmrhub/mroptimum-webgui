@@ -58,7 +58,7 @@ function normalizeUnitsPayload(payload: any, mode?: string): any[] {
   if (Array.isArray(payload.data)) return payload.data;
   if (mode && Array.isArray(payload[mode])) return payload[mode];
   if (Array.isArray(payload.mode_1) || Array.isArray(payload.mode_2)) {
-    return Array.isArray(payload[mode ?? "mode_1"]) ? payload[mode ?? "mode_1"] : [];
+    return Array.isArray(payload[mode ?? "mode_2"]) ? payload[mode ?? "mode_2"] : [];
   }
   return [];
 }
@@ -92,7 +92,7 @@ import Upload from "cloudmr-ux/core/app/upload/Upload";
 import { useAppSelector } from "../../features/hooks";
 import { Box, Typography, Card, CardContent, CardHeader } from "@mui/material";
 
-const Home = () => {
+const Home = ({ refreshKey }: { refreshKey?: number }) => {
   // Calculation count state
   const [counts, setCounts] = useState<{ mode_1: number | null; mode_2: number | null }>({
     mode_1: null,
@@ -101,7 +101,7 @@ const Home = () => {
   const [loadingCounts, setLoadingCounts] = useState(true);
   const [errorCounts, setErrorCounts] = useState<string | null>(null);
   // Computing units state
-  const [units, setUnits] = useState({ mode_1: [] as any[], mode_2: [] as any[] });
+  const [units, setUnits] = useState({ mode_2: [] as any[] });
 
   const getUnitId = (u: any, idx: number) =>
     String(u?.computingUnitId ?? u?.computing_unit_id ?? u?.id ?? u?.appId ?? u?.name ?? idx);
@@ -112,7 +112,6 @@ const Home = () => {
   const { logged_in_token, accessToken } = useAppSelector((state) => state.authenticate);
   const apiToken = logged_in_token || accessToken;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let cancelled = false;
     async function loadCounts() {
@@ -120,16 +119,14 @@ const Home = () => {
       setErrorCounts(null);
       try {
         const appName = "MR Optimum";
-        const [res1, res2, units1, units2] = await Promise.all([
+        const [res1, res2, units2] = await Promise.all([
           fetchCalculationCount(appName, "mode_1", apiToken),
           fetchCalculationCount(appName, "mode_2", apiToken),
-          fetchComputingUnits(appName, "mode_1", apiToken),
           fetchComputingUnits(appName, "mode_2", apiToken),
         ]);
         if (!cancelled) {
           setCounts({ mode_1: extractCount(res1), mode_2: extractCount(res2) });
           setUnits({
-            mode_1: normalizeUnitsPayload(units1, "mode_1"),
             mode_2: normalizeUnitsPayload(units2, "mode_2"),
           });
         }
@@ -142,7 +139,9 @@ const Home = () => {
     if (apiToken) loadCounts();
     else setErrorCounts("No authentication token found. Please login.");
     return () => { cancelled = true; };
-  }, [apiToken]);
+  // refreshKey intentionally triggers a refetch when the user navigates to the Home tab
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiToken, refreshKey]);
 
   return (
     <Fragment>
@@ -160,68 +159,6 @@ const Home = () => {
                 <Typography variant="body2"><b>Mode 2</b>: {counts.mode_2}</Typography>
               )}
             </>
-          )}
-        </CmrPanel>
-      </CmrCollapse>
-
-      {/* Mode 1 computing units */}
-      <CmrCollapse accordion={false} defaultActiveKey={[0]} expandIconPosition="right">
-        <CmrPanel header="Mode 1 (Cloud MR AWS) Computing Units" className="mb-2">
-          {units.mode_1.length === 0 ? (
-            <Typography variant="body2">No computing units found for mode 1.</Typography>
-          ) : (
-            <Box>
-              {units.mode_1.map((u: any, idx: number) => (
-                <Card variant="outlined" key={getUnitId(u, idx)}>
-                  <CardHeader
-                    subheader={
-                      <span>
-                        <strong>{u.alias}</strong>{" "}
-                        <span style={{ color: "#777", fontWeight: 400 }}>({getUnitTitle(u, idx)})</span>
-                      </span>
-                    }
-                    sx={{
-                      backgroundColor: "#F7F7F9",
-                      borderBottom: "1px solid #E6E6EA",
-                      "& .MuiCardHeader-subheader": { color: "#333", fontWeight: 600, fontSize: "14px" },
-                    }}
-                  />
-                  <CardContent>
-                    <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 1 }}>
-                      {u.alias && <Typography variant="body2"><strong>Alias:</strong> {String(u.alias)}</Typography>}
-                      {u.status && <Typography variant="body2"><strong>Status:</strong> {String(u.status)}</Typography>}
-                      <Typography variant="body2"><strong>Mode:</strong> {String(u.mode ?? "mode_1")}</Typography>
-                      {u.provider && <Typography variant="body2"><strong>Provider:</strong> {String(u.provider)}</Typography>}
-                      {u.region && <Typography variant="body2"><strong>Region:</strong> {String(u.region)}</Typography>}
-                      {(u.awsAccountId || u.aws_account_id) && <Typography variant="body2"><strong>AWS Account:</strong> {String(u.awsAccountId ?? u.aws_account_id)}</Typography>}
-                      {u.isDefault !== undefined && <Typography variant="body2"><strong>Default:</strong> {u.isDefault ? "Yes" : "No"}</Typography>}
-                      {(u.createdAt || u.created_at) && <Typography variant="body2"><strong>Created:</strong> {new Date(u.createdAt ?? u.created_at).toLocaleDateString()}</Typography>}
-                      {(u.updatedAt || u.updated_at) && <Typography variant="body2"><strong>Updated:</strong> {new Date(u.updatedAt ?? u.updated_at).toLocaleDateString()}</Typography>}
-                    </Box>
-                    {(u.stateMachineArn || u.state_machine_arn) && (
-                      <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2"><strong>State Machine ARN:</strong></Typography>
-                        <Typography variant="body2" sx={{ wordBreak: "break-all" }}>{String(u.stateMachineArn ?? u.state_machine_arn)}</Typography>
-                      </Box>
-                    )}
-                    {(u.resultsBucket || u.failedBucket || u.dataBucket) && (
-                      <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2"><strong>Buckets:</strong></Typography>
-                        {u.resultsBucket && <Typography variant="body2">Results: {String(u.resultsBucket)}</Typography>}
-                        {u.failedBucket && <Typography variant="body2">Failed: {String(u.failedBucket)}</Typography>}
-                        {u.dataBucket && <Typography variant="body2">Data: {String(u.dataBucket)}</Typography>}
-                      </Box>
-                    )}
-                    {u.crossAccountRoleArn && (
-                      <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2"><strong>Cross Account Role:</strong></Typography>
-                        <Typography variant="body2" sx={{ wordBreak: "break-all" }}>{String(u.crossAccountRoleArn)}</Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
           )}
         </CmrPanel>
       </CmrCollapse>

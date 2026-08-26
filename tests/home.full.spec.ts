@@ -38,10 +38,6 @@ test.describe("Home page", () => {
       await expect(page.getByText("Jobs Count").first()).toBeVisible({ timeout: 10000 });
     });
 
-    test("Shows Mode 1 (Cloud MR AWS) Computing Units panel", async ({ page }) => {
-      await expect(page.getByText("Mode 1 (Cloud MR AWS) Computing Units")).toBeVisible({ timeout: 10000 });
-    });
-
     test("Shows Uploaded Data panel", async ({ page }) => {
       await expect(page.getByText("Uploaded Data")).toBeVisible({ timeout: 10000 });
     });

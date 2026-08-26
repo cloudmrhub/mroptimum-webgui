@@ -352,9 +352,88 @@ const Results = ({ visible }: { visible?: boolean }) => {
               </Tooltip>
             )}
             {params.row.status === "failed" && (
-              <Tooltip title={`Retry job ${params.row.alias}`}>
+              <Tooltip title={`View logs for job ${params.row.alias}`}>
+                <span>
+                  <IconButton
+                    aria-label={`View logs for job ${params.row.alias}`}
+                    disabled={logsLoadingJobId === params.row.id}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      nvClearAllVolumes();
+                      const requestId = ++logsRequestIdRef.current;
+                      setLogsLoadingJobId(params.row.id);
+                      setLogJobAlias(params.row.alias);
+                      setErrorTxt(undefined);
+                      setErrorTxtMissing(false);
+                      setInfoLogText(undefined);
+                      setInfoLogMissing(false);
+                      // Hide the viewer; keep Job Results, Settings, and Logs open.
+                      setOpenPanel([0, 2, 3]);
+                      window.setTimeout(scrollToLogsPanel, 50);
+                      window.setTimeout(scrollToLogsPanel, 400);
+                      try {
+                        const [sources, setup] = await Promise.all([
+                          fetchJobLogSources(params.row),
+                          loadJobSetupFromResult(params.row),
+                        ]);
+                        if (requestId !== logsRequestIdRef.current) return;
+                        if (setup) {
+                          dispatch(
+                            resultActions.setPipelineID({
+                              ...params.row,
+                              setup: {
+                                alias: params.row.alias ?? "-",
+                                version: "v0",
+                                task: setup.task,
+                              },
+                              slices: setup.slices ?? params.row.slices,
+                            }),
+                          );
+                        } else {
+                          dispatch(resultActions.setPipelineID(params.row));
+                        }
+                        setErrorTxt(sources.errorTxt);
+                        setErrorTxtMissing(sources.errorTxt == null);
+                        setInfoLogText(sources.infoLogText);
+                        setInfoLogMissing(sources.infoLogText == null);
+                        window.setTimeout(scrollToLogsPanel, 50);
+                      } catch (err) {
+                        if (requestId !== logsRequestIdRef.current) return;
+                        console.error(err);
+                        setErrorTxtMissing(true);
+                        setInfoLogMissing(true);
+                        warn("Could not load logs for this job.");
+                      } finally {
+                        if (requestId === logsRequestIdRef.current) {
+                          setLogsLoadingJobId(undefined);
+                        }
+                      }
+                    }}
+                  >
+                    {logsLoadingJobId === params.row.id ? (
+                      <div
+                        className="spinner-border spinner-border-sm"
+                        style={{ aspectRatio: "1 / 1" }}
+                        role="status"
+                      />
+                    ) : (
+                      <VisibilityIcon
+                        sx={{
+                          color: "#580f8b",
+                          "&:hover": {
+                            color: "#390063",
+                          },
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+            {(params.row.status === "failed" || params.row.status === "completed") && (
+              <Tooltip title={`Rerun job ${params.row.alias}`}>
                 <IconButton
-                  aria-label={`Retry job ${params.row.alias}`}
+                  aria-label={`Rerun job ${params.row.alias}`}
                   disabled={retryingJobId === params.row.id}
                   onClick={async (e) => {
                     e.stopPropagation();
@@ -449,79 +528,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
-
-            {params.row.status === "failed" && (
-              <Tooltip title={`View logs for job ${params.row.alias}`}>
-                <span>
-                  <IconButton
-                    aria-label={`View logs for job ${params.row.alias}`}
-                    disabled={logsLoadingJobId === params.row.id}
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      nvClearAllVolumes();
-                      const requestId = ++logsRequestIdRef.current;
-                      setLogsLoadingJobId(params.row.id);
-                      setLogJobAlias(params.row.alias);
-                      setErrorTxt(undefined);
-                      setErrorTxtMissing(false);
-                      setInfoLogText(undefined);
-                      setInfoLogMissing(false);
-                      // Hide the viewer; keep Job Results, Settings, and Logs open.
-                      setOpenPanel([0, 2, 3]);
-                      window.setTimeout(scrollToLogsPanel, 50);
-                      window.setTimeout(scrollToLogsPanel, 400);
-                      try {
-                        const [sources, setup] = await Promise.all([
-                          fetchJobLogSources(params.row),
-                          loadJobSetupFromResult(params.row),
-                        ]);
-                        if (requestId !== logsRequestIdRef.current) return;
-                        if (setup) {
-                          dispatch(
-                            resultActions.setPipelineID({
-                              ...params.row,
-                              setup: {
-                                alias: params.row.alias ?? "-",
-                                version: "v0",
-                                task: setup.task,
-                              },
-                              slices: setup.slices ?? params.row.slices,
-                            }),
-                          );
-                        } else {
-                          dispatch(resultActions.setPipelineID(params.row));
-                        }
-                        setErrorTxt(sources.errorTxt);
-                        setErrorTxtMissing(sources.errorTxt == null);
-                        setInfoLogText(sources.infoLogText);
-                        setInfoLogMissing(sources.infoLogText == null);
-                        window.setTimeout(scrollToLogsPanel, 50);
-                      } catch (err) {
-                        if (requestId !== logsRequestIdRef.current) return;
-                        console.error(err);
-                        setErrorTxtMissing(true);
-                        setInfoLogMissing(true);
-                        warn("Could not load logs for this job.");
-                      } finally {
-                        if (requestId === logsRequestIdRef.current) {
-                          setLogsLoadingJobId(undefined);
-                        }
-                      }
-                    }}
-                  >
-                    {logsLoadingJobId === params.row.id ? (
-                      <div
-                        className="spinner-border spinner-border-sm"
-                        style={{ aspectRatio: "1 / 1" }}
-                        role="status"
-                      />
-                    ) : (
-                      <VisibilityIcon />
-                    )}
-                  </IconButton>
-                </span>
-              </Tooltip>
-            )}
             <CmrConfirmation
               name={name}
               message={message}

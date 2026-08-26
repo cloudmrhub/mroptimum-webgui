@@ -23,13 +23,18 @@ function switchToMainTab(index: number) {
   (match as HTMLElement | undefined)?.click();
 }
 
+const HOME_TAB_ID = 1;
+
 const Main = (props: any) => {
+  const [focusedTab, setFocusedTab] = useState(HOME_TAB_ID);
+  const [homeRefreshKey, setHomeRefreshKey] = useState(0);
+
   const tabData = [
-    { id: 1, text: "Home", children: <Home {...props} /> },
+    { id: 1, text: "Home", children: <Home {...props} refreshKey={homeRefreshKey} /> },
     { id: 2, text: "Set Up", children: <Setup {...props} /> },
     { id: 3, text: "Results", children: <Results {...props} /> },
   ];
-  const [focusedTab, setFocusedTab] = useState(1);
+
   const accessToken = useAppSelector((state) => state.authenticate.accessToken);
   const pendingRetry = useAppSelector((state) => state.setup.pendingRetry);
   const dispatch = useAppDispatch();
@@ -46,17 +51,14 @@ const Main = (props: any) => {
   }, [pendingRetry]);
 
   return (
-    // <div className={`${focusedTab==2?'container-fluid':'container'} mt-4`} style={{maxWidth:focusedTab==2?'100%':undefined,transition: 'all 0.3s'}}>
-    //     <CmrTabs tabList={tabData} onTabSelected={tabIndex => {
-    //         setFocusedTab(tabIndex)
-    //     }
-    //     }/>
-    // </div>
     <div className="container-fluid mt-4" style={{ transition: "all 0.3s" }}>
       <CmrTabs
         tabList={tabData}
         onTabSelected={(tabIndex) => {
           setFocusedTab(tabIndex);
+          if (tabIndex === HOME_TAB_ID) {
+            setHomeRefreshKey((k) => k + 1);
+          }
         }}
       />
     </div>

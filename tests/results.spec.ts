@@ -1479,7 +1479,7 @@ test.describe("Results page - comprehensive validation", () => {
       expect(critical.length).toBe(0);
     });
 
-    test("completed job has Play and Download action buttons", async ({
+    test("completed job has Play, Rerun, and Download action buttons", async ({
       page,
     }) => {
       const completedRow = page
@@ -1492,23 +1492,21 @@ test.describe("Results page - comprehensive validation", () => {
       } catch { /* no completed jobs */ }
 
       if (await completedRow.isVisible()) {
-        // Play button (PlayArrowIcon — rendered as SVG inside IconButton)
-        const playBtn = completedRow
-          .locator('[data-testid="PlayArrowIcon"], svg')
-          .first();
-        await expect(playBtn).toBeVisible();
-
-        // Download button (GetAppIcon)
-        const downloadBtn = completedRow
-          .locator('[data-testid="GetAppIcon"], svg')
-          .first();
-        await expect(downloadBtn).toBeVisible();
-
-        // Delete button (DeleteIcon)
-        const deleteBtn = completedRow
-          .locator('[data-testid="DeleteIcon"]')
-          .first();
-        await expect(deleteBtn).toBeVisible();
+        await expect(
+          completedRow.locator('[data-testid="PlayArrowIcon"]'),
+        ).toBeVisible();
+        await expect(
+          completedRow.getByRole("button", { name: /Rerun job/i }),
+        ).toBeVisible();
+        await expect(
+          completedRow.locator('[data-testid="ReplayIcon"]'),
+        ).toBeVisible();
+        await expect(
+          completedRow.locator('[data-testid="GetAppIcon"]'),
+        ).toBeVisible();
+        await expect(
+          completedRow.locator('[data-testid="DeleteIcon"]'),
+        ).toBeVisible();
       }
     });
 
@@ -1531,7 +1529,7 @@ test.describe("Results page - comprehensive validation", () => {
       }
     });
 
-    test("failed job has Retry and Download action buttons, not Play", async ({
+    test("failed job has Eye, Rerun, and Download action buttons, not Play", async ({
       page,
     }) => {
       const failedRow = page
@@ -1545,31 +1543,32 @@ test.describe("Results page - comprehensive validation", () => {
 
       if (await failedRow.isVisible()) {
         await expect(failedRow.locator('[data-testid="PlayArrowIcon"]')).toHaveCount(0);
-        const retry = failedRow.getByRole("button", { name: /Retry job/i });
+        const eye = failedRow.getByRole("button", { name: /View logs for job/i });
+        const retry = failedRow.getByRole("button", { name: /Rerun job/i });
         const download = failedRow.locator('[data-testid="GetAppIcon"]');
         const del = failedRow.locator('[data-testid="DeleteIcon"]');
+        await expect(eye).toBeVisible();
+        await expect(failedRow.locator('[data-testid="VisibilityIcon"]')).toBeVisible();
         await expect(retry).toBeVisible();
         await expect(failedRow.locator('[data-testid="ReplayIcon"]')).toBeVisible();
         await expect(download).toBeVisible();
         await expect(del).toBeVisible();
+        const eyeBox = await failedRow
+          .locator('[data-testid="VisibilityIcon"]')
+          .boundingBox();
         const retryBox = await retry.boundingBox();
         const downloadBox = await download.boundingBox();
         const deleteBox = await del.boundingBox();
-        expect(retryBox && downloadBox && deleteBox).toBeTruthy();
-        if (retryBox && downloadBox && deleteBox) {
+        expect(eyeBox && retryBox && downloadBox && deleteBox).toBeTruthy();
+        if (eyeBox && retryBox && downloadBox && deleteBox) {
+          expect(eyeBox.x).toBeLessThan(retryBox.x);
           expect(retryBox.x).toBeLessThan(downloadBox.x);
           expect(downloadBox.x).toBeLessThan(deleteBox.x);
-          const eyeBox = await failedRow
-            .locator('[data-testid="VisibilityIcon"]')
-            .boundingBox();
-          if (eyeBox) {
-            expect(deleteBox.x).toBeLessThan(eyeBox.x);
-          }
         }
       }
     });
 
-    test("failed job has a view-logs eye button next to delete", async ({
+    test("failed job has a view-logs eye button before rerun", async ({
       page,
     }) => {
       const failedRow = page
@@ -1683,10 +1682,36 @@ test.describe("Results page - comprehensive validation", () => {
 
       if (!(await failedRow.isVisible())) return;
 
-      await failedRow.getByRole("button", { name: /Retry job/i }).click();
+      await failedRow.getByRole("button", { name: /Rerun job/i }).click();
 
       const setupTab = page.getByRole("tab", { name: /^set up$/i });
       await expect(setupTab).toHaveAttribute("aria-selected", "true", { timeout: 5000 });
+
+      const setupPanel = page.getByRole("tabpanel", { name: /set up/i });
+      await expect(setupPanel.getByText("Signal & Noise Files")).toBeVisible();
+      await expect(setupPanel.getByText("SNR Analysis")).toBeVisible();
+    });
+
+    test("rerunning a completed job opens Set Up with restored inputs", async ({
+      page,
+    }) => {
+      const completedRow = page
+        .locator('[role="row"]')
+        .filter({ hasText: /completed/i })
+        .first();
+
+      try {
+        await completedRow.waitFor({ state: "visible", timeout: 15000 });
+      } catch { /* no completed jobs */ }
+
+      if (!(await completedRow.isVisible())) return;
+
+      await completedRow.getByRole("button", { name: /Rerun job/i }).click();
+
+      const setupTab = page.getByRole("tab", { name: /^set up$/i });
+      await expect(setupTab).toHaveAttribute("aria-selected", "true", {
+        timeout: 10000,
+      });
 
       const setupPanel = page.getByRole("tabpanel", { name: /set up/i });
       await expect(setupPanel.getByText("Signal & Noise Files")).toBeVisible();
