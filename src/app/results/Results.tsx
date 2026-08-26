@@ -31,17 +31,17 @@ import { Row } from "antd";
 import Box from "@mui/material/Box";
 import { SetupInspection } from "./SetupInspection";
 import { Logs } from "./Logs";
-// import { CMRUpload } from "cloudmr-ux";
+import { CMRUpload } from "cloudmr-ux";
 import { AxiosRequestConfig } from "axios";
-// import { processJobZip } from "./PreprocessJob";
+import { processJobZip } from "./PreprocessJob";
 import { deleteUpstreamJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
-// import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
+import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 import { CmrEditConfirmation } from "cloudmr-ux";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ReplayIcon from "@mui/icons-material/Replay";
 import Tooltip from "@mui/material/Tooltip";
-import { retryFailedJob, downloadJobResultFiles, fetchJobLogSources } from "./retryFailedJob";
+import { retryFailedJob, downloadJobResultFiles, fetchJobLogSources, loadJobSetupFromResult } from "./retryFailedJob";
 
 import { CmrConfirmation } from "cloudmr-ux";
 
@@ -193,6 +193,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
   // Only present after the failed-job eye icon is clicked; hidden for completed jobs.
   const logsPanelVisible =
     logJobAlias != null || logsLoadingJobId != null;
+  const showViewerPanel = !logsPanelVisible;
 
   const [name, setName] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState<string | undefined>(undefined);
@@ -458,13 +459,6 @@ const Results = ({ visible }: { visible?: boolean }) => {
                     onClick={async (e) => {
                       e.stopPropagation();
                       nvClearAllVolumes();
-                      // Failed-job logs are a new viewing session: drop the
-                      // previously loaded completed job from viewer/settings.
-                      dispatch(
-                        resultActions.setPipelineID(
-                          undefined as unknown as Job,
-                        ),
-                      );
                       const requestId = ++logsRequestIdRef.current;
                       setLogsLoadingJobId(params.row.id);
                       setLogJobAlias(params.row.alias);
@@ -472,12 +466,31 @@ const Results = ({ visible }: { visible?: boolean }) => {
                       setErrorTxtMissing(false);
                       setInfoLogText(undefined);
                       setInfoLogMissing(false);
-                      setOpenPanel([0, 3]);
+                      // Hide the viewer; keep Job Results, Settings, and Logs open.
+                      setOpenPanel([0, 2, 3]);
                       window.setTimeout(scrollToLogsPanel, 50);
                       window.setTimeout(scrollToLogsPanel, 400);
                       try {
-                        const sources = await fetchJobLogSources(params.row);
+                        const [sources, setup] = await Promise.all([
+                          fetchJobLogSources(params.row),
+                          loadJobSetupFromResult(params.row),
+                        ]);
                         if (requestId !== logsRequestIdRef.current) return;
+                        if (setup) {
+                          dispatch(
+                            resultActions.setPipelineID({
+                              ...params.row,
+                              setup: {
+                                alias: params.row.alias ?? "-",
+                                version: "v0",
+                                task: setup.task,
+                              },
+                              slices: setup.slices ?? params.row.slices,
+                            }),
+                          );
+                        } else {
+                          dispatch(resultActions.setPipelineID(params.row));
+                        }
                         setErrorTxt(sources.errorTxt);
                         setErrorTxtMissing(sources.errorTxt == null);
                         setInfoLogText(sources.infoLogText);
@@ -638,12 +651,13 @@ const Results = ({ visible }: { visible?: boolean }) => {
           <Row
             style={{
               alignItems: "center",
-              justifyContent: "flex-start",
+              justifyContent: "space-between",
+              width: "100%",
               marginBottom: "20px",
             }}
           >
             {/* temporarily disabled for beta testing */}
-            {/* <CMRUpload
+            <CMRUpload
               style={{ marginTop: "auto", marginBottom: "auto" }}
               uploadButtonName={"Upload Results"}
               maxCount={1}
@@ -678,7 +692,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               )}
             >
               Upload Results
-            </CMRUpload> */}
+            </CMRUpload>
             <CmrCheckbox
               defaultChecked={true}
               onChange={(e) => {
@@ -712,7 +726,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           </Button>
         </CmrPanel>
         <CmrPanel
-          className={"mb-2"}
+          className={`mb-2${showViewerPanel ? "" : " d-none"}`}
           header={
             activeJobAlias !== undefined
               ? `Viewing ${activeJobAlias}`
@@ -720,7 +734,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           }
           key={"1"}
         >
-          {activeJob !== undefined && (
+          {showViewerPanel && activeJob !== undefined && activeJob.status !== "failed" && (
             <NiiVue
               niis={niis || []}
               warn={warn}
@@ -760,7 +774,9 @@ const Results = ({ visible }: { visible?: boolean }) => {
               }
             />
           )}
-          {activeJob === undefined && (
+          {(!showViewerPanel ||
+            activeJob === undefined ||
+            activeJob.status === "failed") && (
             <Box
               sx={{
                 display: "flex",
@@ -773,7 +789,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           )}
         </CmrPanel>
         <CmrPanel className={"mb-2"} header={"Current Job Settings"} key={"2"}>
-          {activeJob?.status === "completed" ? (
+          {activeJob?.setup?.task ? (
             <SetupInspection />
           ) : (
             <Box
@@ -783,9 +799,9 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 color: "rgba(0,0,0,0.4)",
               }}
             >
-              {!activeJob
-                ? "Please Select a Completed Job Result"
-                : "Job is not completed"}
+              {logsLoadingJobId != null || resultLoading !== -1
+                ? "Loading job settings..."
+                : "Please Select a Job Result"}
             </Box>
           )}
         </CmrPanel>

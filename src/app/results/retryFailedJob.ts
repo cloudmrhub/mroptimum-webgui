@@ -343,31 +343,22 @@ async function documentsFromBuffer(buffer: ArrayBuffer): Promise<any[]> {
   return documents;
 }
 
-function extractOutput(info: any, snr: any) {
-  const nested =
-    info?.output ??
-    info?.headers?.output ??
-    info?.headers?.options?.output ??
-    snr?.output;
-  return {
-    coilsensitivity: !!nested?.coilsensitivity,
-    gfactor:
-      nested?.gfactor ??
-      !!snr?.options?.reconstructor?.options?.gfactor ??
-      DEFAULT_OUTPUT.gfactor,
-    matlab: nested?.matlab !== false,
-  };
+function extractSlices(info: any): number | undefined {
+  const raw =
+    info?.info?.slices ??
+    info?.headers?.info?.slices ??
+    info?.slices;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 /**
- * Silently fetch the failed job's result zip, unzip it in the browser,
- * read info.json, and populate Set Up. Does not save a file to disk.
+ * Read SNR setup from a job's result zip / info.json (same source Current
+ * Job Settings uses after a successful loadResult). Falls back to job.setup.
  */
-export async function retryFailedJob(
+export async function loadJobSetupFromResult(
   job: Job,
-  dispatch: AppDispatch,
-  uploadedFiles: UploadedFile[],
-): Promise<boolean> {
+): Promise<{ task: any; slices?: number; infoJson?: any } | undefined> {
   let infoJson: any;
   let snr: any;
 
@@ -390,8 +381,47 @@ export async function retryFailedJob(
     snr = findSNR(job.setup) ?? findSNR(job);
   }
   if (!snr || !looksLikeSNR(snr)) {
+    return undefined;
+  }
+  return {
+    task: snr,
+    slices: extractSlices(infoJson) ?? job.slices,
+    infoJson,
+  };
+}
+
+function extractOutput(info: any, snr: any) {
+  const nested =
+    info?.output ??
+    info?.headers?.output ??
+    info?.headers?.options?.output ??
+    snr?.output;
+  return {
+    coilsensitivity: !!nested?.coilsensitivity,
+    gfactor: !!(
+      nested?.gfactor ??
+      snr?.options?.reconstructor?.options?.gfactor ??
+      DEFAULT_OUTPUT.gfactor
+    ),
+    matlab: nested?.matlab !== false,
+  };
+}
+
+/**
+ * Silently fetch the failed job's result zip, unzip it in the browser,
+ * read info.json, and populate Set Up. Does not save a file to disk.
+ */
+export async function retryFailedJob(
+  job: Job,
+  dispatch: AppDispatch,
+  uploadedFiles: UploadedFile[],
+): Promise<boolean> {
+  const loaded = await loadJobSetupFromResult(job);
+  if (!loaded) {
     return false;
   }
+  const snr = loaded.task;
+  const infoJson = loaded.infoJson;
 
   dispatch(
     setupSetters.loadSNRSettings({
