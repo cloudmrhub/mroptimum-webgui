@@ -27,7 +27,7 @@
     "antd": "^5.7.3",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.1",
-    "cloudmr-ux": "6.0.3",
+    "cloudmr-ux": "6.0.4",
     "eslint": "^8.57.1",
     "gl-matrix": "^3.4.3",
     "https-browserify": "^1.0.0",
@@ -50,6 +50,7 @@
   },
   "scripts": {
     "start": "vite --port 4001",
+    "start:fresh": "node -e \"try { require('fs').rmSync('node_modules/.vite', { recursive: true, force: true }) } catch (e) {}\" && vite --port 4001",
     "build": "vite build",
     "build:clean": "rm -rf dist && tsc && vite build",
     "preview": "vite build && vite preview --port 4001",
