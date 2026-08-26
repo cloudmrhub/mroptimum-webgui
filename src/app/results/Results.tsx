@@ -190,6 +190,10 @@ const Results = ({ visible }: { visible?: boolean }) => {
     setInfoLogMissing(false);
   };
 
+  // Only present after the failed-job eye icon is clicked; hidden for completed jobs.
+  const logsPanelVisible =
+    logJobAlias != null || logsLoadingJobId != null;
+
   const [name, setName] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState<string | undefined>(undefined);
   const [color, setColor] = useState<"inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning" | undefined>(undefined);
@@ -786,7 +790,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           )}
         </CmrPanel>
         <CmrPanel
-          className={"mb-2 view-logs-and-errors"}
+          className={`mb-2 view-logs-and-errors${logsPanelVisible ? "" : " d-none"}`}
           header={
             logJobAlias
               ? `Viewing Logs and Errors for ${logJobAlias}`
@@ -798,29 +802,13 @@ const Results = ({ visible }: { visible?: boolean }) => {
             id={LOGS_PANEL_ID}
             style={{ height: 0, scrollMarginTop: 80 }}
           />
-          {logsLoadingJobId != null ||
-          errorTxt != null ||
-          errorTxtMissing ||
-          infoLogText != null ||
-          infoLogMissing ? (
-            <Logs
-              loading={logsLoadingJobId != null}
-              errorText={errorTxt}
-              errorMissing={errorTxtMissing}
-              infoLogText={infoLogText}
-              infoMissing={infoLogMissing}
-            />
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                color: "rgba(0,0,0,0.4)",
-              }}
-            >
-              Click the eye icon on a failed job to view its logs
-            </Box>
-          )}
+          <Logs
+            loading={logsLoadingJobId != null}
+            errorText={errorTxt}
+            errorMissing={errorTxtMissing}
+            infoLogText={infoLogText}
+            infoMissing={infoLogMissing}
+          />
         </CmrPanel>
       </CmrCollapse>
       <div style={{ height: "69px" }}></div>
