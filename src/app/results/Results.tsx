@@ -8,6 +8,9 @@ import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { Job } from "cloudmr-ux/core/features/jobs/jobsSlice";
+
+/** Pipeline list may include computing-unit fields not yet on the published Job type. */
+type ResultJob = Job & { mode?: string };
 import { getUpstreamJobs, uploadJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
 import {
   uploadData,
@@ -274,6 +277,18 @@ const Results = ({ visible }: { visible?: boolean }) => {
       flex: 1,
     },
     {
+      headerName: "Computing Unit",
+      field: "mode",
+      flex: 1,
+      valueGetter: (params: { row: ResultJob }) => {
+        const mode = params.row.mode;
+        if (!mode) return "-";
+        if (mode === "mode_1") return "Mode 1 (Cloud MR AWS)";
+        if (mode === "mode_2") return "Mode 2";
+        return mode;
+      },
+    },
+    {
       field: "action",
       headerName: "Actions",
       sortable: false,
@@ -285,7 +300,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
             {params.row.status !== "failed" && (
               <Tooltip title={`View job ${params.row.alias}`}>
                 <IconButton
-                  disabled={params.row.status === "pending"}
+                  disabled={params.row.status === "pending" || params.row.status === "queued"}
                   onClick={(event) => {
                     event.stopPropagation();
                     // Play starts a completed-job viewing session: drop any
@@ -329,7 +344,8 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   }}
                 >
                   {resultLoading === params.row.id ||
-                    params.row.status === "pending" ? (
+                    params.row.status === "pending" ||
+                    params.row.status === "queued" ? (
                     <div
                       className="spinner-border spinner-border-sm"
                       style={{ aspectRatio: "1 / 1" }}
