@@ -262,24 +262,27 @@ const Results = ({ visible }: { visible?: boolean }) => {
       headerName: "Alias",
       dataIndex: "alias",
       field: "alias",
-      flex: 2,
+      flex: 1,
     },
     {
       headerName: "Date Submitted",
       dataIndex: "createdAt",
       field: "createdAt",
-      flex: 2,
+      flex: 1,
+      width: 170,
     },
     {
       headerName: "Status",
       dataIndex: "status",
       field: "status",
-      flex: 1,
+      flex: 0.5,
+      width: 100,
     },
     {
       headerName: "Computing Unit",
       field: "mode",
       flex: 1,
+      minWidth: 170,
       valueGetter: (params: { row: ResultJob }) => {
         const mode = params.row.mode;
         if (!mode) return "-";
