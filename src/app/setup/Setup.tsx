@@ -2029,6 +2029,9 @@ const Setup = () => {
                         }}
                         edit={() => { }}
                         queue={(jobAlias: string) => {
+                          if (!jobAlias?.trim()) {
+                            return;
+                          }
                           dispatch(setupSetters.compileSNRSettings(jobAlias));
                           setJobSelectionModel([
                             ...jobSelectionModel,

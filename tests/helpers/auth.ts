@@ -27,15 +27,11 @@ export function getLoginCredentials(): LoginCredentials {
   return { email, password };
 }
 
-export function getInvalidLoginCredentials(): LoginCredentials | undefined {
-  const email = process.env.E2E_INVALID_EMAIL;
-  const password = process.env.E2E_INVALID_PASSWORD;
-
-  if (!email || !password) {
-    return undefined;
-  }
-
-  return { email, password };
+export function getInvalidLoginCredentials(): LoginCredentials {
+  return {
+    email: process.env.E2E_INVALID_EMAIL ?? "invalid-e2e@example.com",
+    password: process.env.E2E_INVALID_PASSWORD ?? "definitely-not-a-real-password",
+  };
 }
 
 export function ensureAuthStateDirectory(): void {

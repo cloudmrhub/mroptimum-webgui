@@ -1,11 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import path from "path";
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
 import { ensureAuthenticatedSession } from "./helpers/auth";
-
-/** Same join as `UploadWindow.tsx` / `Home.tsx` `fileExtension` prop — drop handler sets `warningText` to this. */
-const HOME_UPLOAD_ALLOWED_EXTENSIONS_MESSAGE =
-  "Only accepting files with extension(s): .nii, .nii.gz, .mha, .mhd, .mrd, .dat, .h5, .png, .jpg, .jpeg, .npx, .npy, .pkl, .mat";
 
 /**
  * Home uses CMRUpload, which opens a "File Upload" dialog. Choosing a file only
@@ -20,6 +16,28 @@ async function pickFileAndConfirmHomeUpload(page: Page, filePath: string): Promi
   await fileDialog.locator('input[type="file"]').setInputFiles(filePath);
   await fileDialog.getByRole("button", { name: /^upload$/i }).click();
   await expect(fileDialog).toBeHidden({ timeout: 60000 });
+}
+
+async function pickFilesAndConfirmHomeUpload(page: Page, filePaths: string[]): Promise<void> {
+  await page.getByRole("button", { name: "Upload", exact: true }).click();
+  const fileDialog = page.getByRole("dialog", { name: /file upload/i });
+  await expect(fileDialog).toBeVisible({ timeout: 10000 });
+  await fileDialog.locator('input[type="file"]').setInputFiles(filePaths);
+
+  for (const filePath of filePaths) {
+    await expect(
+      fileDialog.getByText(path.basename(filePath), { exact: true }),
+    ).toBeVisible({ timeout: 5000 });
+  }
+  await expect(
+    fileDialog.getByRole("button", { name: new RegExp(`^upload \\(${filePaths.length}\\)$`, "i") }),
+  ).toBeEnabled();
+
+  await fileDialog
+    .getByRole("button", { name: new RegExp(`^upload \\(${filePaths.length}\\)$`, "i") })
+    .click();
+  // Multi-file uploads run sequentially; allow extra time.
+  await expect(fileDialog).toBeHidden({ timeout: 120000 });
 }
 
 test.describe("Home page", () => {
@@ -91,54 +109,132 @@ test.describe("Home page", () => {
     });
   });
 
-  test.describe("File upload", () => {
-    test("Uploading a .dat file succeeds and appears in table", async ({ page }) => {
-      await pickFileAndConfirmHomeUpload(page, path.resolve(__dirname, "../public/sodium.dat"));
-      await expect(page.getByText("sodium.dat")).toBeVisible({ timeout: 10000 });
+  test.describe("File upload and rename", () => {
+    /** Shared across serial tests in this block after a successful upload+rename. */
+    let uploadedThenRenamedFile = "";
+
+    test("Uploading multiple files succeeds and both appear in table", async ({ page }) => {
+      const file1 = path.resolve(__dirname, "../public/sodium.dat");
+      const file2 = path.resolve(__dirname, "../public/CBI_crop.png");
+      test.skip(!existsSync(file1) || !existsSync(file2), "Missing public upload fixtures");
+
+      await pickFilesAndConfirmHomeUpload(page, [file1, file2]);
+
+      await expect(page.getByText("sodium.dat").first()).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("CBI_crop.png").first()).toBeVisible({ timeout: 15000 });
     });
 
     test("Upload only accepts allowed file extensions", async ({
       page,
     }) => {
-      // UploadWindow.tsx: `loadSelectedFiles` → `loadFiles` does NOT validate extensions.
-      // Extension checks run on `drop` (and dragover border only). Simulate a real drop so the
-      // MUI Alert shows `warningText` (lines 259–270 in cloudmr-ux UploadWindow.tsx).
+      // UploadWindow.filterAndCapFiles rejects disallowed types on file pick/drop and
+      // shows an MUI Alert (e.g. `"foo.mp4" has an unsupported extension`).
       const rejectMp4 = path.resolve(__dirname, "../public/test0fail-upload.mp4");
       test.skip(
         !existsSync(rejectMp4),
         "Add public/test0fail-upload.mp4 (disallowed type for Home CMRUpload)",
       );
 
+      const fileName = path.basename(rejectMp4);
       await page.getByRole("button", { name: "Upload", exact: true }).click();
       const fileDialog = page.getByRole("dialog", { name: /file upload/i });
       await expect(fileDialog).toBeVisible({ timeout: 10000 });
 
-      const dropZone = fileDialog
-        .getByText(/Drag & Drop or Click to Upload Your File Here/i)
-        .locator("..");
-      const b64 = readFileSync(rejectMp4, { encoding: "base64" });
-      const fileName = path.basename(rejectMp4);
-      await dropZone.evaluate(
-        (el, { payloadB64, name }) => {
-          const binary = atob(payloadB64);
-          const bytes = new Uint8Array(binary.length);
-          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-          const file = new File([bytes], name, { type: "video/mp4" });
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          el.dispatchEvent(
-            new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }),
-          );
-        },
-        { payloadB64: b64, name: fileName },
-      );
+      await fileDialog.locator('input[type="file"]').setInputFiles(rejectMp4);
 
+      // filterAndCapFiles may show the unsupported-extension warning, then overwrite with
+      // "No valid files selected" when nothing remains — either proves rejection.
       const alert = fileDialog.getByRole("alert");
       await expect(alert).toBeVisible({ timeout: 5000 });
-      await expect(alert).toHaveText(HOME_UPLOAD_ALLOWED_EXTENSIONS_MESSAGE);
+      await expect(alert).toContainText(
+        new RegExp(
+          `"${fileName}" has an unsupported extension|No valid files selected`,
+          "i",
+        ),
+      );
+      await expect(
+        fileDialog.getByRole("button", { name: /^upload$/i }),
+      ).toBeDisabled();
 
       await fileDialog.getByRole("button", { name: /^cancel$/i }).click();
       await expect(fileDialog).toBeHidden({ timeout: 5000 });
+    });
+
+    test("Upload a file then rename it updates the name in the table", async ({ page }) => {
+      const source = path.resolve(__dirname, "../public/sodium.dat");
+      const renamedTo = `e2e_renamed_${Date.now()}.dat`;
+
+      await pickFileAndConfirmHomeUpload(page, source);
+      await expect(page.getByText("sodium.dat").first()).toBeVisible({ timeout: 10000 });
+
+      const uploadedRow = page
+        .locator('[role="row"]')
+        .filter({ has: page.getByText("sodium.dat", { exact: true }) })
+        .first();
+      await uploadedRow.getByRole("button").first().click();
+
+      const renameDialog = page.getByRole("dialog").filter({ hasText: /rename the file/i });
+      await expect(renameDialog).toBeVisible({ timeout: 5000 });
+      const nameInput = renameDialog.locator("input").first();
+      await nameInput.clear();
+      await nameInput.fill(renamedTo);
+      await renameDialog.getByRole("button", { name: /^confirm$/i }).click();
+
+      // Same extension → rename proceeds without the extension-change confirmation.
+      await expect(renameDialog).toBeHidden({ timeout: 15000 });
+      await expect(page.getByText(renamedTo, { exact: true })).toBeVisible({ timeout: 15000 });
+
+      uploadedThenRenamedFile = renamedTo;
+    });
+
+    test("Renaming a file without an extension shows an error message", async ({ page }) => {
+      test.skip(
+        !uploadedThenRenamedFile,
+        "Depends on prior upload+rename test creating a target file",
+      );
+
+      const row = page
+        .locator('[role="row"]')
+        .filter({ has: page.getByText(uploadedThenRenamedFile, { exact: true }) })
+        .first();
+      await expect(row).toBeVisible({ timeout: 10000 });
+      await row.getByRole("button").first().click();
+
+      const renameDialog = page.getByRole("dialog").filter({ hasText: /rename the file/i });
+      await expect(renameDialog).toBeVisible({ timeout: 5000 });
+      const nameInput = renameDialog.locator("input").first();
+      await nameInput.clear();
+      await nameInput.fill("newfilenamenoextension");
+      await renameDialog.getByRole("button", { name: /^confirm$/i }).click();
+
+      await expect(page.getByText(/missing file extension/i)).toBeVisible({ timeout: 5000 });
+      // Dismiss confirmation without applying the invalid rename.
+      await page.getByRole("button", { name: /^cancel$/i }).last().click();
+    });
+
+    test("Renaming a file with a changed extension shows a confirmation dialog", async ({ page }) => {
+      test.skip(
+        !uploadedThenRenamedFile,
+        "Depends on prior upload+rename test creating a target file",
+      );
+
+      const row = page
+        .locator('[role="row"]')
+        .filter({ has: page.getByText(uploadedThenRenamedFile, { exact: true }) })
+        .first();
+      await expect(row).toBeVisible({ timeout: 10000 });
+      await row.getByRole("button").first().click();
+
+      const renameDialog = page.getByRole("dialog").filter({ hasText: /rename the file/i });
+      await expect(renameDialog).toBeVisible({ timeout: 5000 });
+      const nameInput = renameDialog.locator("input").first();
+      await nameInput.clear();
+      await nameInput.fill("renamed_file.txt");
+      await renameDialog.getByRole("button", { name: /^confirm$/i }).click();
+
+      await expect(page.getByText(/changing file extension/i)).toBeVisible({ timeout: 5000 });
+      // Cancel so we do not leave a .txt name behind for later delete tests.
+      await page.getByRole("button", { name: /^cancel$/i }).last().click();
     });
   });
 
@@ -161,54 +257,6 @@ test.describe("Home page", () => {
       // empty for some cross-origin URLs where the `download` attribute is ignored.
       const suggested = download.suggestedFilename();
       expect(suggested.length > 0 || download.url().length > 0).toBe(true);
-    });
-  });
-
-  test.describe("File rename", () => {
-    test("Clicking the edit icon opens the rename dialog", async ({ page }) => {
-      const editBtn = page.locator('[role="row"]').nth(1).getByRole("button").first();
-      const hasFiles = await editBtn.isVisible({ timeout: 5000 }).catch(() => false);
-      test.skip(!hasFiles, "No uploaded files available to rename");
-
-      await editBtn.click();
-      // Rename dialog should appear
-      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
-    });
-
-    test("Renaming a file without an extension shows an error message", async ({ page }) => {
-      const editBtn = page.locator('[role="row"]').nth(1).getByRole("button").first();
-      const hasFiles = await editBtn.isVisible({ timeout: 5000 }).catch(() => false);
-      test.skip(!hasFiles, "No uploaded files available to rename");
-
-      await editBtn.click();
-      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
-
-      // Clear the input and type a name with no extension
-      const nameInput = page.getByRole("dialog").locator("input").first();
-      await nameInput.clear();
-      await nameInput.fill("newfilenamenoextension");
-      await page.getByRole("dialog").getByRole("button", { name: /confirm|save|ok|rename/i }).click();
-
-      // Should show error about missing extension
-      await expect(page.getByText(/missing file extension/i)).toBeVisible({ timeout: 5000 });
-    });
-
-    test("Renaming a file with a changed extension shows a confirmation dialog", async ({ page }) => {
-      const editBtn = page.locator('[role="row"]').nth(1).getByRole("button").first();
-      const hasFiles = await editBtn.isVisible({ timeout: 5000 }).catch(() => false);
-      test.skip(!hasFiles, "No uploaded files available to rename");
-
-      await editBtn.click();
-      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
-
-      // Change the extension to something different
-      const nameInput = page.getByRole("dialog").locator("input").first();
-      await nameInput.clear();
-      await nameInput.fill("renamed_file.txt");
-      await page.getByRole("dialog").getByRole("button", { name: /confirm|save|ok|rename/i }).click();
-
-      // Should show warning about changing extension
-      await expect(page.getByText(/changing file extension/i)).toBeVisible({ timeout: 5000 });
     });
   });
 
