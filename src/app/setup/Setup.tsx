@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import "./Setup.scss";
 import { CLOUDMR_SERVER } from "../../env";
 
@@ -100,11 +100,55 @@ import { snrDescriptions } from "./SetupDescriptions";
 import { downloadStringAsFile } from "cloudmr-ux/core/common/utilities/DownloadFromText";
 import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 
-const Setup = () => {
+/** Render TeX HTML and typeset with MathJax whenever this node mounts or the source changes. */
+function MathJaxHtml({ html }: { html: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    //@ts-ignore
-    MathJax.typeset();
-  }, []);
+    const el = containerRef.current;
+    if (!el) return;
+
+    let cancelled = false;
+    let retryId: number | undefined;
+
+    const typeset = async () => {
+      const MathJax = (window as any).MathJax;
+      if (!MathJax?.typesetPromise && !MathJax?.typeset) {
+        retryId = window.setTimeout(typeset, 50);
+        return;
+      }
+      try {
+        if (MathJax.startup?.promise) {
+          await MathJax.startup.promise;
+        }
+        if (cancelled || !containerRef.current) return;
+        MathJax.typesetClear?.([containerRef.current]);
+        if (MathJax.typesetPromise) {
+          await MathJax.typesetPromise([containerRef.current]);
+        } else {
+          MathJax.typeset([containerRef.current]);
+        }
+      } catch {
+        // MathJax can throw if a previous typeset is still in flight
+      }
+    };
+
+    typeset();
+
+    return () => {
+      cancelled = true;
+      if (retryId != null) window.clearTimeout(retryId);
+      const MathJax = (window as any).MathJax;
+      if (el && MathJax?.typesetClear) {
+        MathJax.typesetClear([el]);
+      }
+    };
+  }, [html]);
+
+  return <div ref={containerRef} dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+const Setup = () => {
 
   const dispatch = useAppDispatch();
   const { accessToken, level, uploadToken, queueToken, isAdmin } =
@@ -230,9 +274,9 @@ const Setup = () => {
   // Option availability maps
   const topToSecondaryMaps = [
     [0, 1, 2],
-    [0, 1, 2, 3, 4],
-    [0, 1, 2, 3, 4],
-    [0, 1, 2, 3, 4],
+    [0],
+    [0, 1, 2, 3],
+    [0, 1, 2, 3],
   ];
   const secondaryToCoilMethodMaps = [[], ["inner"], ["inner", "innerACL"], []];
   const idToSecondaryOptions = [
@@ -1219,18 +1263,7 @@ const Setup = () => {
                     {analysisMethod != undefined && snrDescription != '' &&
                         <CmrPanel className='mb-3' header={undefined} cardProps={{ className: 'mb-2 ms-2 me-2 mt-2' }}
                             expanded={true}>
-                            {analysisMethod === 0 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.ac }} />
-                            )}
-                            {analysisMethod === 1 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.mr }} />
-                            )}
-                            {analysisMethod === 2 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.pmr }} />
-                            )}
-                            {analysisMethod === 3 && (
-                                <div dangerouslySetInnerHTML={{ __html: snrDescriptions.cr }} />
-                            )}
+                            <MathJaxHtml html={snrDescription} />
                         </CmrPanel>}
 
                     {(analysisMethod != undefined) &&
@@ -1287,11 +1320,11 @@ const Setup = () => {
                                         value={(reconstructionMethod != undefined) ? reconstructionMethod : ''}
                                         style={{ display: 'flex', justifyContent: 'space-between' }}
                                     >
-                                        {(analysisMethod == 1 ? ['Root Sum of Squares', 'ESPIRIT'] : ['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA', 'ESPIRIT']).map((option, index) => {
+                                        {['Root Sum of Squares', 'B1 Weighted', 'SENSE', 'GRAPPA'].map((option, index) => {
 
                                             return (analysisMethod != undefined && topToSecondaryMaps[analysisMethod].indexOf(index) >= 0) ?
                                                 <FormControlLabel value={index}
-                                                    disabled={option == 'ESPIRIT'} control={<Radio />}
+                                                    control={<Radio />}
                                                     label={option} />
                                                 : undefined;
                                         })}

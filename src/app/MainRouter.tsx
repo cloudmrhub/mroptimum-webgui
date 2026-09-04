@@ -12,7 +12,7 @@ import { getLoggedInToken, signOut } from "cloudmr-ux/core/features/authenticate
 import WebSignin from "./WebSignin";
 import { AuthenticatedHttpClient } from "cloudmr-ux/core/common/utilities/AuthenticatedRequests";
 import { persistor, store } from "../features/store";
-import appIcon from "../assets/mrOptimum.png";
+import appIcon from "../assets/cloudmr.png";
 import { setupSetters } from "../features/setup/setupSlice";
 
 const debugging = false;
@@ -64,7 +64,7 @@ const MainRouter = () => {
                     dispatch(getLoggedInToken(credentials))
                   }
                   appIcon={appIcon}
-                  appTitle="Optimum"
+                  appIconHeight={"100px"}
                 />
               )
             }

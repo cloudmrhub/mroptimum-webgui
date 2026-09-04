@@ -299,8 +299,8 @@ function ensureCorrectionNode(state: SetupState) {
     return activeSetup.options.reconstructor.options.correction as any;
 }
 
-/** Reconstruction radio indices: 0 RSS, 1 B1, 2 SENSE, 3 GRAPPA, 4 ESPIRIT */
-const RECONSTRUCTION_NAMES = ["rss", "b1", "sense", "grappa", "espirit"] as const;
+/** Reconstruction radio indices: 0 RSS, 1 B1, 2 SENSE, 3 GRAPPA */
+const RECONSTRUCTION_NAMES = ["rss", "b1", "sense", "grappa"] as const;
 
 /**
  * Shared logic for `setReconstructionMethod` and for resetting to RSS when the SNR analysis method changes.

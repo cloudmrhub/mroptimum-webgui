@@ -154,9 +154,9 @@ const Home = ({ refreshKey }: { refreshKey?: number }) => {
             <div style={{ color: "red" }}>Error: {errorCounts}</div>
           ) : (
             <>
-              <Typography variant="body2"><b>Mode 1 (Cloud MR AWS)</b>: {counts.mode_1}</Typography>
+              <Typography variant="body2">Mode 1 (Cloud MR AWS): {counts.mode_1}</Typography>
               {counts.mode_2 !== null && counts.mode_2 > 0 && (
-                <Typography variant="body2"><b>Mode 2</b>: {counts.mode_2}</Typography>
+                <Typography variant="body2">Mode 2: {counts.mode_2}</Typography>
               )}
             </>
           )}

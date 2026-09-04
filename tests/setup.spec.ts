@@ -34,15 +34,16 @@ async function selectAnalysisMethod(page: Page, name: string) {
   // toBeChecked() is unreliable because both analysis and reconstruction RadioGroups share the same
   // HTML name="row-radio-buttons-group", causing browser-level conflicts. Use a proxy instead
   // based on which reconstruction options appear for each analysis method (no noise file in tests):
-  //   Analytic (0)            → RSS / B1 Weighted / SENSE only  — GRAPPA & ESPIRIT hidden
-  //   Multiple Replica (1)    → RSS + disabled ESPIRIT only (with or without noise file)
+  //   Analytic (0)            → RSS / B1 Weighted / SENSE only  — GRAPPA hidden
+  //   Multiple Replica (1)    → RSS only
   //   Pseudo Multi Replica (2) → full set including GRAPPA
   //   Generalized PR (3)      → full set including GRAPPA
   if (name === "Analytic Method") {
     await expect(page.getByRole("radio", { name: "GRAPPA" })).not.toBeVisible({ timeout: 5000 });
   } else if (name === "Multiple Replica") {
-    // ESPIRIT appears for Multiple Replica (disabled) but NOT for Analytic
-    await expect(page.getByRole("radio", { name: "ESPIRIT" }).first()).toBeVisible({ timeout: 5000 });
+    // RSS is shown; B1 Weighted is not (Analytic does show B1 Weighted)
+    await expect(page.getByRole("radio", { name: "Root Sum of Squares" }).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("radio", { name: "B1 Weighted" })).not.toBeVisible();
   } else {
     // PMR and GPR always render the full set — GRAPPA is the distinguishing element
     await expect(page.getByRole("radio", { name: "GRAPPA" }).first()).toBeVisible({ timeout: 5000 });
@@ -555,7 +556,7 @@ test.describe("Setup page - comprehensive validation", () => {
     });
 
     // topToSecondaryMaps[0] = [0,1,2] → only RSS, B1 Weighted, SENSE shown
-    test("shows RSS, B1 Weighted, SENSE - GRAPPA and ESPIRIT are not rendered", async ({
+    test("shows RSS, B1 Weighted, SENSE - GRAPPA is not rendered", async ({
       page,
     }) => {
       // These panels are open after selectAnalysisMethod, so getByRole("radio") is safe here
@@ -1275,7 +1276,7 @@ test.describe("Setup page - comprehensive validation", () => {
       await selectAnalysisMethod(page, "Multiple Replica");
     });
 
-    test("only RSS and disabled ESPIRIT — B1/SENSE/GRAPPA never shown (even without noise)", async ({
+    test("only RSS — B1/SENSE/GRAPPA never shown (even without noise)", async ({
       page,
     }) => {
       // RSS should be visible and enabled
@@ -1293,12 +1294,9 @@ test.describe("Setup page - comprehensive validation", () => {
       await expect(
         page.getByRole("radio", { name: "GRAPPA" }),
       ).not.toBeVisible();
-
-      // ESPIRIT may appear but must be disabled
-      const espirit = page.getByRole("radio", { name: "ESPIRIT" });
-      if (await espirit.isVisible()) {
-        await expect(espirit).toBeDisabled();
-      }
+      await expect(
+        page.getByRole("radio", { name: "ESPIRIT" }),
+      ).not.toBeVisible();
     });
 
     test("RSS has same config as Analytic RSS — No Flip Angle, Save .mat, no Coil Sensitivities, no g Factor", async ({
@@ -1445,12 +1443,7 @@ test.describe("Setup page - comprehensive validation", () => {
       ).toBeVisible();
       await expect(page.getByRole("radio", { name: "SENSE" })).toBeVisible();
       await expect(page.getByRole("radio", { name: "GRAPPA" })).toBeVisible();
-
-      // ESPIRIT exists but is always disabled
-      const espirit = page.getByRole("radio", { name: "ESPIRIT" });
-      if (await espirit.isVisible()) {
-        await expect(espirit).toBeDisabled();
-      }
+      await expect(page.getByRole("radio", { name: "ESPIRIT" })).not.toBeVisible();
     });
 
     // -- RSS (PMR) --
