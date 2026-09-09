@@ -58,7 +58,10 @@ Resources:
           - "stable"
           - "dev"
       CustomRules:
-        - Source: "/websignin/"
+        - Source: "/websignin"
+          Status: "200"
+          Target: "/index.html"
+        - Source: "/websignin/<*>"
           Status: "200"
           Target: "/index.html"
         - Source: "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|woff|woff2|ttf|map|json|webp)$)([^.]+$)/>"

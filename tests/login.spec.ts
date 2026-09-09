@@ -22,16 +22,13 @@ test.describe("Login flow", () => {
   test("shows an error for invalid credentials", async ({ page }) => {
     const invalidCredentials = getInvalidLoginCredentials();
 
-    test.skip(
-      !invalidCredentials,
-      "Set E2E_INVALID_EMAIL and E2E_INVALID_PASSWORD to enable the optional invalid-login check.",
-    );
-
     await openLoginPage(page);
-    await fillLoginForm(page, invalidCredentials!);
+    await fillLoginForm(page, invalidCredentials);
     await page.getByRole("button", { name: /^sign in$/i }).click();
 
     await expect(page).toHaveURL(/\/login(?:\/)?(?:[?#].*)?$/);
-    await expect(page.getByRole("alert")).toBeVisible();
+    const alert = page.getByRole("alert");
+    await expect(alert).toBeVisible({ timeout: 15000 });
+    await expect(alert).toContainText(/user not found|sign in failed|invalid|incorrect|unauthorized|credentials|password|email/i);
   });
 });

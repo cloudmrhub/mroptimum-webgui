@@ -18,7 +18,22 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
+    include: [
+      'react',
+      'react-dom',
+      '@emotion/react',
+      '@emotion/styled',
+      'prop-types',
+      '@mui/material',
+      '@mui/material/styles',
+      '@mui/system',
+      '@mui/styled-engine',
+      '@mui/icons-material/Replay',
+      '@mui/icons-material/GetApp',
+      '@mui/icons-material/PlayArrow',
+      '@mui/icons-material/Delete',
+      'jszip',
+    ],
   },
   css: {
     preprocessorOptions: {

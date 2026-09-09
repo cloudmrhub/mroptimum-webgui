@@ -1,12 +1,16 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./Results.scss";
-import { CmrTable, CmrCollapse, CmrPanel } from "cloudmr-ux";
+import { CmrTable, CmrCollapse, CmrPanel, CloudMrNiivueViewer as NiiVue, nv } from "cloudmr-ux";
 import { useAppDispatch, useAppSelector } from "../../features/hooks";
+import { useStore } from "react-redux";
+import type { RootState } from "../../features/store";
 import IconButton from "@mui/material/IconButton";
 import GetAppIcon from "@mui/icons-material/GetApp";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import NiiVue, { nv } from "../../common/components/Niivue";
 import { Job } from "cloudmr-ux/core/features/jobs/jobsSlice";
+
+/** Pipeline list may include computing-unit fields not yet on the published Job type. */
+type ResultJob = Job & { mode?: string };
 import { getUpstreamJobs, uploadJob } from "cloudmr-ux/core/features/jobs/jobActionCreation";
 import {
   uploadData,
@@ -17,7 +21,7 @@ import {
   loadResult,
 } from "cloudmr-ux/core/features/rois/resultActionCreation";
 import { resultActions } from "../../features/rois/resultSlice";
-import { ROI } from "cloudmr-ux/core/features/rois/roiTypes";
+// import { ROI } from "cloudmr-ux/core/features/rois/roiTypes";
 import {
   Alert,
   Button,
@@ -37,9 +41,14 @@ import { deleteUpstreamJob } from "cloudmr-ux/core/features/jobs/jobActionCreati
 import { uploadHandlerFactory } from "cloudmr-ux/core/common/utilities/SystemUtilities";
 import { CmrEditConfirmation } from "cloudmr-ux";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ReplayIcon from "@mui/icons-material/Replay";
 import Tooltip from "@mui/material/Tooltip";
+import { retryFailedJob, downloadJobResultFiles, fetchJobLogSources, loadJobSetupFromResult } from "./retryFailedJob";
 
 import { CmrConfirmation } from "cloudmr-ux";
+
+import { ROI_DELETE } from "../../Variables";
 
 export interface NiiFile {
   filename: string;
@@ -80,7 +89,19 @@ function nvClearAllVolumes() {
   }
 }
 
+const LOGS_PANEL_ID = "view-logs-and-errors";
+
 const WEBGL_UNREADY = /unable to get WebGL|doesn't support WebGL2/i;
+
+function scrollToLogsPanel() {
+  const el =
+    document.querySelector<HTMLElement>(".view-logs-and-errors") ??
+    document.getElementById(LOGS_PANEL_ID);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const top = el.getBoundingClientRect().top + window.scrollY - 80;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
 
 /**
  * `loadResult`'s `.then` runs in a microtask before React commits, so `loadVolumes` can run while
@@ -124,6 +145,7 @@ function viewerOpenErrorMessage(e: unknown): string {
 
 const Results = ({ visible }: { visible?: boolean }) => {
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
   const { accessToken, queueToken } = useAppSelector(
     (state) => state.authenticate,
   );
@@ -153,7 +175,28 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const [warning, setWarning] = useState("");
   const [warningOpen, setWarningOpen] = useState(false);
 
-  const [showingLogs, setShowingLogs] = useState(false);
+  const [logJobAlias, setLogJobAlias] = useState<string | undefined>(undefined);
+  const [errorTxt, setErrorTxt] = useState<string | undefined>(undefined);
+  const [errorTxtMissing, setErrorTxtMissing] = useState(false);
+  const [infoLogText, setInfoLogText] = useState<string | undefined>(undefined);
+  const [infoLogMissing, setInfoLogMissing] = useState(false);
+  const [logsLoadingJobId, setLogsLoadingJobId] = useState<number | undefined>(undefined);
+  const logsRequestIdRef = useRef(0);
+
+  const clearLogsPanel = () => {
+    logsRequestIdRef.current += 1;
+    setLogsLoadingJobId(undefined);
+    setLogJobAlias(undefined);
+    setErrorTxt(undefined);
+    setErrorTxtMissing(false);
+    setInfoLogText(undefined);
+    setInfoLogMissing(false);
+  };
+
+  // Only present after the failed-job eye icon is clicked; hidden for completed jobs.
+  const logsPanelVisible =
+    logJobAlias != null || logsLoadingJobId != null;
+  const showViewerPanel = !logsPanelVisible;
 
   const [name, setName] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState<string | undefined>(undefined);
@@ -161,6 +204,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [confirmCallbackjob, setConfirmCallbackjob] = useState<() => void>(() => { });
   const [cancelCallbackjob, setCancelCallbackjob] = useState<() => void>(() => { });
+  const [retryingJobId, setRetryingJobId] = useState<number | undefined>(undefined);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -218,25 +262,40 @@ const Results = ({ visible }: { visible?: boolean }) => {
       headerName: "Alias",
       dataIndex: "alias",
       field: "alias",
-      flex: 2,
+      flex: 1,
     },
     {
       headerName: "Date Submitted",
       dataIndex: "createdAt",
       field: "createdAt",
-      flex: 2,
+      flex: 1,
+      width: 170,
     },
     {
       headerName: "Status",
       dataIndex: "status",
       field: "status",
+      flex: 0.5,
+      width: 100,
+    },
+    {
+      headerName: "Computing Unit",
+      field: "mode",
       flex: 1,
+      minWidth: 170,
+      valueGetter: (params: { row: ResultJob }) => {
+        const mode = params.row.mode;
+        if (!mode) return "-";
+        if (mode === "mode_1") return "Mode 1 (Cloud MR AWS)";
+        if (mode === "mode_2") return "Mode 2";
+        return mode;
+      },
     },
     {
       field: "action",
       headerName: "Actions",
       sortable: false,
-      width: 256,
+      width: 320,
       disableClickEventBubbling: true,
       renderCell: (params: { row: Job }) => {
         return (
@@ -244,9 +303,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
             {params.row.status !== "failed" && (
               <Tooltip title={`View job ${params.row.alias}`}>
                 <IconButton
-                  disabled={params.row.status === "pending"}
+                  disabled={params.row.status === "pending" || params.row.status === "queued"}
                   onClick={(event) => {
                     event.stopPropagation();
+                    // Play starts a completed-job viewing session: drop any
+                    // leftover failed-job logs so this panel is not confusing.
+                    clearLogsPanel();
                     if (params.row.pipeline_id === activeJob?.pipeline_id) {
                       setOpenPanel([1, 2]);
                       return;
@@ -285,7 +347,8 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   }}
                 >
                   {resultLoading === params.row.id ||
-                    params.row.status === "pending" ? (
+                    params.row.status === "pending" ||
+                    params.row.status === "queued" ? (
                     <div
                       className="spinner-border spinner-border-sm"
                       style={{ aspectRatio: "1 / 1" }}
@@ -307,30 +370,143 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 </IconButton>
               </Tooltip>
             )}
-            {params.row.status === "completed" && (
+            {params.row.status === "failed" && (
+              <Tooltip title={`View logs for job ${params.row.alias}`}>
+                <span>
+                  <IconButton
+                    aria-label={`View logs for job ${params.row.alias}`}
+                    disabled={logsLoadingJobId === params.row.id}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      nvClearAllVolumes();
+                      const requestId = ++logsRequestIdRef.current;
+                      setLogsLoadingJobId(params.row.id);
+                      setLogJobAlias(params.row.alias);
+                      setErrorTxt(undefined);
+                      setErrorTxtMissing(false);
+                      setInfoLogText(undefined);
+                      setInfoLogMissing(false);
+                      // Hide the viewer; keep Job Results, Settings, and Logs open.
+                      setOpenPanel([0, 2, 3]);
+                      window.setTimeout(scrollToLogsPanel, 50);
+                      window.setTimeout(scrollToLogsPanel, 400);
+                      try {
+                        const [sources, setup] = await Promise.all([
+                          fetchJobLogSources(params.row),
+                          loadJobSetupFromResult(params.row),
+                        ]);
+                        if (requestId !== logsRequestIdRef.current) return;
+                        if (setup) {
+                          dispatch(
+                            resultActions.setPipelineID({
+                              ...params.row,
+                              setup: {
+                                alias: params.row.alias ?? "-",
+                                version: "v0",
+                                task: setup.task,
+                              },
+                              slices: setup.slices ?? params.row.slices,
+                            }),
+                          );
+                        } else {
+                          dispatch(resultActions.setPipelineID(params.row));
+                        }
+                        setErrorTxt(sources.errorTxt);
+                        setErrorTxtMissing(sources.errorTxt == null);
+                        setInfoLogText(sources.infoLogText);
+                        setInfoLogMissing(sources.infoLogText == null);
+                        window.setTimeout(scrollToLogsPanel, 50);
+                      } catch (err) {
+                        if (requestId !== logsRequestIdRef.current) return;
+                        console.error(err);
+                        setErrorTxtMissing(true);
+                        setInfoLogMissing(true);
+                        warn("Could not load logs for this job.");
+                      } finally {
+                        if (requestId === logsRequestIdRef.current) {
+                          setLogsLoadingJobId(undefined);
+                        }
+                      }
+                    }}
+                  >
+                    {logsLoadingJobId === params.row.id ? (
+                      <div
+                        className="spinner-border spinner-border-sm"
+                        style={{ aspectRatio: "1 / 1" }}
+                        role="status"
+                      />
+                    ) : (
+                      <VisibilityIcon
+                        sx={{
+                          color: "#580f8b",
+                          "&:hover": {
+                            color: "#390063",
+                          },
+                        }}
+                      />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+            {(params.row.status === "failed" || params.row.status === "completed") && (
+              <Tooltip title={`Rerun job ${params.row.alias}`}>
+                <IconButton
+                  aria-label={`Rerun job ${params.row.alias}`}
+                  disabled={retryingJobId === params.row.id}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    setRetryingJobId(params.row.id);
+                    try {
+                      await dispatch(getUploadedData());
+                      const loaded = await retryFailedJob(
+                        params.row,
+                        dispatch,
+                        store.getState().data.files,
+                      );
+                      if (!loaded) {
+                        warn(
+                          "Could not read this job's setup options from its result JSON.",
+                        );
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      warn(
+                        "Could not read this job's setup options from its result JSON.",
+                      );
+                    } finally {
+                      setRetryingJobId(undefined);
+                    }
+                  }}
+                >
+                  {retryingJobId === params.row.id ? (
+                    <div
+                      className="spinner-border spinner-border-sm"
+                      style={{ aspectRatio: "1 / 1" }}
+                      role="status"
+                    />
+                  ) : (
+                    <ReplayIcon
+                      sx={{
+                        color: "#580f8b",
+                        "&:hover": {
+                          color: "#390063",
+                        },
+                      }}
+                    />
+                  )}
+                </IconButton>
+              </Tooltip>
+            )}
+            {(params.row.status === "completed" ||
+              params.row.status === "failed") && (
               <Tooltip title={`Download job ${params.row.alias}`}>
                 <IconButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    params.row.files.forEach((file) => {
-                      let url = file.link;
-                      if (url === "unknown") return;
-                      // Create an anchor element
-                      const a = document.createElement("a");
-                      // Extract the file name from the URL, if possible
-                      a.download = `${file.fileName}.${url.split(".").pop()}`;
-                      a.href = url;
-                      // Append the anchor to the body (this is necessary to programmatically trigger the click event)
-                      document.body.appendChild(a);
-
-                      // Trigger a click event to start the download
-                      a.click();
-
-                      // Remove the anchor from the body
-                      document.body.removeChild(a);
-                    });
-
-                  }}>
+                    downloadJobResultFiles(params.row);
+                  }}
+                >
                   <GetAppIcon />
                 </IconButton>
               </Tooltip>
@@ -500,12 +676,13 @@ const Results = ({ visible }: { visible?: boolean }) => {
           <Row
             style={{
               alignItems: "center",
-              justifyContent: "flex-start",
+              justifyContent: "space-between",
+              width: "100%",
               marginBottom: "20px",
             }}
           >
             {/* temporarily disabled for beta testing */}
-            {/* <CMRUpload
+            <CMRUpload
               style={{ marginTop: "auto", marginBottom: "auto" }}
               uploadButtonName={"Upload Results"}
               maxCount={1}
@@ -540,7 +717,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               )}
             >
               Upload Results
-            </CMRUpload> */}
+            </CMRUpload>
             <CmrCheckbox
               defaultChecked={true}
               onChange={(e) => {
@@ -572,10 +749,9 @@ const Results = ({ visible }: { visible?: boolean }) => {
               />
             )}
           </Button>
-          {showingLogs && <Logs />}
         </CmrPanel>
         <CmrPanel
-          className={"mb-2"}
+          className={`mb-2${showViewerPanel ? "" : " d-none"}`}
           header={
             activeJobAlias !== undefined
               ? `Viewing ${activeJobAlias}`
@@ -583,7 +759,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
           }
           key={"1"}
         >
-          {activeJob !== undefined && (
+          {showViewerPanel && activeJob !== undefined && activeJob.status !== "failed" && (
             <NiiVue
               niis={niis || []}
               warn={warn}
@@ -596,6 +772,7 @@ const Results = ({ visible }: { visible?: boolean }) => {
               key={pipelineID}
               rois={rois || []}
               pipelineID={pipelineID}
+              sliceCount={activeJob?.slices}
               saveROICallback={() => {
                 if (pipelineID)
                   dispatch(
@@ -605,9 +782,26 @@ const Results = ({ visible }: { visible?: boolean }) => {
                   );
               }}
               accessToken={accessToken}
+              roiDeleteUrl={ROI_DELETE}
+              refreshPipelineRois={async () => {
+                if (pipelineID) {
+                  await dispatch(
+                    getPipelineROI({
+                      pipeline: pipelineID,
+                    }),
+                  );
+                }
+              }}
+              getPipelineRois={() =>
+                pipelineID
+                  ? store.getState().result.rois?.[pipelineID] ?? []
+                  : []
+              }
             />
           )}
-          {activeJob === undefined && (
+          {(!showViewerPanel ||
+            activeJob === undefined ||
+            activeJob.status === "failed") && (
             <Box
               sx={{
                 display: "flex",
@@ -615,12 +809,12 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 color: "rgba(0,0,0,0.4)",
               }}
             >
-              Please Select a Job Result
+              Please Select a Completed Job Result
             </Box>
           )}
         </CmrPanel>
-        <CmrPanel header={"Current Job Settings"} key={"2"}>
-          {activeJob?.status === "completed" ? (
+        <CmrPanel className={"mb-2"} header={"Current Job Settings"} key={"2"}>
+          {activeJob?.setup?.task ? (
             <SetupInspection />
           ) : (
             <Box
@@ -630,11 +824,32 @@ const Results = ({ visible }: { visible?: boolean }) => {
                 color: "rgba(0,0,0,0.4)",
               }}
             >
-              {!activeJob
-                ? "Please Select a Job Result"
-                : "Job is not completed"}
+              {logsLoadingJobId != null || resultLoading !== -1
+                ? "Loading job settings..."
+                : "Please Select a Job Result"}
             </Box>
           )}
+        </CmrPanel>
+        <CmrPanel
+          className={`mb-2 view-logs-and-errors${logsPanelVisible ? "" : " d-none"}`}
+          header={
+            logJobAlias
+              ? `Viewing Logs and Errors for ${logJobAlias}`
+              : "View Logs and Errors"
+          }
+          key={"3"}
+        >
+          <div
+            id={LOGS_PANEL_ID}
+            style={{ height: 0, scrollMarginTop: 80 }}
+          />
+          <Logs
+            loading={logsLoadingJobId != null}
+            errorText={errorTxt}
+            errorMissing={errorTxtMissing}
+            infoLogText={infoLogText}
+            infoMissing={infoLogMissing}
+          />
         </CmrPanel>
       </CmrCollapse>
       <div style={{ height: "69px" }}></div>

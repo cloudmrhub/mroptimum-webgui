@@ -1,46 +1,107 @@
-import {useAppSelector} from "../../features/hooks";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
+import { CmrLabel } from "cloudmr-ux";
 
-export const Logs = () => {
-    let logs = useAppSelector(state => state.result.activeJob?.logs);
+type LogsProps = {
+  loading?: boolean;
+  errorText?: string;
+  errorMissing?: boolean;
+  infoLogText?: string;
+  infoMissing?: boolean;
+};
 
-    if (logs !== undefined) {
-        return (
-            <Box
-                style={{
-                    width: '100%',
-                    height: '250pt',
-                    background: 'black',
-                    borderRadius: '5pt',
-                    marginTop: '30pt',
-                    overflow: 'auto',
-                    fontFamily: 'consolas',
-                    padding: '10pt'
-                }}
-            >
-                {logs.map((value, index) => {
-                    let logMessage = `${value.when}: ${value.what}`;
-                    const match = value.what.match(/'time': ([\d.]+),/);
-                    if (match) {
-                        const time = parseFloat(match[1]).toFixed(2);
-                        logMessage = `${value.when}: calculation time ${time} seconds`;
-                    }
+const logBoxSx = {
+  width: "100%",
+  maxHeight: "420px",
+  background: "black",
+  borderRadius: "5pt",
+  overflow: "auto",
+  fontFamily: "Consolas, Menlo, Monaco, monospace",
+  fontSize: "0.85rem",
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
+  color: "white",
+  padding: "10pt",
+  margin: 0,
+} as const;
 
-                    const maskMatch = value.what.match(/mask is\s*\[\s*\{([^}]+)\}/);
-                    if (maskMatch && maskMatch[1]) {
-                        const firstMethod = maskMatch[1].trim();
-                        logMessage = `${value.when}: mask is {${firstMethod}}`;
-                    }
-                    
-                    return (
-                        <Box key={index} style={{ color: 'white' }}>
-                            {logMessage}
-                        </Box>
-                    );
-                })}
-            </Box>
-        );
-    } else {
-        return null;
-    }
+function LogSection({
+  label,
+  text,
+  missing,
+  missingMessage,
+}: {
+  label: string;
+  text?: string;
+  missing?: boolean;
+  missingMessage: string;
+}) {
+  return (
+    <Box>
+      <CmrLabel style={{ color: "#580F8B", display: "block", marginBottom: 8 }}>
+        {label}
+      </CmrLabel>
+      {missing || text == null ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            color: "rgba(0,0,0,0.4)",
+            py: 1,
+          }}
+        >
+          {missingMessage}
+        </Box>
+      ) : (
+        <Box component="pre" sx={logBoxSx}>
+          {text.length > 0 ? text : "(empty)"}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+export const Logs = ({
+  loading,
+  errorText,
+  errorMissing,
+  infoLogText,
+  infoMissing,
+}: LogsProps) => {
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "120px",
+          color: "rgba(0,0,0,0.4)",
+          gap: 1,
+        }}
+      >
+        <CircularProgress size={22} />
+        Loading logs…
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      <LogSection
+        label="error.txt"
+        text={errorText}
+        missing={errorMissing}
+        missingMessage="No error.txt was found in this job's result files."
+      />
+      <Divider sx={{ my: 2 }} />
+      <LogSection
+        label="info.json"
+        text={infoLogText}
+        missing={infoMissing}
+        missingMessage="No log entries were found in info.json."
+      />
+    </Box>
+  );
 };

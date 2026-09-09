@@ -121,7 +121,7 @@ export const SetupInspection = () => {
             <List sx={{ py: 0 }}>
                 {/* Number of Slices */}
                 <Item>
-                    {label("Number of Slices:")} {slices}
+                    {label("Number of Slices:")} {slices ?? "N/A"}
                 </Item>
 
                 {/* SNR Analysis Method */}

@@ -183,12 +183,15 @@ All tests are located in the `tests/` directory and run with Playwright against 
 | Job table renders without console errors | No critical JS errors while table loads |
 | Completed job has Play, Download, Delete buttons | Action icons visible on completed rows |
 | Pending job has disabled play button | Shows spinner or disabled button |
+| Failed job has a view-logs eye button next to delete | Visibility icon only on failed rows |
+| Completed job does not show the view-logs eye button | No eye icon on completed rows |
+| Eye icon opens the View Logs and Errors panel | Panel expands after clicking the eye button |
 | Delete button opens confirmation dialog | Dialog with confirm/cancel appears; cancel closes it |
 
 ### View Results Panel
 | Test | What it checks |
 |------|---------------|
-| Shows "Please Select a Job Result" when empty | Default state message visible |
+| Shows "Please Select a Completed Job Result" when empty | Default state message visible |
 | NiiVue canvas renders when job is loaded | Canvas element visible after loading a job |
 | "Opened Volume" dropdown lists volumes | Dropdown opens without error |
 | "Orientation" dropdown has all 5 options | Axial, Coronal, Sagittal, Multi, 3D — each selectable |
@@ -210,7 +213,7 @@ All tests are located in the `tests/` directory and run with Playwright against 
 ### Current Job Settings Panel
 | Test | What it checks |
 |------|---------------|
-| Shows "Please Select a Job Result" when empty | Default state message visible |
+| Shows "Please Select a Completed Job Result" when empty | Default state message visible |
 | Displays Number of Slices label | Label visible after loading a job |
 | Displays SNR Analysis Method with value | Known method name is visible |
 | Displays Image Reconstruction Method with value | Known recon method name is visible |

@@ -2,17 +2,17 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import TextField from "@mui/material/TextField";
 import { CmrButton } from "cloudmr-ux";
-import { useState } from "react";
 
-export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, setAlias, editText = 'Keep Editing', queueText = 'Queue Job', developer }:
+export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias: _suggestedAlias, setAlias, editText = 'Keep Editing', queueText = 'Queue Job', developer }:
     {
         previewContent: string, queue: (jobAlias: string) => void, edit: () => void, alias: string, setAlias: (event: ChangeEvent) => void, handleClose: () => void,
         editText?: string, queueText?: string, developer: boolean
     }) => {
 
+    // Start empty — do not auto-use the filename/default alias; user must enter a name.
     const [jobName, setJobName] = useState("");
 
     // Disallow spaces, comma, colon, percent, greater-than, less-than for Job Name
@@ -23,23 +23,29 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
 
     // live validation while typing
     const handleAliasChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setAliasError(false);
-        setAliasErrorText("");
-
         const v = event.target.value;
+        setJobName(v);
+        setAlias(event);
+
+        if (!v.trim()) {
+            setAliasError(true);
+            setAliasErrorText("Job name is required.");
+            return;
+        }
+
         if (INVALID_JOB_ALIAS_REGEX.test(v)) {
             setAliasError(true);
             setAliasErrorText("Job name contains spaces or invalid characters ( , : % > < )");
+            return;
         }
 
-        setJobName(v);     // keep local state in sync
-        setAlias(event);   // keep parent state in sync (your prop expects the event)
+        setAliasError(false);
+        setAliasErrorText("");
     };
 
-    // queue-time validation (also used to disable Queue until the name is valid)
+    // queue-time validation — only the user-entered field counts (no filename fallback)
     const handleQueueClick = async () => {
-        const raw = jobName || String(alias ?? "");
-        const candidate = raw.trim();
+        const candidate = jobName.trim();
 
         if (!candidate) {
             setAliasError(true);
@@ -47,8 +53,7 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
             return;
         }
 
-        // Test raw (not trimmed) so leading/trailing spaces match live validation
-        if (INVALID_JOB_ALIAS_REGEX.test(raw)) {
+        if (INVALID_JOB_ALIAS_REGEX.test(jobName)) {
             setAliasError(true);
             setAliasErrorText("Job name contains spaces or invalid characters ( , : % > < )");
             return;
@@ -58,24 +63,19 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         handleClose();
     };
 
-    const rawName = jobName || String(alias ?? "");
-    const candidate = rawName.trim();
-    const queueDisabled =
-        !candidate || INVALID_JOB_ALIAS_REGEX.test(rawName);
+    const candidate = jobName.trim();
+    const hasInvalidChars = INVALID_JOB_ALIAS_REGEX.test(jobName);
+    // Keep the button clickable when empty so "Job name is required." can show on click.
+    const queueDisabled = Boolean(candidate) && hasInvalidChars;
 
     return <Dialog open={true} onClose={handleClose} fullWidth={true}>
         <DialogTitle sx={{ ml: 2, mt: 2, mr: 2, p: 1 }}>Setup Preview</DialogTitle>
         <DialogContent sx={{ m: 2, mt: 0, mb: 1, p: 1 }} dividers>
-            {/* style={{overflowY:'hidden'}} */}
-            {/*<DialogContentText color={'#1976d2'}>*/}
-            {/*    The SNR JSON that will be submitted:*/}
-            {/*</DialogContentText>*/}
             {developer && <TextField
                 multiline
                 label={"The SNR JSON that will be submitted:"}
                 fullWidth
-                maxRows={15} // Adjust as needed
-                // sx={{height:'60vh'}}
+                maxRows={15}
                 style={{
                     overflowY: 'auto',
                     padding: '10pt',
@@ -83,26 +83,14 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
                 variant="standard"
                 value={previewContent}
                 InputProps={{
-                    disableUnderline: true, // <== added this
+                    disableUnderline: true,
                 }}
             />}
-            {/* <TextField
-                fullWidth
-                required
-                label="Set Job Name:"
-                placeholder={alias}
-                value={jobName}
-                variant="standard"
-                onChange={(e) => {
-                    setJobName(e.target.value);  // keep local state in sync
-                    setAlias(e);                 // keep parent state in sync
-                }}
-            /> */}
             <TextField
                 fullWidth
                 required
                 label="Set Job Name:"
-                placeholder={alias}
+                placeholder="Enter a job name"
                 value={jobName}
                 variant="standard"
                 onChange={handleAliasChange}
@@ -112,12 +100,10 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
         </DialogContent>
 
         <DialogActions sx={{ pt: 0, pl: 3, pr: 3 }}>
-            {/* {!developer && */}
             <CmrButton fullWidth variant={"outlined"} onClick={() => {
                 edit();
                 handleClose();
             }}>{editText}</CmrButton>
-            {/* } */}
 
             <CmrButton
                 variant={"contained"}
@@ -127,34 +113,6 @@ export const SNRPreview = ({ previewContent, queue, edit, handleClose, alias, se
             >
                 {queueText}
             </CmrButton>
-
         </DialogActions>
-
-        {/* {developer &&
-            <DialogActions sx={{ pl: 3, pr: 3 }}>
-                <CmrButton fullWidth variant={"outlined"} onClick={() => {
-                    edit();
-                    handleClose();
-                }}>{editText}</CmrButton>
-            </DialogActions>} */}
-
     </Dialog>;
-    // return <Dialog
-    //     sx={{ '& .MuiDialog-paper': { width: 'fit-content', maxHeight: 435 } }}
-    //     // maxWidth="xs"
-    //     open={props.previewContent!=undefined}
-    // >
-    //     <DialogTitle>Phone Ringtone</DialogTitle>
-    //     <DialogContent dividers>
-    //         <pre>
-    //         {props.previewContent}
-    //         </pre>
-    //     </DialogContent>
-    //     <DialogActions>
-    //         <Button autoFocus onClick={props.edit}>
-    //             Cancel
-    //         </Button>
-    //         <Button onClick={props.queue}>Ok</Button>
-    //     </DialogActions>
-    // </Dialog>;
 }

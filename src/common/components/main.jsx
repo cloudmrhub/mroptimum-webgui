@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { Container } from '@mui/material'
 import {CssBaseline} from '@mui/material'
 import './index.css'
-import NiiVue from './Niivue'
+import { CloudMrNiivueViewer as NiiVue } from 'cloudmr-ux'
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
