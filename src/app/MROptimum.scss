@@ -47,6 +47,17 @@ html, body {
   position: relative;
   overflow: hidden;
 }
+
+.cmr-root.cmr-root--login {
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+body.cmr-login-page {
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
+}
 .page-root {
   background-color: #f8fafc;
 }
