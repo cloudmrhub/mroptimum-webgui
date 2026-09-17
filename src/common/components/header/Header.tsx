@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
 import "./Header.scss";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Toolbar, Container } from "@mui/material";
 import logoUrl from "../../../assets/MR Optimum_final_white.png";
 interface MenuItem {
   path: string;
   title: string;
 }
+
+const isExternalPath = (path: string) => /^https?:\/\//.test(path);
 
 const Header = ({
   siteTitle,
@@ -21,26 +22,14 @@ const Header = ({
   handleLogout: () => void;
 }) => {
   const navigate = useNavigate();
-  const currPath = navigate.name;
-  const [menuSelect, setMenuSelect] = useState(siteTitle);
+  const { pathname } = useLocation();
+  const activeTitle = menuList.find(
+    (item) => !isExternalPath(item.path) && item.path === pathname,
+  )?.title;
 
-  useEffect(() => {
-    for (let item of menuList) {
-      // console.log(item.path);
-      // console.log(currPath);
-      if (item.path === currPath) setMenuSelect(item.title);
-    }
-  }, [currPath, menuList]);
-
-  const handleMenuChange = (info: MenuItem, navigate: any) => {
-    if (currPath === info.path) return;
+  const handleMenuChange = (info: MenuItem) => {
+    if (isExternalPath(info.path) || pathname === info.path) return;
     navigate(info.path);
-    for (let item of menuList) {
-      if (item.path === info.path) {
-        setMenuSelect(item.title);
-      }
-    }
-    return false;
   };
 
   return (
@@ -103,13 +92,17 @@ const Header = ({
             {/* Left Side Of Navbar */}
             <ul className="navbar-nav">
               {(menuList || []).map((menuItem) => {
+                const isExternal = isExternalPath(menuItem.path);
                 return (
                   <li
-                    className={`nav-item${menuItem.title === menuSelect ? " active" : ""}`}
+                    className={`nav-item${menuItem.title === activeTitle ? " active" : ""}`}
                     key={menuItem.path}
                   >
                     <a
                       className="nav-link"
+                      href={isExternal ? menuItem.path : undefined}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
                       style={{ cursor: "pointer" }}
                       onClick={(event) => {
                         switch (menuItem.title) {
@@ -120,8 +113,11 @@ const Header = ({
                             // window.location.href='https://github.com/cloudmrhub-com/mroptimum/issues';
                             return;
                         }
+                        if (isExternal) {
+                          return;
+                        }
                         event.preventDefault();
-                        handleMenuChange(menuItem, navigate);
+                        handleMenuChange(menuItem);
                       }}
                     >
                       {menuItem.title}

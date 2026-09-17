@@ -109,7 +109,7 @@ const MainRouterInner = () => {
 
   const menuList = [
     { title: 'About', path: '/about' },
-    // { title: 'Contact Us', path: '/contact' },
+    { title: 'Cloud MR', path: 'https://cmr.cloudmrhub.com/' },
     { title: 'Bug Report', path: '/bug-report' },
   ];
 
