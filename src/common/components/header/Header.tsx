@@ -142,7 +142,7 @@ const Header = ({
                     {email} <span className="caret"></span>
                   </button>
                   <ul
-                    className="dropdown-menu"
+                    className="dropdown-menu dropdown-menu-end"
                     aria-labelledby="dropdownMenuButton"
                   >
                     <li>
