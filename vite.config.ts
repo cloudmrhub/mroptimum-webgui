@@ -32,6 +32,7 @@ export default defineConfig({
       '@mui/icons-material/GetApp',
       '@mui/icons-material/PlayArrow',
       '@mui/icons-material/Delete',
+      '@mui/icons-material/Edit',
       'jszip',
     ],
   },

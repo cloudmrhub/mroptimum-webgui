@@ -4053,10 +4053,10 @@ cliui@^7.0.2:
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
 
-cloudmr-ux@6.2.1:
-  version "6.2.1"
-  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-6.2.1.tgz"
-  integrity sha512-QBhl5ckjjBc6N7DlKPneW7QPHSNv/hwILAUkmsWA1S4QUwZ35An7giqjA1r1ElNXUIrfB0r2uQTUJDWbcn92hA==
+cloudmr-ux@6.2.3:
+  version "6.2.3"
+  resolved "https://registry.npmjs.org/cloudmr-ux/-/cloudmr-ux-6.2.3.tgz"
+  integrity sha512-4jXCMgn2ZqEwYakPJQixV3K4DPcdcjW5erH89CzxJEdKxV1cl0y2v3wkPNr9xHVCiVQNLcJ7t18i4bSzK2zKbA==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-solid-svg-icons" "^6.7.2"
@@ -4365,9 +4365,9 @@ css-loader@^6.5.1:
     semver "^7.5.4"
 
 css-loader@^7.1.2:
-  version "7.1.4"
-  resolved "https://registry.npmjs.org/css-loader/-/css-loader-7.1.4.tgz"
-  integrity sha512-vv3J9tlOl04WjiMvHQI/9tmIrCxVrj6PFbHemBB1iihpeRbi/I4h033eoFIhwxBBqLhI0KYFS7yvynBFhIZfTw==
+  version "7.1.5"
+  resolved "https://registry.npmjs.org/css-loader/-/css-loader-7.1.5.tgz"
+  integrity sha512-Q7iAfQkU2twNBryKX/vGAlE+GAmkF7quhSzAGNK8fBimxk3+tqg245rH52UPb9dioBolBc8rP0ihmHBaDTJQBA==
   dependencies:
     icss-utils "^5.1.0"
     postcss "^8.4.40"
@@ -10075,9 +10075,9 @@ semver@^7.5.4:
   integrity sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==
 
 semver@^7.6.3:
-  version "7.8.4"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.8.4.tgz"
-  integrity sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==
+  version "7.8.5"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz"
+  integrity sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==
 
 send@~0.19.0, send@~0.19.1:
   version "0.19.2"
