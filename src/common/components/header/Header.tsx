@@ -1,10 +1,12 @@
 import "./Header.scss";
+import type { MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Toolbar, Container } from "@mui/material";
 import logoUrl from "../../../assets/MR Optimum_final_white.png";
 interface MenuItem {
   path: string;
   title: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 const isExternalPath = (path: string) => /^https?:\/\//.test(path);
@@ -105,6 +107,11 @@ const Header = ({
                       rel={isExternal ? "noopener noreferrer" : undefined}
                       style={{ cursor: "pointer" }}
                       onClick={(event) => {
+                        if (menuItem.onClick) {
+                          event.preventDefault();
+                          menuItem.onClick(event);
+                          return;
+                        }
                         switch (menuItem.title) {
                           case "Bug Report":
                             window.open(
